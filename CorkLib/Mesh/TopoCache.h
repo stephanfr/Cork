@@ -344,19 +344,7 @@ namespace Cork
 			m_data = newValue;
 		}
 
-#ifdef CORK_SSE
-		//	With SSE, the min/max functions and bounding box computation is quick enough that computing the
-		//		value every time is actually most efficient.
-
-		const Cork::Math::BBox3D	boundingBox() const
-		{
-			const Cork::Math::Vector3D& p0 = *( m_verts[0]->quantizedValue() );
-			const Cork::Math::Vector3D& p1 = *( m_verts[1]->quantizedValue() );
-			const Cork::Math::Vector3D& p2 = *( m_verts[2]->quantizedValue() );
-
-			return( Cork::Math::BBox3D( min( p0, p1, p2 ), max( p0, p1, p2 ) ));
-		}
-#else
+#ifndef CORK_SSE
 		//	Without SSE, the min/max computations as slow enough that caching the computed value is most efficient
 
 		const Cork::Math::BBox3D&	boundingBox() const
@@ -373,6 +361,18 @@ namespace Cork
 			const_cast<boost::optional<Cork::Math::BBox3D>&>(m_boundingBox).emplace( min( p0, p1, p2 ), max( p0, p1, p2 ) );
 
 			return( m_boundingBox.get() );
+		}
+#else
+		//	With SSE, the min/max functions and bounding box computation is quick enough that computing the
+		//		value every time is actually most efficient.
+
+		const Cork::Math::BBox3D	boundingBox() const
+		{
+			const Cork::Math::Vector3D& p0 = *( m_verts[0]->quantizedValue() );
+			const Cork::Math::Vector3D& p1 = *( m_verts[1]->quantizedValue() );
+			const Cork::Math::Vector3D& p2 = *( m_verts[2]->quantizedValue() );
+
+			return( Cork::Math::BBox3D( min( p0, p1, p2 ), max( p0, p1, p2 ) ));
 		}
 #endif
 
@@ -415,7 +415,7 @@ namespace Cork
 			m_verts[1]->triangles().insert( this );
 			m_verts[2]->triangles().insert( this );
 
-#ifdef CORK_SSE
+#ifndef CORK_SSE
 			m_boundingBox.reset();
 #endif
 		}

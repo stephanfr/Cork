@@ -187,5 +187,4 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
-Environment.props
 RegressionTest/error_log.txt
