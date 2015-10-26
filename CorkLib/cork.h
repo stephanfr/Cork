@@ -40,7 +40,7 @@
 #endif
 
 
-#include "Utility\Result.h"
+#include "Util\Result.h"
 
 #include "TriangleMesh.h"
 

@@ -30,7 +30,7 @@
 
 #include <boost\container\static_vector.hpp>
 
-#include "Utility\SparseVector.h"
+#include "..\Util\SparseVector.h"
 
 
 

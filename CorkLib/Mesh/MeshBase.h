@@ -31,7 +31,7 @@
 
 #include <boost\align\aligned_allocator.hpp>
 
-#include "Utility\AlignedUniquePtr.h"
+#include "..\Util\AlignedUniquePtr.h"
 
 #include "..\Math\Primitives.h"
 

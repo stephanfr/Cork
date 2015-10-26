@@ -161,7 +161,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>CORK_FLOAT_PRECISION;CORK_SSE;CORK_DEBUG;TRILIBRARY;_CRT_SECURE_NO_WARNINGS;CPU86;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);$(UTILITIES_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -185,7 +185,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>TRILIBRARY;_CRT_SECURE_NO_WARNINGS;CPU86;TRIANGLE_INTEL64;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);$(UTILITIES_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -209,7 +209,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>CORK_FLOAT_PRECISION;TRILIBRARY;_CRT_SECURE_NO_WARNINGS;CPU86;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);$(UTILITIES_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -239,7 +239,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>CORK_DOUBLE_PRECISION;TRILIBRARY;_CRT_SECURE_NO_WARNINGS;CPU86;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);$(UTILITIES_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -269,7 +269,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>CORK_FLOAT_PRECISION;CORK_SSE;TRILIBRARY;_CRT_SECURE_NO_WARNINGS;CPU86;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);$(UTILITIES_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -299,7 +299,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>TRILIBRARY;_CRT_SECURE_NO_WARNINGS;CPU86;CORK_FLOAT_PRECISION;TRIANGLE_INTEL64;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);$(UTILITIES_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -325,7 +325,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>TRILIBRARY;CPU86;TRIANGLE_INTEL64;_CRT_SECURE_NO_WARNINGS;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);$(UTILITIES_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>
@@ -351,7 +351,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>TRILIBRARY;_CRT_SECURE_NO_WARNINGS;CPU86;CORK_FLOAT_PRECISION;CORK_SSE;TRIANGLE_INTEL64;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);$(UTILITIES_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>

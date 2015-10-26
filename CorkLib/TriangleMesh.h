@@ -45,8 +45,8 @@
 #include <array>
 #include <vector>
 
-#include <Utility\Result.h>
-#include "Utility\AlignedUniquePtr.h"
+#include "Util\Result.h"
+#include "Util\AlignedUniquePtr.h"
 
 #include "Math\BoundingBox.h"
 

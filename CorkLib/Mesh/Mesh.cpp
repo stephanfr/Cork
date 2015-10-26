@@ -43,7 +43,7 @@
 #include "..\Util\unionFind.h"
 #include "..\Util\SystemStats.h"
 
-#include "Utility\CachingFactory.h"
+#include "..\Util\CachingFactory.h"
 
 #include <boost\timer\timer.hpp>
 

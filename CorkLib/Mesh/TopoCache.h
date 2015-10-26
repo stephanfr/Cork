@@ -37,8 +37,8 @@
 #include <boost\container\static_vector.hpp>
 #include <boost\container\small_vector.hpp>
 
-#include <Utility\AlignedUniquePtr.h>
-#include <Utility\SparseVector.h>
+#include "..\Util\AlignedUniquePtr.h"
+#include "..\Util\SparseVector.h"
 
 #include "..\Util\ManagedIntrusiveList.h"
 
