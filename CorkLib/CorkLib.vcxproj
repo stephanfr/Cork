@@ -397,12 +397,16 @@
     <ClInclude Include="Mesh\MeshBase.h" />
     <ClInclude Include="Statistics.h" />
     <ClInclude Include="Statistics\StatsImpl.h" />
+    <ClInclude Include="Util\AlignedUniquePtr.h" />
+    <ClInclude Include="Util\CachingFactory.h" />
     <ClInclude Include="Util\FastStack.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TriangleMesh.h" />
     <ClInclude Include="Util\ManagedIntrusiveList.h" />
     <ClInclude Include="Util\NonInitializingAllocator.h" />
     <ClInclude Include="Util\prelude.h" />
+    <ClInclude Include="Util\Result.h" />
+    <ClInclude Include="Util\SparseVector.h" />
     <ClInclude Include="Util\SystemStats.h" />
     <ClInclude Include="Util\ThreadingHelpers.h" />
     <ClInclude Include="Util\unionFind.h" />
