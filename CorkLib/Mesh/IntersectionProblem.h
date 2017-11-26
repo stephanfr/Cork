@@ -102,7 +102,7 @@ namespace Cork
 		public:
 
 			
-			typedef enum class IntersectionProblemResultCodes { SUCCESS = 0, SUBDIVIDE_FAILED, EXHAUSTED_PURTURBATION_RETRIES };
+			enum class IntersectionProblemResultCodes { SUCCESS = 0, SUBDIVIDE_FAILED, EXHAUSTED_PURTURBATION_RETRIES };
 
 			typedef SEFUtility::Result<IntersectionProblemResultCodes>		IntersectionProblemResult;
 

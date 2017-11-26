@@ -203,6 +203,10 @@
 //		resolve Win64 issues wherein unsigned long is not 64 bits
 //		in 64 bit windows.
 //
+//	I changed the printf variadic argument for uintptr_t to 'llx' to
+//		resolve the warnings of using the variadic for unsigned long when
+//		uintptr_t is actually a long long on x64.
+//
 //	Also, added a #define of 'Intel64' to signal a 64 bit build on an
 //		Intel platform so we don't call _control87.
 //
@@ -3689,27 +3693,27 @@ struct otri *t;
   struct osub printsh;
   vertex printvertex;
 
-  printf("triangle x%lx with orientation %d:\n", (uintptr_t) t->tri,
+  printf("triangle x%llx with orientation %d:\n", (uintptr_t) t->tri,
          t->orient);
   decode(t->tri[0], printtri);
   if (printtri.tri == m->dummytri) {
     printf("    [0] = Outer space\n");
   } else {
-    printf("    [0] = x%lx  %d\n", (uintptr_t) printtri.tri,
+    printf("    [0] = x%llx  %d\n", (uintptr_t) printtri.tri,
            printtri.orient);
   }
   decode(t->tri[1], printtri);
   if (printtri.tri == m->dummytri) {
     printf("    [1] = Outer space\n");
   } else {
-    printf("    [1] = x%lx  %d\n", (uintptr_t) printtri.tri,
+    printf("    [1] = x%llx  %d\n", (uintptr_t) printtri.tri,
            printtri.orient);
   }
   decode(t->tri[2], printtri);
   if (printtri.tri == m->dummytri) {
     printf("    [2] = Outer space\n");
   } else {
-    printf("    [2] = x%lx  %d\n", (uintptr_t) printtri.tri,
+    printf("    [2] = x%llx  %d\n", (uintptr_t) printtri.tri,
            printtri.orient);
   }
 
@@ -3717,38 +3721,38 @@ struct otri *t;
   if (printvertex == (vertex) NULL)
     printf("    Origin[%d] = NULL\n", (t->orient + 1) % 3 + 3);
   else
-    printf("    Origin[%d] = x%lx  (%.12g, %.12g)\n",
+    printf("    Origin[%d] = x%llx  (%.12g, %.12g)\n",
            (t->orient + 1) % 3 + 3, (uintptr_t) printvertex,
            printvertex[0], printvertex[1]);
   dest(*t, printvertex);
   if (printvertex == (vertex) NULL)
     printf("    Dest  [%d] = NULL\n", (t->orient + 2) % 3 + 3);
   else
-    printf("    Dest  [%d] = x%lx  (%.12g, %.12g)\n",
+    printf("    Dest  [%d] = x%llx  (%.12g, %.12g)\n",
            (t->orient + 2) % 3 + 3, (uintptr_t) printvertex,
            printvertex[0], printvertex[1]);
   apex(*t, printvertex);
   if (printvertex == (vertex) NULL)
     printf("    Apex  [%d] = NULL\n", t->orient + 3);
   else
-    printf("    Apex  [%d] = x%lx  (%.12g, %.12g)\n",
+    printf("    Apex  [%d] = x%llx  (%.12g, %.12g)\n",
            t->orient + 3, (uintptr_t) printvertex,
            printvertex[0], printvertex[1]);
 
   if (b->usesegments) {
     sdecode(t->tri[6], printsh);
     if (printsh.ss != m->dummysub) {
-      printf("    [6] = x%lx  %d\n", (uintptr_t) printsh.ss,
+      printf("    [6] = x%llx  %d\n", (uintptr_t) printsh.ss,
              printsh.ssorient);
     }
     sdecode(t->tri[7], printsh);
     if (printsh.ss != m->dummysub) {
-      printf("    [7] = x%lx  %d\n", (uintptr_t) printsh.ss,
+      printf("    [7] = x%llx  %d\n", (uintptr_t) printsh.ss,
              printsh.ssorient);
     }
     sdecode(t->tri[8], printsh);
     if (printsh.ss != m->dummysub) {
-      printf("    [8] = x%lx  %d\n", (uintptr_t) printsh.ss,
+      printf("    [8] = x%llx  %d\n", (uintptr_t) printsh.ss,
              printsh.ssorient);
     }
   }
@@ -3783,20 +3787,20 @@ struct osub *s;
   struct otri printtri;
   vertex printvertex;
 
-  printf("subsegment x%lx with orientation %d and mark %d:\n",
+  printf("subsegment x%llx with orientation %d and mark %d:\n",
          (uintptr_t) s->ss, s->ssorient, mark(*s));
   sdecode(s->ss[0], printsh);
   if (printsh.ss == m->dummysub) {
     printf("    [0] = No subsegment\n");
   } else {
-    printf("    [0] = x%lx  %d\n", (uintptr_t) printsh.ss,
+    printf("    [0] = x%llx  %d\n", (uintptr_t) printsh.ss,
            printsh.ssorient);
   }
   sdecode(s->ss[1], printsh);
   if (printsh.ss == m->dummysub) {
     printf("    [1] = No subsegment\n");
   } else {
-    printf("    [1] = x%lx  %d\n", (uintptr_t) printsh.ss,
+    printf("    [1] = x%llx  %d\n", (uintptr_t) printsh.ss,
            printsh.ssorient);
   }
 
@@ -3804,14 +3808,14 @@ struct osub *s;
   if (printvertex == (vertex) NULL)
     printf("    Origin[%d] = NULL\n", 2 + s->ssorient);
   else
-    printf("    Origin[%d] = x%lx  (%.12g, %.12g)\n",
+    printf("    Origin[%d] = x%llx  (%.12g, %.12g)\n",
            2 + s->ssorient, (uintptr_t) printvertex,
            printvertex[0], printvertex[1]);
   sdest(*s, printvertex);
   if (printvertex == (vertex) NULL)
     printf("    Dest  [%d] = NULL\n", 3 - s->ssorient);
   else
-    printf("    Dest  [%d] = x%lx  (%.12g, %.12g)\n",
+    printf("    Dest  [%d] = x%llx  (%.12g, %.12g)\n",
            3 - s->ssorient, (uintptr_t) printvertex,
            printvertex[0], printvertex[1]);
 
@@ -3819,14 +3823,14 @@ struct osub *s;
   if (printtri.tri == m->dummytri) {
     printf("    [6] = Outer space\n");
   } else {
-    printf("    [6] = x%lx  %d\n", (uintptr_t) printtri.tri,
+    printf("    [6] = x%llx  %d\n", (uintptr_t) printtri.tri,
            printtri.orient);
   }
   decode(s->ss[7], printtri);
   if (printtri.tri == m->dummytri) {
     printf("    [7] = Outer space\n");
   } else {
-    printf("    [7] = x%lx  %d\n", (uintptr_t) printtri.tri,
+    printf("    [7] = x%llx  %d\n", (uintptr_t) printtri.tri,
            printtri.orient);
   }
 
@@ -3834,14 +3838,14 @@ struct osub *s;
   if (printvertex == (vertex) NULL)
     printf("    Segment origin[%d] = NULL\n", 4 + s->ssorient);
   else
-    printf("    Segment origin[%d] = x%lx  (%.12g, %.12g)\n",
+    printf("    Segment origin[%d] = x%llx  (%.12g, %.12g)\n",
            4 + s->ssorient, (uintptr_t) printvertex,
            printvertex[0], printvertex[1]);
   segdest(*s, printvertex);
   if (printvertex == (vertex) NULL)
     printf("    Segment dest  [%d] = NULL\n", 5 - s->ssorient);
   else
-    printf("    Segment dest  [%d] = x%lx  (%.12g, %.12g)\n",
+    printf("    Segment dest  [%d] = x%llx  (%.12g, %.12g)\n",
            5 - s->ssorient, (uintptr_t) printvertex,
            printvertex[0], printvertex[1]);
 }
@@ -6967,7 +6971,7 @@ struct badtriang *badtri;
     length *= multiplier;
   }
   /* `length' is approximately squareroot(2.0) to what exponent? */
-  exponent = 2.0 * exponent + (length > SQUAREROOTTWO);
+  exponent = (int)( 2.0 * exponent + (length > SQUAREROOTTWO));
   /* `exponent' is now in the range 0...2047 for IEEE double precision.   */
   /*   Choose a queue in the range 0...4095.  The shortest edges have the */
   /*   highest priority (queue 4095).                                     */

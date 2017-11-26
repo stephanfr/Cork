@@ -52,7 +52,7 @@ namespace Cork
 		{
 		public :
 
-			typedef enum PropertiesToCompute
+			enum PropertiesToCompute
 			{
 				ALL = 0xFFFF,
 				AREA_AND_VOLUME = 2,
@@ -288,7 +288,7 @@ namespace Cork
 
 				struct HashFunction
 				{
-					std::size_t operator()(const Cork::Math::EdgeBase& k) 
+					std::size_t operator()(const Cork::Math::EdgeBase& k) const
 					{
 					return ( k.vertexA() * 10000019 ^ k.vertexB() );
 					}

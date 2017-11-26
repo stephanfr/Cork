@@ -120,7 +120,7 @@ namespace Cork
 		struct Vertex3DMapCompare
 		{
 			bool operator ()( const Vertex3D&		vertex1,
-							  const Vertex3D&		vertex2 )
+							  const Vertex3D&		vertex2 ) const
 			{
 				//	Equality is by x, then y and finally z
 

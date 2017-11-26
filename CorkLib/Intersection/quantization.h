@@ -42,9 +42,10 @@ namespace Quantization
 	extern double MAGNIFY;
 	extern double RESHRINK;
 
+#ifdef CORK_SSE
 	extern __m128	MAGNIFY_SSE;
 	extern __m128	RESHRINK_SSE;
-
+#endif
 
 	inline
 	int quantize2int(double number)
@@ -106,7 +107,7 @@ namespace Quantization
 		
 		// we are guaranteed that maximumMagnitude * MAGNIFY < 2.0^BITS
 		RESHRINK = std::pow(2.0, max_exponent - BITS);
-
+#ifdef CORK_SSE
 		{
 			float	magnify = (float)MAGNIFY;
 			float	reshrink = (float)RESHRINK;
@@ -114,6 +115,7 @@ namespace Quantization
 			MAGNIFY_SSE = _mm_load_ps1( &magnify );
 			RESHRINK_SSE = _mm_load_ps1( &reshrink );
 		}
+#endif
 	}
 
 } // end namespace Quantization

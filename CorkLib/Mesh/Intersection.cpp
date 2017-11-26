@@ -1375,8 +1375,8 @@ namespace Cork
 
 
 			
-			typedef enum SubdivideResultCodes { SUCCESS = 0,
-												TRIANGULATE_OUT_POINT_COUNT_UNEQUAL_TO_IN_POINT_COUNT };
+			enum SubdivideResultCodes { SUCCESS = 0,
+										TRIANGULATE_OUT_POINT_COUNT_UNEQUAL_TO_IN_POINT_COUNT };
 
 			typedef SEFUtility::Result<SubdivideResultCodes>		SubdivideResult;
 
@@ -1688,7 +1688,7 @@ namespace Cork
 				m_genericTriPointerPool.reserve(100000);
 			}
 
-			virtual ~IntersectionProblemWorkspace()
+			virtual ~IntersectionProblemWorkspace() noexcept
 			{};
 
 

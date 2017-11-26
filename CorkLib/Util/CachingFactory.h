@@ -54,7 +54,7 @@ public :
 	typedef boost::ptr_list<T>										CacheType;
 	typedef std::unique_ptr<T, decltype(&CacheInstance)>			UniquePtr;
 
-	typedef enum class CacheOrDestroy { CACHE, DESTROY };
+	enum class CacheOrDestroy { CACHE, DESTROY };
 
 
 	static UniquePtr			GetInstance( CacheOrDestroy		cacheOrDestroy = CacheOrDestroy::CACHE )

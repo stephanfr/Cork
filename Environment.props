@@ -2,10 +2,10 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <BOOST_PATH>C:\Users\Steve\Documents\Third Party\boost\boost_1_58_0</BOOST_PATH>
-    <MPIR_PATH>C:\Users\Steve\Documents\Third Party\MPIR\mpir-2.6.0</MPIR_PATH>
-    <CORKLIB_PATH>C:\Users\Steve\Documents\GitHub\Cork\CorkLib</CORKLIB_PATH>
-    <TBB_PATH>C:\Users\Steve\Documents\Third Party\TBB\tbb44_20150728oss</TBB_PATH>
+    <BOOST_PATH>C:\Users\steve\Documents\Boost\boost_1_65_1</BOOST_PATH>
+    <MPIR_PATH>C:\Users\steve\Documents\MPIR\mpir-2.7.2</MPIR_PATH>
+    <CORKLIB_PATH>C:\Users\steve\source\repos\Cork\CorkLib</CORKLIB_PATH>
+    <TBB_PATH>C:\Users\steve\Documents\TBB\tbb2017_20170807oss</TBB_PATH>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />

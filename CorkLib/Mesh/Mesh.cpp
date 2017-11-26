@@ -45,6 +45,7 @@
 
 #include "..\Util\CachingFactory.h"
 
+#include <boost\chrono\chrono.hpp>			//	Had to include when I upgraded to boost 65 - on windows is griped about a missing library
 #include <boost\timer\timer.hpp>
 
 
@@ -137,10 +138,10 @@ namespace Cork
 		enum class TriCode { KEEP_TRI, DELETE_TRI, FLIP_TRI };
 
 
-		typedef enum class SetupBooleanProblemResultCodes { SUCCESS = 0,
-															TOO_MANY_TRIANGLES_IN_DISJOINT_UNION,
-															PURTURBATION_EPSILON_UNDERFLOW,
-															RESOLVE_INTERSECTIONS_FAILED };
+		enum class SetupBooleanProblemResultCodes { SUCCESS = 0,
+													TOO_MANY_TRIANGLES_IN_DISJOINT_UNION,
+													PURTURBATION_EPSILON_UNDERFLOW,
+													RESOLVE_INTERSECTIONS_FAILED };
 
 		typedef SEFUtility::Result<SetupBooleanProblemResultCodes>		SetupBooleanProblemResult;
 

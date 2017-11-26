@@ -270,7 +270,7 @@ namespace Cork
 
 
 		
-		typedef enum class IntersectionType { SELF_INTERSECTION = 0, BOOLEAN_INTERSECTION };
+		enum class IntersectionType { SELF_INTERSECTION = 0, BOOLEAN_INTERSECTION };
 
 
 		class AxisAlignedBoundingVolumeHierarchy : public boost::noncopyable
