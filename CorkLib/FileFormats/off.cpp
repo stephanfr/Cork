@@ -180,7 +180,7 @@ namespace Cork
 
 			//	Set the numeric precision
 
-			out.precision( 10 );
+			out.precision( 20 );
 
 			//	We will be writing in 'OFF' format, no color information.  Write the format label first.
 
