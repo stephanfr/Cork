@@ -207,7 +207,7 @@
 //		resolve the warnings of using the variadic for unsigned long when
 //		uintptr_t is actually a long long on x64.
 //
-//	Also, added a #define of 'Intel64' to signal a 64 bit build on an
+//	Also, added a #define of 'TRIANGLE_INTEL64' to signal a 64 bit build on an
 //		Intel platform so we don't call _control87.
 //
 
@@ -4912,7 +4912,7 @@ void exactinit()
 
 //	Don't call _control87 in 64 bit windows
 
-#if defined( CPU86 ) && ! defined( Intel64 )
+#if defined( CPU86 ) && ! defined( TRIANGLE_INTEL64 )
 #ifdef SINGLE
   _control87(_PC_24, _MCW_PC); /* Set FPU control word for single precision. */
 #else /* not SINGLE */

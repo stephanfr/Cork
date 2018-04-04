@@ -140,10 +140,18 @@ namespace Cork
 
 		enum class SetupBooleanProblemResultCodes { SUCCESS = 0,
 													TOO_MANY_TRIANGLES_IN_DISJOINT_UNION,
-													PURTURBATION_EPSILON_UNDERFLOW,
-													RESOLVE_INTERSECTIONS_FAILED };
+													INSUFFICIENT_PERTURBATION_RANGE,
+													FIND_INTERSECTIONS_FAILED,
+													RESOLVE_INTERSECTIONS_FAILED,
+													POPULATE_EDGE_GRAPH_CACHE_FAILED };
 
 		typedef SEFUtility::Result<SetupBooleanProblemResultCodes>		SetupBooleanProblemResult;
+
+
+		enum class PopulateEGraphCacheResultCodes { SUCCESS = 0,
+													OUT_OF_MEMORY };
+
+		typedef SEFUtility::Result<PopulateEGraphCacheResultCodes>		PopulateEGraphCacheResult;
 
 
 
@@ -151,7 +159,7 @@ namespace Cork
 	
 		void							doDeleteAndFlip( std::function<TriCode(byte bool_alg_data)>				classify );
 
-		void							populateECache( EGraphCache&											ecache);
+		PopulateEGraphCacheResult		populateEGraphCache( EGraphCache&										ecache);
 	
 		void							for_ecache( EGraphCache&												ecache,
 													std::function<void(const EGraphEntryTIDVector&	tids)>		action );
@@ -393,9 +401,16 @@ namespace Cork
 
 
     
-	void  Mesh::populateECache( EGraphCache&		ecache ) 
+	Mesh::PopulateEGraphCacheResult  Mesh::populateEGraphCache( EGraphCache&		ecache )
 	{
-		ecache.resize(m_verts.size());
+		try
+		{
+			ecache.resize(m_verts.size());
+		}
+		catch (std::bad_alloc&		ex)
+		{
+			return( PopulateEGraphCacheResult::Failure( PopulateEGraphCacheResultCodes::OUT_OF_MEMORY, "Out of Memory resizing the edge cache" ));
+		}
     
 		for(uint tid = 0; tid < m_tris.size(); tid++)
 		{
@@ -430,6 +445,10 @@ namespace Cork
 				}
 			});
 		}
+
+		//	Finished with success
+
+		return(PopulateEGraphCacheResult::Success());
 	}
 
 
@@ -451,7 +470,7 @@ namespace Cork
 		}
 
 		//	Find the minimum edge length across all the triangles
-
+/*
 		NUMERIC_PRECISION		minEdgeLength = NUMERIC_PRECISION_MAX;
 		NUMERIC_PRECISION		maxEdgeLength = NUMERIC_PRECISION_MIN;
 
@@ -482,15 +501,23 @@ namespace Cork
 		//		digits in the current numeric precision to guarantee decent results.
 
 		Intersection::PerturbationEpsilon						purturbation( std::max( pow( (NUMERIC_PRECISION)10.0, epsilonMag ), NUMERIC_PRECISION_MIN_EPSILON ));
-
+*/
 		//	Start by finding the intersections
 
 		int		tries = 5;
+		
+		Quantization::Quantizer			quantizer = getQuantizer();
+
+		if (!quantizer.sufficientPerturbationRange())
+		{
+			return(SetupBooleanProblemResult::Failure(SetupBooleanProblemResultCodes::INSUFFICIENT_PERTURBATION_RANGE, "Insufficient Dynamic Range left in model for perturbation."));
+		}
 
 		while( true )
 		{
-			std::unique_ptr<IntersectionProblemIfx>					iproblem( IntersectionProblemIfx::GetProblem( *this, intersectionBBox, purturbation ) );
-    
+//			std::unique_ptr<IntersectionProblemIfx>					iproblem( IntersectionProblemIfx::GetProblem( *this, intersectionBBox, purturbation ) );
+			std::unique_ptr<IntersectionProblemIfx>					iproblem( IntersectionProblemIfx::GetProblem( *this, quantizer, intersectionBBox ) );
+
 			{
 				IntersectionProblemIfx::IntersectionProblemResult		result = iproblem->FindIntersections();
 
@@ -498,7 +525,7 @@ namespace Cork
 				{
 					//	If we failed here - not mush to do but return a failed result
 
-					return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::RESOLVE_INTERSECTIONS_FAILED, "ResolveIntersections failed.", result ));
+					return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::FIND_INTERSECTIONS_FAILED, "FindIntersections failed.", result ));
 				}
 			}
 
@@ -516,7 +543,7 @@ namespace Cork
 						return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::RESOLVE_INTERSECTIONS_FAILED, "ResolveIntersections failed.", result ));
 					}
 
-					purturbation.adjust();
+//					purturbation.adjust();
 				}
 			}
     
@@ -524,11 +551,32 @@ namespace Cork
 			break;
 		}
 
+
+		for (auto &currentTri : m_tris )
+		{
+			auto lenab = Cork::Math::len(m_verts[currentTri.a()] - m_verts[currentTri.b()]);
+			auto lenac = Cork::Math::len(m_verts[currentTri.a()] - m_verts[currentTri.c()]);
+			auto lenbc = Cork::Math::len(m_verts[currentTri.b()] - m_verts[currentTri.c()]);
+
+			auto minLen = std::min(lenab, std::min(lenac, lenbc));
+
+			if (minLen <= quantizer.purturbationQuantum())
+			{
+				std::cout << "Edge Shorter than Quantum" << std::endl;
+			}
+		}
+
+
 		//	Create and populate the EGraph Cache
 
 		EGraphCache				ecache;
 
-		populateECache( ecache );
+		auto popEGraphCacheResult = populateEGraphCache( ecache );
+
+		if (!popEGraphCacheResult.Succeeded())
+		{
+			return(SetupBooleanProblemResult::Failure(SetupBooleanProblemResultCodes::POPULATE_EDGE_GRAPH_CACHE_FAILED, "Edge Cache population failed.", popEGraphCacheResult));
+		}
     
 		// form connected components;
 		// we get one component for each connected component in one
@@ -657,6 +705,22 @@ namespace Cork
 				}
 			}
 		}
+
+
+		for (auto &currentTri : m_tris)
+		{
+			auto lenab = Cork::Math::len(m_verts[currentTri.a()] - m_verts[currentTri.b()]);
+			auto lenac = Cork::Math::len(m_verts[currentTri.a()] - m_verts[currentTri.c()]);
+			auto lenbc = Cork::Math::len(m_verts[currentTri.b()] - m_verts[currentTri.c()]);
+
+			auto minLen = std::min(lenab, std::min(lenac, lenbc));
+
+			if (minLen <= quantizer.purturbationQuantum())
+			{
+				std::cout << "Edge Shorter than Quantum" << std::endl;
+			}
+		}
+
 
 		//	Finished with Success
 
@@ -936,7 +1000,7 @@ namespace Cork
 
 		for( auto& currentVertex : vertices() )
 		{
-			triangleMeshBuilder->AddVertex(Cork::TriangleMesh::Vertex((float)currentVertex.x(), (float)currentVertex.y(), (float)currentVertex.z()));
+			triangleMeshBuilder->AddVertex(Cork::TriangleMesh::Vertex((NUMERIC_PRECISION)currentVertex.x(), (NUMERIC_PRECISION)currentVertex.y(), (NUMERIC_PRECISION)currentVertex.z()));
 		}
 
 		for_raw_tris( [&]( IndexType a, IndexType b, IndexType c )

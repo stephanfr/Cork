@@ -246,6 +246,14 @@ namespace Cork
 			return Cork::Math::BBox3D( min(p0, p1), max(p0, p1) );
 		}
 
+		NUMERIC_PRECISION					length() const
+		{
+			const Cork::Math::Vector3D& p0 = *(m_verts[0]->quantizedValue());
+			const Cork::Math::Vector3D& p1 = *(m_verts[1]->quantizedValue());
+
+			return( len(p0 - p1) );
+		}
+
 
 		operator Empty3d::EdgeIn() const
 		{
@@ -253,12 +261,12 @@ namespace Cork
 		}
 
 
-		GMPExt4::GmpExt4_2		edgeExactCoordinates() const
+		GMPExt4::GmpExt4_2		edgeExactCoordinates( const Quantization::Quantizer& quantizer ) const
 		{
 			GMPExt4::GmpExt4_1		ep[2];
 
-			Empty3d::toGmpExt( ep[0], *( m_verts[0]->quantizedValue() ) );
-			Empty3d::toGmpExt( ep[1], *( m_verts[1]->quantizedValue() ) );
+			Empty3d::toGmpExt( ep[0], *( m_verts[0]->quantizedValue() ), quantizer );
+			Empty3d::toGmpExt( ep[1], *( m_verts[1]->quantizedValue() ), quantizer );
 
 			// construct geometry
 
@@ -376,15 +384,21 @@ namespace Cork
 		}
 #endif
 
-		const GMPExt4::GmpExt4_3		triangleExactCoordinates() const
+		const NUMERIC_PRECISION			minimumEdgeLength() const
+		{
+			return(std::min(m_edges[0]->length(), std::min(m_edges[1]->length(), m_edges[2]->length())));
+		}
+
+
+		const GMPExt4::GmpExt4_3		triangleExactCoordinates( const Quantization::Quantizer& quantizer ) const
 		{
 			GMPExt4::GmpExt4_3		value;
 
 			GMPExt4::GmpExt4_1		p[3];
 		
-			Empty3d::toGmpExt( p[0], *( m_verts[0]->quantizedValue() ) );
-			Empty3d::toGmpExt( p[1], *( m_verts[1]->quantizedValue() ) );
-			Empty3d::toGmpExt( p[2], *( m_verts[2]->quantizedValue() ) );
+			Empty3d::toGmpExt( p[0], *( m_verts[0]->quantizedValue() ), quantizer );
+			Empty3d::toGmpExt( p[1], *( m_verts[1]->quantizedValue() ), quantizer );
+			Empty3d::toGmpExt( p[2], *( m_verts[2]->quantizedValue() ), quantizer );
 
 			GMPExt4::GmpExt4_2		temp;
 
@@ -557,6 +571,7 @@ namespace Cork
 
 
 		bool intersectsEdge( const TopoEdge&						edgeToCheck,
+							 const Quantization::Quantizer&			quantizer,
 							 Empty3d::ExactArithmeticContext&		arithContext ) const
 		{
 			// must check whether the edge and triangle share a vertex
@@ -570,7 +585,7 @@ namespace Cork
 
 			Empty3d::TriEdgeIn		input( this->operator Empty3d::TriIn() , edgeToCheck.operator Empty3d::EdgeIn() );
 
-			return( !input.emptyExact( arithContext ) );
+			return( !input.emptyExact( quantizer, arithContext ) );
 		}
 
 
@@ -674,8 +689,8 @@ namespace Cork
 	{
 	public :
 
-		TopoCache( MeshBase&					owner,
-				   TopoCacheWorkspace&			workspace );
+		TopoCache( MeshBase&						owner,
+				   TopoCacheWorkspace&				workspace );
 
 		virtual ~TopoCache()
 		{}

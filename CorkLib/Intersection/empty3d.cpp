@@ -76,28 +76,28 @@ namespace Cork
 			out = Cork::Math::Vector3D( (NUMERIC_PRECISION)(in.e0 / in.e3), (NUMERIC_PRECISION)(in.e1 / in.e3), (NUMERIC_PRECISION)(in.e2 / in.e3) );
 		}
 
-		const static int IN_BITS = Quantization::BITS + 1; // +1 for sign bit
+		const static int IN_BITS = QUANTIZATION_BITS + 1; // +1 for sign bit
 
 		inline
-		void toFixExt(FixExt4_1<IN_BITS> &out, const Cork::Math::Vector3D &in)
+		void toFixExt(FixExt4_1<IN_BITS> &out, const Cork::Math::Vector3D &in, const Quantization::Quantizer& quantizer )
 		{
-			out.e0 = FixInt::BitInt<IN_BITS>::Rep(Quantization::quantize2int(in[0]));
-			out.e1 = FixInt::BitInt<IN_BITS>::Rep(Quantization::quantize2int(in[1]));
-			out.e2 = FixInt::BitInt<IN_BITS>::Rep(Quantization::quantize2int(in[2]));
+			out.e0 = FixInt::BitInt<IN_BITS>::Rep(quantizer.quantize2int(in[0]));
+			out.e1 = FixInt::BitInt<IN_BITS>::Rep(quantizer.quantize2int(in[1]));
+			out.e2 = FixInt::BitInt<IN_BITS>::Rep(quantizer.quantize2int(in[2]));
 			out.e3 = FixInt::BitInt<IN_BITS>::Rep(1);
 		}
 
 		inline
-		void toGmpExt(GmpExt4_1 &out, const Cork::Math::Vector3D &in)
+		void toGmpExt(GmpExt4_1 &out, const Cork::Math::Vector3D &in, const Quantization::Quantizer& quantizer)
 		{
-			out.e0 = Quantization::quantize2int(in.x());
-			out.e1 = Quantization::quantize2int(in.y());
-			out.e2 = Quantization::quantize2int(in.z());
+			out.e0 = quantizer.quantize2int(in.x());
+			out.e1 = quantizer.quantize2int(in.y());
+			out.e2 = quantizer.quantize2int(in.z());
 			out.e3 = 1;
 		}
 
 		inline
-		void toVec3d( Cork::Math::Vector3D &out, const GmpExt4_1 &in)
+		void toVec3d( Cork::Math::Vector3D &out, const GmpExt4_1 &in, const Quantization::Quantizer& quantizer)
 		{
 			double	tmp[4]{ in.e0.get_d(), in.e1.get_d(), in.e2.get_d(), in.e3.get_d() };
     
@@ -108,7 +108,7 @@ namespace Cork
 
 			for (uint k = 0; k < 3; k++)
 			{
-				out[k] = (NUMERIC_PRECISION)(Quantization::RESHRINK * tmp[k]);
+				out[k] = (NUMERIC_PRECISION)(quantizer.reshrink( tmp[k] ));
 			}
 		}
 
@@ -344,7 +344,8 @@ namespace Cork
 			}
 		}
 
-		bool TriEdgeIn::exactFallback( ExactArithmeticContext&		context ) const
+		bool TriEdgeIn::exactFallback( const Quantization::Quantizer&		quantizer, 
+									   ExactArithmeticContext&				context ) const
 		{
 			// How many bits do we need for various intermediary values?
 			// Here we label the amount with the relevant type (i.e. EXT2)
@@ -363,12 +364,12 @@ namespace Cork
 			FixExt4_1<IN_BITS>                  ep[2];
 			FixExt4_1<IN_BITS>                  tp[3];
 
-			toFixExt( ep[0], edge.p0 );
-			toFixExt( ep[1], edge.p1 );
+			toFixExt( ep[0], edge.p0, quantizer );
+			toFixExt( ep[1], edge.p1, quantizer );
 
-			toFixExt( tp[0], tri.p0 );
-			toFixExt( tp[1], tri.p1 );
-			toFixExt( tp[2], tri.p2 );
+			toFixExt( tp[0], tri.p0, quantizer );
+			toFixExt( tp[1], tri.p1, quantizer );
+			toFixExt( tp[2], tri.p2, quantizer );
 
 			// construct geometry
     
@@ -445,7 +446,8 @@ namespace Cork
 		}
 
 
-		bool TriEdgeIn::emptyExact( ExactArithmeticContext&		context ) const
+		bool TriEdgeIn::emptyExact( const Quantization::Quantizer&		quantizer,
+									ExactArithmeticContext&				context ) const
 		{
 			context.callcount++;
 
@@ -454,7 +456,7 @@ namespace Cork
 			if(filter == 0)
 			{
 				context.exact_count++;
-				return( exactFallback(context));
+				return( exactFallback( quantizer, context ));
 			}
 			else
 			{
@@ -463,7 +465,7 @@ namespace Cork
 		}
 
 
-		Cork::Math::Vector3D TriEdgeIn::coordsExact() const
+		Cork::Math::Vector3D TriEdgeIn::coordsExact( const Quantization::Quantizer&		quantizer ) const
 		{
 			// How many bits do we need for various intermediary values?
 			// Here we label the amount with the relevant type (i.e. EXT2)
@@ -481,12 +483,12 @@ namespace Cork
 			GmpExt4_1                           ep[2];
 			GmpExt4_1                           tp[3];
 
-			toGmpExt( ep[0], edge.p0 );
-			toGmpExt( ep[1], edge.p1 );
+			toGmpExt( ep[0], edge.p0, quantizer );
+			toGmpExt( ep[1], edge.p1, quantizer );
 
-			toGmpExt( tp[0], tri.p0 );
-			toGmpExt( tp[1], tri.p1 );
-			toGmpExt( tp[2], tri.p2 );
+			toGmpExt( tp[0], tri.p0, quantizer );
+			toGmpExt( tp[1], tri.p1, quantizer );
+			toGmpExt( tp[2], tri.p2, quantizer );
 
 			// construct geometry
 			GmpExt4_2                           e;
@@ -504,7 +506,7 @@ namespace Cork
 			// convert to double
     
 			Cork::Math::Vector3D result;
-			toVec3d(result, pisct);
+			toVec3d(result, pisct, quantizer);
     
 			//std::cout << result << std::endl;
     
@@ -703,7 +705,8 @@ namespace Cork
 
 
 
-		bool TriTriTriIn::exactFallback( ExactArithmeticContext&			context ) const
+		bool TriTriTriIn::exactFallback( const Quantization::Quantizer&		quantizer,
+										 ExactArithmeticContext&			context ) const
 		{
 			// How many bits do we need for various intermediary values?
 			// Here we label the amount with the relevant type (i.e. EXT2)
@@ -722,9 +725,9 @@ namespace Cork
 
 			for(uint i=0; i<3; i++)
 			{
-				toFixExt( p[i][0], m_tri[i].p0 );
-				toFixExt( p[i][1], m_tri[i].p1 );
-				toFixExt( p[i][2], m_tri[i].p2 );
+				toFixExt( p[i][0], m_tri[i].p0, quantizer );
+				toFixExt( p[i][1], m_tri[i].p1, quantizer );
+				toFixExt( p[i][2], m_tri[i].p2, quantizer );
 
 				FixExt4_2<EXT2_UP_BITS>         temp;
 			
@@ -795,7 +798,8 @@ namespace Cork
 		}
 
 
-		bool TriTriTriIn::emptyExact( ExactArithmeticContext&			context ) const
+		bool TriTriTriIn::emptyExact( const Quantization::Quantizer&		quantizer,
+									  ExactArithmeticContext&				context ) const
 		{
 			context.callcount++;
 			int filter = emptyFilter();
@@ -803,7 +807,7 @@ namespace Cork
 			if(filter == 0)
 			{
 				context.exact_count++;
-				return( exactFallback(context));
+				return( exactFallback( quantizer, context));
 			}
 			else
 			{
@@ -812,7 +816,7 @@ namespace Cork
 		}
 
 	
-		Cork::Math::Vector3D		TriTriTriIn::coordsExact() const
+		Cork::Math::Vector3D		TriTriTriIn::coordsExact(const Quantization::Quantizer&		quantizer ) const
 		{
 			// How many bits do we need for various intermediary values?
 			// Here we label the amount with the relevant type (i.e. EXT2)
@@ -830,9 +834,9 @@ namespace Cork
 		
 			for(uint i=0; i<3; i++)
 			{
-				toGmpExt( p[i][0], m_tri[i].p0 );
-				toGmpExt( p[i][1], m_tri[i].p1 );
-				toGmpExt( p[i][2], m_tri[i].p2 );
+				toGmpExt( p[i][0], m_tri[i].p0, quantizer );
+				toGmpExt( p[i][1], m_tri[i].p1, quantizer );
+				toGmpExt( p[i][2], m_tri[i].p2, quantizer );
 
 				GmpExt4_2                       temp;
 			
@@ -853,14 +857,15 @@ namespace Cork
 			// convert to double
 
 			Cork::Math::Vector3D result;
-			toVec3d(result, pisct);
+			toVec3d(result, pisct, quantizer);
 		
 			return( result );
 		}
 
 
-		Cork::Math::Vector3D	coordsExact( const GMPExt4::GmpExt4_2&		edge,
-											 const GMPExt4::GmpExt4_3&		triangle )
+		Cork::Math::Vector3D	coordsExact( const GMPExt4::GmpExt4_2&			edge,
+											 const GMPExt4::GmpExt4_3&			triangle,
+											 const Quantization::Quantizer&		quantizer )
 		{
 			//	Compute the point of intersection
 
@@ -870,15 +875,16 @@ namespace Cork
 			//	Convert to double
 
 			Cork::Math::Vector3D result;
-			toVec3d( result, pisct );
+			toVec3d( result, pisct, quantizer );
 
 			return( result );
 		}
 
 
-		Cork::Math::Vector3D		coordsExact( const GMPExt4::GmpExt4_3&		triangle0,
-												 const GMPExt4::GmpExt4_3&		triangle1,
-												 const GMPExt4::GmpExt4_3&		triangle2 )
+		Cork::Math::Vector3D		coordsExact( const GMPExt4::GmpExt4_3&			triangle0,
+												 const GMPExt4::GmpExt4_3&			triangle1,
+												 const GMPExt4::GmpExt4_3&			triangle2,
+												 const Quantization::Quantizer&		quantizer )
 		{
 			// How many bits do we need for various intermediary values?
 			// Here we label the amount with the relevant type (i.e. EXT2)
@@ -904,7 +910,7 @@ namespace Cork
 			// convert to double
 
 			Cork::Math::Vector3D		result;
-			toVec3d( result, pisct );
+			toVec3d( result, pisct, quantizer );
 
 			return( result );
 		}

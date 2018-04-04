@@ -181,6 +181,12 @@ namespace Cork
 			}
 
 
+			~TopologicalStatisticsEngine()
+			{
+				m_edges.clear();
+				m_vertexAssociations.clear();
+			}
+
 
 			void			TopologicalStatisticsEngine::AddTriangle( const Cork::Math::TriangleByIndicesBase&		nextTriangle   )
 			{

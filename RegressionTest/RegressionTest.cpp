@@ -62,6 +62,7 @@ void		WriteMeshStatistics( const Cork::TriangleMesh&			mesh,
 	geotopoResults << filename << "\t" << topoStats.IsTwoManifold() << "\t";
 	geotopoResults << stats.numVertices() << "\t" << topoStats.numEdges() << "\t" << stats.numTriangles() << "\t";
 	geotopoResults << stats.area() << "\t" << stats.volume() << "\t";
+//	geotopoResults << stats.maxEdgeLength() << "\t" << stats.minEdgeLength() << "\t";
 	geotopoResults << stats.boundingBox().minima().x() << "\t" << stats.boundingBox().minima().y() << "\t" << stats.boundingBox().minima().z() << "\t";
 	geotopoResults << stats.boundingBox().maxima().x() << "\t" << stats.boundingBox().maxima().y() << "\t" << stats.boundingBox().maxima().z() << std::endl;
 }

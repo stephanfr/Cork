@@ -33,7 +33,10 @@
 #include "fixext4.h"
 #include "gmpext4.h"
 
+#include "quantization.h"
+
 #include "..\Math\Primitives.h"
+
 
 
 
@@ -96,23 +99,27 @@ namespace Cork
 			TriIn   tri;
 			EdgeIn  edge;
 
-			bool isEmpty( ExactArithmeticContext&			context ) const;
-			bool emptyExact( ExactArithmeticContext&		context ) const;
+			bool isEmpty( ExactArithmeticContext&				context ) const;
+
+			bool emptyExact( const Quantization::Quantizer&		quantizer,
+							 ExactArithmeticContext&			context ) const;
 
 			Cork::Math::Vector3D coords() const;
-			Cork::Math::Vector3D coordsExact() const;
+			Cork::Math::Vector3D coordsExact( const Quantization::Quantizer&		quantizer ) const;
 
 
 		private :
 
 			int			emptyFilter() const;
 
-			bool		exactFallback( ExactArithmeticContext&		context ) const;
+			bool		exactFallback( const Quantization::Quantizer&		quantizer,
+									   ExactArithmeticContext&				context ) const;
 		};
 
 
-		Cork::Math::Vector3D coordsExact( const GMPExt4::GmpExt4_2&		edge,
-										  const GMPExt4::GmpExt4_3&		triangle );
+		Cork::Math::Vector3D coordsExact( const GMPExt4::GmpExt4_2&			edge,
+										  const GMPExt4::GmpExt4_3&			triangle,
+										  const Quantization::Quantizer&	quantizer);
 
 
 
@@ -132,11 +139,12 @@ namespace Cork
 				return( m_tri );
 			}
 
-			bool isEmpty( ExactArithmeticContext&			context ) const;
-			bool emptyExact( ExactArithmeticContext&		context ) const;
+			bool isEmpty( ExactArithmeticContext&				context ) const;
+			bool emptyExact( const Quantization::Quantizer&		quantizer,
+							 ExactArithmeticContext&			context ) const;
 		
 			Cork::Math::Vector3D		coords() const;
-			Cork::Math::Vector3D		coordsExact() const;
+			Cork::Math::Vector3D		coordsExact(const Quantization::Quantizer&		quantizer ) const;
 
 
 		private:
@@ -145,12 +153,13 @@ namespace Cork
 
 			int							emptyFilter() const;
 
-			bool						exactFallback( ExactArithmeticContext&		context ) const;
+			bool						exactFallback( const Quantization::Quantizer&		quantizer,
+													   ExactArithmeticContext&				context ) const;
 		};
 
 
 
-		void toGmpExt( GMPExt4::GmpExt4_1 &out, const Cork::Math::Vector3D &in );
+		void toGmpExt( GMPExt4::GmpExt4_1 &out, const Cork::Math::Vector3D &in, const Quantization::Quantizer& quantizer);
 	//	{
 	//		out.e0 = Quantization::quantize2int( in.x() );
 	//		out.e1 = Quantization::quantize2int( in.y() );
@@ -160,9 +169,10 @@ namespace Cork
 
 
 
-		Cork::Math::Vector3D coordsExact( const GMPExt4::GmpExt4_3&		triangle0,
-										  const GMPExt4::GmpExt4_3&		triangle1,
-										  const GMPExt4::GmpExt4_3&		triangle2 );
+		Cork::Math::Vector3D coordsExact( const GMPExt4::GmpExt4_3&				triangle0,
+										  const GMPExt4::GmpExt4_3&				triangle1,
+										  const GMPExt4::GmpExt4_3&				triangle2,
+										  const Quantization::Quantizer&		quantizer );
 
 
 	} //	namespace Empty3d

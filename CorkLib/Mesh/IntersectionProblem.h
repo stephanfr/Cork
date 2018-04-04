@@ -34,7 +34,7 @@ namespace Cork
 	namespace Intersection
 	{
 
-		
+/*
 		class PerturbationEpsilon
 		{
 		public :
@@ -94,6 +94,77 @@ namespace Cork
 			NUMERIC_PRECISION			m_adjustmentMultiplier;
 			int							m_numAdjustments;
 		};
+*/
+
+
+
+		class PerturbationEpsilon
+		{
+		public:
+
+			explicit
+			PerturbationEpsilon( const Quantization::Quantizer&		quantizer )
+				: m_bitsOfPurturbationRange( quantizer.bitsOfPurturbationRange() ),
+				  m_quantum(quantizer.purturbationQuantum()),
+				  m_numAdjustments( 0 )
+			{
+				int		startingPerturbation = std::max(MINIMUM_PERTURBATION_RANGE_BITS, quantizer.bitsOfPurturbationRange() - PERTURBATION_BUFFER_BITS - 10);
+				
+				std::cout << "Starting Perturbation: " << startingPerturbation << std::endl;
+
+				m_randomRange = 1 << startingPerturbation;
+			}
+
+			PerturbationEpsilon() = delete;
+			PerturbationEpsilon( const PerturbationEpsilon&) = delete;
+
+
+			bool	sufficientRange() const
+			{
+				return((m_bitsOfPurturbationRange - m_numAdjustments) >= PERTURBATION_BUFFER_BITS + MINIMUM_PERTURBATION_RANGE_BITS);
+			}
+
+			NUMERIC_PRECISION		quantum() const
+			{
+				return( m_quantum );
+			}
+
+			int				randomRange() const
+			{
+				return(m_randomRange);
+			}
+
+
+			enum class AdjustPerturbationResultCodes { SUCCESS = 0, MAXIMUM_PERTURBATION_REACHED };
+
+			typedef SEFUtility::ResultWithReturnValue<AdjustPerturbationResultCodes,int>		AdjustPerturbationResult;
+
+
+			AdjustPerturbationResult			adjust()
+			{
+				m_numAdjustments++;
+
+				m_randomRange <<= 1;
+
+				if( !sufficientRange() )
+				{
+					return(AdjustPerturbationResult::Failure(AdjustPerturbationResultCodes::MAXIMUM_PERTURBATION_REACHED, "Maximum Perturbation reached"));
+				}
+
+				return(AdjustPerturbationResult( m_numAdjustments ));
+			}
+
+		private:
+
+			int							m_bitsOfPurturbationRange;
+			double						m_quantum;
+
+			int							m_numAdjustments;
+
+			int							m_randomRange;
+
+		};
+
 
 
 
@@ -102,7 +173,7 @@ namespace Cork
 		public:
 
 			
-			enum class IntersectionProblemResultCodes { SUCCESS = 0, SUBDIVIDE_FAILED, EXHAUSTED_PURTURBATION_RETRIES };
+			enum class IntersectionProblemResultCodes { SUCCESS = 0, OUT_OF_MEMORY, SUBDIVIDE_FAILED, EXHAUSTED_PURTURBATION_RETRIES };
 
 			typedef SEFUtility::Result<IntersectionProblemResultCodes>		IntersectionProblemResult;
 
@@ -110,8 +181,8 @@ namespace Cork
 
 
 			static std::unique_ptr<IntersectionProblemIfx>		GetProblem( MeshBase&							owner,
-																			const Cork::Math::BBox3D&			intersectionBBox,
-																			const PerturbationEpsilon&			purturbation );
+																			const Quantization::Quantizer&		quantizer,
+																			const Cork::Math::BBox3D&			intersectionBBox );
 
 			virtual ~IntersectionProblemIfx()
 			{}
