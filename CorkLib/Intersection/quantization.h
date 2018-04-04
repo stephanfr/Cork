@@ -31,145 +31,93 @@
 
 
 
-namespace Cork
+
+namespace Quantization
 {
-	namespace Quantization
+	// NOTE: none of these values should be modified by the clients
+	
+	const int BITS = 30;
+
+
+	extern double MAGNIFY;
+	extern double RESHRINK;
+
+#ifdef CORK_SSE
+	extern __m128	MAGNIFY_SSE;
+	extern __m128	RESHRINK_SSE;
+#endif
+
+	inline
+	int quantize2int(double number)
 	{
+		return( int(number * MAGNIFY));
+	}
 
-		class Quantizer
-		{
-		public:
+	inline
+	double quantizedInt2double(int number)
+	{
+		return( RESHRINK * double(number));
+	}
 
-			Quantizer( double	maxMagnitude,
-				       double	minEdgeLength)
-			{
-				calibrate( maxMagnitude, minEdgeLength);
-			}
+	inline
+	double quantize(double number)
+	{
+		return( RESHRINK * double(int(number * MAGNIFY)));
+	}
 
+	inline
+	double quantize(float number)
+	{
+		return( (float)RESHRINK * float(int(number * (float)MAGNIFY)));
+	}
 
-			Quantizer(const Quantizer&		quantizerToCopy)
-				: m_magnify(quantizerToCopy.m_magnify),
-				  m_reshrink(quantizerToCopy.m_reshrink)
-			{}
-
-
-			bool	sufficientPerturbationRange() const
-			{
-				return( m_bitsOfPurturbationRange >= PERTURBATION_BUFFER_BITS + MINIMUM_PERTURBATION_RANGE_BITS);
-			}
-
-			int	bitsOfPurturbationRange() const
-			{
-				return(m_bitsOfPurturbationRange);
-			}
-
-			double	purturbationQuantum() const
-			{
-				return(m_reshrink);
-			}
-
-			int quantize2int(double number) const
-			{
-				return(int(number * m_magnify));
-			}
-
-			double quantizedInt2double(int number) const
-			{
-				return(m_reshrink * double(number));
-			}
-
-			double quantize(double number) const
-			{
-				return(m_reshrink * double(int(number * m_magnify)));
-			}
-
-			double quantize(float number) const
-			{
-				return((float)m_reshrink * float(int(number * (float)m_magnify)));
-			}
-
-			double reshrink(double  number) const
-			{
-				return(m_reshrink * number);
-			}
-
-
-
-			Cork::Math::Vector3D	quantize(const Cork::Math::Vector3D&		vectorToQuantize) const
-			{
+	inline
+	Cork::Math::Vector3D	quantize( const Cork::Math::Vector3D&		vectorToQuantize )
+	{
 #ifdef CORK_SSE
-				__m128		magnifiedVector = _mm_mul_ps(vectorToQuantize, m_magnifySSE);
-				__m128i		integerMagVec = _mm_cvttps_epi32(magnifiedVector);
-				__m128		floatMagVec = _mm_cvtepi32_ps(integerMagVec);
-				__m128		reshrunkVector = _mm_mul_ps(floatMagVec, m_reshrinkSSE);
 
-				return(Cork::Math::Vector3D(reshrunkVector));
+		__m128		magnifiedVector = _mm_mul_ps( vectorToQuantize, MAGNIFY_SSE );
+		__m128i		integerMagVec = _mm_cvttps_epi32( magnifiedVector );
+		__m128		floatMagVec = _mm_cvtepi32_ps( integerMagVec );
+		__m128		reshrunkVector = _mm_mul_ps( floatMagVec, RESHRINK_SSE );
+		
+		return( Cork::Math::Vector3D( reshrunkVector ));
+
 #else
-				return(Cork::Math::Vector3D(quantize(vectorToQuantize.x()), quantize(vectorToQuantize.y()), quantize(vectorToQuantize.z())));
+
+		return( Cork::Math::Vector3D( quantize( vectorToQuantize.x() ), quantize( vectorToQuantize.y() ), quantize( vectorToQuantize.z() ) ) );
+
 #endif
-			}
+
+	}
 
 
-		private :
+	//	Given the specified number of bits, and bound on the coordinate values of points,
+	//		fit as fine-grained a grid as possible over the space.
 
-			//	Given the specified number of bits, and bound on the coordinate values of points,
-			//		fit as fine-grained a grid as possible over the space.
-
-			void calibrate( double	maxMagnitude,
-							double	minEdgeLength )
-			{
-				int maxCoordinateValueBinaryExponent;
-
-				std::frexp(maxMagnitude, &maxCoordinateValueBinaryExponent);
-
-				maxCoordinateValueBinaryExponent++; // ensure that 2^max_exponent > maximumMagnitude
-
-				// set constants
-				m_magnify = std::pow(2.0, QUANTIZATION_BITS - maxCoordinateValueBinaryExponent);
-
-				// we are guaranteed that maximumMagnitude * MAGNIFY < 2.0^BITS
-				m_reshrink = std::pow(2.0, maxCoordinateValueBinaryExponent - QUANTIZATION_BITS);
-
-				int		minEdgeLengthBinaryExponent;
-
-				std::frexp(minEdgeLength, &minEdgeLengthBinaryExponent);
-
-				int		quantaBitsPerMinEdge = (maxCoordinateValueBinaryExponent - QUANTIZATION_BITS) - minEdgeLengthBinaryExponent;
-
-				std::cout << "Quanta bits per min edge: " << quantaBitsPerMinEdge << std::endl;
-
-				if (quantaBitsPerMinEdge > -10)
-				{
-					std::cout << "Insufficient number of quanta bits for min edge length" << std::endl;
-				}
-
-				m_bitsOfPurturbationRange = abs(quantaBitsPerMinEdge);
-
+	inline
+	void calibrate(double maximumMagnitude)
+	{
+		int max_exponent;
+		std::frexp(maximumMagnitude, &max_exponent);
+		max_exponent++; // ensure that 2^max_exponent > maximumMagnitude
+    
+		// set constants
+		MAGNIFY = std::pow(2.0, BITS - max_exponent);
+		
+		// we are guaranteed that maximumMagnitude * MAGNIFY < 2.0^BITS
+		RESHRINK = std::pow(2.0, max_exponent - BITS);
 #ifdef CORK_SSE
-				{
-					float	magnify = (float)MAGNIFY;
-					float	reshrink = (float)RESHRINK;
+		{
+			float	magnify = (float)MAGNIFY;
+			float	reshrink = (float)RESHRINK;
 
-					m_magnifySSE = _mm_load_ps1(&magnify);
-					m_reshrinkSSE = _mm_load_ps1(&reshrink);
-				}
+			MAGNIFY_SSE = _mm_load_ps1( &magnify );
+			RESHRINK_SSE = _mm_load_ps1( &reshrink );
+		}
 #endif
-			}
+	}
 
-		private :
+} // end namespace Quantization
 
-			double	m_magnify;
-			double	m_reshrink;
-
-			int		m_bitsOfPurturbationRange;
-
-#ifdef CORK_SSE
-			__m128	m_magnifySSE;
-			__m128	m_reshrinkSSE;
-#endif
-		};
-
-	} // end namespace Quantization
-
-}	//	end namespace Cork
 

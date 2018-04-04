@@ -25,23 +25,16 @@
 // +-------------------------------------------------------------------------
 #include "quantization.h"
 
-namespace Cork
+namespace Quantization
 {
-	namespace Quantization
-	{
-//		double MAGNIFY = 1.0;
-//		double RESHRINK = 1.0;
+	double MAGNIFY = 1.0;
+	double RESHRINK = 1.0;
 
-//		float valueOne = 1.0;
+	float valueOne = 1.0;
 
 #ifdef CORK_SSE
-//		__m128	MAGNIFY_SSE = _mm_load_ps1(&valueOne);
-//		__m128	RESHRINK_SSE = _mm_load_ps1(&valueOne);
+	__m128	MAGNIFY_SSE = _mm_load_ps1( &valueOne );
+	__m128	RESHRINK_SSE = _mm_load_ps1( &valueOne );
 #endif
-	} // end namespace Quantization
-
-}	// end namespace Cork
-
-
-
+} // end namespace Quantization
 

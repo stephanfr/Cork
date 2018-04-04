@@ -95,23 +95,21 @@ namespace Cork
 
 		inline
 		Cork::Math::Vector3D		computeCoords( const TopoEdge&				e,
-												   const TopoTri&				t,
-												   const Quantization::Quantizer& quantizer)
+												   const TopoTri&				t )
 		{
-			GMPExt4::GmpExt4_2		edgeCoordinates( e.edgeExactCoordinates( quantizer ) );
-			GMPExt4::GmpExt4_3		triangleCoordinates( t.triangleExactCoordinates( quantizer ) );
+			GMPExt4::GmpExt4_2		edgeCoordinates( e.edgeExactCoordinates() );
+			GMPExt4::GmpExt4_3		triangleCoordinates( t.triangleExactCoordinates() );
 
-			return( Empty3d::coordsExact( edgeCoordinates, triangleCoordinates, quantizer ) );
+			return( Empty3d::coordsExact( edgeCoordinates, triangleCoordinates ) );
 		}
 
 
 		inline
-		Cork::Math::Vector3D		computeCoords( const TopoTri&						t0,
-												   const TopoTri&						t1,
-												   const TopoTri&						t2,
-												   const Quantization::Quantizer&		quantizer )
+		Cork::Math::Vector3D		computeCoords( const TopoTri&			t0,
+												   const TopoTri&			t1,
+												   const TopoTri&			t2 )
 		{
-			return( Empty3d::coordsExact( t0.triangleExactCoordinates( quantizer ), t1.triangleExactCoordinates( quantizer ), t2.triangleExactCoordinates( quantizer ), quantizer ) );
+			return( Empty3d::coordsExact( t0.triangleExactCoordinates(), t1.triangleExactCoordinates(), t2.triangleExactCoordinates() ) );
 		}
 
 
@@ -695,10 +693,10 @@ namespace Cork
 
 
 
-			IntersectionProblemBase( MeshBase&									owner,
-									 const Quantization::Quantizer&				quantizer,
-									 const Cork::Math::BBox3D&					intersectionBBox,
-									 IntersectionProblemWorkspaceBase&			workspace );
+			IntersectionProblemBase( MeshBase&										owner,
+									 const Cork::Math::BBox3D&						intersectionBBox,
+									 const Intersection::PerturbationEpsilon&		purturbation,
+									 IntersectionProblemWorkspaceBase&				workspace );
 
 			IntersectionProblemBase( const IntersectionProblemBase&			isctProblemToCopy ) = delete;
 
@@ -721,13 +719,13 @@ namespace Cork
 
 			IsctVertType* newIsctVert(const TopoEdge& e, const TopoTri& t, bool boundary, GluePointMarker& glue)
 			{
-				return( m_isctVertTypeList.emplace_back( GenericVertType::VertexType::INTERSECTION, computeCoords( e, t, m_quantizer ), boundary, glue ) );
+				return( m_isctVertTypeList.emplace_back( GenericVertType::VertexType::INTERSECTION, computeCoords( e, t ), boundary, glue ) );
 			}
 
 
 			IsctVertType* newIsctVert( const TopoTri& t0, const TopoTri& t1, const TopoTri& t2, bool boundary, GluePointMarker& glue)
 			{
-				return( m_isctVertTypeList.emplace_back( GenericVertType::VertexType::INTERSECTION, computeCoords( t0, t1, t2, m_quantizer ), boundary, glue ) );
+				return( m_isctVertTypeList.emplace_back( GenericVertType::VertexType::INTERSECTION, computeCoords( t0, t1, t2 ), boundary, glue ) );
 			}
 
 			IsctVertType* newSplitIsctVert(const Cork::Math::Vector3D& coords, GluePointMarker& glue)
@@ -770,46 +768,24 @@ namespace Cork
 
 			void perturbPositions()
 			{
-//				NUMERIC_PRECISION	purturbation( *m_purturbation );
-
-				NUMERIC_PRECISION	perturbQuantum = m_perturbation.quantum();
-				int					perturbRange = m_perturbation.randomRange();
-
-				Cork::Math::Vector3D		perturbation;
+				NUMERIC_PRECISION	purturbation( *m_purturbation );
 
 				for ( Cork::Math::Vector3D&		coord : m_quantizedCoords )
 				{
-					perturbation = Cork::Math::Vector3D((std::rand() % perturbRange) *perturbQuantum, (std::rand() % perturbRange) *perturbQuantum, (std::rand() % perturbRange) *perturbQuantum);
-
-					coord += perturbation;
-
-//					coord += m_quantizer.quantize( Cork::Math::Vector3D::randomVector( -purturbation, purturbation ) );
+					coord += Quantization::quantize( Cork::Math::Vector3D::randomVector( -purturbation, purturbation ) );
 				}
 			}
 
 
 
-			enum BVHEdgeTriResultCodes {
-				SUCCESS = 0,
-				OUT_OF_MEMORY
-			};
-
-			typedef SEFUtility::Result<BVHEdgeTriResultCodes>		BVHEdgeTriResult;
 
 
-			BVHEdgeTriResult		bvh_edge_tri( Cork::AABVH::IntersectionType				selfOrBooleanIntersection,
-												  TriangleAndIntersectingEdgesVector&		triangleAndEdges )
+			void bvh_edge_tri( Cork::AABVH::IntersectionType				selfOrBooleanIntersection,
+							   TriangleAndIntersectingEdgesVector&			triangleAndEdges )
 			{
 				std::unique_ptr< Cork::AABVH::GeomBlobVector >		edge_geoms( new Cork::AABVH::GeomBlobVector() );
 
-				try
-				{
-					edge_geoms->reserve(edges().size());
-				}
-				catch (std::bad_alloc	ex)
-				{
-					return(BVHEdgeTriResult::Failure(BVHEdgeTriResultCodes::OUT_OF_MEMORY, "Out of Memory allocating triangle and edges data structure"));
-				}
+				edge_geoms->reserve( edges().size() );
 
 				for( auto& e : edges() )
 				{
@@ -824,14 +800,7 @@ namespace Cork
 
 				tbb::mutex						triAndEdgesMutex;
 				
-				try
-				{
-					triangleAndEdges.reserve(triangles().size());
-				}
-				catch (std::bad_alloc&		ex)
-				{
-					return(BVHEdgeTriResult::Failure( BVHEdgeTriResultCodes::OUT_OF_MEMORY, "Out of Memory allocating triangle and edges data structure" ));
-				}
+				triangleAndEdges.reserve( triangles().size() );
 
 				//	Search for intersections, either in multiple threads or in a single thread 
 
@@ -877,10 +846,6 @@ namespace Cork
 						}
 					}
 				}
-
-				//	Finished with Success
-
-				return(BVHEdgeTriResult::Success());
 			}
 
 
@@ -1014,7 +979,7 @@ namespace Cork
 
 				Empty3d::TriTriTriIn input( t0.operator Empty3d::TriIn(), t1.operator Empty3d::TriIn(), t2.operator Empty3d::TriIn() );
 
-				return( !input.emptyExact( m_quantizer, m_exactArithmeticContext ) );
+				return( !input.emptyExact( m_exactArithmeticContext ) );
 			}
 
 
@@ -1046,7 +1011,7 @@ namespace Cork
 
 		protected:
 
-			typedef Cork::Math::Vertex3DVector				QuantizedCoordinatesVector;
+			typedef Cork::Math::Vertex3DVector			QuantizedCoordinatesVector;
 
 
 
@@ -1056,10 +1021,7 @@ namespace Cork
 
 			aligned_unique_ptr<Cork::Math::BBox3D>			m_intersectionBBox;
 
-			//	Quantizer must be in front of the Perturbation as the perturbation initialization depends on the quantizer
-
-			Quantization::Quantizer							m_quantizer;
-			PerturbationEpsilon								m_perturbation;
+			aligned_unique_ptr<PerturbationEpsilon>			m_purturbation;
 
 			QuantizedCoordinatesVector						m_quantizedCoords;
 			
@@ -1819,9 +1781,9 @@ namespace Cork
 		{
 		public:
 
-			IntersectionProblem( MeshBase&								owner,
-								 const Quantization::Quantizer&			quantizer,
-								 const Cork::Math::BBox3D&				intersectionBBox,
+			IntersectionProblem( MeshBase&										owner,
+								 const Cork::Math::BBox3D&						intersectionBBox,
+								 const Intersection::PerturbationEpsilon&		purturbation,
 								 CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::UniquePtr&		workspace );
 
     
@@ -1890,18 +1852,7 @@ namespace Cork
 			// if we encounter ambiguous degeneracies, then this
 			// routine returns false, indicating that the computation aborted.
 
-
-			enum TryToFindIntersectionsResultCodes {
-				SUCCESS = 0,
-				OUT_OF_MEMORY,
-				TRI_EGDE_DEGENERACIES,
-				TRI_TRI_TRI_INTERSECTIONS_FAILED
-			};
-
-			typedef SEFUtility::Result<TryToFindIntersectionsResultCodes>		TryToFindIntersectionsResult;
-
-
-			TryToFindIntersectionsResult tryToFindIntersections();
+			bool tryToFindIntersections();
 			bool findTriTriTriIntersections();
 
 			void reset();
@@ -1952,13 +1903,12 @@ namespace Cork
 
 
 		IntersectionProblemBase::IntersectionProblemBase( MeshBase&								owner,
-														  const Quantization::Quantizer&		quantizer,
 														  const Cork::Math::BBox3D&				intersectionBBox,
+														  const PerturbationEpsilon&			purturbation,
 														  IntersectionProblemWorkspaceBase&		workspace )
 			: TopoCache( owner, workspace ),
-			  m_quantizer(quantizer),
-			  m_perturbation(quantizer),
 			  m_intersectionBBox( make_aligned<Cork::Math::BBox3D>( intersectionBBox )),
+			  m_purturbation( make_aligned<PerturbationEpsilon>( purturbation )),
 			  m_workspace( workspace ),
 			  m_gluePointMarkerList( workspace ),
 			  m_isctVertTypeList( workspace ),
@@ -1985,31 +1935,15 @@ namespace Cork
 			}
 
 			//	Calibrate the quantization unit...
-/*
-			NUMERIC_PRECISION		maxMag = NUMERIC_PRECISION_MIN;
+
+			NUMERIC_PRECISION		maxMag = 0.0;
 
 			for (const CorkVertex &v : TopoCache::ownerMesh().vertices())
 			{
-				maxMag = std::max( maxMag, max(abs(v)) );
+				maxMag = std::max( maxMag, max( abs( v ) ) );
 			}
 
-			//	Find the minimum edge length across all the triangles
-
-			NUMERIC_PRECISION		minEdgeLength = NUMERIC_PRECISION_MAX;
-			NUMERIC_PRECISION		maxEdgeLength = NUMERIC_PRECISION_MIN;
-
-			for (auto& currentTriangle : TopoCache::ownerMesh().triangles() )
-			{
-				const Cork::Math::Vector3D&	vert0(TopoCache::ownerMesh().vertices()[currentTriangle.a()]);
-				const Cork::Math::Vector3D&	vert1(TopoCache::ownerMesh().vertices()[currentTriangle.b()]);
-				const Cork::Math::Vector3D&	vert2(TopoCache::ownerMesh().vertices()[currentTriangle.c()]);
-
-				minEdgeLength = std::min(minEdgeLength, std::min(len(vert0 - vert1), std::min(len(vert0 - vert2), len(vert1 - vert2))));
-				maxEdgeLength = std::max(maxEdgeLength, std::max(len(vert0 - vert1), std::max(len(vert0 - vert2), len(vert1 - vert2))));
-			}
-
-			Quantization::calibrate( maxMag, minEdgeLength );
-*/
+			Quantization::calibrate( maxMag );
 
 			// and use vertex auxiliary data to store quantized vertex coordinates
 
@@ -2024,7 +1958,7 @@ namespace Cork
 		#else
 				Vec3d raw = TopoCache::mesh->verts[v->ref].pos;
 		#endif
-				m_quantizedCoords.emplace_back( m_quantizer.quantize( raw ) );
+				m_quantizedCoords.emplace_back( Quantization::quantize( raw ) );
 
 				v.setQuantizedValue( &( m_quantizedCoords[write] ) );
 				write++;
@@ -2033,29 +1967,25 @@ namespace Cork
 
 
 
-		IntersectionProblem::IntersectionProblem( MeshBase&								owner,
-												  const Quantization::Quantizer&		quantizer,
-												  const Cork::Math::BBox3D&				intersectionBBox,
+		IntersectionProblem::IntersectionProblem( MeshBase&										owner,
+												  const Cork::Math::BBox3D&						intersectionBBox,
+												  const Intersection::PerturbationEpsilon&		purturbation,
 												  CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::UniquePtr&		workspace )
-			: IntersectionProblemBase( owner, quantizer, intersectionBBox, *( workspace.get() ) ),
+			: IntersectionProblemBase( owner, intersectionBBox, purturbation, *( workspace.get() ) ),
 			  m_workspace( std::move( workspace )),
 			  m_triangleProblemList( *(m_workspace.get()) )
 		{}
 
 
 
-		IntersectionProblem::TryToFindIntersectionsResult IntersectionProblem::tryToFindIntersections()
+
+		bool IntersectionProblem::tryToFindIntersections()
 		{
 			m_exactArithmeticContext.degeneracy_count = 0;
 
 			TriangleAndIntersectingEdgesVector			trianglesAndEdges;
 
-			BVHEdgeTriResult	bvhETResult = bvh_edge_tri(Cork::AABVH::IntersectionType::BOOLEAN_INTERSECTION, trianglesAndEdges);
-
-			if (!bvhETResult.Succeeded())
-			{
-				return(TryToFindIntersectionsResult::Failure(TryToFindIntersectionsResultCodes::OUT_OF_MEMORY, "Out of Memory", bvhETResult));
-			}
+			bvh_edge_tri(Cork::AABVH::IntersectionType::BOOLEAN_INTERSECTION, trianglesAndEdges);
 
 
 			for (auto& triAndEdges : trianglesAndEdges)
@@ -2064,7 +1994,7 @@ namespace Cork
 
 				for ( const TopoEdge* edge : triAndEdges.edges() )
 				{
-					if (triangle.intersectsEdge( *edge, m_quantizer, m_exactArithmeticContext))
+					if (triangle.intersectsEdge( *edge, m_exactArithmeticContext))
 					{
 						GluePointMarker*      glue = m_gluePointMarkerList.emplace_back(false, true, *edge, triangle);
 
@@ -2090,17 +2020,14 @@ namespace Cork
 				}
 			}
 
+
+
 			if (m_exactArithmeticContext.degeneracy_count > 0)
 			{
-				return(TryToFindIntersectionsResult::Failure(TryToFindIntersectionsResultCodes::TRI_EGDE_DEGENERACIES, "Degeneracies Detected during Triangle Edge instersection computations." ));
+				return(false);   // restart / abort
 			}
 
-			if (!findTriTriTriIntersections())
-			{
-				return(TryToFindIntersectionsResult::Failure(TryToFindIntersectionsResultCodes::TRI_TRI_TRI_INTERSECTIONS_FAILED, "Three Triangle Intersection computation failed."));
-			}
-
-			return(TryToFindIntersectionsResult::Success());
+			return( findTriTriTriIntersections() );
 		}
 
 
@@ -2221,24 +2148,11 @@ namespace Cork
 
 			while(nTrys > 0)
 			{
-				TryToFindIntersectionsResult		result = tryToFindIntersections();
-
-				if(!result.Succeeded())
+				if(!tryToFindIntersections())
 				{
-					if (result.errorCode() == TryToFindIntersectionsResultCodes::OUT_OF_MEMORY)
-					{
-						return(IntersectionProblemResult::Failure(IntersectionProblemResultCodes::OUT_OF_MEMORY, "Out of Memory", result));
-					}
-
 					reset();
 
-					auto	perturbAdjustResult = m_perturbation.adjust();
-
-					if (!perturbAdjustResult.Succeeded())
-					{
-						return(IntersectionProblemResult::Failure(IntersectionProblemResultCodes::EXHAUSTED_PURTURBATION_RETRIES, "Perturbation adjustment failed", perturbAdjustResult));
-					}
-
+					m_purturbation->adjust();
 					perturbPositions();
 					
 					nTrys--;
@@ -2333,7 +2247,7 @@ namespace Cork
 			{
 				createRealTriangles(tprob, ecache);
 			}
-   
+    
 			// mark all edges as normal by zero-ing out the data 
 
 			for( auto& e : TopoCache::edges() )
@@ -2371,12 +2285,12 @@ namespace Cork
 
 
 		std::unique_ptr<IntersectionProblemIfx>		IntersectionProblemIfx::GetProblem( MeshBase&							owner,
-																						const Quantization::Quantizer&		quantizer,
-																						const Cork::Math::BBox3D&			intersectionBBox )
+																						const Cork::Math::BBox3D&			intersectionBBox,
+																						const PerturbationEpsilon&			purturbation )
 		{
 			IntersectionWorkspaceFactory::UniquePtr		workspace( IntersectionWorkspaceFactory::GetInstance() );
 
-			return( std::unique_ptr<IntersectionProblemIfx>( new IntersectionProblem( owner, quantizer, intersectionBBox, workspace ) ) );
+			return( std::unique_ptr<IntersectionProblemIfx>( new IntersectionProblem( owner, intersectionBBox, purturbation, workspace ) ) );
 		}
 
 

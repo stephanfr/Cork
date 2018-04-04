@@ -164,7 +164,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>CORK_DEBUG;TRILIBRARY;_CRT_SECURE_NO_WARNINGS;CPU86;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CORK_FLOAT_PRECISION;CORK_SSE;CORK_DEBUG;TRILIBRARY;_CRT_SECURE_NO_WARNINGS;CPU86;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
@@ -178,10 +178,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(TBB_PATH)\lib\ia32\vc12;$(BOOST_PATH)\lib32-msvc-14.1;$(MPIR_PATH)\lib\Win32\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(TBB_PATH)\lib\ia32\vc12;$(BOOST_PATH)\lib\win32;$(MPIR_PATH)\lib\Win32\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>mpir.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMTD;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <LargeAddressAware>true</LargeAddressAware>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -189,26 +188,21 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>TRILIBRARY;_CRT_SECURE_NO_WARNINGS;CPU86;TRIANGLE_INTEL64;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS;BOOST_SYSTEM_DYN_LINK</PreprocessorDefinitions>
+      <PreprocessorDefinitions>TRILIBRARY;_CRT_SECURE_NO_WARNINGS;CPU86;TRIANGLE_INTEL64;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH)\build.vc14\lib_mpir_gc\x64\Debug;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <FloatingPointModel>Strict</FloatingPointModel>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <StructMemberAlignment>Default</StructMemberAlignment>
-      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(TBB_PATH)\lib\intel64\vc12;$(MPIR_PATH)\build.vc14\lib_mpir_gc\x64\Debug;$(BOOST_PATH)\lib64-msvc-14.1;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(TBB_PATH)\lib\intel64\vc12;$(MPIR_PATH)\build.vc14\dll_mpir_gc\x64\Debug;$(BOOST_PATH)\lib64-msvc-14.1;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>mpir.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMTD;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <LargeAddressAware>true</LargeAddressAware>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Rel-Flt|Win32'">
@@ -339,11 +333,9 @@
       <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <FloatingPointModel>Strict</FloatingPointModel>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpp14</LanguageStandard>
-      <StructMemberAlignment>Default</StructMemberAlignment>
-      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -354,7 +346,6 @@
       <AdditionalDependencies>mpir.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <Profile>true</Profile>
-      <LargeAddressAware>true</LargeAddressAware>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Rel-Flt-SSE|x64'">

@@ -35,8 +35,6 @@
 
 #include "..\Math\Primitives.h"
 
-#include "..\Intersection\quantization.h"
-
 #include "..\TriangleMesh.h"
 
 #include "..\cork.h"
@@ -249,34 +247,6 @@ namespace Cork
 			return( *m_boundingBox );
 		}
 
-		const Cork::Quantization::Quantizer		getQuantizer() const
-		{
-			//	Calibrate the quantization unit...
-
-			NUMERIC_PRECISION		maxMag = NUMERIC_PRECISION_MIN;
-
-			for (const CorkVertex &v : vertices())
-			{
-				maxMag = std::max(maxMag, max(abs(v)));
-			}
-
-			//	Find the minimum edge length across all the triangles
-
-			NUMERIC_PRECISION		minEdgeLength = NUMERIC_PRECISION_MAX;
-			NUMERIC_PRECISION		maxEdgeLength = NUMERIC_PRECISION_MIN;
-
-			for (auto& currentTriangle : triangles())
-			{
-				const Cork::Math::Vector3D&	vert0(vertices()[currentTriangle.a()]);
-				const Cork::Math::Vector3D&	vert1(vertices()[currentTriangle.b()]);
-				const Cork::Math::Vector3D&	vert2(vertices()[currentTriangle.c()]);
-
-				minEdgeLength = std::min(minEdgeLength, std::min(len(vert0 - vert1), std::min(len(vert0 - vert2), len(vert1 - vert2))));
-				maxEdgeLength = std::max(maxEdgeLength, std::max(len(vert0 - vert1), std::max(len(vert0 - vert2), len(vert1 - vert2))));
-			}
-
-			return( Quantization::Quantizer(maxMag, minEdgeLength));
-		}
 
 		void for_raw_tris( std::function<void( IndexType, IndexType, IndexType )> func )
 		{
