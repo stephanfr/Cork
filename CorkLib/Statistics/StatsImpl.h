@@ -124,6 +124,13 @@ namespace Cork
 
 			const Cork::Math::BBox3D& 		boundingBox() const
 			{
+				//	Special case when there are no triangles
+				
+				if( m_numTriangles == 0 )
+				{
+					return( Cork::Math::BBox3D( Cork::Math::Vector3D( 0.0,0.0,0.0 ), Cork::Math::Vector3D( 0.0, 0.0, 0.0 ) ));
+				}
+
 				return( m_boundingBox );
 			}
 

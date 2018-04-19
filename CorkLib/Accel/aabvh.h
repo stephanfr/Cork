@@ -208,6 +208,8 @@ namespace Cork
 				return( m_nodeCollections[0] );
 			}
 
+
+
 			AABVHNodeList&				getNodeList( size_t		reservation )
 			{
 				m_collectionsMutex.lock();
@@ -242,6 +244,9 @@ namespace Cork
 		public:
 
 			Workspace()
+			{}
+
+			~Workspace()
 			{}
 
 
@@ -314,11 +319,13 @@ namespace Cork
 			}
 
 			~AxisAlignedBoundingVolumeHierarchy()
-			{}
+			{
+				m_nodeCollections.reset();
+			}
 
 
 
-			void AxisAlignedBoundingVolumeHierarchy::EdgesIntersectingTriangle( TopoTri&					triangle,
+			void AxisAlignedBoundingVolumeHierarchy::EdgesIntersectingTriangle( const TopoTri&				triangle,
 																				IntersectionType			intersectionType,
 																				TopoEdgePointerVector&		edges )
 			{ 

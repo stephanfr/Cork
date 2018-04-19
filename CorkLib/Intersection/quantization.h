@@ -134,11 +134,9 @@ namespace Cork
 
 				std::frexp(minEdgeLength, &minEdgeLengthBinaryExponent);
 
-				int		quantaBitsPerMinEdge = (maxCoordinateValueBinaryExponent - QUANTIZATION_BITS) - minEdgeLengthBinaryExponent;
+				int		quantaBitsPerMinEdge = minEdgeLengthBinaryExponent - (maxCoordinateValueBinaryExponent - QUANTIZATION_BITS);
 
-				std::cout << "Quanta bits per min edge: " << quantaBitsPerMinEdge << std::endl;
-
-				if (quantaBitsPerMinEdge > -10)
+				if (quantaBitsPerMinEdge < 10 )
 				{
 					std::cout << "Insufficient number of quanta bits for min edge length" << std::endl;
 				}

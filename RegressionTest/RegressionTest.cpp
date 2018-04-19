@@ -231,9 +231,13 @@ int main(int argc, char* argv[])
 
 				StopProfile( PROFILE_THREADLEVEL, PROFILE_CURRENTID );
 
+				std::string		filename = firstModel.first.filename().stem().string() + "_" + secondModel.first.filename().stem().string() + "_union";
+
 				if( !booleanOpResult.Succeeded() )
 				{
 					std::cout << "Union Failed: " << booleanOpResult.message() << std::endl;
+					geotopoResults << filename << "    Failed" << std::endl;
+					timingResults << filename << "    Failed" << std::endl;
 				}
 				else
 				{
@@ -246,7 +250,6 @@ int main(int argc, char* argv[])
 
 					boost::filesystem::path	resultFilePath(resultsDirectory);
 
-					std::string		filename = firstModel.first.filename().stem().string() + "_" + secondModel.first.filename().stem().string() + "_union";
 					resultFilePath += "\\";
 					resultFilePath += filename;
 					resultFilePath += ".off";
@@ -278,10 +281,14 @@ int main(int argc, char* argv[])
 				Cork::CorkMesh::BooleanOperationResult		booleanOpResult = firstMesh->Difference( *secondMesh, controlBlock );
 				
 				StopProfile( PROFILE_THREADLEVEL, PROFILE_CURRENTID );
+				
+				std::string		filename = firstModel.first.filename().stem().string() + "_" + secondModel.first.filename().stem().string() + "_difference";
 
 				if( !booleanOpResult.Succeeded() )
 				{
 					std::cout << "Difference Failed: " << booleanOpResult.message() << std::endl;
+					geotopoResults << filename << "    Failed" << std::endl;
+					timingResults << filename << "    Failed" << std::endl;
 				}
 				else
 				{
@@ -294,7 +301,6 @@ int main(int argc, char* argv[])
 
 					boost::filesystem::path	resultFilePath(resultsDirectory);
 
-					std::string		filename = firstModel.first.filename().stem().string() + "_" + secondModel.first.filename().stem().string() + "_difference";
 					resultFilePath += "\\";
 					resultFilePath += filename;
 					resultFilePath += ".off";
@@ -327,9 +333,13 @@ int main(int argc, char* argv[])
 
 				StopProfile( PROFILE_THREADLEVEL, PROFILE_CURRENTID );
 
+				std::string		filename = firstModel.first.filename().stem().string() + "_" + secondModel.first.filename().stem().string() + "_intersection";
+
 				if( !booleanOpResult.Succeeded() )
 				{
 					std::cout << "Intersection Failed: " << booleanOpResult.message() << std::endl;
+					geotopoResults << filename << "    Failed" << std::endl;
+					timingResults << filename << "    Failed" << std::endl;
 				}
 				else
 				{
@@ -342,7 +352,6 @@ int main(int argc, char* argv[])
 
 					boost::filesystem::path	resultFilePath(resultsDirectory);
 
-					std::string		filename = firstModel.first.filename().stem().string() + "_" + secondModel.first.filename().stem().string() + "_intersection";
 					resultFilePath += "\\";
 					resultFilePath += filename;
 					resultFilePath += ".off";
@@ -375,9 +384,13 @@ int main(int argc, char* argv[])
 
 				StopProfile( PROFILE_THREADLEVEL, PROFILE_CURRENTID );
 
+				std::string		filename = firstModel.first.filename().stem().string() + "_" + secondModel.first.filename().stem().string() + "_xor";
+
 				if( !booleanOpResult.Succeeded() )
 				{
 					std::cout << "Symmetric Difference Failed: " << booleanOpResult.message() << std::endl;
+					geotopoResults << filename << "    Failed" << std::endl;
+					timingResults << filename << "    Failed" << std::endl;
 				}
 				else
 				{
@@ -390,7 +403,6 @@ int main(int argc, char* argv[])
 
 					boost::filesystem::path	resultFilePath(resultsDirectory);
 
-					std::string		filename = firstModel.first.filename().stem().string() + "_" + secondModel.first.filename().stem().string() + "_xor";
 					resultFilePath += "\\";
 					resultFilePath += filename;
 					resultFilePath += ".off";

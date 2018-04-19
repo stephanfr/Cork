@@ -27,8 +27,9 @@
 
 //	The gmpext4.h include has to happen first, otherwise we run into multiple declaration issues.
 
-#include "..\Intersection\gmpext4.h"
+#include <random>
 
+#include "..\Intersection\gmpext4.h"
 
 #include <boost\noncopyable.hpp>
 #include <boost\optional.hpp>
@@ -62,13 +63,209 @@ extern "C"
 
 
 
-
-
-
 namespace Cork
 {
 	namespace Intersection
 	{
+
+		class PerturbationEpsilon
+		{
+		public:
+
+			explicit
+				PerturbationEpsilon( const Quantization::Quantizer&		quantizer )
+				: m_bitsOfPurturbationRange( quantizer.bitsOfPurturbationRange() ),
+				  m_quantum( quantizer.purturbationQuantum() ),
+				  m_numAdjustments( 0 )
+			{}
+
+			PerturbationEpsilon() = delete;
+			PerturbationEpsilon( const PerturbationEpsilon& ) = delete;
+
+
+			bool							sufficientRange() const
+			{
+				return( ( m_bitsOfPurturbationRange - m_numAdjustments ) >= PERTURBATION_BUFFER_BITS + MINIMUM_PERTURBATION_RANGE_BITS );
+			}
+
+			NUMERIC_PRECISION				quantum() const
+			{
+				return( m_quantum );
+			}
+
+			int								numAdjustments() const
+			{
+				return( m_numAdjustments );
+			}
+
+			AdjustPerturbationResult		adjust()
+			{
+				m_numAdjustments++;
+
+				m_randomRange <<= 1;
+
+				if( !sufficientRange() )
+				{
+					return( AdjustPerturbationResult::Failure( AdjustPerturbationResultCodes::MAXIMUM_PERTURBATION_REACHED, "Maximum Perturbation reached" ) );
+				}
+
+				return( AdjustPerturbationResult( m_numAdjustments ) );
+			}
+
+
+			Cork::Math::Vector3D			getPerturbation() const
+			{
+				return( m_randMatrix.getPerturbation( m_numAdjustments, m_quantum ) );
+			}
+
+
+		private:
+
+			int							m_bitsOfPurturbationRange;
+			double						m_quantum;
+
+			int							m_numAdjustments;
+
+			int							m_randomRange;
+
+
+			class PerturbationRandomizationMatrix
+			{
+			public:
+
+				PerturbationRandomizationMatrix()
+					: m_mersenneTwister( time( 0 ) )
+				{
+					for( int numPermutations = 4; numPermutations <= 32; numPermutations <<= 1 )
+					{
+						m_randomizationMatrix.push_back( std::vector<std::tuple<long, long, long>>() );
+
+						auto&	currentVec = m_randomizationMatrix.back();
+
+						for( int i = 0; i <= numPermutations; i++ )
+						{
+							for( int j = 0; j <= numPermutations; j++ )
+							{
+								for( int k = 0; k <= numPermutations; k++ )
+								{
+									currentVec.push_back( std::tuple<long, long, long>( i, j, k ) );
+
+									if( i > 0 )
+									{
+										currentVec.push_back( std::tuple<long, long, long>( -i, j, k ) );
+									}
+
+									if( j > 0 )
+									{
+										currentVec.push_back( std::tuple<long, long, long>( i, -j, k ) );
+									}
+
+									if( k > 0 )
+									{
+										currentVec.push_back( std::tuple<long, long, long>( i, j, -k ) );
+									}
+
+									if(( i > 0 ) && ( j > 0 ))
+									{
+										currentVec.push_back( std::tuple<long, long, long>( -i, -j, k ) );
+									}
+
+									if( ( i > 0 ) && ( k > 0 ) )
+									{
+										currentVec.push_back( std::tuple<long, long, long>( -i, j, -k ) );
+									}
+
+									if( ( j > 0 ) && ( k > 0 ) )
+									{
+										currentVec.push_back( std::tuple<long, long, long>( i, -j, -k ) );
+									}
+
+									if( ( i > 0 ) && ( j > 0 ) && ( k > 0 ) )
+									{
+										currentVec.push_back( std::tuple<long, long, long>( -i, -j, -k ) );
+									}
+								}
+							}
+						}
+
+						m_numEntries.push_back( currentVec.size() );
+					}
+				}
+
+
+				Cork::Math::Vector3D			getPerturbation( int			index,
+																 double			quantum ) 
+				{
+					if( index >= m_numEntries.size() )
+					{
+						return( getBruteForcePerturbation( index, quantum ) );
+					}
+					
+					//	Using the standard clib random number generator std::rand() resulted in spurious errors
+					//		in triangle consolidation.  This seems not to be the case with the MT generator.
+					//
+					//	I don't quite understand why this approach to creating an array of purturbation combinations
+					//		and then choosing the right combo with a single random number is more fragile than 
+					//		the prior method of generating random values for each offset but with std::rand() there
+					//		were certainly problems.
+					
+					long		arrayIndex = m_mersenneTwister() % m_numEntries[index];
+
+					const std::tuple<long, long, long>&		randEntry = m_randomizationMatrix[index][arrayIndex];
+
+					return( Cork::Math::Vector3D( std::get<0>( randEntry ) * quantum, std::get<1>( randEntry ) * quantum, std::get<2>( randEntry ) * quantum ) );
+				}
+
+
+			private:
+
+				std::vector<size_t>												m_numEntries;
+
+				std::vector<std::vector<std::tuple<long, long, long>>>			m_randomizationMatrix;
+
+				std::mt19937													m_mersenneTwister;
+
+
+
+				Cork::Math::Vector3D			getBruteForcePerturbation( int			index,
+																		   double		quantum )
+				{
+					//	We have overrun the size of the randomization table so compute the perturbation
+					//		brute force with lots of random calls.
+
+					int							perturbRange = 1 << index + 2;
+
+					Cork::Math::Vector3D		perturbation;
+
+					perturbation = Cork::Math::Vector3D(( m_mersenneTwister() % perturbRange) *quantum, ( m_mersenneTwister() % perturbRange) *quantum, ( m_mersenneTwister() % perturbRange) *quantum);
+
+					if(( m_mersenneTwister() % 2 ) == 1 )
+					{
+						perturbation[0] = -perturbation[0];
+					}
+
+					if( ( m_mersenneTwister() % 2 ) == 1 )
+					{
+						perturbation[1] = -perturbation[1];
+					}
+
+					if( ( m_mersenneTwister() % 2 ) == 1 )
+					{
+						perturbation[2] = -perturbation[2];
+					}
+
+					return( perturbation );
+				}
+
+			};
+
+
+			static PerturbationRandomizationMatrix		m_randMatrix;
+		};
+
+		//	Define the static global so it is initialized
+
+		PerturbationEpsilon::PerturbationRandomizationMatrix		PerturbationEpsilon::m_randMatrix;
 
 
 
@@ -770,10 +967,11 @@ namespace Cork
 
 			void perturbPositions()
 			{
-//				NUMERIC_PRECISION	purturbation( *m_purturbation );
-
+/*
 				NUMERIC_PRECISION	perturbQuantum = m_perturbation.quantum();
-				int					perturbRange = m_perturbation.randomRange();
+//				int					perturbRange = m_perturbation.randomRange();
+
+				int					perturbRange = 1 << m_perturbation.numAdjustments() + 1;
 
 				Cork::Math::Vector3D		perturbation;
 
@@ -781,12 +979,39 @@ namespace Cork
 				{
 					perturbation = Cork::Math::Vector3D((std::rand() % perturbRange) *perturbQuantum, (std::rand() % perturbRange) *perturbQuantum, (std::rand() % perturbRange) *perturbQuantum);
 
-					coord += perturbation;
+					if(( std::rand() % 2 ) == 1 )
+					{
+						perturbation[0] = -perturbation[0];
+					}
 
-//					coord += m_quantizer.quantize( Cork::Math::Vector3D::randomVector( -purturbation, purturbation ) );
+					if( ( std::rand() % 2 ) == 1 )
+					{
+						perturbation[1] = -perturbation[1];
+					}
+
+					if( ( std::rand() % 2 ) == 1 )
+					{
+						perturbation[2] = -perturbation[2];
+					}
+
+					coord += perturbation;
+				}
+*/
+
+//				for( Cork::Math::Vector3D& coord : m_quantizedCoords )
+//				{
+//					Cork::Math::Vector3D	perturbation = m_perturbation.getPerturbation();
+//
+//					coord += perturbation;
+//				}
+
+				for( int i = 0; i < m_quantizedCoords.size(); i++ )
+				{
+					Cork::Math::Vector3D	perturbation = m_perturbation.getPerturbation();
+
+					m_quantizedCoords[i] = m_quantizedCoords[i] + perturbation;
 				}
 			}
-
 
 
 			enum BVHEdgeTriResultCodes {
@@ -797,28 +1022,31 @@ namespace Cork
 			typedef SEFUtility::Result<BVHEdgeTriResultCodes>		BVHEdgeTriResult;
 
 
-			BVHEdgeTriResult		bvh_edge_tri( Cork::AABVH::IntersectionType				selfOrBooleanIntersection,
-												  TriangleAndIntersectingEdgesVector&		triangleAndEdges )
+			void					CreateBoundingVolumeHierarchy()
 			{
+				if( m_edgeBVH.get() != nullptr )
+				{
+					delete m_edgeBVH.release();
+				}
+				
 				std::unique_ptr< Cork::AABVH::GeomBlobVector >		edge_geoms( new Cork::AABVH::GeomBlobVector() );
 
-				try
-				{
-					edge_geoms->reserve(edges().size());
-				}
-				catch (std::bad_alloc	ex)
-				{
-					return(BVHEdgeTriResult::Failure(BVHEdgeTriResultCodes::OUT_OF_MEMORY, "Out of Memory allocating triangle and edges data structure"));
-				}
-
+				edge_geoms->reserve( edges().size() );
+				
 				for( auto& e : edges() )
 				{
 					edge_geoms->emplace_back( e );
 				}
 
-				m_workspace.reset();
+				m_edgeBVH.reset( new Cork::AABVH::AxisAlignedBoundingVolumeHierarchy( edge_geoms, m_workspace, ownerMesh().solverControlBlock() ) );
+			}
 
-				Cork::AABVH::AxisAlignedBoundingVolumeHierarchy		edgeBVH( edge_geoms, m_workspace, ownerMesh().solverControlBlock() );
+
+
+			BVHEdgeTriResult		bvh_edge_tri( Cork::AABVH::IntersectionType				selfOrBooleanIntersection,
+												  TriangleAndIntersectingEdgesVector&		triangleAndEdges )
+			{
+				CreateBoundingVolumeHierarchy();
 
 				// use the acceleration structure
 
@@ -848,7 +1076,7 @@ namespace Cork
 
 						for( TopoTri& t : triangles )
 						{
-							edgeBVH.EdgesIntersectingTriangle( t, selfOrBooleanIntersection, edges );
+							m_edgeBVH->EdgesIntersectingTriangle( t, selfOrBooleanIntersection, edges );
 
 							if (!edges.empty())
 							{
@@ -867,7 +1095,7 @@ namespace Cork
 
 					for( TopoTri& t : triangles() )
 					{
-						edgeBVH.EdgesIntersectingTriangle( t, selfOrBooleanIntersection, edges );
+						m_edgeBVH->EdgesIntersectingTriangle( t, selfOrBooleanIntersection, edges );
 
 						if (!edges.empty())
 						{
@@ -882,7 +1110,6 @@ namespace Cork
 
 				return(BVHEdgeTriResult::Success());
 			}
-
 
 
 			void createRealPtFromGluePt( GluePointMarker& glue )
@@ -1051,6 +1278,8 @@ namespace Cork
 
 
 			IntersectionProblemWorkspaceBase&				m_workspace;
+
+			std::unique_ptr<Cork::AABVH::AxisAlignedBoundingVolumeHierarchy>		m_edgeBVH;
 
 			Empty3d::ExactArithmeticContext					m_exactArithmeticContext;
 
@@ -1414,11 +1643,12 @@ namespace Cork
 
 			
 			enum SubdivideResultCodes { SUCCESS = 0,
+										SELF_INTERSECTING_MESH,
 										TRIANGULATE_OUT_POINT_COUNT_UNEQUAL_TO_IN_POINT_COUNT };
 
 			typedef SEFUtility::Result<SubdivideResultCodes>		SubdivideResult;
 
-			SubdivideResultCodes	Subdivide()
+			SubdivideResult	Subdivide()
 			{
 				// collect all the points, and create more points as necessary
 
@@ -1540,7 +1770,9 @@ namespace Cork
 
 				if (out.numberofpoints != in.numberofpoints)
 				{
-					return( SubdivideResultCodes::TRIANGULATE_OUT_POINT_COUNT_UNEQUAL_TO_IN_POINT_COUNT );
+					//	When we end up here, it is usually because we have hit some self-intersections.
+
+					return( SubdivideResult::Failure( SubdivideResultCodes::TRIANGULATE_OUT_POINT_COUNT_UNEQUAL_TO_IN_POINT_COUNT, "Unequal number of points before and after triangulation - check input meshes for self intersections." ) );
 				}
 
 				m_gtris.clear();
@@ -1554,7 +1786,7 @@ namespace Cork
 					m_gtris.push_back( m_iprob.newGenericTri(gv0, gv1, gv2));
 				}
 
-				return( SubdivideResultCodes::SUCCESS );
+				return( SubdivideResult::Success() );
 			}
 
 
@@ -1833,10 +2065,10 @@ namespace Cork
 
 			//	Implementation of IntersectionProblemIfx
     
-//			SelfIntersectionStatistics			ComputeSelfIntersectionStatistics();			// test for self intersections in the mesh
-    
 			IntersectionProblemResult			FindIntersections();
 			IntersectionProblemResult			ResolveAllIntersections();
+
+			SelfIntersectionStats				CheckSelfIntersection();			// test for self intersections in the mesh
 
 			void								commit()
 			{
@@ -1983,33 +2215,6 @@ namespace Cork
 			{
 				e.setBoolAlgData( e.triangles().front()->boolAlgData() );
 			}
-
-			//	Calibrate the quantization unit...
-/*
-			NUMERIC_PRECISION		maxMag = NUMERIC_PRECISION_MIN;
-
-			for (const CorkVertex &v : TopoCache::ownerMesh().vertices())
-			{
-				maxMag = std::max( maxMag, max(abs(v)) );
-			}
-
-			//	Find the minimum edge length across all the triangles
-
-			NUMERIC_PRECISION		minEdgeLength = NUMERIC_PRECISION_MAX;
-			NUMERIC_PRECISION		maxEdgeLength = NUMERIC_PRECISION_MIN;
-
-			for (auto& currentTriangle : TopoCache::ownerMesh().triangles() )
-			{
-				const Cork::Math::Vector3D&	vert0(TopoCache::ownerMesh().vertices()[currentTriangle.a()]);
-				const Cork::Math::Vector3D&	vert1(TopoCache::ownerMesh().vertices()[currentTriangle.b()]);
-				const Cork::Math::Vector3D&	vert2(TopoCache::ownerMesh().vertices()[currentTriangle.c()]);
-
-				minEdgeLength = std::min(minEdgeLength, std::min(len(vert0 - vert1), std::min(len(vert0 - vert2), len(vert1 - vert2))));
-				maxEdgeLength = std::max(maxEdgeLength, std::max(len(vert0 - vert1), std::max(len(vert0 - vert2), len(vert1 - vert2))));
-			}
-
-			Quantization::calibrate( maxMag, minEdgeLength );
-*/
 
 			// and use vertex auxiliary data to store quantized vertex coordinates
 
@@ -2216,14 +2421,17 @@ namespace Cork
 
 		IntersectionProblem::IntersectionProblemResult		IntersectionProblem::FindIntersections()
 		{
-			int nTrys = 5;
 			perturbPositions(); // always perturb for safety...
 
-			while(nTrys > 0)
+			boolean			foundIntersections = false;
+
+			do
 			{
 				TryToFindIntersectionsResult		result = tryToFindIntersections();
 
-				if(!result.Succeeded())
+				foundIntersections = result.Succeeded();
+
+				if( !foundIntersections )
 				{
 					if (result.errorCode() == TryToFindIntersectionsResultCodes::OUT_OF_MEMORY)
 					{
@@ -2240,21 +2448,9 @@ namespace Cork
 					}
 
 					perturbPositions();
-					
-					nTrys--;
-
-					std::cout << "retrying" << std::endl;
-				}
-				else
-				{
-					break;
 				}
 			}
-
-			if(nTrys <= 0)
-			{
-				return( IntersectionProblemResult::Failure( IntersectionProblemResultCodes::EXHAUSTED_PURTURBATION_RETRIES, "Exhausted 5 purturbation retries" ));
-			}
+			while( !foundIntersections );
     
 			// ok all points put together,
 			// all triangle problems assembled.
@@ -2270,33 +2466,37 @@ namespace Cork
 		}
 
 
-/*
-		SelfIntersectionStatistics			IntersectionProblem::ComputeSelfIntersectionStatistics()
+
+		SelfIntersectionStats			IntersectionProblem::CheckSelfIntersection()
 		{
-			unsigned int		numIntersections = 0;
-			m_exactArithmeticContext.degeneracy_count = 0;
+			Cork::Empty3d::ExactArithmeticContext		localArithmeticContext;
+			unsigned int								numIntersections = 0;
 
-			// Find some edge-triangle intersection point...
-
-			bvh_edge_tri( Cork::AABVH::IntersectionType::SELF_INTERSECTION, [&](Eptr eisct, Tptr tisct )->bool
+			if( m_edgeBVH.get() == nullptr )
 			{
-				if (tisct->intersectsEdge(*eisct, m_exactArithmeticContext ))
+				CreateBoundingVolumeHierarchy();
+			}
+
+			TopoEdgePointerVector			edges;
+
+			for( TopoTri& t : triangles() )
+			{
+				m_edgeBVH->EdgesIntersectingTriangle( t, Cork::AABVH::IntersectionType::SELF_INTERSECTION, edges );
+
+				for( const TopoEdge* edge : edges )
 				{
-					numIntersections++;
-					return( false ); // break;
+					if( t.intersectsEdge( *edge, m_quantizer, localArithmeticContext ) )
+					{
+						numIntersections++;
+					}
 				}
 
-				if (m_exactArithmeticContext.degeneracy_count > 0)
-				{
-					return( false ); // break;
-				}
+				edges.clear();
+			}
 
-			  return( true ); // continue
-			});
-    
-			return( SelfIntersectionStatistics( numIntersections, m_exactArithmeticContext.degeneracy_count ));
+			return( SelfIntersectionStats( numIntersections ) );
 		}
-*/
+
 
 		IntersectionProblem::IntersectionProblemResult		IntersectionProblem::ResolveAllIntersections()
 		{
@@ -2306,9 +2506,47 @@ namespace Cork
 			{
 				auto result = tprob.Subdivide();
 
-				if( result != TriangleProblem::SubdivideResultCodes::SUCCESS )
+				if( !result.Succeeded() )
 				{
-					return( IntersectionProblemResult::Failure( IntersectionProblemResultCodes::SUBDIVIDE_FAILED, "Subdivide failed", TriangleProblem::SubdivideResult::Failure( result, "Subdivide Failed, check result code." ) ));
+					//	Usually, we fail here as a result of a self-intersecting mesh.  Check for that condition now
+					//		but we only have to check the current collection of triangles associated with this problem.
+					//		We can do that directly using the bounding volume hierarchy.
+
+					Cork::Empty3d::ExactArithmeticContext		localArithmeticContext;
+					unsigned int								numIntersections = 0;
+
+					std::set<const TopoTri*>					allTris;
+
+					allTris.insert( &tprob.triangle() );
+
+					for( auto edge : tprob.iedges() )
+					{
+						allTris.insert( &edge->otherTriKey().value() );
+					}
+
+					for( auto tri : allTris )
+					{
+						TopoEdgePointerVector			edges;
+
+						m_edgeBVH->EdgesIntersectingTriangle( *tri, Cork::AABVH::IntersectionType::SELF_INTERSECTION, edges );
+					
+						for( const TopoEdge* edge : edges )
+						{
+							if( tri->intersectsEdge( *edge, m_quantizer, localArithmeticContext ) )
+							{
+								numIntersections++;
+							}
+						}
+
+						edges.clear();
+					}
+
+					if( numIntersections > 0 )
+					{
+						return( IntersectionProblemResult::Failure( IntersectionProblemResultCodes::SELF_INTERSECTING_MESH, "Self Intersections found in Mesh", result ) );
+					}
+					
+					return( IntersectionProblemResult::Failure( IntersectionProblemResultCodes::SUBDIVIDE_FAILED, "Subdivide failed", result ));
 				}
 			}
     
@@ -2376,7 +2614,7 @@ namespace Cork
 		{
 			IntersectionWorkspaceFactory::UniquePtr		workspace( IntersectionWorkspaceFactory::GetInstance() );
 
-			return( std::unique_ptr<IntersectionProblemIfx>( new IntersectionProblem( owner, quantizer, intersectionBBox, workspace ) ) );
+			return( std::unique_ptr<IntersectionProblemIfx>( new IntersectionProblem( owner, quantizer, intersectionBBox, workspace ) ));
 		}
 
 

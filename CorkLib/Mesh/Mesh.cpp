@@ -143,7 +143,8 @@ namespace Cork
 													INSUFFICIENT_PERTURBATION_RANGE,
 													FIND_INTERSECTIONS_FAILED,
 													RESOLVE_INTERSECTIONS_FAILED,
-													POPULATE_EDGE_GRAPH_CACHE_FAILED };
+													POPULATE_EDGE_GRAPH_CACHE_FAILED,
+													SELF_INTERSECTING_MESH };
 
 		typedef SEFUtility::Result<SetupBooleanProblemResultCodes>		SetupBooleanProblemResult;
 
@@ -296,6 +297,8 @@ namespace Cork
 		m_tris.reserve( inputMesh.numTriangles() );
 		m_verts.reserve( inputMesh.numVertices() );
 	
+//		m_verts = inputMesh.vertices();
+
 		//	Start by copying the vertices.  We need to cast them from floats to doubles.
 
 		for ( Cork::TriangleMesh::Vertex currentVertex : inputMesh.vertices() )
@@ -469,39 +472,6 @@ namespace Cork
 			return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::TOO_MANY_TRIANGLES_IN_DISJOINT_UNION, "Too many triangles in disjoint union, possible out of memory exception if the operation is attenmpted." ));
 		}
 
-		//	Find the minimum edge length across all the triangles
-/*
-		NUMERIC_PRECISION		minEdgeLength = NUMERIC_PRECISION_MAX;
-		NUMERIC_PRECISION		maxEdgeLength = NUMERIC_PRECISION_MIN;
-
-		for( auto& currentTriangle : m_tris )
-		{
-			const Cork::Math::Vector3D&	vert0( m_verts[currentTriangle.a()] );
-			const Cork::Math::Vector3D&	vert1( m_verts[currentTriangle.b()] );
-			const Cork::Math::Vector3D&	vert2( m_verts[currentTriangle.c()] );
-
-			minEdgeLength = std::min( minEdgeLength, std::min( len(  vert0 - vert1 ), std::min( len( vert0 - vert2 ), len( vert1 - vert2 ) )));
-			maxEdgeLength = std::max( maxEdgeLength, std::max( len(  vert0 - vert1 ), std::max( len( vert0 - vert2 ), len( vert1 - vert2 ) )));
-		}
-
-		//	If the minimum edge length is too close to the minimum purturbation value, error now.
-		//		We don't want to risk having the purturbation push points too far out of place and screwing up the topology.
-
-		if( minEdgeLength < PURTURBATION_UNDERFLOW_EDGE_LENGTH )
-		{
-			return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::PURTURBATION_EPSILON_UNDERFLOW, "Purturbation Underflow: Minimum Edge Length is too small to get a reasonable purturbation value." ));
-		}
-
-		//	Make the purturbation 5 orders of magnitude less than the min edge length
-
-		int			modelDynamicRange = (int)log10( maxEdgeLength ) - (int)log10( minEdgeLength );
-		float		epsilonMag = (float)((int)log10( minEdgeLength ) - PURTURBATION_ORDERS_OF_MAG_LESS);
-
-		//	Clamp the purturbation value to the NUMERIC_PRECISION_MIN_EPSILON value.  Smaller than that and we will run out of significant
-		//		digits in the current numeric precision to guarantee decent results.
-
-		Intersection::PerturbationEpsilon						purturbation( std::max( pow( (NUMERIC_PRECISION)10.0, epsilonMag ), NUMERIC_PRECISION_MIN_EPSILON ));
-*/
 		//	Start by finding the intersections
 
 		int		tries = 5;
@@ -513,59 +483,45 @@ namespace Cork
 			return(SetupBooleanProblemResult::Failure(SetupBooleanProblemResultCodes::INSUFFICIENT_PERTURBATION_RANGE, "Insufficient Dynamic Range left in model for perturbation."));
 		}
 
+		//	Find intersections and then resolve them.  We might have to repurturb if finding and resolving fails.
+		//		We can repurturb until we run out of perturbation resolution.
+
+		std::unique_ptr<IntersectionProblemIfx>					iproblem( IntersectionProblemIfx::GetProblem( *this, quantizer, intersectionBBox ) );
+
 		while( true )
 		{
-//			std::unique_ptr<IntersectionProblemIfx>					iproblem( IntersectionProblemIfx::GetProblem( *this, intersectionBBox, purturbation ) );
-			std::unique_ptr<IntersectionProblemIfx>					iproblem( IntersectionProblemIfx::GetProblem( *this, quantizer, intersectionBBox ) );
+			IntersectionProblemIfx::IntersectionProblemResult		findResult = iproblem->FindIntersections();
 
+			if( !findResult.Succeeded() )
 			{
-				IntersectionProblemIfx::IntersectionProblemResult		result = iproblem->FindIntersections();
+				//	If we failed here - not mush to do but return a failed result
 
-				if( !result.Succeeded() )
-				{
-					//	If we failed here - not mush to do but return a failed result
-
-					return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::FIND_INTERSECTIONS_FAILED, "FindIntersections failed.", result ));
-				}
+				return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::FIND_INTERSECTIONS_FAILED, "FindIntersections failed.", findResult ));
 			}
 
 			//	Next, resolve them
 
+			IntersectionProblemIfx::IntersectionProblemResult		resolveResult = iproblem->ResolveAllIntersections();
+
+			if( !resolveResult.Succeeded() )
 			{
-				IntersectionProblemIfx::IntersectionProblemResult		result = iproblem->ResolveAllIntersections();
+				//	Resolve failed, check the error code to see if this is a recoverable error or not
 
-				if( !result.Succeeded() )
+				//	If we failed due to a self-intersection, then one of the meshes is bad so no amount of repurturbation will work.
+
+				if( resolveResult.errorCode() == IntersectionProblemIfx::IntersectionProblemResultCodes::SELF_INTERSECTING_MESH )
 				{
-					tries--;
-
-					if( tries == 0 )
-					{
-						return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::RESOLVE_INTERSECTIONS_FAILED, "ResolveIntersections failed.", result ));
-					}
-
-//					purturbation.adjust();
+					return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::SELF_INTERSECTING_MESH, "One of the two meshes self intersects", resolveResult ) );
 				}
+
+				//	Resolve failed for some other reason.
+
+				return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::RESOLVE_INTERSECTIONS_FAILED, "ResolveIntersections failed and exhuasted perturbations.", resolveResult ) );
 			}
     
 			iproblem->commit();
 			break;
 		}
-
-
-		for (auto &currentTri : m_tris )
-		{
-			auto lenab = Cork::Math::len(m_verts[currentTri.a()] - m_verts[currentTri.b()]);
-			auto lenac = Cork::Math::len(m_verts[currentTri.a()] - m_verts[currentTri.c()]);
-			auto lenbc = Cork::Math::len(m_verts[currentTri.b()] - m_verts[currentTri.c()]);
-
-			auto minLen = std::min(lenab, std::min(lenac, lenbc));
-
-			if (minLen <= quantizer.purturbationQuantum())
-			{
-				std::cout << "Edge Shorter than Quantum" << std::endl;
-			}
-		}
-
 
 		//	Create and populate the EGraph Cache
 
@@ -706,22 +662,6 @@ namespace Cork
 			}
 		}
 
-
-		for (auto &currentTri : m_tris)
-		{
-			auto lenab = Cork::Math::len(m_verts[currentTri.a()] - m_verts[currentTri.b()]);
-			auto lenac = Cork::Math::len(m_verts[currentTri.a()] - m_verts[currentTri.c()]);
-			auto lenbc = Cork::Math::len(m_verts[currentTri.b()] - m_verts[currentTri.c()]);
-
-			auto minLen = std::min(lenab, std::min(lenac, lenbc));
-
-			if (minLen <= quantizer.purturbationQuantum())
-			{
-				std::cout << "Edge Shorter than Quantum" << std::endl;
-			}
-		}
-
-
 		//	Finished with Success
 
 
@@ -780,7 +720,7 @@ namespace Cork
 	{
 		//	Collect some starting statistics
 		
-		unsigned long		startingVirtualMemory = GetConsumedVirtualMemory();
+		unsigned long				startingVirtualMemory = GetConsumedVirtualMemory();
 		
 		boost::timer::cpu_timer		elapsedTime;
 
