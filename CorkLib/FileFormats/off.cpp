@@ -184,31 +184,33 @@ namespace Cork
 
 			//	We will be writing in 'OFF' format, no color information.  Write the format label first.
 
-			out << "OFF" << std::endl;
+			out << "OFF\n";
 
 			//	Write the number of vertices and triangles (i.e. faces)
 			//		We will not be writing any edges, so write zero for that value.
 
-			out << meshToWrite.numVertices() << ' ' << meshToWrite.numTriangles() << ' ' << 0 << std::endl;
+			out << meshToWrite.numVertices() << ' ' << meshToWrite.numTriangles() << ' ' << 0 << "\n";
 
 			//	Write the vertices
 
 			for ( const auto& currentVertex : meshToWrite.vertices() )
 			{
-				WriteVertex( out, currentVertex ) << std::endl;
+				WriteVertex( out, currentVertex ) << "\n";
 			}
 
 			//	Write the triangles - they are the faces
 
 			for ( const auto& currentTriangle : meshToWrite.triangles() )
 			{
-				out << "3 " << currentTriangle << std::endl;
+				out << "3 " << currentTriangle << "\n";
 			}
 
 			if ( !out )
 			{
 				return(WriteFileResult::Failure( WriteFileResultCodes::ERROR_WRITING_TO_OFS_FILE, "Unknown Error writing to OFS file" ));
 			}
+
+			out.flush();
 
 			return(WriteFileResult::Success());
 		}

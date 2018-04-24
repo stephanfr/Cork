@@ -233,7 +233,7 @@ namespace Cork
 					//	We have overrun the size of the randomization table so compute the perturbation
 					//		brute force with lots of random calls.
 
-					int							perturbRange = 1 << index + 2;
+					int							perturbRange = 1 << ( index + 2 );
 
 					Cork::Math::Vector3D		perturbation;
 
@@ -967,44 +967,6 @@ namespace Cork
 
 			void perturbPositions()
 			{
-/*
-				NUMERIC_PRECISION	perturbQuantum = m_perturbation.quantum();
-//				int					perturbRange = m_perturbation.randomRange();
-
-				int					perturbRange = 1 << m_perturbation.numAdjustments() + 1;
-
-				Cork::Math::Vector3D		perturbation;
-
-				for ( Cork::Math::Vector3D&		coord : m_quantizedCoords )
-				{
-					perturbation = Cork::Math::Vector3D((std::rand() % perturbRange) *perturbQuantum, (std::rand() % perturbRange) *perturbQuantum, (std::rand() % perturbRange) *perturbQuantum);
-
-					if(( std::rand() % 2 ) == 1 )
-					{
-						perturbation[0] = -perturbation[0];
-					}
-
-					if( ( std::rand() % 2 ) == 1 )
-					{
-						perturbation[1] = -perturbation[1];
-					}
-
-					if( ( std::rand() % 2 ) == 1 )
-					{
-						perturbation[2] = -perturbation[2];
-					}
-
-					coord += perturbation;
-				}
-*/
-
-//				for( Cork::Math::Vector3D& coord : m_quantizedCoords )
-//				{
-//					Cork::Math::Vector3D	perturbation = m_perturbation.getPerturbation();
-//
-//					coord += perturbation;
-//				}
-
 				for( int i = 0; i < m_quantizedCoords.size(); i++ )
 				{
 					Cork::Math::Vector3D	perturbation = m_perturbation.getPerturbation();
@@ -1069,7 +1031,7 @@ namespace Cork
 
 					assert( triangles().isCompact() );
 
-					tbb::parallel_for( tbb::blocked_range<TopoTriList::PoolType::iterator>( triangles().getPool().begin(), triangles().getPool().end(), 200 ),
+					tbb::parallel_for( tbb::blocked_range<TopoTriList::PoolType::iterator>( triangles().getPool().begin(), triangles().getPool().end(), triangles().getPool().size() / 4 ),
 						[&] ( tbb::blocked_range<TopoTriList::PoolType::iterator> triangles )
 					{
 						TopoEdgePointerVector			edges;
@@ -1085,7 +1047,7 @@ namespace Cork
 								edges.clear();
 							}
 						}
-					} );
+					}, tbb::simple_partitioner() );
 				}
 				else
 				{
@@ -1583,7 +1545,12 @@ namespace Cork
 
 			// run after we've accumulated all the elements
 
-			void consolidate()
+			enum class ConsolidateResultCodes { SUCCESS = 0, COULD_NOT_FIND_COMMON_VERTEX };
+
+			typedef SEFUtility::Result<ConsolidateResultCodes>		ConsolidateResult;
+
+
+			ConsolidateResult	Consolidate()
 			{
 				// identify all intersection edges missing endpoints
 				// and check to see if we can assign an original vertex
@@ -1599,6 +1566,8 @@ namespace Cork
 
 						if (!m_triangle.findCommonVertex( ie->otherTriKey().value(), vert))
 						{
+#ifdef _DEBUG
+
 							std::cout << "the  edge is " << ie->ends()[0] << ",  " << ie->ends()[1] << std::endl;
 
 							IsctVertType* iv = dynamic_cast<IsctVertType*>(ie->ends()[0]);
@@ -1621,6 +1590,9 @@ namespace Cork
 
 							std::cout << "degen count:" << m_iprob.ExactArithmeticContext().degeneracy_count << std::endl;
 							std::cout << "exact count: " << m_iprob.ExactArithmeticContext().exact_count << std::endl;
+#endif
+
+							return( ConsolidateResult::Failure( ConsolidateResultCodes::COULD_NOT_FIND_COMMON_VERTEX, "Could not find common vertex in Triangle Problem Consolidate" ));
 						}
 
 						ENSURE(vert); // bad if we can't find a common vertex
@@ -1638,6 +1610,8 @@ namespace Cork
 						}
 					}
 				}
+
+				return( ConsolidateResult::Success() );
 			}
 
 
@@ -2263,7 +2237,7 @@ namespace Cork
 			}
 
 
-			for (auto& triAndEdges : trianglesAndEdges)
+			for (auto& triAndEdges : trianglesAndEdges )
 			{
 				TopoTri&	triangle = triAndEdges.triangle();
 
@@ -2459,7 +2433,10 @@ namespace Cork
 
 			for ( auto& tprob : m_triangleProblemList )
 			{
-				tprob.consolidate();
+				if( !tprob.Consolidate().Succeeded())
+				{	
+					return( IntersectionProblemResult::Failure( IntersectionProblemResultCodes::CONSOLIDATE_FAILED, "Consolidate failed" ) );
+				}
 			}
 
 			return( IntersectionProblemResult::Success() );

@@ -245,11 +245,11 @@ namespace SEFUtility
 		}
 
 
-		unsigned int			size() const
+		size_t			size() const
 		{
 			if( !m_cutover )
 			{
-				return( m_arraySize );
+				return( m_array.size() );
 			}
 
 			return( m_map->size() );
@@ -259,7 +259,7 @@ namespace SEFUtility
 		{
 			if( !m_cutover )
 			{
-				return( m_arraySize == 0 );
+				return( m_array.size() == 0 );
 			}
 
 			return( m_map->empty() );
@@ -781,32 +781,6 @@ namespace SEFUtility
 		void			insert( T*		newValue )
 		{
 			(this->*m_inserter)( newValue );
-/*
-			if (!m_cutover)
-			{
-				if (m_array.size() < CUTOVER_SIZE)
-				{
-					m_array.push_back( newValue );
-				}
-				else
-				{
-					m_map = new EntrySet();
-
-					for (T* value : m_array)
-					{
-						m_map->insert( value );
-					}
-
-					m_map->insert( newValue );
-
-					m_cutover = true;
-				}
-			}
-			else
-			{
-				m_map->insert( newValue );
-			}
-*/
 		}
 
 

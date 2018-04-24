@@ -32,6 +32,8 @@
 
 #include "boost\container\small_vector.hpp"
 
+#include "tbb/tbb.h"
+
 #include "..\cork.h"
 
 #include "..\Mesh\TopoCache.h"
@@ -167,6 +169,10 @@ namespace Cork
 	
 		bool							isInside( IndexType		tid,
 												  byte			operand );
+
+		void							IsInsideCheck( CorkTriangle&				tri,
+													   Cork::Math::Ray3D&			r,
+													   std::atomic<int>&			winding );
 	};
 
 
@@ -224,59 +230,38 @@ namespace Cork
         
 		Cork::Math::Ray3D		r( p, Cork::Math::Vector3D::randomVector( 0.5, 1.5 ) );
         
-		int winding = 0;
+		std::atomic<int> winding = 0;
+
 		// pass all triangles over ray
         
-		for(CorkTriangle &tri : m_tris)
+		if( solverControlBlock().useMultipleThreads() )
 		{
-			// ignore triangles from the same operand surface
-			if ((tri.boolAlgData() & 1) == operand)
+			tbb::parallel_for( tbb::blocked_range<std::vector<Cork::CorkTriangle>::iterator>( m_tris.begin(), m_tris.end(), m_tris.size() / 4 ),
+			[&]( tbb::blocked_range<std::vector<Cork::CorkTriangle>::iterator> triangles )
 			{
-				continue;
-			}
-            
-			NUMERIC_PRECISION flip = 1.0;
-
-			IndexType   a = tri.a();
-			IndexType   b = tri.b();
-			IndexType   c = tri.c();
-
-			Cork::Math::Vector3D		va = m_verts[a];
-			Cork::Math::Vector3D		vb = m_verts[b];
-			Cork::Math::Vector3D		vc = m_verts[c];
-            
-			// normalize vertex order (to prevent leaks)
-            
-			if(a > b)
-			{
-				std::swap(a, b); std::swap(va, vb); flip = -flip;
-			}
-            
-			if(b > c)
-			{
-				std::swap(b, c); std::swap(vb, vc); flip = -flip;
-			}
-            
-			if(a > b)
-			{
-				std::swap(a, b); std::swap(va, vb); flip = -flip;
-			}
-            
-			NUMERIC_PRECISION			t;
-			Cork::Math::Vector3D		bary;
-            
-			if(isct_ray_triangle(r, va, vb, vc, &t, &bary))
-			{
-				Cork::Math::Vector3D	normal = flip * cross(vb - va, vc - va);
-            
-				if( dot( normal, r.direction() ) > 0.0 )
-				{ // UNSAFE
-					winding++;
-				}
-				else
+				for(CorkTriangle &tri : triangles )
 				{
-					winding--;
+					// ignore triangles from the same operand surface
+					if ((tri.boolAlgData() & 1) == operand)
+					{
+						continue;
+					}
+
+					IsInsideCheck( tri, r, winding );
 				}
+			}, tbb::simple_partitioner() );
+		}
+		else
+		{
+			for( CorkTriangle &tri : m_tris )
+			{
+				// ignore triangles from the same operand surface
+				if( ( tri.boolAlgData() & 1 ) == operand )
+				{
+					continue;
+				}
+
+				IsInsideCheck( tri, r, winding );
 			}
 		}
         
@@ -285,6 +270,55 @@ namespace Cork
 	}
 
 
+	inline
+	void	Mesh::IsInsideCheck( CorkTriangle&				tri,
+								 Cork::Math::Ray3D&			r,
+								 std::atomic<int>&			winding )
+	{
+		NUMERIC_PRECISION flip = 1.0;
+
+		IndexType   a = tri.a();
+		IndexType   b = tri.b();
+		IndexType   c = tri.c();
+
+		Cork::Math::Vector3D		va = m_verts[a];
+		Cork::Math::Vector3D		vb = m_verts[b];
+		Cork::Math::Vector3D		vc = m_verts[c];
+
+		// normalize vertex order (to prevent leaks)
+
+		if( a > b )
+		{
+			std::swap( a, b ); std::swap( va, vb ); flip = -flip;
+		}
+
+		if( b > c )
+		{
+			std::swap( b, c ); std::swap( vb, vc ); flip = -flip;
+		}
+
+		if( a > b )
+		{
+			std::swap( a, b ); std::swap( va, vb ); flip = -flip;
+		}
+
+		NUMERIC_PRECISION			t;
+		Cork::Math::Vector3D		bary;
+
+		if( isct_ray_triangle( r, va, vb, vc, &t, &bary ) )
+		{
+			Cork::Math::Vector3D	normal = flip * cross( vb - va, vc - va );
+
+			if( dot( normal, r.direction() ) > 0.0 )
+			{
+				winding++;
+			}
+			else
+			{
+				winding--;
+			}
+		}
+	}
 
 
 	//
@@ -297,8 +331,6 @@ namespace Cork
 		m_tris.reserve( inputMesh.numTriangles() );
 		m_verts.reserve( inputMesh.numVertices() );
 	
-//		m_verts = inputMesh.vertices();
-
 		//	Start by copying the vertices.  We need to cast them from floats to doubles.
 
 		for ( Cork::TriangleMesh::Vertex currentVertex : inputMesh.vertices() )
@@ -466,6 +498,7 @@ namespace Cork
 		DisjointUnion( rhs );
 
 		m_performanceStats.setNumberOfTrianglesInDisjointUnion( (unsigned long)this->m_tris.size() );
+		m_controlBlock->setNumTriangles( (unsigned long)this->m_tris.size() );
 
 		if( this->m_tris.size() >= MAX_TRIANGLES_IN_DISJOINT_UNION )
 		{
@@ -961,7 +994,7 @@ namespace Cork
 
 	const SolverControlBlock&					CorkMesh::GetDefaultControlBlock()
 	{
-		static	SolverControlBlock		defaultBlock( true, true );
+		static	SolverControlBlock		defaultBlock( true, (long)100000, true );
 		
 		return( defaultBlock );
 	}

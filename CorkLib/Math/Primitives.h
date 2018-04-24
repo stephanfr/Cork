@@ -86,7 +86,10 @@ namespace Cork
 {
 	namespace Math
 	{
-		typedef Vector3DTemplate<NUMERIC_PRECISION>			Vector3D;
+#ifdef __CORK_AVX__
+		__declspec( align( 32 ) )
+#endif
+			typedef Vector3DTemplate<NUMERIC_PRECISION>			Vector3D;
 	}
 }
 

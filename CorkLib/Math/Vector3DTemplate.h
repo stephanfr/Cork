@@ -27,6 +27,10 @@
 #pragma once
 
 
+#ifdef __CORK_AVX__
+#include <immintrin.h>
+#endif
+
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -50,7 +54,7 @@ namespace Cork
 		{
 		protected: // names
     
-			union
+				union
 			{
 				N m_v[4];
 
@@ -59,15 +63,12 @@ namespace Cork
 					N m_x;
 					N m_y;
 					N m_z;
-				};
-        
-				struct
-				{
-					N m_r;
-					N m_g;
-					N m_b;
 					N m_spare;
 				};
+        
+#ifdef __CORK_AVX__
+				__m256d		m_ymm;
+#endif
 			};
 
 		// +---------------------------------
@@ -105,6 +106,38 @@ namespace Cork
 			{}
 
 
+#ifdef __CORK_AVX__
+			// Constructor to convert from type __m256d used in intrinsics:
+			Vector3DTemplate( __m256d const & x )
+			{
+				m_ymm = x;
+			}
+			// Assignment operator to convert from type __m256d used in intrinsics:
+			Vector3DTemplate & operator = ( __m256d const & x )
+			{
+				m_ymm = x;
+				return *this;
+			}
+			// Type cast operator to convert to __m256d used in intrinsics
+			operator __m256d( ) const
+			{
+				return m_ymm;
+			}
+			// Member function to load from array (unaligned)
+			Vector3DTemplate & load( double const * p )
+			{
+				ymm = _mm256_loadu_pd( p );
+				return *this;
+			}
+			// Member function to load from array, aligned by 32
+			// You may use load_a instead of load if you are certain that p points to an address
+			// divisible by 32
+			Vector3DTemplate & load_a( double const * p )
+			{
+				ymm = _mm256_load_pd( p );
+				return *this;
+			}
+#endif
 	
 			static Vector3DTemplate		randomVector( N min, N max )
 			{
@@ -369,35 +402,51 @@ namespace Cork
 		inline
 		Vector3DTemplate<N> max(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs)
 		{
+#ifdef __CORK_AVX__
+			return _mm256_max_pd( lhs, rhs );
+#else
 			return Vector3DTemplate<N>(std::max(lhs.m_x, rhs.m_x),
 						   std::max(lhs.m_y, rhs.m_y),
 						   std::max(lhs.m_z, rhs.m_z));
+#endif
 		}
 
 		template<class N>
 		inline
 		Vector3DTemplate<N> max(const Vector3DTemplate<N>&	vec1, const Vector3DTemplate<N>&	vec2, const Vector3DTemplate<N>&	vec3)
 		{
+#ifdef __CORK_AVX__
+			return _mm256_max_pd( vec1, _mm256_max_pd( vec2, vec3 ));
+#else
 			return Vector3DTemplate<N>( std::max( vec1.m_x, std::max( vec2.m_x, vec3.m_x )),
 										std::max( vec1.m_y, std::max( vec2.m_y, vec3.m_y )),
 										std::max( vec1.m_z, std::max( vec2.m_z, vec3.m_z )) );
+#endif
 		}
 
 		template<class N>
 		inline
 		Vector3DTemplate<N> min(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs) {
+#ifdef __CORK_AVX__
+			return _mm256_min_pd( lhs, rhs );
+#else
 			return Vector3DTemplate<N>(std::min(lhs.m_x, rhs.m_x),
 						   std::min(lhs.m_y, rhs.m_y),
 						   std::min(lhs.m_z, rhs.m_z));
+#endif
 		}
 
 		template<class N>
 		inline
 		Vector3DTemplate<N> min(const Vector3DTemplate<N>&	vec1, const Vector3DTemplate<N>&	vec2, const Vector3DTemplate<N>&	vec3)
 		{
+#ifdef __CORK_AVX__
+			return _mm256_min_pd( vec1, _mm256_min_pd( vec2, vec3 ) );
+#else
 			return Vector3DTemplate<N>( std::min( vec1.m_x, std::min( vec2.m_x, vec3.m_x )),
 										std::min( vec1.m_y, std::min( vec2.m_y, vec3.m_y )),
 										std::min( vec1.m_z, std::min( vec2.m_z, vec3.m_z )) );
+#endif
 		}
 
 		// +---------------------------------

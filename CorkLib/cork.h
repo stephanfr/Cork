@@ -58,21 +58,39 @@ namespace Cork
 	public :
 
 		explicit SolverControlBlock( bool		useMultipleThreads,
+									 long		minTrianglesForThreading,
 									 bool		usePooledWorkspaces )
 			: m_useMultipleThreads( useMultipleThreads ),
-			  m_usePooledWorkspaces( usePooledWorkspaces )
+			  m_minTrianglesForThreading( minTrianglesForThreading ),
+			  m_usePooledWorkspaces( usePooledWorkspaces ),
+			  m_numTriangles(0)
 		{}
 
+
+		void	setNumTriangles( long		numTriangles )
+		{
+			m_numTriangles = numTriangles;
+		}
 
 
 		bool	useMultipleThreads() const
 		{
-			return( m_useMultipleThreads );
+			return( m_useMultipleThreads && ( m_numTriangles > m_minTrianglesForThreading ));
 		}
 
 		void	setUseMultipleThreads( bool		newValue )
 		{
 			m_useMultipleThreads = newValue;
+		}
+
+		long	minTrianglesForThreading() const
+		{
+			return( m_minTrianglesForThreading );
+		}
+
+		void	setMinTrianglesForThreading( long		minTriangles )
+		{
+			m_minTrianglesForThreading = minTriangles;
 		}
 
 		bool	usePooledWorkspaces() const
@@ -84,7 +102,11 @@ namespace Cork
 
 	private :
 
+		long					m_numTriangles;
+
 		bool					m_useMultipleThreads;
+		long					m_minTrianglesForThreading;
+
 		bool					m_usePooledWorkspaces;
 	};
 

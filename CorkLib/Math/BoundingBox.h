@@ -120,19 +120,19 @@ namespace Cork
 					   ( pointToTest[2] <= m_maxp[2] ));
 			}
 
-		#ifdef CORK_SSE
+		#ifdef __CORK_AVX__
 	
 			//	SSE2 implementation
 
 			bool	intersects( const BBox3D&			rhs ) const
 			{
-				return( _mm_movemask_ps( _mm_and_ps( _mm_cmple_ps( m_minp, rhs.m_maxp ), _mm_cmpge_ps( m_maxp, rhs.m_minp ) ) ) == 0x0F );
+				return( _mm256_movemask_pd( _mm256_and_pd( _mm256_cmp_pd( m_minp, rhs.m_maxp, _CMP_LE_OQ ), _mm256_cmp_pd( m_maxp, rhs.m_minp, _CMP_GE_OQ ) ) ) == 0x0F );
 			}
 
 			inline
 			bool	doesNotIntersect( const BBox3D&		rhs ) const
 			{
-				return( _mm_movemask_ps( _mm_and_ps( _mm_cmple_ps( m_minp, rhs.m_maxp ), _mm_cmpge_ps( m_maxp, rhs.m_minp ) ) ) != 0x0F );
+				return( _mm256_movemask_pd( _mm256_and_pd( _mm256_cmp_pd( m_minp, rhs.m_maxp, _CMP_LE_OQ ), _mm256_cmp_pd( m_maxp, rhs.m_minp, _CMP_GE_OQ ) ) ) != 0x0F );
 			}
 
 		#else

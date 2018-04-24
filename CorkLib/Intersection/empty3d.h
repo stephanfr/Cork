@@ -27,6 +27,7 @@
 
 
 #include <array>
+#include <atomic>
 
 #include "ext4.h"
 #include "absext4.h"
@@ -50,10 +51,9 @@ namespace Cork
 		{
 		public:
 
-
-			int degeneracy_count = 0;
-			int exact_count = 0;
-			int callcount = 0;
+			std::atomic<int>	degeneracy_count = 0;
+			std::atomic<int>	exact_count = 0;
+			std::atomic<int>	callcount = 0;
 		};
 
 

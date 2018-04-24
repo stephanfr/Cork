@@ -63,7 +63,7 @@ namespace Cork
 		{
 		public:
 
-			enum class IntersectionProblemResultCodes { SUCCESS = 0, OUT_OF_MEMORY, SUBDIVIDE_FAILED, EXHAUSTED_PURTURBATION_RETRIES, SELF_INTERSECTING_MESH };
+			enum class IntersectionProblemResultCodes { SUCCESS = 0, OUT_OF_MEMORY, SUBDIVIDE_FAILED, EXHAUSTED_PURTURBATION_RETRIES, SELF_INTERSECTING_MESH, CONSOLIDATE_FAILED };
 
 			typedef SEFUtility::Result<IntersectionProblemResultCodes>		IntersectionProblemResult;
 

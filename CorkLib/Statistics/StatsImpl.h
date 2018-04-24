@@ -47,6 +47,8 @@ namespace Cork
 	namespace Statistics
 	{
 
+		static const Cork::Math::BBox3D		gEmptyBoundingBox( Cork::Math::Vector3D( 0.0, 0.0, 0.0 ), Cork::Math::Vector3D( 0.0, 0.0, 0.0 ) );
+
 
 		class GeometricStatisticsEngine
 		{
@@ -125,10 +127,10 @@ namespace Cork
 			const Cork::Math::BBox3D& 		boundingBox() const
 			{
 				//	Special case when there are no triangles
-				
+
 				if( m_numTriangles == 0 )
 				{
-					return( Cork::Math::BBox3D( Cork::Math::Vector3D( 0.0,0.0,0.0 ), Cork::Math::Vector3D( 0.0, 0.0, 0.0 ) ));
+					return( gEmptyBoundingBox );
 				}
 
 				return( m_boundingBox );

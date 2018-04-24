@@ -82,8 +82,7 @@ namespace Cork
 		//  * Hook up Triangles and Vertices
 		// building a structure to handle the edges as we go:
 
-		std::vector< TopoEdgePrototypeVector > edgeacc( m_meshVertices.size() );
-
+		std::vector<TopoEdgePrototypeVector>		edgeacc( m_meshVertices.size() );
 
 		for( size_t i = 0; i < m_meshTriangles.size(); i++ )
 		{
@@ -128,19 +127,21 @@ namespace Cork
 
 			{
 				TopoEdgePrototype&		edge01Proto = edgeacc[vids0].find_or_add( vids1 );
+
 				edge01 = edge01Proto.edge();
-				
+
 				if( edge01 == nullptr )
 				{
 					edge01 = edge01Proto.setEdge( m_topoEdgeList.emplace_back( v0, v1 ) );
 				}
 				
 				edge01->triangles().insert( tri );
-
-
+			}
+			{
 				TopoEdgePrototype&		edge02Proto = edgeacc[vids0].find_or_add( vids2 );
+
 				edge02 = edge02Proto.edge();
-				
+
 				if( edge02 == nullptr )
 				{
 					edge02 = edge02Proto.setEdge( m_topoEdgeList.emplace_back( v0, v2 ) );
@@ -148,11 +149,11 @@ namespace Cork
 				
 				edge02->triangles().insert( tri );
 			}
-
 			{
 				TopoEdgePrototype&		edge12Proto = edgeacc[vids1].find_or_add( vids2 );
+
 				edge12 = edge12Proto.edge();
-				
+
 				if( edge12 == nullptr )
 				{
 					edge12 = edge12Proto.setEdge( m_topoEdgeList.emplace_back( v1, v2 ) );
@@ -165,7 +166,7 @@ namespace Cork
 
 			tri->AssignEdges( v0, v1, v2, edge01, edge02, edge12 );
 		}
- 
+
 		//ENSURE(isValid());
 		//print();
 	}
