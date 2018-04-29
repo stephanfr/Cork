@@ -148,8 +148,8 @@ namespace Cork
 			{
 				//	Recurse - but by splitting into a pair of tasks
 
-				m_taskGroup.run([&]{ node1 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / 16 ), begin, mid, dim ); } );
-				m_taskGroup.run([&]{ node2 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / 16 ), mid, end, dim ); } );
+				m_taskGroup.run([&]{ node1 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / ( LEAF_SIZE / 2 )), begin, mid, dim ); } );
+				m_taskGroup.run([&]{ node2 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / ( LEAF_SIZE / 2 )), mid, end, dim ); } );
 
 				//	Wait for the two tasks to complete
 
@@ -159,8 +159,8 @@ namespace Cork
 			{
 				//	Recurse directly
 
-				node1 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / 16 ), begin, mid, dim );
-				node2 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / 16 ), mid, end, dim );
+				node1 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / ( LEAF_SIZE / 2 )), begin, mid, dim );
+				node2 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / ( LEAF_SIZE / 2 )), mid, end, dim );
 			}
 			
 			//	Create the final node and set the bounding box

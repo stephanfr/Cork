@@ -40,6 +40,9 @@
 
 #include "..\Statistics.h"
 
+#include "..\Util\unionFind.h"
+#include "..\Mesh\EGraphCache.h"
+
 
 
 namespace Cork
@@ -227,48 +230,7 @@ namespace Cork
 					}
 				}
 
-				std::vector<Cork::Math::VertexIndex>	vertexStack;
-				std::vector<int>						vertexBodyMembership( m_vertexAssociations.size(), -1 );
-
-				vertexStack.reserve( m_vertexAssociations.size() );
-
-				int							numBodies = 0;
-
-				while( !m_vertexAssociations.empty() )
-				{
-					vertexStack.push_back( m_vertexAssociations.begin()->first );
-
-					size_t		currentStackTop = 0;
-
-					while( currentStackTop < vertexStack.size() )
-					{
-						Cork::Math::VertexIndex					currentVertex = vertexStack[currentStackTop++];
-
-						if( vertexBodyMembership[currentVertex] >= 0 )
-						{
-							continue;
-						}
-
-						AssociatedVertexVector&		associatedVertices = m_vertexAssociations[currentVertex];
-
-						for( Cork::Math::VertexIndex connectedVertex : associatedVertices )
-						{
-							if( vertexBodyMembership[currentVertex] < 0 )
-							{
-								vertexStack.push_back( connectedVertex );
-							}
-						}
-
-						vertexBodyMembership[currentVertex] = numBodies;
-						m_vertexAssociations.erase( currentVertex );
-					}
-
-					numBodies++;
-				}
-
-				std::unique_ptr<Statistics::TopologicalStatistics::EdgeVector>		nonTwoManifoldEdges( new Statistics::TopologicalStatistics::EdgeVector() );
-
-				return( TopologicalStatistics( m_edges.size(), numBodies, nonTwoManifoldEdges ) );
+				return( TopologicalStatistics( m_edges.size(), 0, m_numNon2ManifoldEdges ) );
 			}
 
 

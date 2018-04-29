@@ -49,10 +49,10 @@ namespace Cork
 		// **************************************************************************
 
 
-		const float			two = 2.0;
+		const double		two = 2.0;
 
-		#ifdef CORK_SSE
-		const __m128			SSEtwo = _mm_load_ps1( &two );
+		#ifdef __CORK_AVX__
+		const __m256d		AVXtwo = _mm256_load_pd( &two );
 		#endif
 
 		class BBox3D final
@@ -90,12 +90,12 @@ namespace Cork
 
 			Vector3D			center() const
 			{
-		#ifdef CORK_SSE
-				__m128		result;
+		#ifdef __CORK_AVX__
+				Vector3D		result;
 
-				_mm_store_ps( result.m128_f32, _mm_add_ps( (__m128)m_minp, _mm_div_ps( _mm_sub_ps( m_maxp, m_minp ), SSEtwo ) ));
+				_mm256_store_pd( (double*)&result.m_ymm, _mm256_add_pd( m_minp, _mm256_div_pd( _mm256_sub_pd( m_maxp, m_minp ), AVXtwo ) ));
 
-				return( Vector3D( result ));
+				return( result );
 		#else
 				return( m_minp + (( m_maxp - m_minp ) / (NUMERIC_PRECISION)2.0 ));
 		#endif
@@ -172,9 +172,9 @@ namespace Cork
 
 			void		convex(  const BBox3D&		rhs )
 			{
-		#ifdef CORK_SSE
-				_mm_store_ps( (float*)m_minp, _mm_min_ps( m_minp, rhs.m_minp ));
-				_mm_store_ps( (float*)m_maxp, _mm_max_ps( m_maxp, rhs.m_maxp ));	
+		#ifdef __CORK_AVX__
+				m_minp = _mm256_min_pd( m_minp, rhs.m_minp );
+				m_maxp = _mm256_max_pd( m_maxp, rhs.m_maxp );	
 		#else
 				m_minp = min( m_minp, rhs.m_minp );
 				m_maxp = max( m_maxp, rhs.m_maxp );
@@ -185,9 +185,9 @@ namespace Cork
 			void		convex( const BBox3D&		rhs,
 								BBox3D&				result ) const
 			{		
-		#ifdef CORK_SSE
-				_mm_store_ps( (float*)result.m_minp, _mm_min_ps( m_minp, rhs.m_minp ));
-				_mm_store_ps( (float*)result.m_maxp, _mm_max_ps( m_maxp, rhs.m_maxp ));
+		#ifdef __CORK_AVX__
+				_mm256_store_pd( (double*)&result.m_minp, _mm256_min_pd( m_minp, rhs.m_minp ));
+				_mm256_store_pd( (double*)&result.m_maxp, _mm256_max_pd( m_maxp, rhs.m_maxp ));
 		#else
 				result.m_minp = min( m_minp, rhs.m_minp );
 				result.m_maxp = max( m_maxp, rhs.m_maxp );

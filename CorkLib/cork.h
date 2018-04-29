@@ -150,7 +150,7 @@ namespace Cork
 		static std::unique_ptr<CorkMesh>				FromTriangleMesh( const Cork::TriangleMesh&		triangleMesh );
 
 		CORKLIB_API
-		static const SolverControlBlock&						GetDefaultControlBlock();
+		static const SolverControlBlock&				GetDefaultControlBlock();
 
 
 		virtual ~CorkMesh() {};
@@ -172,6 +172,9 @@ namespace Cork
 		virtual std::unique_ptr<TriangleMesh>			ToTriangleMesh() const = 0;
 
 		virtual const SolverPerformanceStatisticsIfx&	GetPerformanceStats() const = 0;
+
+		virtual size_t									CountComponents() const = 0;
+
 	};
 
 }

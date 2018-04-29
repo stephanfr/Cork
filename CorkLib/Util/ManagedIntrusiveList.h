@@ -30,6 +30,7 @@
 #include "boost\intrusive\list.hpp"
 #include "boost\intrusive\unordered_set.hpp"
 #include "tbb\concurrent_vector.h"
+#include "tbb\spin_mutex.h"
 
 
 
@@ -160,6 +161,15 @@ public:
 		T&		newValue = *(m_pool.emplace_back(std::forward<_Valty>(_Val)...));
 		
 		BaseType::push_back(newValue);
+
+		return( &newValue );
+	}
+
+
+	template<class... _Valty>
+	T*		emplace_back_unindexed( _Valty&&... _Val )
+	{
+		T&		newValue = *( m_pool.emplace_back( std::forward<_Valty>( _Val )... ) );
 
 		return( &newValue );
 	}

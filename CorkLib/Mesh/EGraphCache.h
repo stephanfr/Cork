@@ -141,6 +141,11 @@ namespace Cork
 			return( m_skeleton[index] );
 		}
 
+		const EGraphSkeletonColumn&		operator[]( IndexType		index ) const
+		{
+			return( m_skeleton[index] );
+		}
+
 
 	private :
 

@@ -121,18 +121,18 @@ namespace Cork
 
 
 
-			TopologicalStatistics( size_t							numEdges,
-								   size_t							numBodies,
-								   std::unique_ptr<EdgeVector>&		nonTwoManifoldEdges )
+			TopologicalStatistics( size_t						numEdges,
+								   size_t						numBodies,
+								   size_t						non2ManifoldEdges )
 				: m_numEdges( numEdges ),
 				  m_numBodies( numBodies ),
-				  m_nonTwoManifoldEdges( std::move( nonTwoManifoldEdges ))
+				  m_non2ManifoldEdges( non2ManifoldEdges )
 			{}
 
 			TopologicalStatistics( TopologicalStatistics&&			statsToMove )
 				: m_numEdges( statsToMove.m_numEdges ),
 				  m_numBodies( statsToMove.m_numBodies ),
-				  m_nonTwoManifoldEdges( std::move( statsToMove.m_nonTwoManifoldEdges ))
+				  m_non2ManifoldEdges( statsToMove.m_non2ManifoldEdges )
 			{}
 
 
@@ -149,20 +149,14 @@ namespace Cork
 
 			bool										IsTwoManifold() const
 			{
-				return( m_nonTwoManifoldEdges->empty() );
-			}
-
-			EdgeVector&									NonTwoManifoldEdges() const
-			{
-				return( *m_nonTwoManifoldEdges );
+				return( m_non2ManifoldEdges == 0 );
 			}
 
 		private :
 
 			size_t							m_numEdges;
 			size_t							m_numBodies;
-
-			std::unique_ptr<EdgeVector>		m_nonTwoManifoldEdges;
+			size_t							m_non2ManifoldEdges;
 		};
 
 

@@ -38,6 +38,10 @@
 
 #include "..\util\prelude.h"
 
+#ifdef __CORK_AVX__
+#include "SSERng.h"
+#endif
+
 
 
 namespace Cork
@@ -70,6 +74,8 @@ namespace Cork
 				__m256d		m_ymm;
 #endif
 			};
+
+			friend class BBox3D;
 
 		// +---------------------------------
 		public :
@@ -139,9 +145,17 @@ namespace Cork
 			}
 #endif
 	
-			static Vector3DTemplate		randomVector( N min, N max )
+			static Vector3DTemplate		randomVector( float min, float max )
 			{
+#ifdef __CORK_AVX__
+				__m128		result;
+
+				drand_sse( result, min, max );
+
+				return( Vector3DTemplate( (NUMERIC_PRECISION)result.m128_f32[0], (NUMERIC_PRECISION)result.m128_f32[1], (NUMERIC_PRECISION)result.m128_f32[2] ) );
+#else
 				return( Vector3DTemplate( (NUMERIC_PRECISION)drand( min, max ), (NUMERIC_PRECISION)drand( min, max ), (NUMERIC_PRECISION)drand( min, max ) ));
+#endif
 			}
 
 
@@ -473,9 +487,25 @@ namespace Cork
 		}
 		template<class N>
 		inline Vector3DTemplate<N> cross(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs) {
+/*
+#ifdef __CORK_AVX__
+				constexpr int mskYZX = _MM_SHUFFLE( 3, 0, 2, 1 ),
+					mskZXY = _MM_SHUFFLE( 3, 1, 0, 2 );
+				return std::move( Vector3DTemplate<N>(
+					_mm256_fmsubadd_pd(
+						_mm256_permute4x64_pd( lhs, mskYZX ),
+						_mm256_permute4x64_pd( rhs, mskZXY ),
+						_mm256_mul_pd(
+							_mm256_permute4x64_pd( lhs, mskZXY ),
+							_mm256_permute4x64_pd( rhs, mskYZX )
+						)
+					) ) );
+#else
+*/
 			return Vector3DTemplate<N>(lhs.m_y*rhs.m_z - lhs.m_z*rhs.m_y,
 						   lhs.m_z*rhs.m_x - lhs.m_x*rhs.m_z,
 						   lhs.m_x*rhs.m_y - lhs.m_y*rhs.m_x);
+//#endif
 		}
 		// determinant of 3 Vector3DTemplates
 		template<class N>

@@ -145,9 +145,6 @@ namespace Cork
 	//		which can be used to construct a triangle mesh from a list of vertices and 
 	//		triangles assembled from those vertices.
 	//
-	//	This class also collects edge incidence information to determine if a mesh is 2 manifold
-	//		and computes the bounding boxfor the mesh.
-	//
 	//	This class also uses copy-on-write semantics for the internal dtata structures that are eventually
 	//		shared with the TriangleMeshImpl class.  If additional vertices or triangles are added after
 	//		generating a mesh, then the internal data structures are cloned such that the TriangleMeshImpl

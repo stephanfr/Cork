@@ -70,21 +70,15 @@ namespace Cork
 	#define INVALID_ID uint(-1)
 
 
-	class TopoVert;
-	typedef TopoVert*		Vptr;
+	//	We need a couple forward declarations
 
 	class TopoTri;
-	typedef TopoTri*		Tptr;
-
 	class TopoEdge;
-	typedef TopoEdge*		Eptr;
-
 
 
 
 	typedef SEFUtility::SearchablePointerList<TopoTri,10>			TopoTrianglePointerList;
 	typedef SEFUtility::SearchablePointerList<TopoEdge,10>			TopoEdgePointerList;
-
 
 
 
@@ -172,7 +166,7 @@ namespace Cork
 
 
 
-	class TopoEdge final : public boost::noncopyable, public IntrusiveListHookNoDestructorOnElements
+	class TopoEdge final : public IntrusiveListHookNoDestructorOnElements
 	{
 	public :
 
@@ -217,12 +211,12 @@ namespace Cork
 		}
 
 
-		const std::array<Vptr,2>&			verts() const
+		const std::array<TopoVert*,2>&			verts() const
 		{
 			return( m_verts );
 		}
 
-		std::array<Vptr,2>&					verts()
+		std::array<TopoVert*,2>&					verts()
 		{
 			return( m_verts );
 		}
@@ -284,7 +278,7 @@ namespace Cork
 
 		byte										m_boolAlgData;
 
-		std::array<Vptr,2>							m_verts;					// endpoint vertices
+		std::array<TopoVert*,2>						m_verts;					// endpoint vertices
 		TopoTrianglePointerList						m_tris;						// incident triangles
 
 		Cork::Math::BBox3D							m_boundingBox;
@@ -294,6 +288,46 @@ namespace Cork
 	typedef ManagedIntrusiveValueList<TopoEdge>							TopoEdgeList;
 
 	typedef boost::container::small_vector<const TopoEdge*,24>			TopoEdgePointerVector;
+
+
+	// support structure for cache construction
+
+	class TopoEdgePrototype : public SEFUtility::SparseVectorEntry
+	{
+	public:
+
+		TopoEdgePrototype( IndexType	v )
+			: SparseVectorEntry( v ),
+			m_edge( nullptr )
+		{}
+
+
+		IndexType			vid() const
+		{
+			return( index() );
+		}
+
+
+		TopoEdge*		edge()
+		{
+			return( m_edge );
+		}
+
+		TopoEdge*			setEdge( TopoEdge*		edge )
+		{
+			m_edge = edge;
+
+			return( m_edge );
+		}
+
+	private:
+
+		TopoEdge * m_edge;
+	};
+
+
+
+	typedef SEFUtility::SparseVector<TopoEdgePrototype, 10>		TopoEdgePrototypeVector;
 
 
 
@@ -353,6 +387,21 @@ namespace Cork
 		{
 			m_data = newValue;
 		}
+
+		void						initVertices( TopoVert&		vertex0,
+												  TopoVert&		vertex1,
+												  TopoVert&		vertex2 )
+		{
+			m_verts[0] = &vertex0;
+			m_verts[1] = &vertex1;
+			m_verts[2] = &vertex2;
+
+			vertex0.triangles().insert( this );
+			vertex1.triangles().insert( this );
+			vertex2.triangles().insert( this );
+		}
+
+
 
 #ifndef CORK_SSE
 		//	Without SSE, the min/max computations as slow enough that caching the computed value is most efficient
@@ -436,7 +485,7 @@ namespace Cork
 #endif
 		}
 
-		const std::array<Vptr,3>&	verts() const
+		const std::array<TopoVert*,3>&	verts() const
 		{
 			return( m_verts );
 		}
@@ -450,7 +499,7 @@ namespace Cork
 			edges[2]->triangles().insert( this );
 		}
 	
-		const std::array<Eptr,3>&	edges() const
+		const std::array<TopoEdge*,3>&	edges() const
 		{
 			return( m_edges );
 		}
@@ -599,8 +648,8 @@ namespace Cork
 
 		byte										m_boolAlgData;
 
-		std::array<Vptr,3>							m_verts;			// vertices of this triangle
-		std::array<Eptr,3>							m_edges;			// edges of this triangle opposite to the given vertex
+		std::array<TopoVert*,3>						m_verts;			// vertices of this triangle
+		std::array<TopoEdge*,3>						m_edges;			// edges of this triangle opposite to the given vertex
 
 #ifndef CORK_SSE
 		boost::optional<Cork::Math::BBox3D>			m_boundingBox;
@@ -621,13 +670,11 @@ namespace Cork
 	{
 	public :
 
-		typedef std::array<tbb::spin_mutex,MAX_TRIANGLES_IN_DISJOINT_UNION * 3>			MutexArray;
-
 		TopoCacheWorkspace()
 		{
-			m_vertexListPool.reserve(100000);
-			m_edgeListPool.reserve(100000);
-			m_triListPool.reserve(100000);
+			m_vertexListPool.reserve(1000000);
+			m_edgeListPool.reserve(1000000);
+			m_triListPool.reserve(1000000);
 		}
 
 		virtual ~TopoCacheWorkspace()
@@ -659,30 +706,12 @@ namespace Cork
 		}
 
 
-		MutexArray&			getVertexMutexes()
-		{
-			return( m_vertexMutexes );
-		}
-
-		MutexArray&			getEdgeAcceleratorMutexes()
-		{
-			return( m_edgeAcceleratorMutexes );
-		}
-
-
 	private :
 
 		TopoVertexList::PoolType		m_vertexListPool;
 		TopoEdgeList::PoolType			m_edgeListPool;
 		TopoTriList::PoolType			m_triListPool;
-
-		MutexArray						m_vertexMutexes;
-		MutexArray						m_edgeAcceleratorMutexes;
 	};
-
-
-
-
 
 
 
@@ -691,8 +720,8 @@ namespace Cork
 	{
 	public :
 
-		TopoCache( MeshBase&						owner,
-				   TopoCacheWorkspace&				workspace );
+		TopoCache( MeshBase&					owner,
+				   TopoCacheWorkspace&			workspace );
 
 		virtual ~TopoCache()
 		{}
@@ -752,7 +781,7 @@ namespace Cork
 
 		// helpers to create bits and pieces
 
-		Vptr TopoCache::newVert()
+		TopoVert* TopoCache::newVert()
 		{
 			size_t        ref = m_meshVertices.size();
                 
@@ -762,13 +791,13 @@ namespace Cork
 		}
 
 
-		Eptr TopoCache::newEdge()
+		TopoEdge* TopoCache::newEdge()
 		{
 			return( m_topoEdgeList.emplace_back() );
 		}
 
 
-		Tptr TopoCache::newTri()
+		TopoTri* TopoCache::newTri()
 		{
 			IndexType        ref = m_meshTriangles.size();
     
@@ -780,34 +809,31 @@ namespace Cork
 
 		 // helpers to release bits and pieces
 
-		void TopoCache::freeVert(Vptr v)
+		void TopoCache::freeVert( TopoVert* v)
 		{
 			m_topoVertexList.free( v );
 		}
 
-		void TopoCache::freeEdge(Eptr e)
+		void TopoCache::freeEdge( TopoEdge* e)
 		{
 			m_topoEdgeList.free( e );
 		}
 
-		void TopoCache::freeTri(Tptr t)
+		void TopoCache::freeTri( TopoTri* t)
 		{
 			m_topoTriList.free( t );
 		}
 
 
-
 		// helper to delete geometry in a structured way
 
-
-		void TopoCache::deleteTri(Tptr tri)
+		void TopoCache::deleteTri( TopoTri* tri)
 		{
 			// first, unhook the triangle from its faces
     
 			for(uint k=0; k<3; k++)
 			{
 				tri->verts()[k]->triangles().erase( tri );
-
 				tri->edges()[k]->triangles().erase( tri );
 			}
 
@@ -815,7 +841,7 @@ namespace Cork
     
 			for(uint k=0; k<3; k++)
 			{
-				Eptr e = tri->edges()[k];
+				TopoEdge* e = tri->edges()[k];
 
 				if(e->triangles().empty())
 				{
@@ -832,7 +858,7 @@ namespace Cork
 
 			for(uint k=0; k<3; k++)
 			{
-				Vptr            v  = tri->verts()[k];
+				TopoVert*            v  = tri->verts()[k];
 
 				if(v->triangles().empty())
 				{
@@ -848,7 +874,7 @@ namespace Cork
 
 		// helper to flip triangle orientation
 
-		void TopoCache::flipTri(Tptr t)
+		void TopoCache::flipTri( TopoTri* t)
 		{
 			t->flip();
 			m_meshTriangles[t->ref()].flip();
@@ -873,54 +899,15 @@ namespace Cork
 		//	Methods
 
 		void								init();
+
+		void								initInternalSerial();
+
 	};
 
 
 
 
 
-
-
-	// support structure for cache construction
-
-	
-
-	class TopoEdgePrototype : public SEFUtility::SparseVectorEntry
-	{
-	public :
-
-		TopoEdgePrototype( IndexType	v )
-			: SparseVectorEntry( v ),
-			  m_edge( nullptr )
-		{}
-
-
-		IndexType			vid() const
-		{
-			return( index() );
-		}
-
-
-		TopoEdge*		edge()
-		{
-			return( m_edge );
-		}
-
-		TopoEdge*			setEdge( TopoEdge*		edge )
-		{
-			m_edge = edge;
-
-			return( m_edge );
-		}
-
-	private :
-
-		TopoEdge*		m_edge;
-	};
-
-
-
-	typedef SEFUtility::SparseVector<TopoEdgePrototype,10>		TopoEdgePrototypeVector;
 
 
 

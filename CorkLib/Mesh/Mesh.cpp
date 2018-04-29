@@ -72,6 +72,14 @@ namespace Cork
 		return( len( cross( b-a, c-a )));
 	}
 
+	inline
+	double triAreaSquared( const Cork::Math::Vector3D&		a,
+						   const Cork::Math::Vector3D&		b,
+						   const Cork::Math::Vector3D&		c )
+	{
+		return( len2( cross( b - a, c - a ) ) );
+	}
+
 
 		
 	//
@@ -134,6 +142,9 @@ namespace Cork
 		}
 
 
+		size_t			CountComponents() const;
+
+
 	private:
 
 
@@ -151,21 +162,30 @@ namespace Cork
 		typedef SEFUtility::Result<SetupBooleanProblemResultCodes>		SetupBooleanProblemResult;
 
 
-		enum class PopulateEGraphCacheResultCodes { SUCCESS = 0,
-													OUT_OF_MEMORY };
+		enum class BuildEGraphCacheResultCodes { SUCCESS = 0,
+												 OUT_OF_MEMORY };
 
-		typedef SEFUtility::Result<PopulateEGraphCacheResultCodes>		PopulateEGraphCacheResult;
+		typedef SEFUtility::ResultWithUniqueReturnPtr<BuildEGraphCacheResultCodes, EGraphCache>		BuildEGraphCacheResult;
 
+
+		typedef std::vector<std::vector<size_t>>		ComponentList;
 
 
 		SetupBooleanProblemResult		SetupBooleanProblem( const Mesh&										rhs );
-	
+
+		BuildEGraphCacheResult			BuildEdgeGraphCache() const;
+
+		std::unique_ptr<ComponentList>	FindComponents( EGraphCache&			ecache ) const;
+
+		void							ProcessComponent( const EGraphCache&									ecache,
+														  const std::vector<size_t>&							trisInComponent );
+
+		size_t							FindTriForInsideTest( const std::vector<size_t>&						trisInComponent );
+
 		void							doDeleteAndFlip( std::function<TriCode(byte bool_alg_data)>				classify );
 
-		PopulateEGraphCacheResult		populateEGraphCache( EGraphCache&										ecache);
-	
 		void							for_ecache( EGraphCache&												ecache,
-													std::function<void(const EGraphEntryTIDVector&	tids)>		action );
+													std::function<void(const EGraphEntryTIDVector&	tids)>		action ) const;
 	
 		bool							isInside( IndexType		tid,
 												  byte			operand );
@@ -180,7 +200,7 @@ namespace Cork
 
 
 	inline void Mesh::for_ecache( EGraphCache&												ecache,
-								  std::function<void(const EGraphEntryTIDVector&	tids)>	action )
+								  std::function<void(const EGraphEntryTIDVector&	tids)>	action ) const
 	{
 		for( auto& column : ecache.columns() )
 		{
@@ -234,35 +254,15 @@ namespace Cork
 
 		// pass all triangles over ray
         
-		if( solverControlBlock().useMultipleThreads() )
+		for( CorkTriangle &tri : m_tris )
 		{
-			tbb::parallel_for( tbb::blocked_range<std::vector<Cork::CorkTriangle>::iterator>( m_tris.begin(), m_tris.end(), m_tris.size() / 4 ),
-			[&]( tbb::blocked_range<std::vector<Cork::CorkTriangle>::iterator> triangles )
+			// ignore triangles from the same operand surface
+			if( ( tri.boolAlgData() & 1 ) == operand )
 			{
-				for(CorkTriangle &tri : triangles )
-				{
-					// ignore triangles from the same operand surface
-					if ((tri.boolAlgData() & 1) == operand)
-					{
-						continue;
-					}
-
-					IsInsideCheck( tri, r, winding );
-				}
-			}, tbb::simple_partitioner() );
-		}
-		else
-		{
-			for( CorkTriangle &tri : m_tris )
-			{
-				// ignore triangles from the same operand surface
-				if( ( tri.boolAlgData() & 1 ) == operand )
-				{
-					continue;
-				}
-
-				IsInsideCheck( tri, r, winding );
+				continue;
 			}
+
+			IsInsideCheck( tri, r, winding );
 		}
         
 		// now, we've got a winding number to work with...
@@ -302,10 +302,7 @@ namespace Cork
 			std::swap( a, b ); std::swap( va, vb ); flip = -flip;
 		}
 
-		NUMERIC_PRECISION			t;
-		Cork::Math::Vector3D		bary;
-
-		if( isct_ray_triangle( r, va, vb, vc, &t, &bary ) )
+		if( isct_ray_triangle( r, va, vb, vc ) )
 		{
 			Cork::Math::Vector3D	normal = flip * cross( vb - va, vc - va );
 
@@ -331,7 +328,7 @@ namespace Cork
 		m_tris.reserve( inputMesh.numTriangles() );
 		m_verts.reserve( inputMesh.numVertices() );
 	
-		//	Start by copying the vertices.  We need to cast them from floats to doubles.
+		//	Start by copying the vertices.
 
 		for ( Cork::TriangleMesh::Vertex currentVertex : inputMesh.vertices() )
 		{
@@ -435,8 +432,8 @@ namespace Cork
 
 
 
-    
-	Mesh::PopulateEGraphCacheResult  Mesh::populateEGraphCache( EGraphCache&		ecache )
+/*
+	Mesh::PopulateEGraphCacheResult  Mesh::populateEGraphCache( EGraphCache&		ecache ) const
 	{
 		try
 		{
@@ -485,7 +482,7 @@ namespace Cork
 
 		return(PopulateEGraphCacheResult::Success());
 	}
-
+*/
 
 
 
@@ -558,150 +555,344 @@ namespace Cork
 
 		//	Create and populate the EGraph Cache
 
-		EGraphCache				ecache;
+		BuildEGraphCacheResult					buildEGraphResult = BuildEdgeGraphCache();
 
-		auto popEGraphCacheResult = populateEGraphCache( ecache );
-
-		if (!popEGraphCacheResult.Succeeded())
+		if( !buildEGraphResult.Succeeded() )
 		{
-			return(SetupBooleanProblemResult::Failure(SetupBooleanProblemResultCodes::POPULATE_EDGE_GRAPH_CACHE_FAILED, "Edge Cache population failed.", popEGraphCacheResult));
+			return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::POPULATE_EDGE_GRAPH_CACHE_FAILED, "Building Edge Graph Cache Failed", buildEGraphResult ));
 		}
-    
+
+		std::unique_ptr<EGraphCache>				ecache( std::move( buildEGraphResult.ReturnPtr() ));
+
 		// form connected components;
 		// we get one component for each connected component in one
 		// of the two input meshes.
 		// These components are not necessarily uniformly inside or outside
 		// of the other operand mesh.
 
-		UnionFind uf(m_tris.size());
-    
-		for_ecache(ecache, [&uf](const EGraphEntryTIDVector&	tids)
-		{
-			size_t		tid0 = tids[0];
+		std::unique_ptr<ComponentList>		components( std::move( FindComponents( *ecache )));
 
-			for ( size_t k = 1; k < tids.size(); k++)
+		if( solverControlBlock().useMultipleThreads() && ( components->size() >= 4 ))
+		{
+			tbb::parallel_for( tbb::blocked_range<std::vector<std::vector<size_t>>::iterator>( components->begin(), components->end(), ( components->size() / 4 ) - 1 ),
+				[&]( tbb::blocked_range<std::vector<std::vector<size_t>>::iterator> partitionedComponents )
 			{
-				uf.unionIds(tid0, tids[k]);
-			}
-		});
-    
-		// we re-organize the results of the union find as follows:
-    
-		std::vector<long>						uq_ids(m_tris.size(), long(-1));
-		std::vector< std::vector<size_t> >		components;
-
-		components.reserve( m_tris.size() );
-
-		for( size_t i = 0; i < m_tris.size(); i++)
-		{
-			size_t		ufid = uf.find(i);
-        
-			if( uq_ids[ufid] == long(-1) )
-			{ // unassigned
-				size_t N = components.size();
-				components.emplace_back();
-				components.back().reserve( 24 );
-            
-				uq_ids[ufid] = uq_ids[i] = (long)N;
-				components[N].push_back(i);
-			}
-			else
-			{ // assigned already
-				uq_ids[i] = uq_ids[ufid]; // propagate assignment
-				components[uq_ids[i]].push_back(i);
-			}
+				for( auto&	comp : partitionedComponents )
+				{
+					ProcessComponent( *ecache, comp );
+				}
+			});
 		}
-    
-		std::vector<bool> visited( m_tris.size(), false );
-    
-		// find the "best" triangle in each component,
-		// and ray cast to determine inside-ness vs. outside-ness
-
-		for( auto&	comp : components )
+		else
 		{
-			// find max according to score
-
-			size_t			best_tid = comp[0];
-			double			best_area = 0.0;
-
-			// SEARCH
-
-			for( size_t tid : comp )
+			for( auto& comp : *components )
 			{
-				const Cork::Math::Vector3D&		va = m_verts[m_tris[tid].a()];
-				const Cork::Math::Vector3D&		vb = m_verts[m_tris[tid].b()];
-				const Cork::Math::Vector3D&		vc = m_verts[m_tris[tid].c()];
-            
-				double area = triArea( va, vb, vc );
-
-				if( area > best_area )
-				{
-					best_area = area;
-					best_tid = tid;
-				}
-			}
-        
-			byte operand = m_tris[best_tid].boolAlgData();
-			bool inside = isInside(best_tid, operand);
-        
-			//	Do a breadth first propagation of classification throughout the component.
-
-			std::vector<size_t>	work;
-		
-			work.reserve( 1024 );
-
-			// begin by tagging the first triangle
-
-			m_tris[best_tid].boolAlgData() |= (inside) ? 2 : 0;
-			visited[best_tid] = true;
-			work.push_back(best_tid);
-        
-			while( !work.empty() )
-			{
-				size_t		curr_tid = work.back();
-				work.pop_back();
-            
-				for(uint k=0; k<3; k++)
-				{
-					size_t		a = m_tris[curr_tid][k];
-					size_t		b = m_tris[curr_tid][(k+1)%3];
-
-					auto&	entry = ecache[a][b];
-
-					byte inside_sig = m_tris[curr_tid].boolAlgData() & 2;
-                
-					if( entry.isIsct() )
-					{
-						inside_sig ^= 2;
-					}
-
-					for( size_t		tid : entry.tids() )
-					{
-						if (visited[tid])
-						{
-							continue;
-						}
-
-						if (( m_tris[tid].boolAlgData() & 1) != operand)
-						{
-							continue;
-						}
-                    
-						m_tris[tid].boolAlgData() |= inside_sig;
-						visited[tid] = true;
-						work.push_back(tid);
-					}
-				}
+				ProcessComponent( *ecache, comp );
 			}
 		}
 
 		//	Finished with Success
 
-
 		return( SetupBooleanProblemResult::Success() );
 	}
 
 
+	Mesh::BuildEGraphCacheResult		Mesh::BuildEdgeGraphCache() const
+	{
+		std::unique_ptr<EGraphCache>				ecachePtr( new EGraphCache );
+
+		try
+		{
+			ecachePtr->resize( m_verts.size() );
+		}
+		catch( std::bad_alloc&		ex )
+		{
+			return( BuildEGraphCacheResult::Failure( BuildEGraphCacheResultCodes::OUT_OF_MEMORY, "Out of Memory resizing the edge cache" ) );
+		}
+
+
+		EGraphCache&		ecache = *ecachePtr;
+
+
+		for( uint tid = 0; tid < m_tris.size(); tid++ )
+		{
+			const CorkTriangle&		tri = m_tris[tid];
+
+			ecache[tri.a()].find_or_add( tri.b() ).tids().push_back( tid );
+			ecache[tri.a()].find_or_add( tri.c() ).tids().push_back( tid );
+
+			ecache[tri.b()].find_or_add( tri.a() ).tids().push_back( tid );
+			ecache[tri.b()].find_or_add( tri.c() ).tids().push_back( tid );
+
+			ecache[tri.c()].find_or_add( tri.a() ).tids().push_back( tid );
+			ecache[tri.c()].find_or_add( tri.b() ).tids().push_back( tid );
+		}
+
+		//	Label some of the edges as intersection edges and others as not
+
+		for( auto& column : ecache.columns() )
+		{
+			column.for_each( [this] ( EGraphEntry &entry )
+			{
+				entry.setIsIsct( false );
+				byte operand = m_tris[entry.tids()[0]].boolAlgData();
+
+				for( uint k = 1; k<entry.tids().size(); k++ )
+				{
+					if( m_tris[entry.tids()[k]].boolAlgData() != operand )
+					{
+						entry.setIsIsct( true );
+						break;
+					}
+				}
+			} );
+		}
+
+		//	Finished with success
+
+		return( BuildEGraphCacheResult::Success( ecachePtr.release() ) );
+	}
+
+
+
+	std::unique_ptr<Mesh::ComponentList>		Mesh::FindComponents( EGraphCache&			ecache ) const
+	{
+		// form connected components;
+		// we get one component for each connected component in one
+		// of the two input meshes.
+		// These components are not necessarily uniformly inside or outside
+		// of the other operand mesh.
+
+		UnionFind uf( m_tris.size() );
+
+		for_ecache( ecache, [&uf] ( const EGraphEntryTIDVector&	tids )
+		{
+			size_t		tid0 = tids[0];
+
+			for( size_t k = 1; k < tids.size(); k++ )
+			{
+				uf.unionIds( tid0, tids[k] );
+			}
+		} );
+
+		// we re-organize the results of the union find as follows:
+
+		std::vector<long>						uq_ids( m_tris.size(), long( -1 ) );
+		std::unique_ptr<ComponentList>			components( new ComponentList );
+
+		components->reserve( 256 );
+
+		for( size_t i = 0; i < m_tris.size(); i++ )
+		{
+			size_t		ufid = uf.find( i );
+
+			if( uq_ids[ufid] == long( -1 ) )
+			{ // unassigned
+				size_t N = components->size();
+				components->emplace_back();
+				components->back().reserve( 512 );
+
+				uq_ids[ufid] = uq_ids[i] = (long)N;
+				(*components)[N].push_back( i );
+			}
+			else
+			{ // assigned already
+				uq_ids[i] = uq_ids[ufid];						// propagate assignment
+				(*components)[uq_ids[i]].push_back( i );
+			}
+		}
+
+		return( components );
+	}
+
+
+	size_t			Mesh::CountComponents() const
+	{
+		BuildEGraphCacheResult		ecacheResult = BuildEdgeGraphCache();
+
+		std::unique_ptr<EGraphCache>		ecache( std::move( ecacheResult.ReturnPtr() ));
+
+		std::unique_ptr<ComponentList>		components( std::move( FindComponents( *ecache ) ) );
+
+		CachingFactory<TopoCacheWorkspace>::UniquePtr			topoCacheWorkspace( CachingFactory<TopoCacheWorkspace>::GetInstance() );
+
+
+		std::vector<std::set<size_t>>		bodies;
+
+		bodies.reserve( components->size() );
+
+		for( int i = 0; i < components->size(); i++ )
+		{
+			std::vector<size_t>&			component = ( *components )[i];
+
+			bodies.emplace_back();
+
+			std::set<size_t>&				bodyByVerts = bodies.back();
+			
+			for( auto triIndex : component )
+			{
+				bodyByVerts.insert( m_tris[triIndex].a() );
+				bodyByVerts.insert( m_tris[triIndex].b() );
+				bodyByVerts.insert( m_tris[triIndex].c() );
+			}
+		}
+
+		for( int i = 0; i < bodies.size(); i++ )
+		{
+			for( int j = i + 1; j < bodies.size(); j++ )
+			{
+				bool	merged = false;
+
+				std::set<size_t>&			body1 = bodies[i];
+				std::set<size_t>&			body2 = bodies[j];
+
+				for( auto element2 : body2 )
+				{
+					if( body1.find( element2 ) != body1.end() )
+					{
+						body1.insert( body2.begin(), body2.end() );
+
+						bodies.erase( bodies.begin() + j);
+
+						j--;
+
+						merged = true;
+						break;
+					}
+				}
+
+				if( merged )
+				{
+					i--;
+					break;
+				}
+			}
+		}
+
+		return( bodies.size() );
+	}
+
+
+
+	void			Mesh::ProcessComponent( const EGraphCache&					ecache,
+											const std::vector<size_t>&			trisInComponent )
+	{
+		// find the "best" triangle in each component,
+		// and ray cast to determine inside-ness vs. outside-ness
+
+		size_t			best_tid = FindTriForInsideTest( trisInComponent );
+
+		//	Do the 'inside' test
+
+		byte operand = m_tris[best_tid].boolAlgData();
+		bool inside = isInside( best_tid, operand );
+
+		//	Do a breadth first propagation of classification throughout the component.
+
+		std::vector<size_t>	work;
+		work.reserve( trisInComponent.size() );
+
+		std::vector<bool> visited( m_tris.size(), false );
+
+		// begin by tagging the first triangle
+
+		m_tris[best_tid].boolAlgData() |= ( inside ) ? 2 : 0;
+		visited[best_tid] = true;
+		work.push_back( best_tid );
+
+		while( !work.empty() )
+		{
+			size_t		curr_tid = work.back();
+			work.pop_back();
+
+			for( uint k = 0; k<3; k++ )
+			{
+				size_t		a = m_tris[curr_tid][k];
+				size_t		b = m_tris[curr_tid][( k + 1 ) % 3];
+
+				auto&	entry = ecache[a][b];
+
+				byte inside_sig = m_tris[curr_tid].boolAlgData() & 2;
+
+				if( entry.isIsct() )
+				{
+					inside_sig ^= 2;
+				}
+
+				for( size_t tid : entry.tids() )
+				{
+					if( visited[tid] )
+					{
+						continue;
+					}
+
+					if( ( m_tris[tid].boolAlgData() & 1 ) != operand )
+					{
+						continue;
+					}
+
+					m_tris[tid].boolAlgData() |= inside_sig;
+					visited[tid] = true;
+					work.push_back( tid );
+				}
+			}
+		}
+	}
+
+
+	size_t			Mesh::FindTriForInsideTest( const std::vector<size_t>&			trisInComponent )
+	{
+		size_t			currentTid;
+		size_t			best_tid = trisInComponent[0];
+		double			best_area = 0.0;
+
+		size_t			searchIncrement = 1;
+
+
+		//	We will adjust the search increment based on the number of triangles to search.
+
+		if( trisInComponent.size() > 1000 )
+		{
+			searchIncrement = 2;
+		}
+
+		if( trisInComponent.size() > 25000 )
+		{
+			searchIncrement = 3;
+		}
+
+		if( trisInComponent.size() > 50000 )
+		{
+			searchIncrement = 4;
+		}
+
+		if( trisInComponent.size() > 100000 )
+		{
+			searchIncrement = 5;
+		}
+
+		//	Do the search - we are looking for the triangle with the greatest surface area to use
+		//		as the representative triangle to test 'insideness' of component.
+
+		for( size_t i = 0; i < trisInComponent.size(); i += searchIncrement )
+		{
+			currentTid = trisInComponent[i];
+
+			const Cork::Math::Vector3D&		va = m_verts[m_tris[currentTid].a()];
+			const Cork::Math::Vector3D&		vb = m_verts[m_tris[currentTid].b()];
+			const Cork::Math::Vector3D&		vc = m_verts[m_tris[currentTid].c()];
+
+			double area = triAreaSquared( va, vb, vc );		//	We don't need the square root, we just want the biggest surface area
+
+			if( area > best_area )
+			{
+				best_area = area;
+				best_tid = currentTid;
+			}
+		}
+
+		return( best_tid );
+	}
 
 
 
@@ -709,9 +900,9 @@ namespace Cork
 	{
 		CachingFactory<TopoCacheWorkspace>::UniquePtr			topoCacheWorkspace( CachingFactory<TopoCacheWorkspace>::GetInstance());
 		
-		TopoCache				topocache( *this, *topoCacheWorkspace );
+		TopoCache					topocache( *this, *topoCacheWorkspace );
     
-		std::vector<Tptr>		toDelete;
+		std::vector<TopoTri*>		toDelete;
     
 		toDelete.reserve( topocache.triangles().size() / 2 );
 
@@ -737,7 +928,7 @@ namespace Cork
 			}
 		}
     
-		for(Tptr tptr : toDelete)
+		for( auto tptr : toDelete)
 		{
 			topocache.deleteTri(tptr);
 		}

@@ -68,7 +68,20 @@ namespace Cork
 		{
 			m_topoVertexList.emplace_back( i );
 		}
-    
+
+		//	Use the serialized version of internal intialization
+
+		initInternalSerial();
+
+		//ENSURE(isValid());
+		//print();
+	}
+
+
+
+	void		TopoCache::initInternalSerial()
+	{
+
 		// We need to still do the following
 		//  * Generate TopoTris
 		//  * Generate TopoEdges
@@ -76,48 +89,48 @@ namespace Cork
 		//  * Triangles and Vertices
 		//  * Triangles and Edges
 		//  * Vertices and Edges
-    
+
 		// We handle two of these items in a pass over the triangles,
 		//  * Generate TopoTris
 		//  * Hook up Triangles and Vertices
 		// building a structure to handle the edges as we go:
 
-		std::vector<TopoEdgePrototypeVector>		edgeacc( m_meshVertices.size() );
+		std::vector<TopoEdgePrototypeVector>			edgeacc( m_meshVertices.size() );
 
 		for( size_t i = 0; i < m_meshTriangles.size(); i++ )
 		{
 			const CorkTriangle&		ref_tri = m_meshTriangles[i];
-        
+
 			// triangles <--> verts
 
 			size_t		vids0 = ref_tri[0];
 			size_t		vids1 = ref_tri[1];
 			size_t		vids2 = ref_tri[2];
 
-			Tptr tri = m_topoTriList.emplace_back( i, m_topoVertexList.getPool()[vids0], m_topoVertexList.getPool()[vids1], m_topoVertexList.getPool()[vids2] );
+			TopoTri* tri = m_topoTriList.emplace_back( i, m_topoVertexList.getPool()[vids0], m_topoVertexList.getPool()[vids1], m_topoVertexList.getPool()[vids2] );
 
 			// then, put these in arbitrary but globally consistent order
-        
+
 			if( vids0 > vids1 )
 			{
-				std::swap(vids0, vids1);
+				std::swap( vids0, vids1 );
 			}
 
 			if( vids1 > vids2 )
 			{
-				std::swap(vids1, vids2);
+				std::swap( vids1, vids2 );
 			}
 
 			if( vids0 > vids1 )
 			{
-				std::swap(vids0, vids1);
+				std::swap( vids0, vids1 );
 			}
-        
+
 			// and accrue in structure
 
-			TopoVert*	v0 = &(m_topoVertexList.getPool()[vids0]);
-			TopoVert*	v1 = &(m_topoVertexList.getPool()[vids1]);
-			TopoVert*	v2 = &(m_topoVertexList.getPool()[vids2]);
+			TopoVert*	v0 = &( m_topoVertexList.getPool()[vids0] );
+			TopoVert*	v1 = &( m_topoVertexList.getPool()[vids1] );
+			TopoVert*	v2 = &( m_topoVertexList.getPool()[vids2] );
 
 			//	Create edges and link them to the triangle
 
@@ -134,10 +147,10 @@ namespace Cork
 				{
 					edge01 = edge01Proto.setEdge( m_topoEdgeList.emplace_back( v0, v1 ) );
 				}
-				
+
 				edge01->triangles().insert( tri );
-			}
-			{
+
+
 				TopoEdgePrototype&		edge02Proto = edgeacc[vids0].find_or_add( vids2 );
 
 				edge02 = edge02Proto.edge();
@@ -146,10 +159,10 @@ namespace Cork
 				{
 					edge02 = edge02Proto.setEdge( m_topoEdgeList.emplace_back( v0, v2 ) );
 				}
-				
+
 				edge02->triangles().insert( tri );
-			}
-			{
+
+
 				TopoEdgePrototype&		edge12Proto = edgeacc[vids1].find_or_add( vids2 );
 
 				edge12 = edge12Proto.edge();
@@ -158,20 +171,14 @@ namespace Cork
 				{
 					edge12 = edge12Proto.setEdge( m_topoEdgeList.emplace_back( v1, v2 ) );
 				}
-				
+
 				edge12->triangles().insert( tri );
 			}
-
 			//	We swapped around indices, so now fix the edge assignments
 
 			tri->AssignEdges( v0, v1, v2, edge01, edge02, edge12 );
 		}
-
-		//ENSURE(isValid());
-		//print();
 	}
-
-
 
 
 
@@ -347,7 +354,7 @@ namespace Cork
 			cout << "  v " << e.verts()[0] << "; "
 						   << e.verts()[1] << endl;
 			cout << "  t (" << e.triangles().size() << ")" << endl;
-			for(Tptr t : e.triangles())
+			for(auto t : e.triangles())
 			cout << "    " << t << endl;
 			edge_count++;
 		}
@@ -360,10 +367,10 @@ namespace Cork
 		{
 			cout << " " << &v << ": ref(" << v.ref() << ")" << endl;
 			cout << "  e (" << v.edges().size() << ")" << endl;
-			for(Eptr e : v.edges() )
+			for( auto e : v.edges() )
 			cout << "    " << &e << endl;
 			cout << "  t (" << v.triangles().size() << ")" << endl;
-			for(Tptr t : v.triangles())
+			for( auto t : v.triangles())
 			cout << "    " << &t << endl;
 			vert_count++;
 		}

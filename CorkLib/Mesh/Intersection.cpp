@@ -801,12 +801,12 @@ namespace Cork
 
 
 	
-			const Tptr			concreteTriangle() const
+			const TopoTri*		concreteTriangle() const
 			{
 				return( m_concreteTriangle );
 			}
 	
-			void				setConcreteTriangle( Tptr		concreteTriangle )
+			void				setConcreteTriangle( TopoTri*		concreteTriangle )
 			{
 				m_concreteTriangle = concreteTriangle;
 			}
@@ -821,7 +821,7 @@ namespace Cork
 
 		private :
 
-			Tptr								m_concreteTriangle;
+			TopoTri *							m_concreteTriangle;
     
 			std::array<GenericVertType*,3>		m_vertices;
 		};
@@ -942,7 +942,7 @@ namespace Cork
 				return(m_isctEdgeTypeList.emplace_back(GenericEdgeType::EdgeType::INTERSECTION, false, endpoint, tri_key));
 			}
 
-			OrigVertType* newOrigVert(Vptr v)
+			OrigVertType* newOrigVert( TopoVert*		v)
 			{
 				return(m_origVertTypeList.emplace_back(GenericVertType::VertexType::ORIGINAL, *v, *(v->quantizedValue()), true));
 			}
@@ -1031,7 +1031,7 @@ namespace Cork
 
 					assert( triangles().isCompact() );
 
-					tbb::parallel_for( tbb::blocked_range<TopoTriList::PoolType::iterator>( triangles().getPool().begin(), triangles().getPool().end(), triangles().getPool().size() / 4 ),
+					tbb::parallel_for( tbb::blocked_range<TopoTriList::PoolType::iterator>( triangles().getPool().begin(), triangles().getPool().end(), ( triangles().getPool().size() / 4 ) - 1 ),
 						[&] ( tbb::blocked_range<TopoTriList::PoolType::iterator> triangles )
 					{
 						TopoEdgePointerVector			edges;
@@ -1078,7 +1078,7 @@ namespace Cork
 			{
 				ENSURE( glue.copies().size() > 0 );
 				
-				Vptr			v = TopoCache::newVert();
+				TopoVert*			v = TopoCache::newVert();
 
 				TopoCache::ownerMesh().vertices()[v->ref()] = glue.copies()[0]->coordinate();
 
@@ -1186,7 +1186,7 @@ namespace Cork
 				// So, we must check for such a single vertex in common amongst
 				// the three triangles
 
-				Vptr common;
+				TopoVert*		common;
 
 				if (t0.findCommonVertex( t1, common ))
 				{
@@ -1210,7 +1210,7 @@ namespace Cork
 			void fillOutTriData( const TopoTri&		piece,
 								 const TopoTri&		parent )
 			{
-				ownerMesh().triangles()[piece.ref()].boolAlgData() = ownerMesh().triangles()[parent.ref()].boolAlgData();
+				TopoCache::ownerMesh().triangles()[piece.ref()].boolAlgData() = ownerMesh().triangles()[parent.ref()].boolAlgData();
 			}
 
 
@@ -1236,8 +1236,6 @@ namespace Cork
 		protected:
 
 			typedef Cork::Math::Vertex3DVector				QuantizedCoordinatesVector;
-
-
 
 			IntersectionProblemWorkspaceBase&				m_workspace;
 
@@ -1277,7 +1275,7 @@ namespace Cork
 				  m_edges( intersectionProblem.ownerMesh().vertices().size() )
 			{}
 
-			Eptr operator()( TopoVert& v0, TopoVert& v1 )
+			TopoEdge* operator()( TopoVert& v0, TopoVert& v1 )
 			{
 				IndexType	i = v0.ref();
 				IndexType	j = v1.ref();
@@ -1301,7 +1299,7 @@ namespace Cork
 
 				m_edges[i].emplace_back( EdgeEntry( j ) );
 
-				Eptr e = m_edges[i][N].e = m_intersectionProblem.newEdge();
+				TopoEdge* e = m_edges[i][N].e = m_intersectionProblem.newEdge();
 
 				e->verts()[0] = &v0;
 				e->verts()[1] = &v1;
@@ -1313,7 +1311,7 @@ namespace Cork
 			}
 
 			// k = 0, 1, or 2
-			Eptr getTriangleEdge( GenericTriType* gt, uint k, const TopoTri& big_tri )
+			TopoEdge* getTriangleEdge( GenericTriType* gt, uint k, const TopoTri& big_tri )
 			{
 				GenericVertType*   gv0 = gt->vertices()[( k + 1 ) % 3];
 				GenericVertType*   gv1 = gt->vertices()[( k + 2 ) % 3];
@@ -1323,7 +1321,7 @@ namespace Cork
 				// if neither of these are intersection points,
 				// then this is a pre-existing edge...
 
-				Eptr    e = nullptr;
+				TopoEdge*    e = nullptr;
 
 				if (( gv0->vertexType() == GenericVertType::VertexType::ORIGINAL ) &&
 					( gv1->vertexType() == GenericVertType::VertexType::ORIGINAL ))
@@ -1331,8 +1329,8 @@ namespace Cork
 					// search through edges of original triangle...
 					for (uint c = 0; c<3; c++)
 					{
-						Vptr corner0 = big_tri.verts()[( c + 1 ) % 3];
-						Vptr corner1 = big_tri.verts()[( c + 2 ) % 3];
+						TopoVert* corner0 = big_tri.verts()[( c + 1 ) % 3];
+						TopoVert* corner1 = big_tri.verts()[( c + 2 ) % 3];
 
 						if ((( corner0 == &v0 ) && ( corner1 == &v1 )) ||
 							(( corner0 == &v1 ) && ( corner1 == &v0 )))
@@ -1351,7 +1349,7 @@ namespace Cork
 				return e;
 			}
 
-			Eptr maybeEdge( GenericEdgeType* ge )
+			TopoEdge* maybeEdge( GenericEdgeType* ge )
 			{
 				IndexType	i = ge->ends()[0]->concreteVertex()->ref();
 				IndexType	j = ge->ends()[1]->concreteVertex()->ref();
@@ -1391,7 +1389,7 @@ namespace Cork
 
 
 				IndexType		vid;
-				Eptr			e;
+				TopoEdge*		e;
 			};
 
 
@@ -1562,7 +1560,7 @@ namespace Cork
 					{
 						// try to figure out which vertex must be the endpoint...
 
-						Vptr vert;
+						TopoVert* vert;
 
 						if (!m_triangle.findCommonVertex( ie->otherTriKey().value(), vert))
 						{
@@ -2563,15 +2561,13 @@ namespace Cork
 			for (IsctEdgeType& ie : m_isctEdgeTypeList )
 			{
 				// every ie must be non-boundary
-				Eptr e = ecache.maybeEdge(&ie);
-				ENSURE(e);
+				TopoEdge* e = ecache.maybeEdge(&ie);
 				e->setData( (void*)1 );
 			}
 
 			for (auto& se : m_splitEdgeTypeList)
 			{
-				Eptr e = ecache.maybeEdge( &se );
-				ENSURE(e);
+				TopoEdge* e = ecache.maybeEdge( &se );
 				e->setData( (void*)1 );
 			}
     

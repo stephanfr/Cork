@@ -340,6 +340,37 @@ namespace SEFUtility
 		}
 
 
+		const T&	operator[]( size_t		index ) const
+		{
+			if( !m_cutover )
+			{
+				for( unsigned int i = 0; i < m_array.size(); i++ )
+				{
+					if( m_array[i].index() == index )
+					{
+						return( m_array[i] );
+					}
+				}
+
+				//	We did not find the entry so there is no choice but assert	
+
+				assert( false );
+			}
+
+			EntryMapIterator		itrEntry;
+
+			itrEntry = m_map->find( index );
+
+			if( itrEntry == m_map->end() )
+			{
+				//	We did not find the entry so there is no choice but assert	
+
+				assert( false );
+			}
+
+			return( itrEntry->second );
+		}
+
 
 		T&			find_or_add( size_t		index )
 		{
