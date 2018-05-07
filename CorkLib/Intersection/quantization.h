@@ -97,16 +97,7 @@ namespace Cork
 
 			Cork::Math::Vector3D	quantize(const Cork::Math::Vector3D&		vectorToQuantize) const
 			{
-#ifdef CORK_SSE
-				__m128		magnifiedVector = _mm_mul_ps(vectorToQuantize, m_magnifySSE);
-				__m128i		integerMagVec = _mm_cvttps_epi32(magnifiedVector);
-				__m128		floatMagVec = _mm_cvtepi32_ps(integerMagVec);
-				__m128		reshrunkVector = _mm_mul_ps(floatMagVec, m_reshrinkSSE);
-
-				return(Cork::Math::Vector3D(reshrunkVector));
-#else
 				return(Cork::Math::Vector3D(quantize(vectorToQuantize.x()), quantize(vectorToQuantize.y()), quantize(vectorToQuantize.z())));
-#endif
 			}
 
 
@@ -142,16 +133,6 @@ namespace Cork
 				}
 
 				m_bitsOfPurturbationRange = abs(quantaBitsPerMinEdge);
-
-#ifdef CORK_SSE
-				{
-					float	magnify = (float)MAGNIFY;
-					float	reshrink = (float)RESHRINK;
-
-					m_magnifySSE = _mm_load_ps1(&magnify);
-					m_reshrinkSSE = _mm_load_ps1(&reshrink);
-				}
-#endif
 			}
 
 		private :
@@ -160,11 +141,6 @@ namespace Cork
 			double	m_reshrink;
 
 			int		m_bitsOfPurturbationRange;
-
-#ifdef CORK_SSE
-			__m128	m_magnifySSE;
-			__m128	m_reshrinkSSE;
-#endif
 		};
 
 	} // end namespace Quantization

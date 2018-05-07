@@ -176,9 +176,6 @@
     <ClCompile Include="Intersection\empty3d.cpp">
       <Filter>Source Files\Intersection</Filter>
     </ClCompile>
-    <ClCompile Include="Intersection\quantization.cpp">
-      <Filter>Source Files\Intersection</Filter>
-    </ClCompile>
     <ClCompile Include="Intersection\triangle.c">
       <Filter>Source Files\Intersection</Filter>
     </ClCompile>

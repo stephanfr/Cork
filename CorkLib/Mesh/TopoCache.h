@@ -403,7 +403,7 @@ namespace Cork
 
 
 
-#ifndef CORK_SSE
+#ifndef __CORK_AVX__
 		//	Without SSE, the min/max computations as slow enough that caching the computed value is most efficient
 
 		const Cork::Math::BBox3D&	boundingBox() const
@@ -480,7 +480,7 @@ namespace Cork
 			m_verts[1]->triangles().insert( this );
 			m_verts[2]->triangles().insert( this );
 
-#ifndef CORK_SSE
+#ifndef __CORK_AVX__
 			m_boundingBox.reset();
 #endif
 		}
@@ -651,7 +651,7 @@ namespace Cork
 		std::array<TopoVert*,3>						m_verts;			// vertices of this triangle
 		std::array<TopoEdge*,3>						m_edges;			// edges of this triangle opposite to the given vertex
 
-#ifndef CORK_SSE
+#ifndef __CORK_AVX__
 		boost::optional<Cork::Math::BBox3D>			m_boundingBox;
 #endif
 	};

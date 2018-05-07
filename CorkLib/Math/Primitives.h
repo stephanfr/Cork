@@ -44,11 +44,6 @@
 
 
 
-#ifdef CORK_SSE
-#include <xmmintrin.h>
-#endif
-
-
 //
 //	Setup the numeric precision and the vector implementation for the build.
 //
@@ -65,20 +60,6 @@ namespace Cork
 }
 
 
-#ifdef CORK_SSE
-
-#include "SSERng.h"
-#include "Vector3DSSE.h"
-
-namespace Cork
-{
-	namespace Math
-	{
-		typedef Vector3DSSE									Vector3D;                      
-	}
-}
-
-#else
 
 #include "Vector3DTemplate.h"
 
@@ -93,7 +74,7 @@ namespace Cork
 	}
 }
 
-#endif
+
 
 
 //	The Ray and Bounding Box clesses depend on the Vector3D and Vertex3D classes
@@ -171,21 +152,10 @@ namespace Cork
 
 
 
-		#ifdef CORK_SSE
-
-		typedef std::vector<Vertex3D,boost::alignment::aligned_allocator<Vertex3D>>									Vector3DVector;
-		typedef std::vector<Vertex3D,boost::alignment::aligned_allocator<Vertex3D>>									Vertex3DVector;
-
-		typedef std::map<Vertex3D, IndexType, Vertex3DMapCompare, boost::alignment::aligned_allocator<Vertex3D>>	Vertex3DMap;
-
-		#else
-
 		typedef std::vector<Vector3D>																				Vector3DVector;
 		typedef std::vector<Vertex3D>																				Vertex3DVector;
 
 		typedef std::map<Vertex3D, IndexType, Vertex3DMapCompare>													Vertex3DMap;
-
-		#endif
 
 
 		//

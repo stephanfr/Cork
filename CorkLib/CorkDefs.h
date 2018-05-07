@@ -49,7 +49,7 @@ const int MINIMUM_PERTURBATION_RANGE_BITS = 2;				//	initially perturbation rang
 //
 //	Default to double precision, unless CORK_FLOAT_PRECISION is defined
 //
-//	Also, if CORK_SSE is defined then use SSE2 intrinsics with floating point arithemtic.  SSE doesn't appear to speed up
+//	Also, if __CORK_AVX__ is defined then use AVX intrinsics with floating point arithemtic.  AVX doesn't appear to speed up
 //		the algorithm much but it is at least it is in there...
 //
 
@@ -79,11 +79,6 @@ const int MINIMUM_PERTURBATION_RANGE_BITS = 2;				//	initially perturbation rang
 	#define PURTURBATION_ORDERS_OF_MAG_LESS			5
 
 	#define PURTURBATION_UNDERFLOW_EDGE_LENGTH		100 * NUMERIC_PRECISION_MIN_EPSILON
-
-
-	#ifdef CORK_SSE
-		#undef CORK_SSE
-	#endif
 
 #endif
 
