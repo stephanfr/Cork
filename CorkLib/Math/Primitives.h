@@ -150,12 +150,10 @@ namespace Cork
 
 
 
+		typedef std::vector<Vector3D, boost::alignment::aligned_allocator<Vector3D>>								Vector3DVector;
+		typedef std::vector<Vertex3D, boost::alignment::aligned_allocator<Vertex3D>>								Vertex3DVector;
 
-
-		typedef std::vector<Vector3D>																				Vector3DVector;
-		typedef std::vector<Vertex3D>																				Vertex3DVector;
-
-		typedef std::map<Vertex3D, IndexType, Vertex3DMapCompare>													Vertex3DMap;
+		typedef std::map<Vertex3D, IndexType, Vertex3DMapCompare, boost::alignment::aligned_allocator<Vertex3D>>	Vertex3DMap;
 
 
 		//

@@ -261,14 +261,7 @@ namespace Cork
 			}
 
 
-			tbb::task_group&				getTaskGroup()
-			{
-				return( m_taskGroup );
-			}
-
 		private :
-
-			tbb::task_group					m_taskGroup;
 
 			AABVHNodeListCollection			m_nodeListCollection;
 		};
@@ -290,7 +283,6 @@ namespace Cork
 				  m_blobs( std::move( geoms) ),
 				  m_tmpids(m_blobs->size()),
 				  m_nodeCollections( workspace.getAABVHNodeListCollection() ),
-				  m_taskGroup( workspace.getTaskGroup() ),
 				  m_solverControlBlock( solverControlBlock )
 			{
 				ENSURE(m_blobs->size() > 0);
@@ -397,8 +389,6 @@ namespace Cork
 			std::vector<NUMERIC_PRECISION>				m_representativePoints[3];
 
 			std::vector<IndexType>						m_tmpids;
-
-			tbb::task_group&							m_taskGroup;
 
 			const SolverControlBlock&					m_solverControlBlock;
 

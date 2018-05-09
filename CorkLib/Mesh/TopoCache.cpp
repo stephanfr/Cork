@@ -33,7 +33,8 @@
 #include "..\Intersection\quantization.h"
 
 #include <tbb\spin_mutex.h>
-#include <tbb\parallel_for.h>
+#include <tbb\task_group.h>
+
 
 
 
@@ -69,12 +70,8 @@ namespace Cork
 			m_topoVertexList.emplace_back( i );
 		}
 
-		//	Use the serialized version of internal intialization
-
 		initInternalSerial();
 
-		//ENSURE(isValid());
-		//print();
 	}
 
 
@@ -179,6 +176,7 @@ namespace Cork
 			tri->AssignEdges( v0, v1, v2, edge01, edge02, edge12 );
 		}
 	}
+
 
 
 

@@ -146,14 +146,16 @@ namespace Cork
 
 			if( m_solverControlBlock.useMultipleThreads() )
 			{
+				tbb::task_group		taskGroup;
+				
 				//	Recurse - but by splitting into a pair of tasks
 
-				m_taskGroup.run([&]{ node1 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / ( LEAF_SIZE / 2 )), begin, mid, dim ); } );
-				m_taskGroup.run([&]{ node2 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / ( LEAF_SIZE / 2 )), mid, end, dim ); } );
+				taskGroup.run([&]{ node1 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / ( LEAF_SIZE / 2 )), begin, mid, dim ); } );
+				node2 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / ( LEAF_SIZE / 2 )), mid, end, dim );
 
 				//	Wait for the two tasks to complete
 
-				m_taskGroup.wait();
+				taskGroup.wait();
 			}
 			else
 			{

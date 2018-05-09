@@ -115,8 +115,6 @@ int main(int argc, char* argv[])
 	bool	writeResults = vm.count("write-results") > 0;
 	bool	writeStats = vm.count("write-statistics") > 0;
 
-	bool	multiThreaded = false;
-
 
 	Cork::SolverControlBlock		controlBlock = Cork::CorkMesh::GetDefaultControlBlock();
 
@@ -213,7 +211,22 @@ int main(int argc, char* argv[])
 	{
 		for ( const NameAndModel& secondModel : models )
 		{
-			if ( firstModel.first == secondModel.first )
+			std::wstring		firstName( firstModel.first.stem().c_str() );
+
+			if( firstName.find( '_' ) != std::string::npos  )
+			{
+				firstName = firstName.substr( 0, firstName.find( '_' ) - 1 );
+			}
+
+			std::wstring		secondName( secondModel.first.stem().c_str() );
+
+			if( secondName.find( '_' ) != std::string::npos )
+			{
+				secondName = secondName.substr( 0, secondName.find( '_' ) - 1 );
+			}
+
+			
+			if ( firstName == secondName )
 			{
 				continue;
 			}

@@ -192,7 +192,7 @@ namespace Cork
 
 		void							IsInsideCheck( CorkTriangle&				tri,
 													   Cork::Math::Ray3D&			r,
-													   std::atomic<int>&			winding );
+													   long&						winding );
 	};
 
 
@@ -250,7 +250,7 @@ namespace Cork
         
 		Cork::Math::Ray3D		r( p, Cork::Math::Vector3D::randomVector( 0.5, 1.5 ) );
         
-		std::atomic<int> winding = 0;
+		long	winding = 0;
 
 		// pass all triangles over ray
         
@@ -273,7 +273,7 @@ namespace Cork
 	inline
 	void	Mesh::IsInsideCheck( CorkTriangle&				tri,
 								 Cork::Math::Ray3D&			r,
-								 std::atomic<int>&			winding )
+								 long&						winding )
 	{
 		NUMERIC_PRECISION flip = 1.0;
 
@@ -572,7 +572,7 @@ namespace Cork
 
 		std::unique_ptr<ComponentList>		components( std::move( FindComponents( *ecache )));
 
-		if( solverControlBlock().useMultipleThreads() && ( components->size() >= 4 ))
+		if( solverControlBlock().useMultipleThreads() && ( components->size() > 1 ))
 		{
 			tbb::parallel_for( tbb::blocked_range<std::vector<std::vector<size_t>>::iterator>( components->begin(), components->end(), ( components->size() / 4 ) - 1 ),
 				[&]( tbb::blocked_range<std::vector<std::vector<size_t>>::iterator> partitionedComponents )
@@ -979,7 +979,7 @@ namespace Cork
 
 		elapsedTime.stop();
 		resultMesh->m_performanceStats.setElapsedCPUTimeInNanoSeconds( elapsedTime.elapsed().system + elapsedTime.elapsed().user );
-		resultMesh->m_performanceStats.setElapsedWallTimeInNanoSeconds( elapsedTime.elapsed().wall + elapsedTime.elapsed().wall );
+		resultMesh->m_performanceStats.setElapsedWallTimeInNanoSeconds( elapsedTime.elapsed().wall );
 
 		resultMesh->m_performanceStats.setNumberOfTrianglesInFinalMesh( (unsigned long)resultMesh->triangles().size() );
 		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
@@ -1035,7 +1035,7 @@ namespace Cork
 
 		elapsedTime.stop();
 		resultMesh->m_performanceStats.setElapsedCPUTimeInNanoSeconds( elapsedTime.elapsed().system + elapsedTime.elapsed().user );
-		resultMesh->m_performanceStats.setElapsedWallTimeInNanoSeconds( elapsedTime.elapsed().wall + elapsedTime.elapsed().wall );
+		resultMesh->m_performanceStats.setElapsedWallTimeInNanoSeconds( elapsedTime.elapsed().wall );
 
 		resultMesh->m_performanceStats.setNumberOfTrianglesInFinalMesh( (unsigned long)resultMesh->triangles().size() );
 		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
@@ -1089,7 +1089,7 @@ namespace Cork
 
 		elapsedTime.stop();
 		resultMesh->m_performanceStats.setElapsedCPUTimeInNanoSeconds( elapsedTime.elapsed().system + elapsedTime.elapsed().user );
-		resultMesh->m_performanceStats.setElapsedWallTimeInNanoSeconds( elapsedTime.elapsed().wall + elapsedTime.elapsed().wall );
+		resultMesh->m_performanceStats.setElapsedWallTimeInNanoSeconds( elapsedTime.elapsed().wall );
 
 		resultMesh->m_performanceStats.setNumberOfTrianglesInFinalMesh( (unsigned long)resultMesh->triangles().size() );
 		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
@@ -1147,7 +1147,7 @@ namespace Cork
 
 		elapsedTime.stop();
 		resultMesh->m_performanceStats.setElapsedCPUTimeInNanoSeconds( elapsedTime.elapsed().system + elapsedTime.elapsed().user );
-		resultMesh->m_performanceStats.setElapsedWallTimeInNanoSeconds( elapsedTime.elapsed().wall + elapsedTime.elapsed().wall );
+		resultMesh->m_performanceStats.setElapsedWallTimeInNanoSeconds( elapsedTime.elapsed().wall );
 
 		resultMesh->m_performanceStats.setNumberOfTrianglesInFinalMesh( (unsigned long)resultMesh->triangles().size() );
 		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
@@ -1185,7 +1185,7 @@ namespace Cork
 
 	const SolverControlBlock&					CorkMesh::GetDefaultControlBlock()
 	{
-		static	SolverControlBlock		defaultBlock( true, (long)100000, true );
+		static	SolverControlBlock		defaultBlock( true, (long)50000, true );
 		
 		return( defaultBlock );
 	}

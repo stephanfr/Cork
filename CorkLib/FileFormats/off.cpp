@@ -28,7 +28,11 @@
 
 #include <boost\filesystem\fstream.hpp>
 #include <boost\format.hpp>
+#include <boost\iostreams\stream.hpp>
+#include <boost\iostreams\device\back_inserter.hpp>
+#include <boost\archive\binary_oarchive.hpp>
 
+#include <tbb\task_group.h>
 
 
 
@@ -178,32 +182,60 @@ namespace Cork
 				return(WriteFileResult::Failure( WriteFileResultCodes::UNABLE_TO_OPEN_FILE, (boost::format( "Unable to open file: %s" ) % filePath.c_str()).str() ));
 			}
 
+			//	Create two memory buffers so we can write the output data in two threads
+
+			std::string																		verticesBuffer;
+			verticesBuffer.reserve( 50000000 );
+			boost::iostreams::back_insert_device<std::string>								verticesInserter( verticesBuffer );
+			boost::iostreams::stream<boost::iostreams::back_insert_device<std::string> >	verticesStream( verticesInserter );
+
+			std::string																		trianglesBuffer;
+			trianglesBuffer.reserve( 50000000 );
+			boost::iostreams::back_insert_device<std::string>								trianglesInserter( trianglesBuffer );
+			boost::iostreams::stream<boost::iostreams::back_insert_device<std::string> >	trianglesStream( trianglesInserter );
+
 			//	Set the numeric precision
 
-			out.precision( 20 );
+			verticesStream.precision( 20 );
 
 			//	We will be writing in 'OFF' format, no color information.  Write the format label first.
 
-			out << "OFF\n";
+			verticesStream << "OFF\n";
 
 			//	Write the number of vertices and triangles (i.e. faces)
 			//		We will not be writing any edges, so write zero for that value.
 
-			out << meshToWrite.numVertices() << ' ' << meshToWrite.numTriangles() << ' ' << 0 << "\n";
+			verticesStream << meshToWrite.numVertices() << ' ' << meshToWrite.numTriangles() << ' ' << 0 << "\n";
 
+			//	Create a task group to allow us to spin off a thread
+
+			tbb::task_group		taskGroup;
+			
 			//	Write the vertices
 
-			for ( const auto& currentVertex : meshToWrite.vertices() )
+			taskGroup.run( [&]
 			{
-				WriteVertex( out, currentVertex ) << "\n";
-			}
+				for ( const auto& currentVertex : meshToWrite.vertices() )
+				{
+					WriteVertex( verticesStream, currentVertex ) << "\n";
+				}
+
+				verticesStream.flush();
+			} );
 
 			//	Write the triangles - they are the faces
 
 			for ( const auto& currentTriangle : meshToWrite.triangles() )
 			{
-				out << "3 " << currentTriangle << "\n";
+				trianglesStream << "3 " << currentTriangle << "\n";
 			}
+
+			trianglesStream.flush();
+
+			taskGroup.wait();
+
+			out << verticesBuffer;
+			out << trianglesBuffer;
 
 			if ( !out )
 			{
