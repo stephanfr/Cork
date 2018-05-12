@@ -70,15 +70,6 @@ namespace Cork
 			m_topoVertexList.emplace_back( i );
 		}
 
-		initInternalSerial();
-
-	}
-
-
-
-	void		TopoCache::initInternalSerial()
-	{
-
 		// We need to still do the following
 		//  * Generate TopoTris
 		//  * Generate TopoEdges
@@ -175,8 +166,8 @@ namespace Cork
 
 			tri->AssignEdges( v0, v1, v2, edge01, edge02, edge12 );
 		}
-	}
 
+	}
 
 
 

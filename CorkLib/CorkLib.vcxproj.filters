@@ -111,9 +111,6 @@
     <ClInclude Include="Math\Ray3D.h">
       <Filter>Header Files\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Vector3DSSE.h">
-      <Filter>Header Files\Math</Filter>
-    </ClInclude>
     <ClInclude Include="Math\BoundingBox.h">
       <Filter>Header Files\Math</Filter>
     </ClInclude>

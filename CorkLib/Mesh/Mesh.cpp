@@ -187,12 +187,12 @@ namespace Cork
 		void							for_ecache( EGraphCache&												ecache,
 													std::function<void(const EGraphEntryTIDVector&	tids)>		action ) const;
 	
-		bool							isInside( IndexType		tid,
-												  byte			operand );
+		bool							isInside( IndexType														tid,
+												  byte															operand );
 
-		void							IsInsideCheck( CorkTriangle&				tri,
-													   Cork::Math::Ray3D&			r,
-													   long&						winding );
+		void							RayTriangleIntersection( const CorkTriangle&							tri,
+																 Cork::Math::Ray3D&								ray,
+																 long&											winding );
 	};
 
 
@@ -236,7 +236,8 @@ namespace Cork
 
 
 	inline
-	bool	Mesh::isInside( IndexType tid, byte operand)
+	bool	Mesh::isInside( IndexType									tid,
+							byte										operand )
 	{
 		// find the point to trace outward from...
     
@@ -248,32 +249,47 @@ namespace Cork
         
 		// ok, we've got the point, now let's pick a direction
         
-		Cork::Math::Ray3D		r( p, Cork::Math::Vector3D::randomVector( 0.5, 1.5 ) );
-        
+		Cork::Math::Ray3DWithInverseDirection		directionRay( p, Cork::Math::Vector3D::randomVector( 0.5, 1.5 ) );
+
 		long	winding = 0;
 
-		// pass all triangles over ray
-        
-		for( CorkTriangle &tri : m_tris )
+		//	Pass all triangles over ray
+		//		Check for intersections with the triangle's bounding box to cull before the more
+		//		expensive ray triangle intersection test.
+
+		for( auto& tri : m_tris )
 		{
 			// ignore triangles from the same operand surface
+
 			if( ( tri.boolAlgData() & 1 ) == operand )
 			{
 				continue;
 			}
 
-			IsInsideCheck( tri, r, winding );
+			//	Check the bounding box intersection first
+
+			Cork::Math::BBox3D		boundingBox( min( m_verts[tri.a()], m_verts[tri.b()], m_verts[tri.c()] ), max( m_verts[tri.a()], m_verts[tri.b()], m_verts[tri.c()] ) );
+
+			if( !boundingBox.intersects( directionRay ))
+			{
+				continue;
+			}
+
+			//	OK, we may have a hit so check for ray triangle intersection
+
+			RayTriangleIntersection( tri, directionRay, winding );
 		}
-        
+
 		// now, we've got a winding number to work with...
 		return( winding > 0 );
 	}
 
 
+
 	inline
-	void	Mesh::IsInsideCheck( CorkTriangle&				tri,
-								 Cork::Math::Ray3D&			r,
-								 long&						winding )
+	void	Mesh::RayTriangleIntersection( const CorkTriangle&			tri,
+										   Cork::Math::Ray3D&			r,
+										   long&						winding )
 	{
 		NUMERIC_PRECISION flip = 1.0;
 
@@ -302,7 +318,7 @@ namespace Cork
 			std::swap( a, b ); std::swap( va, vb ); flip = -flip;
 		}
 
-		if( isct_ray_triangle( r, va, vb, vc ) )
+		if( CheckForRayTriangleIntersection( r, va, vb, vc ) )
 		{
 			Cork::Math::Vector3D	normal = flip * cross( vb - va, vc - va );
 
@@ -562,7 +578,7 @@ namespace Cork
 			return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::POPULATE_EDGE_GRAPH_CACHE_FAILED, "Building Edge Graph Cache Failed", buildEGraphResult ));
 		}
 
-		std::unique_ptr<EGraphCache>				ecache( std::move( buildEGraphResult.ReturnPtr() ));
+		std::unique_ptr<EGraphCache>			ecache( std::move( buildEGraphResult.ReturnPtr() ));
 
 		// form connected components;
 		// we get one component for each connected component in one
@@ -570,18 +586,25 @@ namespace Cork
 		// These components are not necessarily uniformly inside or outside
 		// of the other operand mesh.
 
-		std::unique_ptr<ComponentList>		components( std::move( FindComponents( *ecache )));
+		std::unique_ptr<ComponentList>		components( std::move( FindComponents( *ecache ) ) );
 
 		if( solverControlBlock().useMultipleThreads() && ( components->size() > 1 ))
 		{
-			tbb::parallel_for( tbb::blocked_range<std::vector<std::vector<size_t>>::iterator>( components->begin(), components->end(), ( components->size() / 4 ) - 1 ),
+			size_t partitionSize = 1;
+
+			if( components->size() > 8 )
+			{
+				partitionSize = components->size() / 8;
+			}
+
+			tbb::parallel_for( tbb::blocked_range<std::vector<std::vector<size_t>>::iterator>( components->begin(), components->end(), partitionSize ),
 				[&]( tbb::blocked_range<std::vector<std::vector<size_t>>::iterator> partitionedComponents )
 			{
 				for( auto&	comp : partitionedComponents )
 				{
 					ProcessComponent( *ecache, comp );
 				}
-			});
+			}, tbb::simple_partitioner() );
 		}
 		else
 		{
@@ -774,8 +797,8 @@ namespace Cork
 
 
 
-	void			Mesh::ProcessComponent( const EGraphCache&					ecache,
-											const std::vector<size_t>&			trisInComponent )
+	void			Mesh::ProcessComponent( const EGraphCache&							ecache,
+											const std::vector<size_t>&					trisInComponent )
 	{
 		// find the "best" triangle in each component,
 		// and ray cast to determine inside-ness vs. outside-ness

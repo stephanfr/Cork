@@ -986,10 +986,10 @@ namespace Cork
 
 			void					CreateBoundingVolumeHierarchy()
 			{
-				if( m_edgeBVH.get() != nullptr )
-				{
-					delete m_edgeBVH.release();
-				}
+//				if( m_edgeBVH.get() != nullptr )
+//				{
+//					delete m_edgeBVH.release();
+//				}
 				
 				std::unique_ptr< Cork::AABVH::GeomBlobVector >		edge_geoms( new Cork::AABVH::GeomBlobVector() );
 

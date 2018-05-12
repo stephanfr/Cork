@@ -48,8 +48,8 @@ namespace Cork
 																	 size_t			end,
 																	 size_t			dim )  
 		{
-			// NOTE: values equal to the pivot
-			//       may appear on either side of the split
+			// NOTE: values equal to the pivot may appear on either side of the split
+
 			if (end - 1 == select)
 			{
 				return;

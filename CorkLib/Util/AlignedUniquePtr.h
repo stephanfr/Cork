@@ -41,21 +41,21 @@ using aligned_unique_ptr = std::unique_ptr<T,boost::alignment::aligned_delete>;
 template<class T, class... Args>
 inline aligned_unique_ptr<T> make_aligned(Args&&... args)
 {
-    auto p = boost::alignment::aligned_alloc(__alignof(T), sizeof(T));
+    auto m_origin = boost::alignment::aligned_alloc(__alignof(T), sizeof(T));
 
-    if (!p)
+    if (!m_origin)
 	{
         throw std::bad_alloc();
     }
     
 	try
 	{
-        auto q = ::new(p) T(std::forward<Args>(args)...);
+        auto q = ::new(m_origin) T(std::forward<Args>(args)...);
         return aligned_unique_ptr<T>(q);
     }
 	catch (...)
 	{
-        boost::alignment::aligned_free(p);
+        boost::alignment::aligned_free(m_origin);
         throw;
     }
 }

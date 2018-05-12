@@ -214,10 +214,55 @@ namespace Cork
 			}
 
 
+			bool	intersects( Cork::Math::Ray3DWithInverseDirection&				ray ) const
+			{
+				NUMERIC_PRECISION txmin, txmax, tymin, tymax, tzmin, tzmax, txymin, txymax;
+
+				txmin = ( m_bounds[ray.signs()[0]].x() - ray.origin().x() ) * ray.inverseDirection().x();
+				tymax = ( m_bounds[1 - ray.signs()[1]].y() - ray.origin().y() ) * ray.inverseDirection().y();
+
+				if( txmin > tymax )
+				{
+					return false;
+				}
+
+				txmax = ( m_bounds[1 - ray.signs()[0]].x() - ray.origin().x() ) * ray.inverseDirection().x();
+				tymin = ( m_bounds[ray.signs()[1]].y() - ray.origin().y() ) * ray.inverseDirection().y();
+
+				if( tymin > txmax )
+				{
+					return false;
+				}
+
+				txymin = std::max( tymin, txmin );
+				txymax = std::min( txmax, tymax );
+
+				tzmin = ( m_bounds[ray.signs()[2]].z() - ray.origin().z() ) * ray.inverseDirection().z();
+
+				if( tzmin > txymax )
+				{
+					return( false );
+				}
+
+				tzmax = ( m_bounds[1 - ray.signs()[2]].z() - ray.origin().z() ) * ray.inverseDirection().z();
+
+				return( txymin <= tzmax );
+			}
+
+
+
 		private :
 
-			Vector3D		m_minp;
-			Vector3D		m_maxp;
+			union
+			{
+				struct
+				{
+					Vector3D				m_minp;
+					Vector3D				m_maxp;
+				};
+
+				std::array<Vector3D,2>		m_bounds;
+			};
 		};
 
 

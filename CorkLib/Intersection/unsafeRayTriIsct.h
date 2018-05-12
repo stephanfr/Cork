@@ -26,27 +26,17 @@
 #pragma once
 
 
-#include "..\Math\Vector3DSSE.h"
 #include "..\Math\Ray3D.h"
 
 
 
-struct isct_ray_triangle_result
-{
-    double						t;
-    Cork::Math::Vector3D		bary; 
-};
-
 
 inline
-bool isct_ray_triangle( Cork::Math::Ray3D&				ray,
-						Cork::Math::Vector3D&			va,
-						Cork::Math::Vector3D&			vb,
-						Cork::Math::Vector3D&			vc )
+bool CheckForRayTriangleIntersection( Cork::Math::Ray3D&			ray,
+									  Cork::Math::Vector3D&			va,
+									  Cork::Math::Vector3D&			vb,
+									  Cork::Math::Vector3D&			vc )
 {
-	ENSURE( t );
-	ENSURE( bary );
-
 	// re-center the problem at the base point of the ray
 	va -= ray.origin();
 	vb -= ray.origin();
@@ -94,12 +84,12 @@ bool isct_ray_triangle( Cork::Math::Ray3D&				ray,
 
 
 inline
-bool isct_ray_triangle( Cork::Math::Ray3D&				ray,
-						Cork::Math::Vector3D&			va,
-						Cork::Math::Vector3D&			vb,
-						Cork::Math::Vector3D&			vc,
-						NUMERIC_PRECISION*				t,
-						Cork::Math::Vector3D*			bary )
+bool CheckForRayTriangleIntersectionWithPoint( Cork::Math::Ray3D&				ray,
+											   Cork::Math::Vector3D&			va,
+											   Cork::Math::Vector3D&			vb,
+											   Cork::Math::Vector3D&			vc,
+											   NUMERIC_PRECISION*				t,
+											   Cork::Math::Vector3D*			bary )
 {
     ENSURE(t);
     ENSURE(bary);

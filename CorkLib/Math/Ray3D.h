@@ -33,41 +33,82 @@ namespace Cork
 	namespace Math
 	{
 
-
-		struct Ray3D final
+		class Ray3D
 		{
-    
+		public :
+
 			Ray3D()
 			{}
     
 			Ray3D( const Vector3D&		point,
 				   const Vector3D&		dir )
-				: p( point ),
-				  r( dir )
+				: m_origin( point ),
+				  m_direction( dir )
 			{}
 
 			Ray3D(const Ray3D&		cp)
-				: p( cp.p ),
-				  r( cp.r )
+				: m_origin( cp.m_origin ),
+				  m_direction( cp.m_direction )
 			{}
 
 
 			const Vector3D&			origin() const
 			{
-				return( p );
+				return( m_origin );
 			}
 
 			const Vector3D&			direction() const
 			{
-				return( r );
+				return( m_direction );
 			}
 
 
 
 		private :
 
-			Vector3D	p; // point of origin
-			Vector3D	r; // ray direction
+			Vector3D	m_origin;
+			Vector3D	m_direction;
+		};
+
+
+
+		class Ray3DWithInverseDirection : public Ray3D
+		{
+		public :
+
+			Ray3DWithInverseDirection()
+			{}
+
+			Ray3DWithInverseDirection( const Vector3D&		point,
+									   const Vector3D&		dir )
+				: Ray3D( point, dir ),
+				  m_inverseDirection( 1.0 / dir.x(), 1.0 / dir.y(), 1.0 / dir.z() ),
+				  m_signs( { ( m_inverseDirection.x() < 0 ), ( m_inverseDirection.y() < 0 ), ( m_inverseDirection.z() < 0 ) } )
+			{}
+
+			Ray3DWithInverseDirection( const Ray3D&		cp )
+				: Ray3D( cp ),
+				  m_inverseDirection( 1.0 / cp.direction().x(), 1.0 / cp.direction().y(), 1.0 / cp.direction().z() ),
+				  m_signs( { ( m_inverseDirection.x() < 0 ), ( m_inverseDirection.y() < 0 ), ( m_inverseDirection.z() < 0 ) } )
+			{}
+
+
+			const Vector3D&					inverseDirection() const
+			{
+				return( m_inverseDirection );
+			}
+
+			const std::array<int, 3>&		signs() const
+			{
+				return( m_signs );
+			}
+
+
+		private:
+
+			Vector3D				m_inverseDirection;
+
+			std::array<int,3>		m_signs;
 		};
 
 

@@ -509,7 +509,6 @@
     <ClInclude Include="Math\Ray3D.h" />
     <ClInclude Include="Math\SSERng.h" />
     <ClInclude Include="Math\Vector2DTemplate.h" />
-    <ClInclude Include="Math\Vector3DSSE.h" />
     <ClInclude Include="Math\Vector3DTemplate.h" />
     <ClInclude Include="Mesh\IntersectionProblem.h" />
     <ClInclude Include="Mesh\EGraphCache.h" />
