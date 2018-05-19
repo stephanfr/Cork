@@ -416,7 +416,7 @@ namespace Cork
 	{
 		//	Reset the labels on this mesh's collection of triangles
 
-		for( auto& t : triangles() )
+		for( auto& t : m_tris )
 		{
 			t.boolAlgData() = 0;
 		}
@@ -446,59 +446,6 @@ namespace Cork
 		}
 	}
 
-
-
-/*
-	Mesh::PopulateEGraphCacheResult  Mesh::populateEGraphCache( EGraphCache&		ecache ) const
-	{
-		try
-		{
-			ecache.resize(m_verts.size());
-		}
-		catch (std::bad_alloc&		ex)
-		{
-			return( PopulateEGraphCacheResult::Failure( PopulateEGraphCacheResultCodes::OUT_OF_MEMORY, "Out of Memory resizing the edge cache" ));
-		}
-    
-		for(uint tid = 0; tid < m_tris.size(); tid++)
-		{
-			const CorkTriangle&		tri = m_tris[tid];
-
-			ecache[tri.a()].find_or_add(tri.b()).tids().push_back(tid);
-			ecache[tri.a()].find_or_add(tri.c()).tids().push_back(tid);
-
-			ecache[tri.b()].find_or_add(tri.a()).tids().push_back(tid);
-			ecache[tri.b()].find_or_add(tri.c()).tids().push_back(tid);
-
-			ecache[tri.c()].find_or_add(tri.a()).tids().push_back(tid);
-			ecache[tri.c()].find_or_add(tri.b()).tids().push_back(tid);
-		}
-        
-		//	Label some of the edges as intersection edges and others as not
-
-		for( auto& column : ecache.columns() )
-		{
-			column.for_each([this](EGraphEntry &entry)
-			{
-				entry.setIsIsct( false );
-				byte operand = m_tris[entry.tids()[0]].boolAlgData();
-
-				for(uint k=1; k<entry.tids().size(); k++)
-				{
-					if( m_tris[entry.tids()[k]].boolAlgData() != operand)
-					{
-						entry.setIsIsct( true );
-						break;
-					}
-				}
-			});
-		}
-
-		//	Finished with success
-
-		return(PopulateEGraphCacheResult::Success());
-	}
-*/
 
 
 

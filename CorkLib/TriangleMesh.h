@@ -70,7 +70,6 @@ namespace Cork
 
 		typedef Cork::Math::Vertex3D							Vertex;
 		typedef Cork::Math::Vertex3DVector						VertexVector;
-		typedef Cork::Math::Vertex3DMap							VertexMap;
 
 		typedef Cork::Math::TriangleByIndicesBase				TriangleByIndices;
 

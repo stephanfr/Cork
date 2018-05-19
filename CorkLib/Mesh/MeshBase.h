@@ -30,6 +30,7 @@
 #include <vector>
 
 #include <boost\align\aligned_allocator.hpp>
+#include <boost\optional.hpp>
 
 #include "..\Util\AlignedUniquePtr.h"
 
@@ -141,16 +142,16 @@ namespace Cork
 
 		CorkTriangle()
 		{}
-
+/*
 		CorkTriangle( const CorkTriangle&		triangleToCopy )
 			: Cork::Math::TriangleByIndicesBase( (const Cork::Math::TriangleByIndicesBase&)triangleToCopy ),
 			  m_boolAlgData( triangleToCopy.m_boolAlgData )
 		{
 			memcpy( &m_a, &triangleToCopy.m_a, sizeof( unsigned int ) * 3 );
 		}
-
+*/
 		CorkTriangle( const Cork::TriangleMesh::TriangleByIndices&		triangleToCopy,
-					  byte												boolAlgData )
+					  byte												boolAlgData	)
 			: Cork::Math::TriangleByIndicesBase( triangleToCopy ),
 			  m_boolAlgData( boolAlgData )
 		{}
@@ -183,8 +184,7 @@ namespace Cork
 
 	private :
 
-
-		byte	m_boolAlgData; // internal use by algorithm - value must be copied when the triangle is subdivided
+		byte					m_boolAlgData; // internal use by algorithm - value must be copied when the triangle is subdivided
 	};
 
 
@@ -262,8 +262,8 @@ namespace Cork
 
 			//	Find the minimum edge length across all the triangles
 
-			NUMERIC_PRECISION		minEdgeLength = NUMERIC_PRECISION_MAX;
-			NUMERIC_PRECISION		maxEdgeLength = NUMERIC_PRECISION_MIN;
+			NUMERIC_PRECISION		minEdgeLengthSquared = NUMERIC_PRECISION_MAX;
+			NUMERIC_PRECISION		maxEdgeLengthSquared = NUMERIC_PRECISION_MIN;
 
 			for (auto& currentTriangle : triangles())
 			{
@@ -271,11 +271,11 @@ namespace Cork
 				const Cork::Math::Vector3D&	vert1(vertices()[currentTriangle.b()]);
 				const Cork::Math::Vector3D&	vert2(vertices()[currentTriangle.c()]);
 
-				minEdgeLength = std::min(minEdgeLength, std::min(len(vert0 - vert1), std::min(len(vert0 - vert2), len(vert1 - vert2))));
-				maxEdgeLength = std::max(maxEdgeLength, std::max(len(vert0 - vert1), std::max(len(vert0 - vert2), len(vert1 - vert2))));
+				minEdgeLengthSquared = std::min(minEdgeLengthSquared, std::min(len2(vert0 - vert1), std::min(len2(vert0 - vert2), len2(vert1 - vert2))));
+				maxEdgeLengthSquared = std::max(maxEdgeLengthSquared, std::max(len2(vert0 - vert1), std::max(len2(vert0 - vert2), len2(vert1 - vert2))));
 			}
 
-			return( Quantization::Quantizer(maxMag, minEdgeLength));
+			return( Quantization::Quantizer(maxMag, sqrt( minEdgeLengthSquared )));
 		}
 
 		void for_raw_tris( std::function<void( IndexType, IndexType, IndexType )> func )

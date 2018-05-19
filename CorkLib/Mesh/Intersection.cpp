@@ -859,17 +859,44 @@ namespace Cork
 		{
 		public :
 
-
-			class TriangleAndIntersectingEdges
+			class TriAndEdgeQueueMessage
 			{
 			public :
 
-				TriangleAndIntersectingEdges( TopoTri&						tri,
-											  TopoEdgePointerVector&		edges )
+				enum class MessageType { TRI_AND_INTERSECTING_EDGES, END_OF_MESSAGES };
+
+				virtual MessageType			type() const = 0;
+			};
+
+
+
+			class TriAndEdgeQueueEnd : public TriAndEdgeQueueMessage
+			{
+			public:
+
+				MessageType			type() const
+				{
+					return( MessageType::END_OF_MESSAGES );
+				}
+			};
+
+
+
+			class TriangleAndIntersectingEdgesMessage : public TriAndEdgeQueueMessage
+			{
+			public :
+
+				TriangleAndIntersectingEdgesMessage( TopoTri&					tri,
+													 TopoEdgePointerVector&		edges )
 					: m_triangle( tri ),
 					  m_edges( edges )
 				{}
 
+
+				MessageType						type() const
+				{
+					return( MessageType::TRI_AND_INTERSECTING_EDGES );
+				}
 
 				TopoTri&						triangle()
 				{
@@ -888,7 +915,7 @@ namespace Cork
 			};
 
 
-			typedef std::vector<TriangleAndIntersectingEdges>		TriangleAndIntersectingEdgesVector;
+			typedef tbb::concurrent_bounded_queue<TriAndEdgeQueueMessage*>		TriangleAndIntersectingEdgesQueue;
 
 
 
@@ -976,21 +1003,9 @@ namespace Cork
 			}
 
 
-			enum BVHEdgeTriResultCodes {
-				SUCCESS = 0,
-				OUT_OF_MEMORY
-			};
-
-			typedef SEFUtility::Result<BVHEdgeTriResultCodes>		BVHEdgeTriResult;
-
 
 			void					CreateBoundingVolumeHierarchy()
 			{
-//				if( m_edgeBVH.get() != nullptr )
-//				{
-//					delete m_edgeBVH.release();
-//				}
-				
 				std::unique_ptr< Cork::AABVH::GeomBlobVector >		edge_geoms( new Cork::AABVH::GeomBlobVector() );
 
 				edge_geoms->reserve( edges().size() );
@@ -1005,26 +1020,13 @@ namespace Cork
 
 
 
-			BVHEdgeTriResult		bvh_edge_tri( Cork::AABVH::IntersectionType				selfOrBooleanIntersection,
-												  TriangleAndIntersectingEdgesVector&		triangleAndEdges )
+			void			FindEdgeAndTriangleIntersections( Cork::AABVH::IntersectionType				selfOrBooleanIntersection,
+															  TriangleAndIntersectingEdgesQueue&		triangleAndEdges )
 			{
 				CreateBoundingVolumeHierarchy();
 
-				// use the acceleration structure
-
-				tbb::mutex						triAndEdgesMutex;
-				
-				try
-				{
-					triangleAndEdges.reserve(triangles().size());
-				}
-				catch (std::bad_alloc&		ex)
-				{
-					return(BVHEdgeTriResult::Failure( BVHEdgeTriResultCodes::OUT_OF_MEMORY, "Out of Memory allocating triangle and edges data structure" ));
-				}
-
 				//	Search for intersections, either in multiple threads or in a single thread 
-
+/*
 				if( ownerMesh().solverControlBlock().useMultipleThreads() )
 				{
 					//	Multithreaded search
@@ -1042,7 +1044,7 @@ namespace Cork
 
 							if (!edges.empty())
 							{
-								threadSafeEmplaceBack( triangleAndEdges, triAndEdgesMutex, t, edges );
+								triangleAndEdges.push( new TriangleAndIntersectingEdgesMessage( t, edges ));
 
 								edges.clear();
 							}
@@ -1051,26 +1053,27 @@ namespace Cork
 				}
 				else
 				{
+				*/
 					//	Single threaded search
 
 					TopoEdgePointerVector			edges;
 
-					for( TopoTri& t : triangles() )
+					for( TopoTri& tri : triangles() )
 					{
-						m_edgeBVH->EdgesIntersectingTriangle( t, selfOrBooleanIntersection, edges );
+						m_edgeBVH->EdgesIntersectingTriangle( tri, selfOrBooleanIntersection, edges );
 
 						if (!edges.empty())
 						{
-							triangleAndEdges.emplace_back( t, edges );
+							triangleAndEdges.push( new TriangleAndIntersectingEdgesMessage( tri, edges ) );
 
 							edges.clear();
 						}
 					}
-				}
+//				}
 
-				//	Finished with Success
+				//	Push the end of queue message
 
-				return(BVHEdgeTriResult::Success());
+				triangleAndEdges.push( new TriAndEdgeQueueEnd() );
 			}
 
 
@@ -1592,8 +1595,6 @@ namespace Cork
 
 							return( ConsolidateResult::Failure( ConsolidateResultCodes::COULD_NOT_FIND_COMMON_VERTEX, "Could not find common vertex in Triangle Problem Consolidate" ));
 						}
-
-						ENSURE(vert); // bad if we can't find a common vertex
 
 						// then, find the corresponding OrigVertType*, and connect
 
@@ -2175,7 +2176,7 @@ namespace Cork
 			//	Initialize all the triangles to NOT have an associated tprob
 			//		and set the boolAlgData value based on the input triangle
 
-			for (TopoTri& t : TopoCache::triangles())
+			for (TopoTri& t : triangles())
 			{
 				t.setData( nullptr );
 				t.setBoolAlgData( ownerMesh().triangles()[t.ref()].boolAlgData() );
@@ -2183,7 +2184,7 @@ namespace Cork
 
 			//	Initialize all of the edge solid IDs
 
-			for (auto& e : TopoCache::edges())
+			for (TopoEdge& e : edges())
 			{
 				e.setBoolAlgData( e.triangles().front()->boolAlgData() );
 			}
@@ -2192,19 +2193,11 @@ namespace Cork
 
 			m_quantizedCoords.reserve( TopoCache::ownerMesh().vertices().size() );
 	
-			uint write = 0;
-
-			for (auto& v : TopoCache::vertices())
+			for (TopoVert& v : TopoCache::vertices())
 			{
-		#ifdef _WIN32
-				Cork::Math::Vector3D		raw = ownerMesh().vertices()[v.ref()];
-		#else
-				Vec3d raw = TopoCache::mesh->verts[v->ref].pos;
-		#endif
-				m_quantizedCoords.emplace_back( m_quantizer.quantize( raw ) );
+				m_quantizedCoords.emplace_back( m_quantizer.quantize( ownerMesh().vertices()[v.ref()] ) );
 
-				v.setQuantizedValue( &( m_quantizedCoords[write] ) );
-				write++;
+				v.setQuantizedValue( &(m_quantizedCoords.back() ) );
 			}
 		}
 
@@ -2225,21 +2218,28 @@ namespace Cork
 		{
 			m_exactArithmeticContext.degeneracy_count = 0;
 
-			TriangleAndIntersectingEdgesVector			trianglesAndEdges;
+			TriangleAndIntersectingEdgesQueue			trianglesAndEdges;
 
-			BVHEdgeTriResult	bvhETResult = bvh_edge_tri(Cork::AABVH::IntersectionType::BOOLEAN_INTERSECTION, trianglesAndEdges);
+			tbb::task_group		taskGroup;
 
-			if (!bvhETResult.Succeeded())
+			taskGroup.run( [&] { FindEdgeAndTriangleIntersections(Cork::AABVH::IntersectionType::BOOLEAN_INTERSECTION, trianglesAndEdges); } );
+
+			while( true )
 			{
-				return(TryToFindIntersectionsResult::Failure(TryToFindIntersectionsResultCodes::OUT_OF_MEMORY, "Out of Memory", bvhETResult));
-			}
+				TriAndEdgeQueueMessage*			msg;
 
+				trianglesAndEdges.pop( msg );
 
-			for (auto& triAndEdges : trianglesAndEdges )
-			{
-				TopoTri&	triangle = triAndEdges.triangle();
+				const std::unique_ptr<TriAndEdgeQueueMessage> currentMessage( msg );
 
-				for ( const TopoEdge* edge : triAndEdges.edges() )
+				if( currentMessage->type() == TriAndEdgeQueueMessage::MessageType::END_OF_MESSAGES )
+				{
+					break;
+				}
+
+				TopoTri&	triangle = (( TriangleAndIntersectingEdgesMessage&)(*currentMessage)).triangle();
+
+				for ( const TopoEdge* edge : ( (TriangleAndIntersectingEdgesMessage&)( *currentMessage ) ).edges() )
 				{
 					if (triangle.intersectsEdge( *edge, m_quantizer, m_exactArithmeticContext))
 					{
@@ -2265,7 +2265,9 @@ namespace Cork
 				{
 					break;
 				}
-			}
+			};
+
+			taskGroup.wait();
 
 			if (m_exactArithmeticContext.degeneracy_count > 0)
 			{

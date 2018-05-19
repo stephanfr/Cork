@@ -280,8 +280,6 @@ namespace Cork
 
 		std::array<TopoVert*,2>						m_verts;					// endpoint vertices
 		TopoTrianglePointerList						m_tris;						// incident triangles
-
-//		Cork::Math::BBox3D							m_boundingBox;
 	};
 
 

@@ -159,7 +159,7 @@ namespace Cork
 
 		IncrementalVertexIndexTriangleMeshBuilderImpl( size_t		numVertices,
 													   size_t		numTriangles )
-			: m_vertices(),
+			: m_vertexIndices(),
 			  m_indexedVertices( new TriangleMesh::VertexVector() ),
 			  m_triangles( new std::vector<TriangleMesh::TriangleByIndices>() ),
 			  m_boundingBox( make_aligned<Cork::Math::BBox3D>( Cork::Math::Vector3D( NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX ), Cork::Math::Vector3D( NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN )  ))
@@ -196,13 +196,13 @@ namespace Cork
 
 			//	Add the vertex, de-duplicate on the fly.
 
-			TriangleMesh::VertexMap::const_iterator	vertexLoc = m_vertices.find(vertexToAdd);
+			VertexIndexLookupMap::const_iterator	vertexLoc = m_vertexIndices.find(vertexToAdd);
 			
-			if (vertexLoc == m_vertices.end())
+			if (vertexLoc == m_vertexIndices.end())
 			{
 				//	Vertex is new, update all data structures
 
-				m_vertices[vertexToAdd] = m_indexedVertices->size();
+				m_vertexIndices[vertexToAdd] = m_indexedVertices->size();
 				m_vertexIndexRemapper.push_back(m_indexedVertices->size());
 				m_indexedVertices->push_back(vertexToAdd);
 			}
@@ -278,7 +278,9 @@ namespace Cork
 
 	private:
 
-		TriangleMesh::VertexMap													m_vertices;
+		typedef std::map<Cork::Math::Vertex3D, IndexType, Cork::Math::Vertex3DMapCompare, boost::alignment::aligned_allocator<Cork::Math::Vertex3D>>			VertexIndexLookupMap;
+
+		VertexIndexLookupMap													m_vertexIndices;
 		std::shared_ptr<TriangleMesh::VertexVector>								m_indexedVertices;
 		std::vector<TriangleMesh::VertexIndexType>								m_vertexIndexRemapper;
 

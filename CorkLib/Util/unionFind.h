@@ -33,13 +33,13 @@ public:
 
 	explicit
 	UnionFind( size_t   N )
-		: rank(N, 0)
+		: m_rank(N, 0)
 	{
-		ids.reserve(N);
+		m_ids.reserve(N);
 
 		for ( size_t i = 0; i < N; i++)
 		{
-			ids.emplace_back( i );
+			m_ids.emplace_back( i );
 		}
     }
     
@@ -47,12 +47,12 @@ public:
 	{
         size_t id = i;
         
-		while (ids[id] != id)
+		while (m_ids[id] != id)
 		{
-			id = ids[id];
+			id = m_ids[id];
 		}
         
-		ids[i] = id; // path compression optimization
+		m_ids[i] = id; // path compression optimization
         
 		return( id );
     }
@@ -67,30 +67,28 @@ public:
 			return( iid );
 		}
 
-        // simple implementation (not used)
-        // return ids[iid] = jid;
-        // instead we attempt to rank balance
+        //	Attempt to rank balance
 
-        if(rank[iid] > rank[jid])
+        if(m_rank[iid] > m_rank[jid])
 		{
-            return( ids[jid] = iid );
+            return( m_ids[jid] = iid );
         }
-		else if(rank[iid] < rank[jid])
+		else if(m_rank[iid] < m_rank[jid])
 		{
-            return( ids[iid] = jid );
+            return( m_ids[iid] = jid );
         }
 		else
 		{ // equal ranks
-            rank[jid]++;
-            return( ids[jid] = iid );
+            m_rank[jid]++;
+            return( m_ids[jid] = iid );
         }
     }
 
     std::vector<size_t> dump()
 	{
-        std::vector<size_t> result(ids.size());
+        std::vector<size_t> result(m_ids.size());
     
-		for (size_t i = 0; i < ids.size(); i++)
+		for (size_t i = 0; i < m_ids.size(); i++)
 		{
 			result[i] = find(i);
 		}
@@ -100,6 +98,6 @@ public:
     
 private:
 
-    std::vector<size_t> ids;
-    std::vector<size_t> rank;
+    std::vector<size_t>		m_ids;
+    std::vector<size_t>		m_rank;
 };
