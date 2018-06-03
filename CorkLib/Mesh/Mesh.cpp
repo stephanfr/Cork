@@ -52,7 +52,9 @@
 
 
 
-CachingFactory<Cork::TopoCacheWorkspace>::CacheType		CachingFactory<Cork::TopoCacheWorkspace>::m_cache;
+Cork::EGraphCache::SkeletonColumnVectorFactory::CacheType			Cork::EGraphCache::SkeletonColumnVectorFactory::m_cache;
+
+SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::CacheType		SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::m_cache;
 
 
 
@@ -684,7 +686,7 @@ namespace Cork
 
 		std::unique_ptr<ComponentList>		components( std::move( FindComponents( *ecache ) ) );
 
-		CachingFactory<TopoCacheWorkspace>::UniquePtr			topoCacheWorkspace( CachingFactory<TopoCacheWorkspace>::GetInstance() );
+		SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr			topoCacheWorkspace(SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance() );
 
 
 		std::vector<std::set<size_t>>		bodies;
@@ -868,7 +870,7 @@ namespace Cork
 
 	void Mesh::doDeleteAndFlip( std::function<TriCode(byte bool_alg_data)> classify )
 	{
-		CachingFactory<TopoCacheWorkspace>::UniquePtr			topoCacheWorkspace( CachingFactory<TopoCacheWorkspace>::GetInstance());
+		SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr			topoCacheWorkspace(SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance());
 		
 		TopoCache					topocache( *this, *topoCacheWorkspace );
     

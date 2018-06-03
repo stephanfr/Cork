@@ -27,6 +27,10 @@
 
 #include "prelude.h"
 
+
+//	Straightforward weighted quick union with path compression.
+
+
 class UnionFind
 {
 public:
@@ -52,7 +56,7 @@ public:
 			id = m_ids[id];
 		}
         
-		m_ids[i] = id; // path compression optimization
+		m_ids[i] = id;					// path compression optimization
         
 		return( id );
     }

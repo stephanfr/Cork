@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <VcpkgConfiguration>Release</VcpkgConfiguration>
+    <VcpkgRoot>C:\Users\steph\source\repos\Cork\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.0</VcpkgRoot>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup />
+  <ItemGroup>
+    <BuildMacro Include="VcpkgConfiguration">
+      <Value>$(VcpkgConfiguration)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="VcpkgRoot">
+      <Value>$(VcpkgRoot)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

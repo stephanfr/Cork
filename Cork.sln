@@ -12,10 +12,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RegressionTest", "Regressio
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D87B0071-0FB4-41D8-AC3F-3B57A77C84AD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTests", "UnitTest\UnitTests\UnitTests.vcxproj", "{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}"
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
@@ -23,6 +22,8 @@ Global
 		Rel-Dbl|x64 = Rel-Dbl|x64
 		Rel-Dbl-AVX|Win32 = Rel-Dbl-AVX|Win32
 		Rel-Dbl-AVX|x64 = Rel-Dbl-AVX|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
 		Rel-Flt|Win32 = Rel-Flt|Win32
 		Rel-Flt|x64 = Rel-Flt|x64
 	EndGlobalSection
@@ -39,6 +40,10 @@ Global
 		{6BFC4809-FF4F-4801-8202-1D82BD3F31AC}.Rel-Dbl-AVX|Win32.Build.0 = Rel-Dbl-AVX|Win32
 		{6BFC4809-FF4F-4801-8202-1D82BD3F31AC}.Rel-Dbl-AVX|x64.ActiveCfg = Rel-Dbl-AVX|x64
 		{6BFC4809-FF4F-4801-8202-1D82BD3F31AC}.Rel-Dbl-AVX|x64.Build.0 = Rel-Dbl-AVX|x64
+		{6BFC4809-FF4F-4801-8202-1D82BD3F31AC}.Release|Win32.ActiveCfg = Rel-Flt-SSE|Win32
+		{6BFC4809-FF4F-4801-8202-1D82BD3F31AC}.Release|Win32.Build.0 = Rel-Flt-SSE|Win32
+		{6BFC4809-FF4F-4801-8202-1D82BD3F31AC}.Release|x64.ActiveCfg = Rel-Flt-SSE|x64
+		{6BFC4809-FF4F-4801-8202-1D82BD3F31AC}.Release|x64.Build.0 = Rel-Flt-SSE|x64
 		{6BFC4809-FF4F-4801-8202-1D82BD3F31AC}.Rel-Flt|Win32.ActiveCfg = Rel-Flt|Win32
 		{6BFC4809-FF4F-4801-8202-1D82BD3F31AC}.Rel-Flt|Win32.Build.0 = Rel-Flt|Win32
 		{6BFC4809-FF4F-4801-8202-1D82BD3F31AC}.Rel-Flt|x64.ActiveCfg = Rel-Flt|x64
@@ -55,16 +60,49 @@ Global
 		{AC855342-9D2D-4593-A9E1-30D178DE984A}.Rel-Dbl-AVX|Win32.Build.0 = Rel-Dbl-AVX|Win32
 		{AC855342-9D2D-4593-A9E1-30D178DE984A}.Rel-Dbl-AVX|x64.ActiveCfg = Rel-Dbl-AVX|x64
 		{AC855342-9D2D-4593-A9E1-30D178DE984A}.Rel-Dbl-AVX|x64.Build.0 = Rel-Dbl-AVX|x64
+		{AC855342-9D2D-4593-A9E1-30D178DE984A}.Release|Win32.ActiveCfg = Rel-Flt-SSE|Win32
+		{AC855342-9D2D-4593-A9E1-30D178DE984A}.Release|Win32.Build.0 = Rel-Flt-SSE|Win32
+		{AC855342-9D2D-4593-A9E1-30D178DE984A}.Release|x64.ActiveCfg = Rel-Flt-SSE|x64
+		{AC855342-9D2D-4593-A9E1-30D178DE984A}.Release|x64.Build.0 = Rel-Flt-SSE|x64
 		{AC855342-9D2D-4593-A9E1-30D178DE984A}.Rel-Flt|Win32.ActiveCfg = Rel-Flt|Win32
 		{AC855342-9D2D-4593-A9E1-30D178DE984A}.Rel-Flt|Win32.Build.0 = Rel-Flt|Win32
 		{AC855342-9D2D-4593-A9E1-30D178DE984A}.Rel-Flt|x64.ActiveCfg = Rel-Flt|x64
 		{AC855342-9D2D-4593-A9E1-30D178DE984A}.Rel-Flt|x64.Build.0 = Rel-Flt|x64
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Debug|Win32.Build.0 = Debug|Win32
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Debug|x64.ActiveCfg = Debug|x64
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Debug|x64.Build.0 = Debug|x64
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Rel-Dbl|Win32.ActiveCfg = Release|Win32
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Rel-Dbl|Win32.Build.0 = Release|Win32
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Rel-Dbl|x64.ActiveCfg = Release|x64
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Rel-Dbl|x64.Build.0 = Release|x64
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Rel-Dbl-AVX|Win32.ActiveCfg = Release|Win32
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Rel-Dbl-AVX|Win32.Build.0 = Release|Win32
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Rel-Dbl-AVX|x64.ActiveCfg = Rel-Dbl-AVX|x64
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Rel-Dbl-AVX|x64.Build.0 = Rel-Dbl-AVX|x64
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Release|Win32.ActiveCfg = Release|Win32
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Release|Win32.Build.0 = Release|Win32
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Release|x64.ActiveCfg = Release|x64
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Release|x64.Build.0 = Release|x64
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Rel-Flt|Win32.ActiveCfg = Release|Win32
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Rel-Flt|Win32.Build.0 = Release|Win32
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Rel-Flt|x64.ActiveCfg = Release|x64
+		{9B7A97DA-D4A9-40B1-BC21-84103DD5CAA5}.Rel-Flt|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9331B9AE-1E4A-4A35-ACEF-C3083E439E09}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

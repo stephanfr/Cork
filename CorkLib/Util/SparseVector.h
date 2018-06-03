@@ -39,6 +39,7 @@ THE SOFTWARE.
 #include <tbb\concurrent_unordered_map.h>
 #include <tbb\concurrent_unordered_set.h>
 
+#include "Resettable.h"
 
 
 
@@ -67,7 +68,7 @@ namespace SEFUtility
 
 
     template<class T,long CUTOVER_SIZE>
-	class SparseVector
+	class SparseVector : public Resettable
 	{
 	private :
 
@@ -217,6 +218,7 @@ namespace SEFUtility
 		SparseVector()
 			: m_cutover( false ),
 			  m_inserter( &SparseVector<T,10>::insertIntoArray ),
+			  m_findOrAdd( &SparseVector<T, 10>::findOrAddArray ), 
 			  m_map( NULL )
 		{}
 
@@ -242,6 +244,20 @@ namespace SEFUtility
 		SparseVector&			operator=( const SparseVector&		vectorToCopy )
 		{
 			assert( false );
+		}
+
+		void					reset()
+		{
+			if( m_map != NULL )
+			{
+				delete m_map;
+			}
+
+			m_cutover = false;
+			m_array.clear();
+			m_inserter = &SparseVector<T, 10>::insertIntoArray;
+			m_findOrAdd = &SparseVector<T, 10>::findOrAddArray;
+			m_map = NULL;
 		}
 
 
@@ -374,29 +390,7 @@ namespace SEFUtility
 
 		T&			find_or_add( size_t		index )
 		{
-			if( !m_cutover )
-			{
-				for( unsigned int i = 0; i < m_array.size(); i++ )
-				{
-					if( m_array[i].index() == index )
-					{
-						return( m_array[i] );
-					}
-				}
-			}
-			else
-			{
-				EntryMapIterator		itrEntry;
-
-				itrEntry = m_map->find( index );
-
-				if( itrEntry != m_map->end() )
-				{
-					return( itrEntry->second );
-				}
-			}
-
-			return((this->*m_inserter)( index ));
+			return((this->*m_findOrAdd)( index ));
 		}
 
 
@@ -466,10 +460,13 @@ namespace SEFUtility
 	private :
 
 		typedef T& (SparseVector<T,10>::*InsertFunctionPointer)( size_t );	
+		typedef T& (SparseVector<T, 10>::*FindOrAddFunctionPointer )( size_t );
 
 
 		bool						m_cutover;
+
 		InsertFunctionPointer		m_inserter;
+		FindOrAddFunctionPointer	m_findOrAdd;
 
 		EntryVector					m_array;
 
@@ -493,7 +490,9 @@ namespace SEFUtility
 			}
 
 			m_cutover = true;
+
 			m_inserter = &SparseVector<T,CUTOVER_SIZE>::insertIntoMap;
+			m_findOrAdd = &SparseVector<T, 10>::findOrAddMap;
 
 			return( m_map->emplace( index, index ).first->second );
 		}
@@ -503,6 +502,34 @@ namespace SEFUtility
 			return( m_map->emplace( index, index ).first->second );
 		}
 
+
+
+		T&			findOrAddArray( size_t		index )
+		{
+			for( unsigned int i = 0; i < m_array.size(); i++ )
+			{
+				if( m_array[i].index() == index )
+				{
+					return( m_array[i] );
+				}
+			}
+
+			return( ( this->*m_inserter )( index ) );
+		}
+
+		T&			findOrAddMap( size_t		index )
+		{
+			EntryMapIterator		itrEntry;
+
+			itrEntry = m_map->find( index );
+
+			if( itrEntry != m_map->end() )
+			{
+				return( itrEntry->second );
+			}
+
+			return( ( this->*m_inserter )( index ) );
+		}
 	};
 
 

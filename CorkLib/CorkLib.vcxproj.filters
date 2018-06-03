@@ -165,6 +165,12 @@
     <ClInclude Include="Util\SparseVector.h">
       <Filter>Header Files\Util</Filter>
     </ClInclude>
+    <ClInclude Include="Util\ConstuctOnceResizeableVector.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\Resettable.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

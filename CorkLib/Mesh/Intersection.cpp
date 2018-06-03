@@ -2014,7 +2014,7 @@ namespace Cork
 		};
 
 
-		typedef CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>		IntersectionWorkspaceFactory;
+		typedef SEFUtility::CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>		IntersectionWorkspaceFactory;
 
 
 
@@ -2027,7 +2027,7 @@ namespace Cork
 			IntersectionProblem( MeshBase&								owner,
 								 const Quantization::Quantizer&			quantizer,
 								 const Cork::Math::BBox3D&				intersectionBBox,
-								 CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::UniquePtr&		workspace );
+								 SEFUtility::CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::UniquePtr&		workspace );
 
     
 			virtual ~IntersectionProblem()
@@ -2087,9 +2087,9 @@ namespace Cork
 
 		private:
 
-			CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::UniquePtr				m_workspace;
+			SEFUtility::CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::UniquePtr		m_workspace;
 
-			TriangleProblemList&																	m_triangleProblemList;
+			TriangleProblemList&																		m_triangleProblemList;
 
 
 			// if we encounter ambiguous degeneracies, then this
@@ -2206,7 +2206,7 @@ namespace Cork
 		IntersectionProblem::IntersectionProblem( MeshBase&								owner,
 												  const Quantization::Quantizer&		quantizer,
 												  const Cork::Math::BBox3D&				intersectionBBox,
-												  CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::UniquePtr&		workspace )
+												  SEFUtility::CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::UniquePtr&		workspace )
 			: IntersectionProblemBase( owner, quantizer, intersectionBBox, *( workspace.get() ) ),
 			  m_workspace( std::move( workspace )),
 			  m_triangleProblemList( *(m_workspace.get()) )
@@ -2602,7 +2602,7 @@ namespace Cork
 //	Create the IntersectionProblemWorkspace Factory down here as it has to follow declaration of the workspace and be in global scope
 //
 
-CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::CacheType		CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::m_cache;
+SEFUtility::CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::CacheType		SEFUtility::CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::m_cache;
 
 
 

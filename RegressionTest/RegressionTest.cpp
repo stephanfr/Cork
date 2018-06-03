@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
 				{
 					std::unique_ptr<Cork::CorkMesh>		unionedMesh( booleanOpResult.ReturnPtr().release() );
 
-					std::cout << "Components in finished Mesh: " << unionedMesh->CountComponents() << std::endl;
+//					std::cout << "Components in finished Mesh: " << unionedMesh->CountComponents() << std::endl;
 
 
 					cumulativeCPUTime += unionedMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
@@ -310,7 +310,7 @@ int main(int argc, char* argv[])
 				{
 					std::unique_ptr<Cork::CorkMesh>		differenceMesh( booleanOpResult.ReturnPtr().release() );
 
-					std::cout << "Components in finished Mesh: " << differenceMesh->CountComponents() << std::endl;
+//					std::cout << "Components in finished Mesh: " << differenceMesh->CountComponents() << std::endl;
 
 					cumulativeCPUTime += differenceMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
 					cumulativeWallTime += differenceMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();
@@ -363,7 +363,7 @@ int main(int argc, char* argv[])
 				{
 					std::unique_ptr<Cork::CorkMesh>		intersectionMesh( booleanOpResult.ReturnPtr().release() );
 
-					std::cout << "Components in finished Mesh: " << intersectionMesh->CountComponents() << std::endl;
+//					std::cout << "Components in finished Mesh: " << intersectionMesh->CountComponents() << std::endl;
 
 					cumulativeCPUTime += intersectionMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
 					cumulativeWallTime += intersectionMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();
@@ -416,7 +416,7 @@ int main(int argc, char* argv[])
 				{
 					std::unique_ptr<Cork::CorkMesh>		XORMesh( booleanOpResult.ReturnPtr().release() );
 
-					std::cout << "Components in finished Mesh: " << XORMesh->CountComponents() << std::endl;
+//					std::cout << "Components in finished Mesh: " << XORMesh->CountComponents() << std::endl;
 
 					cumulativeCPUTime += XORMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
 					cumulativeWallTime += XORMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();

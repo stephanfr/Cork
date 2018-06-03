@@ -27,10 +27,13 @@
 #pragma once
 
 #include <vector>
+#include <deque>
 
 #include <boost\container\static_vector.hpp>
 
+#include "..\Util\CachingFactory.h"
 #include "..\Util\SparseVector.h"
+#include "..\Util\ConstuctOnceResizeableVector.h"
 
 
 
@@ -92,27 +95,21 @@ namespace Cork
 
 
 
-	class EGraphSkeletonColumn : public SEFUtility::SparseVector<EGraphEntry,10>
-	{
-	public :
-
-		EGraphSkeletonColumn()
-		{}
-	};
-
-
-	
-
 	class EGraphCache
 	{
 
 	public :
 
-		typedef std::vector<EGraphSkeletonColumn>		SkeletonColumnVector;
+		typedef SEFUtility::SparseVector<EGraphEntry, 10>							EGraphSkeletonColumn;
+		typedef SEFUtility::ConstructOnceResizeableVector<EGraphSkeletonColumn>		SkeletonColumnVector;
 
+		typedef SEFUtility::CachingFactory<SkeletonColumnVector>					SkeletonColumnVectorFactory;
+		typedef SEFUtility::CachingFactory<SkeletonColumnVector>::UniquePtr			SkeletonColumnVectorUniquePtr;
 
 
 		EGraphCache()
+			: m_skeletonPtr( SkeletonColumnVectorFactory::GetInstance() ),
+			  m_skeleton( *m_skeletonPtr )
 		{}
 
 		~EGraphCache()
@@ -149,7 +146,8 @@ namespace Cork
 
 	private :
 
-		SkeletonColumnVector		m_skeleton;
+		SkeletonColumnVectorUniquePtr		m_skeletonPtr;
+		SkeletonColumnVector&				m_skeleton;
 	};
 
 }	//	namespace Cork

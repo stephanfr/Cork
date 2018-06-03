@@ -29,53 +29,147 @@ THE SOFTWARE.
 
 
 #include <memory>
+#include <deque>
+#include <type_traits>
+#include <future>
 
-#include <boost\ptr_container\ptr_list.hpp>
+#include "boost/smart_ptr/detail/spinlock.hpp"
+
+#include "Resettable.h"
 
 
 
-
-template <class T>
-class CachingFactory
+namespace SEFUtility
 {
+	enum class CachingFactoryCacheOrDestroy { CACHE, DESTROY };
 
-	static void			CacheInstance( T*		instance )
+
+
+	template <class T>
+	class CachingFactory
 	{
-		m_cache.push_front( instance );
-	}
 
-	static void			DestroyInstance( T*		instance )
-	{
-		delete instance;
-	}
-		
-public :
+		//	We have some SFINAE action below.  If the object has the Resettable interface,
+		//		then compile a version of CacheInstanceInternal that calls reset before caching.
+		//		If the object does not have the Resettable interface, then compile a version that
+		//		does not call reset before recaching.
 
-	typedef boost::ptr_list<T>										CacheType;
-	typedef std::unique_ptr<T, decltype(&CacheInstance)>			UniquePtr;
-
-	enum class CacheOrDestroy { CACHE, DESTROY };
+		template< bool cond, typename U >
+		using resolvedType = typename std::enable_if< cond, U >::type;
 
 
-	static UniquePtr			GetInstance( CacheOrDestroy		cacheOrDestroy = CacheOrDestroy::CACHE )
-	{
-		decltype(&CacheInstance)		destroyFunction = cacheOrDestroy == CacheOrDestroy::CACHE ? CacheInstance : DestroyInstance;
-		
-		if( !m_cache.empty() )
+		template<class Q = T>
+		static void		CacheInstanceInternal(resolvedType< std::is_base_of<Resettable,Q>::value, Q*>	instance)
 		{
-			return( UniquePtr( m_cache.pop_front().release(), destroyFunction ) );
+			instance->reset();
+				
+			std::lock_guard<boost::detail::spinlock> guard(m_cache.lock());
+			m_cache.push_back(instance);
 		}
-		
-		return( UniquePtr( new T, destroyFunction ) );
-	}
 
-private :
+		template<class Q = T>
+		static void		CacheInstanceInternal( resolvedType< !std::is_base_of<Resettable, Q>::value, Q*>		instance)
+		{
+			std::lock_guard<boost::detail::spinlock> guard(m_cache.lock());
+			m_cache.push_back(instance);
+		}
+
+		static void		CacheInstance( T*	instance)
+		{
+			CacheInstanceInternal(instance);
+		}
+
+		static void		DestroyInstance(T*		instance)
+		{
+			delete instance;
+		}
+
+	public:
+
+		//	The CacheType is a deque of pointers with a destructor that destroys all the pointers.
+		//		The class also contains a spin lock to make the class itself thread re-entrant.
+
+		class CacheType : public std::deque<T*>
+		{
+		public :
+
+			~CacheType()
+			{
+				clear();
+			}
 
 
-	static boost::ptr_list<T>			m_cache;
+			void							clear()
+			{
+				std::lock_guard<boost::detail::spinlock> guard(m_lock);
+
+				while (!empty())
+				{
+					delete front();
+					pop_front();
+				};
+			}
+
+			boost::detail::spinlock&		lock()
+			{
+				return(m_lock);
+			}
+
+		private :
+
+			boost::detail::spinlock			m_lock;
+		};
+
+
+		//	The UniquePtr is simply a stand::unique_ptr<T> with a custom destructor based
+		//		on whether the cache or destroy the object
+
+		typedef std::unique_ptr<T, decltype(&CacheInstance)>			UniquePtr;
+
+
+
+		//	GetInstance() returns an instance of the managed class either from the cache or by creating
+		//		it new and associates the correct destructor to either cache or destroy the class when
+		//		the UniquePtr is destroyed.
+
+		static UniquePtr			GetInstance(CachingFactoryCacheOrDestroy		cacheOrDestroy = CachingFactoryCacheOrDestroy::CACHE)
+		{
+			decltype(&CacheInstance)		destroyFunction = cacheOrDestroy == CachingFactoryCacheOrDestroy::CACHE ? CacheInstance : DestroyInstance;
+
+			std::lock_guard<boost::detail::spinlock> guard(m_cache.lock());
+
+			if (!m_cache.empty())
+			{
+				UniquePtr		returnValue(m_cache.front(), destroyFunction);
+
+				m_cache.pop_front();
+
+				return(returnValue);
+			}
+
+			return(UniquePtr(new T, destroyFunction));
+		}
+
+		//	Clear the cache
+
+		static void						clear()
+		{
+			m_cache.clear();
+		}
+
+		//	Return the number of elements in the cache.
+
+		static size_t					numObjectsInCache()
+		{
+			return(m_cache.size());
+		}
+
+
+	private:
+
+		static CacheType			m_cache;
+	};
+
 };
-
-
-
 
 
