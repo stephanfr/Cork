@@ -436,7 +436,7 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>__CORK_AVX__;TRILIBRARY;CPU86;TRIANGLE_INTEL64;_CRT_SECURE_NO_WARNINGS;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS;BOOST_SYSTEM_DYN_LINK</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__CORK_AVX__;TRILIBRARY;CPU86;TRIANGLE_INTEL64;_CRT_SECURE_NO_WARNINGS;NO_TIMER;_USE_MATH_DEFINES;NOMINMAX;CORKLIB_EXPORTS;BOOST_SYSTEM_DYN_LINK;BOOST_DISABLE_ASSERTS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
       <AdditionalIncludeDirectories>$(TBB_PATH)\include;$(BOOST_PATH);$(MPIR_PATH);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -522,15 +522,17 @@
     <ClInclude Include="Util\FastStack.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TriangleMesh.h" />
+    <ClInclude Include="Util\ThreadPool.h" />
+    <ClInclude Include="Util\Xoroshiro128Plus.h" />
     <ClInclude Include="Util\ManagedIntrusiveList.h" />
     <ClInclude Include="Util\NonInitializingAllocator.h" />
     <ClInclude Include="Util\prelude.h" />
+    <ClInclude Include="Util\UnionFind.h" />
     <ClInclude Include="Util\Resettable.h" />
     <ClInclude Include="Util\Result.h" />
     <ClInclude Include="Util\SparseVector.h" />
     <ClInclude Include="Util\SystemStats.h" />
     <ClInclude Include="Util\ThreadingHelpers.h" />
-    <ClInclude Include="Util\unionFind.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="aabvh.cpp" />
@@ -578,6 +580,7 @@
     <ClCompile Include="Mesh\TopoCache.cpp" />
     <ClCompile Include="TriangleMesh.cpp" />
     <ClCompile Include="Util\log.cpp" />
+    <ClCompile Include="Util\ThreadPool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

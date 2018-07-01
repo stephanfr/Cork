@@ -90,9 +90,6 @@
     <ClInclude Include="Util\prelude.h">
       <Filter>Header Files\Util</Filter>
     </ClInclude>
-    <ClInclude Include="Util\unionFind.h">
-      <Filter>Header Files\Util</Filter>
-    </ClInclude>
     <ClInclude Include="TriangleMesh.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -171,6 +168,15 @@
     <ClInclude Include="Util\Resettable.h">
       <Filter>Header Files\Util</Filter>
     </ClInclude>
+    <ClInclude Include="Util\Xoroshiro128Plus.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\ThreadPool.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\UnionFind.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -205,6 +211,9 @@
     </ClCompile>
     <ClCompile Include="Mesh\Intersection.cpp">
       <Filter>Source Files\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\ThreadPool.cpp">
+      <Filter>Source Files\Util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

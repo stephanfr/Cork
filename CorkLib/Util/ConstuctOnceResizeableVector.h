@@ -44,6 +44,29 @@ namespace SEFUtility
 
 		class iterator : public boost::iterator_facade<iterator, T, boost::forward_traversal_tag, T&>
 		{
+		public :
+
+			bool		operator<(const iterator&		itrToCompare) const
+			{
+				return(m_vectorIterator < itrToCompare.m_vectorIterator);
+			}
+
+			iterator	operator+(const size_t			offset) const
+			{
+				return( iterator( m_vectorIterator + offset, m_end ));
+			}
+
+			iterator&	operator+=(const size_t			offset)
+			{
+				m_vectorIterator += offset;
+
+				return(*this);
+			}
+
+			size_t		operator-(const iterator&		itrToSubtract) const
+			{
+				return(m_vectorIterator - itrToSubtract.m_vectorIterator);
+			}
 
 		protected:
 

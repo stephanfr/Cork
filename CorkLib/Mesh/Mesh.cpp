@@ -42,13 +42,17 @@
 
 #include "..\Intersection\unsafeRayTriIsct.h"
 
-#include "..\Util\unionFind.h"
+#include "..\Util\UnionFind.h"
 #include "..\Util\SystemStats.h"
 
 #include "..\Util\CachingFactory.h"
 
 #include <boost\chrono\chrono.hpp>			//	Had to include when I upgraded to boost 65 - on windows is griped about a missing library
 #include <boost\timer\timer.hpp>
+
+#include "..\Util\ThreadPool.h"
+
+
 
 
 
@@ -120,10 +124,6 @@ namespace Cork
 		// form the disjoint union of two meshes
 
 		void							DisjointUnion( const Mesh&					meshToMerge );
-
-		//	Intersection module
-
-//		SelfIntersectionStatistics		ComputeSelfIntersectionStatistics();							//	Is the mesh self-intersecting?
     
 		//	Boolean operations
 
@@ -169,8 +169,8 @@ namespace Cork
 
 		typedef SEFUtility::ResultWithUniqueReturnPtr<BuildEGraphCacheResultCodes, EGraphCache>		BuildEGraphCacheResult;
 
-
-		typedef std::vector<std::vector<size_t>>		ComponentList;
+		typedef tbb::concurrent_vector<size_t>				ComponentType;
+		typedef tbb::concurrent_vector<ComponentType>		ComponentList;
 
 
 		SetupBooleanProblemResult		SetupBooleanProblem( const Mesh&										rhs );
@@ -180,14 +180,15 @@ namespace Cork
 		std::unique_ptr<ComponentList>	FindComponents( EGraphCache&			ecache ) const;
 
 		void							ProcessComponent( const EGraphCache&									ecache,
-														  const std::vector<size_t>&							trisInComponent );
+														  const ComponentType&									trisInComponent );
 
-		size_t							FindTriForInsideTest( const std::vector<size_t>&						trisInComponent );
+		size_t							FindTriForInsideTest( const ComponentType&								trisInComponent );
 
 		void							doDeleteAndFlip( std::function<TriCode(byte bool_alg_data)>				classify );
 
 		void							for_ecache( EGraphCache&												ecache,
-													std::function<void(const EGraphEntryTIDVector&	tids)>		action ) const;
+													int															numThreads,
+													std::function<void(const EGraphEntryTIDVector&	tids)>		action) const;
 	
 		bool							isInside( IndexType														tid,
 												  byte															operand );
@@ -202,37 +203,43 @@ namespace Cork
 
 
 	inline void Mesh::for_ecache( EGraphCache&												ecache,
+								  int														numThreads,
 								  std::function<void(const EGraphEntryTIDVector&	tids)>	action ) const
 	{
-		for( auto& column : ecache.columns() )
+//		ThreadPool::getPool().parallel_for(numThreads, ecache.columns().begin(), ecache.columns().end(), [&](BlockRange<EGraphCache::SkeletonColumnVector::iterator>	partitionedCloumns )
+//		tbb::parallel_for(tbb::blocked_range<EGraphCache::SkeletonColumnVector::iterator>(ecache.columns().begin(), ecache.columns().end(), ecache.columns().size() / 4 ),
+//			[&](tbb::blocked_range<EGraphCache::SkeletonColumnVector::iterator> partitionedColumns)
 		{
-			column.for_each( [this,&action](EGraphEntry&	entry)
+			for (auto& column : ecache.columns())
 			{
-				if( entry.isIsct() )
+				column.for_each([this, &action](EGraphEntry&	entry)
 				{
-					EGraphEntryTIDVector		tid0s;
-					EGraphEntryTIDVector		tid1s;
-            
-					for( IndexType tid : entry.tids() )
+					if (entry.isIsct())
 					{
-						if( m_tris[tid].boolAlgData() & 1 )
-						{
-							tid1s.push_back( tid );
-						}
-						else
-						{
-							tid0s.push_back( tid );
-						}
-					}
+						EGraphEntryTIDVector		tid0s;
+						EGraphEntryTIDVector		tid1s;
 
-					action( tid1s );
-					action( tid0s );
-				}
-				else
-				{
-					action( entry.tids() );
-				}
-			});
+						for (IndexType tid : entry.tids())
+						{
+							if (m_tris[tid].boolAlgData() & 1)
+							{
+								tid1s.push_back(tid);
+							}
+							else
+							{
+								tid0s.push_back(tid);
+							}
+						}
+
+						action(tid1s);
+						action(tid0s);
+					}
+					else
+					{
+						action(entry.tids());
+					}
+				});
+			}
 		}
 	}
 
@@ -546,8 +553,8 @@ namespace Cork
 				partitionSize = components->size() / 8;
 			}
 
-			tbb::parallel_for( tbb::blocked_range<std::vector<std::vector<size_t>>::iterator>( components->begin(), components->end(), partitionSize ),
-				[&]( tbb::blocked_range<std::vector<std::vector<size_t>>::iterator> partitionedComponents )
+			tbb::parallel_for( tbb::blocked_range<ComponentList::iterator>( components->begin(), components->end(), partitionSize ),
+				[&]( tbb::blocked_range<ComponentList::iterator> partitionedComponents )
 			{
 				for( auto&	comp : partitionedComponents )
 				{
@@ -635,15 +642,15 @@ namespace Cork
 		// These components are not necessarily uniformly inside or outside
 		// of the other operand mesh.
 
-		UnionFind uf( m_tris.size() );
+		RandomWeightedParallelUnionFind		uf(m_tris.size());
 
-		for_ecache( ecache, [&uf] ( const EGraphEntryTIDVector&	tids )
+		for_ecache( ecache, 3, [&uf] ( const EGraphEntryTIDVector&	tids )
 		{
 			size_t		tid0 = tids[0];
 
 			for( size_t k = 1; k < tids.size(); k++ )
 			{
-				uf.unionIds( tid0, tids[k] );
+				uf.unite( tid0, tids[k] );
 			}
 		} );
 
@@ -654,25 +661,39 @@ namespace Cork
 
 		components->reserve( 256 );
 
-		for( size_t i = 0; i < m_tris.size(); i++ )
+		std::mutex			vectorLock;
+
+		ThreadPool::getPool().parallel_for(4, (size_t)0, m_tris.size(), [&](size_t blockBegin, size_t blockEnd)
 		{
-			size_t		ufid = uf.find( i );
+			size_t		ufid;
 
-			if( uq_ids[ufid] == long( -1 ) )
-			{ // unassigned
-				size_t N = components->size();
-				components->emplace_back();
-				components->back().reserve( 512 );
+			for (size_t i = blockBegin; i < blockEnd; i++)
+			{
+				ufid = uf.find(i);
 
-				uq_ids[ufid] = uq_ids[i] = (long)N;
-				(*components)[N].push_back( i );
+				retry :
+
+				if (uq_ids[ufid] == long(-1))
+				{
+					std::lock_guard<std::mutex>		lock(vectorLock);
+
+					if (uq_ids[ufid] != long(-1))
+						goto retry;
+
+					size_t N = components->size();
+					components->emplace_back();
+//					(*components)[N].reserve(512);
+
+					uq_ids[ufid] = uq_ids[i] = (long)N;
+					(*components)[N].push_back(i);
+				}
+				else
+				{
+					uq_ids[i] = uq_ids[ufid];
+					(*components)[uq_ids[i]].push_back(i);
+				}
 			}
-			else
-			{ // assigned already
-				uq_ids[i] = uq_ids[ufid];						// propagate assignment
-				(*components)[uq_ids[i]].push_back( i );
-			}
-		}
+		});
 
 		return( components );
 	}
@@ -680,13 +701,13 @@ namespace Cork
 
 	size_t			Mesh::CountComponents() const
 	{
-		BuildEGraphCacheResult		ecacheResult = BuildEdgeGraphCache();
+		BuildEGraphCacheResult											ecacheResult = BuildEdgeGraphCache();
 
-		std::unique_ptr<EGraphCache>		ecache( std::move( ecacheResult.ReturnPtr() ));
+		std::unique_ptr<EGraphCache>									ecache( std::move( ecacheResult.ReturnPtr() ));
 
-		std::unique_ptr<ComponentList>		components( std::move( FindComponents( *ecache ) ) );
+		std::unique_ptr<ComponentList>									components( std::move( FindComponents( *ecache ) ) );
 
-		SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr			topoCacheWorkspace(SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance() );
+		SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr		topoCacheWorkspace(SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance() );
 
 
 		std::vector<std::set<size_t>>		bodies;
@@ -695,7 +716,7 @@ namespace Cork
 
 		for( int i = 0; i < components->size(); i++ )
 		{
-			std::vector<size_t>&			component = ( *components )[i];
+			ComponentType&			component = ( *components )[i];
 
 			bodies.emplace_back();
 
@@ -746,8 +767,8 @@ namespace Cork
 
 
 
-	void			Mesh::ProcessComponent( const EGraphCache&							ecache,
-											const std::vector<size_t>&					trisInComponent )
+	void			Mesh::ProcessComponent( const EGraphCache&			ecache,
+											const ComponentType&		trisInComponent )
 	{
 		// find the "best" triangle in each component,
 		// and ray cast to determine inside-ness vs. outside-ness
@@ -812,7 +833,7 @@ namespace Cork
 	}
 
 
-	size_t			Mesh::FindTriForInsideTest( const std::vector<size_t>&			trisInComponent )
+	size_t			Mesh::FindTriForInsideTest( const ComponentType&			trisInComponent )
 	{
 		size_t			currentTid;
 		size_t			best_tid = trisInComponent[0];
