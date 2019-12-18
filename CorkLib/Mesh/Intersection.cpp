@@ -1214,6 +1214,7 @@ namespace Cork
 								 const TopoTri&		parent )
 			{
 				TopoCache::ownerMesh().triangles()[piece.ref()].boolAlgData() = ownerMesh().triangles()[parent.ref()].boolAlgData();
+				TopoCache::ownerMesh().triangles()[piece.ref()].id() = ownerMesh().triangles()[parent.ref()].id();
 			}
 
 

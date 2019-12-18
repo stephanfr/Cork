@@ -116,7 +116,7 @@ namespace Cork
 	class IncrementalVertexIndexTriangleMeshBuilder
 	{
 	public:
-
+		CORKLIB_API
 		static std::unique_ptr<IncrementalVertexIndexTriangleMeshBuilder>		GetBuilder( size_t		numVertices = 0,
 																							size_t		numTriangles = 0 );
 

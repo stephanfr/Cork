@@ -496,7 +496,7 @@ namespace Cork
 
 			if( !findResult.Succeeded() )
 			{
-				//	If we failed here - not mush to do but return a failed result
+				//	If we failed here - not much to do but return a failed result
 
 				return( SetupBooleanProblemResult::Failure( SetupBooleanProblemResultCodes::FIND_INTERSECTIONS_FAILED, "FindIntersections failed.", findResult ));
 			}
@@ -1160,9 +1160,9 @@ namespace Cork
 			triangleMeshBuilder->AddVertex(Cork::TriangleMesh::Vertex((NUMERIC_PRECISION)currentVertex.x(), (NUMERIC_PRECISION)currentVertex.y(), (NUMERIC_PRECISION)currentVertex.z()));
 		}
 
-		for_raw_tris( [&]( IndexType a, IndexType b, IndexType c )
+		for_raw_tris( [&]( IndexType a, IndexType b, IndexType c, IndexType id )
 		{
-			triangleMeshBuilder->AddTriangle( TriangleMesh::TriangleByIndices( a, b, c ) );
+			triangleMeshBuilder->AddTriangle( TriangleMesh::TriangleByIndices( a, b, c, id ) );
 		} );
 
 		return(triangleMeshBuilder->Mesh());

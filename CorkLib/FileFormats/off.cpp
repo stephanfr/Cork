@@ -138,7 +138,7 @@ namespace Cork
 			// face data
 
 			{
-				TriangleMesh::TriangleByIndices		newTriangle( 0, 0, 0 );
+				TriangleMesh::TriangleByIndices		newTriangle( 0, 0, 0, -1 );
 				unsigned int						polySize;
 				TriangleMeshBuilderResultCodes		resultCode;
 
