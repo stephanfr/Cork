@@ -278,19 +278,19 @@ namespace Cork
 			return( Quantization::Quantizer(maxMag, sqrt( minEdgeLengthSquared )));
 		}
 
-		void for_raw_tris( std::function<void( IndexType, IndexType, IndexType )> func )
+		void for_raw_tris( std::function<void( IndexType, IndexType, IndexType, IndexType )> func )
 		{
 			for ( auto& tri : m_tris )
 			{
-				func( tri.a(), tri.b(), tri.c() );
+				func( tri.a(), tri.b(), tri.c(), tri.id() );
 			}
 		}
 
-		void for_raw_tris( std::function<void( IndexType, IndexType, IndexType )> func ) const
+		void for_raw_tris( std::function<void( IndexType, IndexType, IndexType, IndexType )> func ) const
 		{
 			for ( auto& tri : m_tris )
 			{
-				func( tri.a(), tri.b(), tri.c() );
+				func( tri.a(), tri.b(), tri.c(), tri.id() );
 			}
 		}
 

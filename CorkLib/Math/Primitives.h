@@ -169,15 +169,18 @@ namespace Cork
 			TriangleByIndicesBase()
 				: m_a( -1 ),
 				  m_b( -1 ),
-				  m_c( -1 )
+				  m_c( -1 ),
+				  m_id( -1 )
 			{}
 
 			TriangleByIndicesBase( VertexIndex		a,
 								   VertexIndex		b,
-								   VertexIndex		c )
+								   VertexIndex		c,
+								   VertexIndex		id=-1)
 				: m_a( a ),
 				  m_b( b ),
-				  m_c( c )
+				  m_c( c ),
+				  m_id( id )
 			{}
 
 	
@@ -226,6 +229,15 @@ namespace Cork
 				return( m_c );
 			}
 
+			const VertexIndex				id() const
+			{
+				return m_id;
+			}
+
+			VertexIndex&					id()
+			{
+				return m_id;
+			}
 
 		protected :
 
@@ -236,9 +248,10 @@ namespace Cork
 					VertexIndex			m_a;
 					VertexIndex			m_b;
 					VertexIndex			m_c;
+					VertexIndex			m_id;
 				};
 
-				std::array<VertexIndex,3>		m_indices;
+				std::array<VertexIndex,4>		m_indices;
 			};
 		};
 

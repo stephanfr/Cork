@@ -240,7 +240,8 @@ namespace Cork
 
 			TriangleMesh::TriangleByIndices		remappedTriangle( m_vertexIndexRemapper[triangleToAdd[0]],
 																  m_vertexIndexRemapper[triangleToAdd[1]],
-																  m_vertexIndexRemapper[triangleToAdd[2]] );
+																  m_vertexIndexRemapper[triangleToAdd[2]],
+																  triangleToAdd[3]);
 
 			//	Add the triangle to the vector
 
