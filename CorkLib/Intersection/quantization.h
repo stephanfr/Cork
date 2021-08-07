@@ -27,7 +27,7 @@
 
 #include<cmath>
 
-#include "..\Math\Primitives.h"
+#include "../Math/Primitives.h"
 
 
 

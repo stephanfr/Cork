@@ -29,27 +29,27 @@
 
 #include <random>
 
-#include "..\Intersection\gmpext4.h"
+#include "../Intersection/gmpext4.h"
 
-#include <boost\noncopyable.hpp>
-#include <boost\optional.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/optional.hpp>
 
 #include "tbb/tbb.h"
 
-#include "..\Util\ManagedIntrusiveList.h"
-#include "..\Util\ThreadingHelpers.h"
+#include "../Util/ManagedIntrusiveList.h"
+#include "../Util/ThreadingHelpers.h"
 
-#include "..\Intersection\quantization.h"
-#include "..\Intersection\empty3d.h"
+#include "../Intersection/quantization.h"
+#include "../Intersection/empty3d.h"
 
 #include "MeshBase.h"
 #include "TopoCache.h"
 
-#include "..\Accel\aabvh.h"
+#include "../Accel/aabvh.h"
 
-#include "..\Mesh\IntersectionProblem.h"
+#include "../Mesh/IntersectionProblem.h"
 
-#include "..\Util\CachingFactory.h"
+#include "../Util/CachingFactory.h"
 
 
 
@@ -58,7 +58,7 @@
 
 extern "C"
 {
-	#include "..\Intersection\triangle.h"
+	#include "../Intersection/triangle.h"
 }
 
 
@@ -2397,7 +2397,7 @@ namespace Cork
 		{
 			perturbPositions(); // always perturb for safety...
 
-			boolean			foundIntersections = false;
+			bool			foundIntersections = false;
 
 			do
 			{
@@ -2602,8 +2602,11 @@ namespace Cork
 //	Create the IntersectionProblemWorkspace Factory down here as it has to follow declaration of the workspace and be in global scope
 //
 
-SEFUtility::CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::CacheType		SEFUtility::CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::m_cache;
-
+//namespace Cork
+//{
+//	template <>
+//	SEFUtility::CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::CacheType<Cork::Intersection::IntersectionProblemWorkspace> SEFUtility::CachingFactory<Cork::Intersection::IntersectionProblemWorkspace>::m_cache;
+//}
 
 
 

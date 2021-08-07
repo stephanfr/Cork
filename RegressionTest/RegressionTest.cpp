@@ -32,13 +32,13 @@
 #include <iostream>
 #include <iomanip>
 
-#include <boost\filesystem\fstream.hpp>
-#include <boost\timer\timer.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/timer/timer.hpp>
 
-#include <boost\program_options.hpp>
+#include <boost/program_options.hpp>
 
 #include "cork.h"
-#include "FileFormats\files.h"
+#include "FileFormats/files.h"
 
 
 //#include "C:\Program Files (x86)\Microsoft Visual Studio 12.0\Team Tools\Performance Tools\PerfSDK\VSPerf.h"
@@ -148,20 +148,20 @@ int main(int argc, char* argv[])
 
 	if( writeStats )
 	{
-		timingResultsFilePath += "\\timing_results.txt";
+		timingResultsFilePath += "/timing_results.txt";
 
 		timingResults.open( timingResultsFilePath );
 
 		//	Open a cumulative timing results file
 
-		cumulativeTimingResultsFilePath += "\\cumulative_timing_results.txt";
+		cumulativeTimingResultsFilePath += "/cumulative_timing_results.txt";
 
 		cumulativeTimingResults.open(cumulativeTimingResultsFilePath);
 
 		//	Open a file for collecting statistics on the results
 
 
-		geotopoResultsFilePath += "\\geotopo_results.txt";
+		geotopoResultsFilePath += "/geotopo_results.txt";
 
 		geotopoResults.open(geotopoResultsFilePath);
 
@@ -211,14 +211,14 @@ int main(int argc, char* argv[])
 	{
 		for ( const NameAndModel& secondModel : models )
 		{
-			std::wstring		firstName( firstModel.first.stem().c_str() );
+			std::wstring		firstName( (wchar_t*)firstModel.first.stem().c_str() );
 
 			if( firstName.find( '_' ) != std::string::npos  )
 			{
 				firstName = firstName.substr( 0, firstName.find( '_' ) - 1 );
 			}
 
-			std::wstring		secondName( secondModel.first.stem().c_str() );
+			std::wstring		secondName( (wchar_t*)secondModel.first.stem().c_str() );
 
 			if( secondName.find( '_' ) != std::string::npos )
 			{
@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
 
 					boost::filesystem::path	resultFilePath(resultsDirectory);
 
-					resultFilePath += "\\";
+					resultFilePath += "/";
 					resultFilePath += filename;
 					resultFilePath += ".off";
 
@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
 
 					boost::filesystem::path	resultFilePath(resultsDirectory);
 
-					resultFilePath += "\\";
+					resultFilePath += "/";
 					resultFilePath += filename;
 					resultFilePath += ".off";
 
@@ -372,7 +372,7 @@ int main(int argc, char* argv[])
 
 					boost::filesystem::path	resultFilePath(resultsDirectory);
 
-					resultFilePath += "\\";
+					resultFilePath += "/";
 					resultFilePath += filename;
 					resultFilePath += ".off";
 
@@ -425,7 +425,7 @@ int main(int argc, char* argv[])
 
 					boost::filesystem::path	resultFilePath(resultsDirectory);
 
-					resultFilePath += "\\";
+					resultFilePath += "/";
 					resultFilePath += filename;
 					resultFilePath += ".off";
 

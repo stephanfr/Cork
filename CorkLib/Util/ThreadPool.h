@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <boost/thread/latch.hpp>
-#include <boost\iterator\iterator_facade.hpp>
+#include <boost/iterator/iterator_facade.hpp>
 
 
 #include "tbb/concurrent_queue.h"
@@ -65,8 +65,8 @@ public :
 	typedef std::function<void(T, T)>		ExecutableBody;
 
 	ParallelForBlock( boost::latch&			latch,
-	                  typename T			itrBegin,
-					  typename T			itrEnd,
+	                  T						itrBegin,
+					  T						itrEnd,
 					  ExecutableBody		executable )
 		: m_executable(executable),
 		  m_itrBegin( itrBegin ),
@@ -87,8 +87,8 @@ private :
 
 	ExecutableBody				m_executable;
 
-	typename T		m_itrBegin;
-	typename T		m_itrEnd;
+	T		m_itrBegin;
+	T		m_itrEnd;
 
 	boost::latch&				m_latch;
 };
@@ -103,8 +103,8 @@ public:
 	typedef std::function<void(BlockRange<T>)>		ExecutableBody;
 
 	ParallelForBlockRanged( boost::latch&		latch,
-							typename T			itrBegin,
-							typename T			itrEnd,
+							T			itrBegin,
+							T			itrEnd,
 							ExecutableBody		executable)
 		: m_executable(executable),
 		  m_itrBegin(itrBegin),
@@ -125,8 +125,8 @@ private:
 
 	ExecutableBody			m_executable;
 
-	typename T				m_itrBegin;
-	typename T				m_itrEnd;
+	T				m_itrBegin;
+	T				m_itrEnd;
 
 	boost::latch&			m_latch;
 };
@@ -161,7 +161,7 @@ public :
 
 
 	template <typename T>
-	void	parallel_for( int	numTasks, typename T begin, typename T end, typename ParallelForBlock<typename T>::ExecutableBody  body )
+	void	parallel_for( int	numTasks, T begin, T end, typename ParallelForBlock<T>::ExecutableBody  body )
 	{
 		if(( end - begin ) == 0)
 		{
@@ -196,7 +196,7 @@ public :
 
 
 	template <typename T>
-	void	parallel_for(int	numTasks, typename T begin, typename T end, typename ParallelForBlockRanged<typename T>::ExecutableBody  body)
+	void	parallel_for(int	numTasks, T begin, T end, typename ParallelForBlockRanged< T>::ExecutableBody  body)
 	{
 		if ((end - begin) == 0)
 		{

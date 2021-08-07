@@ -32,12 +32,12 @@ THE SOFTWARE.
 #include <unordered_map>
 #include <set>
 
-#include <boost\integer\static_min_max.hpp>
-#include <boost\iterator\iterator_facade.hpp>
-#include <boost\container\static_vector.hpp>
+#include <boost/integer/static_min_max.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/container/static_vector.hpp>
 
-#include <tbb\concurrent_unordered_map.h>
-#include <tbb\concurrent_unordered_set.h>
+#include <tbb/concurrent_unordered_map.h>
+#include <tbb/concurrent_unordered_set.h>
 
 #include "Resettable.h"
 
@@ -394,7 +394,7 @@ namespace SEFUtility
 		}
 
 
-
+/*
 		void			erase( unsigned int		index )
 		{
 			if (!m_cutover)
@@ -415,7 +415,7 @@ namespace SEFUtility
 				itrEntry = m_map->erase( index );
 			}
 		}
-
+*/
 
 
 
@@ -821,7 +821,7 @@ namespace SEFUtility
 				}
 			}
 
-			EntryMapIterator		itrEntry;
+			EntrySetIterator		itrEntry;
 
 			itrEntry = m_map->find( index );
 

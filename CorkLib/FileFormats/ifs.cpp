@@ -27,7 +27,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <boost\filesystem\fstream.hpp>
+#include <boost/filesystem/fstream.hpp>
 //using std::ifstream;
 //using std::ofstream;
 using boost::filesystem::ifstream;

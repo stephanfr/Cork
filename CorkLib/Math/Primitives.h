@@ -35,11 +35,11 @@
 #include <vector>
 #include <map>
 
-#include <boost\align\aligned_allocator.hpp>
+#include <boost/align/aligned_allocator.hpp>
 
-#include "..\CorkDefs.h"
+#include "../CorkDefs.h"
 
-#include "..\util\prelude.h"
+#include "../Util/prelude.h"
 
 
 

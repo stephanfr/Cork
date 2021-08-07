@@ -25,6 +25,7 @@
 // +-------------------------------------------------------------------------
 #pragma once
 
+/*
 #ifdef _WIN32
 #pragma warning(disable: 4800)
 #pragma warning(disable: 4244)
@@ -36,6 +37,10 @@
 #else
 #include <gmpxx.h>
 #endif
+*/
+
+#include <mpirxx.h>
+
 
 #include <iostream>
 

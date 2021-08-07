@@ -29,11 +29,11 @@
 #include <vector>
 #include <deque>
 
-#include <boost\container\static_vector.hpp>
+#include <boost/container/static_vector.hpp>
 
-#include "..\Util\CachingFactory.h"
-#include "..\Util\SparseVector.h"
-#include "..\Util\ConstuctOnceResizeableVector.h"
+#include "../Util/CachingFactory.h"
+#include "../Util/SparseVector.h"
+#include "../Util/ConstuctOnceResizeableVector.h"
 
 
 

@@ -28,7 +28,7 @@ THE SOFTWARE.
 #pragma once
 
 
-#include <boost\iterator\iterator_facade.hpp>
+#include <boost/iterator/iterator_facade.hpp>
 
 #include "Resettable.h"
 

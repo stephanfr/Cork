@@ -27,7 +27,7 @@ THE SOFTWARE.
 #pragma once
 
 
-#include <boost\align\aligned_delete.hpp>
+#include <boost/align/aligned_delete.hpp>
 #include <memory>
 
 

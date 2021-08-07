@@ -26,45 +26,56 @@
 // +-------------------------------------------------------------------------
 
 
-#include "..\Intersection\gmpext4.h"
+#include "../Intersection/gmpext4.h"
 
 #include <sstream>
 
-#include "boost\container\small_vector.hpp"
+#include "boost/container/small_vector.hpp"
 
 #include "tbb/tbb.h"
 
-#include "..\cork.h"
+#include "../cork.h"
 
-#include "..\Mesh\TopoCache.h"
-#include "..\Mesh\IntersectionProblem.h"
-#include "..\Mesh\EGraphCache.h"
+#include "TopoCache.h"
+#include "IntersectionProblem.h"
+#include "EGraphCache.h"
 
-#include "..\Intersection\unsafeRayTriIsct.h"
+#include "../Intersection/unsafeRayTriIsct.h"
 
-#include "..\Util\UnionFind.h"
-#include "..\Util\SystemStats.h"
+#include "../Util/unionFind.h"
+#include "../Util/SystemStats.h"
 
-#include "..\Util\CachingFactory.h"
+#include "../Util/CachingFactory.h"
 
-#include <boost\chrono\chrono.hpp>			//	Had to include when I upgraded to boost 65 - on windows is griped about a missing library
-#include <boost\timer\timer.hpp>
+#include <boost/chrono/chrono.hpp>			//	Had to include when I upgraded to boost 65 - on windows is griped about a missing library
+#include <boost/timer/timer.hpp>
 
-#include "..\Util\ThreadPool.h"
-
-
+#include "../Util/ThreadPool.h"
 
 
 
-Cork::EGraphCache::SkeletonColumnVectorFactory::CacheType			Cork::EGraphCache::SkeletonColumnVectorFactory::m_cache;
+/*
+//template <>
+//Cork::EGraphCache::SkeletonColumnVectorFactory::CacheType			Cork::EGraphCache::SkeletonColumnVectorFactory::m_cache;
 
+SEFUtility::CachingFactory<Cork::EGraphCache::SkeletonColumnVector>::CacheType<Cork::EGraphCache::SkeletonColumnVector>	SEFUtility::CachingFactory<Cork::EGraphCache::SkeletonColumnVector>::m_cache;
+
+template <>
 SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::CacheType		SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::m_cache;
-
+*/
 
 
 
 namespace Cork
 {
+
+//	template <> 
+//	SEFUtility::CachingFactory<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry, 10> > >::CacheType<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry, 10> > > SEFUtility::CachingFactory<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry, 10> > >::m_cache;
+	
+//	static template class SEFUtility::CachingFactory<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry, 10> > >;
+
+//	template <>
+//	SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::CacheType<Cork::TopoCacheWorkspace> SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::m_cache;
 
 	using namespace Intersection;
 
@@ -937,7 +948,7 @@ namespace Cork
 	{
 		//	Collect some starting statistics
 		
-		unsigned long				startingVirtualMemory = GetConsumedVirtualMemory();
+//		unsigned long				startingVirtualMemory = GetConsumedVirtualMemory();
 		
 		boost::timer::cpu_timer		elapsedTime;
 
@@ -947,7 +958,7 @@ namespace Cork
 
 		std::unique_ptr<Mesh>			resultMesh( new Mesh( *this, solverControlBlock ));
 
-		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
+//		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
 
 		SetupBooleanProblemResult		result = resultMesh->SetupBooleanProblem( dynamic_cast<const Cork::Mesh&>(rhs) );
 
@@ -975,7 +986,7 @@ namespace Cork
 		resultMesh->m_performanceStats.setElapsedWallTimeInNanoSeconds( elapsedTime.elapsed().wall );
 
 		resultMesh->m_performanceStats.setNumberOfTrianglesInFinalMesh( (unsigned long)resultMesh->triangles().size() );
-		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
+//		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
 
 		//	Finished with success
 
@@ -989,7 +1000,7 @@ namespace Cork
 	{
 		//	Collect some starting statistics
 		
-		unsigned long		startingVirtualMemory = GetConsumedVirtualMemory();
+//		unsigned long		startingVirtualMemory = GetConsumedVirtualMemory();
 		
 		boost::timer::cpu_timer		elapsedTime;
 
@@ -999,7 +1010,7 @@ namespace Cork
 
 		std::unique_ptr<Mesh>			resultMesh( new Mesh( *this, solverControlBlock ) );
 
-		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
+//		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
 
 		SetupBooleanProblemResult		result = resultMesh->SetupBooleanProblem( dynamic_cast<const Cork::Mesh&>(rhs) );
 
@@ -1031,7 +1042,7 @@ namespace Cork
 		resultMesh->m_performanceStats.setElapsedWallTimeInNanoSeconds( elapsedTime.elapsed().wall );
 
 		resultMesh->m_performanceStats.setNumberOfTrianglesInFinalMesh( (unsigned long)resultMesh->triangles().size() );
-		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
+//		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
 
 		//	Finished with success
 
@@ -1045,7 +1056,7 @@ namespace Cork
 	{
 		//	Collect some starting statistics
 		
-		unsigned long			startingVirtualMemory = GetConsumedVirtualMemory();
+//		unsigned long			startingVirtualMemory = GetConsumedVirtualMemory();
 		
 		boost::timer::cpu_timer		elapsedTime;
 
@@ -1055,7 +1066,7 @@ namespace Cork
 
 		std::unique_ptr<Mesh>			resultMesh( new Mesh( *this, solverControlBlock ) );
 
-		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
+//		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
 
 		SetupBooleanProblemResult		result = resultMesh->SetupBooleanProblem( dynamic_cast<const Cork::Mesh&>(rhs) );
 
@@ -1085,7 +1096,7 @@ namespace Cork
 		resultMesh->m_performanceStats.setElapsedWallTimeInNanoSeconds( elapsedTime.elapsed().wall );
 
 		resultMesh->m_performanceStats.setNumberOfTrianglesInFinalMesh( (unsigned long)resultMesh->triangles().size() );
-		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
+//		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
 
 		//	Finished with success
 
@@ -1099,7 +1110,7 @@ namespace Cork
 	{
 		//	Collect some starting statistics
 		
-		unsigned long			startingVirtualMemory = GetConsumedVirtualMemory();
+//		unsigned long			startingVirtualMemory = GetConsumedVirtualMemory();
 		
 		boost::timer::cpu_timer		elapsedTime;
 
@@ -1109,7 +1120,7 @@ namespace Cork
 
 		std::unique_ptr<Mesh>			resultMesh( new Mesh( *this, solverControlBlock ) );
 
-		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
+//		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
 
 		SetupBooleanProblemResult		result = resultMesh->SetupBooleanProblem( dynamic_cast<const Cork::Mesh&>(rhs) );
 
@@ -1143,7 +1154,7 @@ namespace Cork
 		resultMesh->m_performanceStats.setElapsedWallTimeInNanoSeconds( elapsedTime.elapsed().wall );
 
 		resultMesh->m_performanceStats.setNumberOfTrianglesInFinalMesh( (unsigned long)resultMesh->triangles().size() );
-		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
+//		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
 
 		//	Finished with success
 

@@ -26,6 +26,7 @@
 
 #pragma once
 
+#ifdef __WINDOWS__
 #include <Windows.h>
 
 
@@ -51,3 +52,5 @@ unsigned long		GetAvailableVirtualMemory()
 
 	return( unsigned long( statex.ullAvailVirtual / 1048576 ));
 }
+
+#endif

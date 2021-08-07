@@ -29,18 +29,18 @@
 #include <functional>
 #include <vector>
 
-#include <boost\align\aligned_allocator.hpp>
-#include <boost\optional.hpp>
+#include <boost/align/aligned_allocator.hpp>
+#include <boost/optional.hpp>
 
-#include "..\Util\AlignedUniquePtr.h"
+#include "../Util/AlignedUniquePtr.h"
 
-#include "..\Math\Primitives.h"
+#include "../Math/Primitives.h"
 
-#include "..\Intersection\quantization.h"
+#include "../Intersection/quantization.h"
 
-#include "..\TriangleMesh.h"
+#include "../TriangleMesh.h"
 
-#include "..\cork.h"
+#include "../cork.h"
 
 
 

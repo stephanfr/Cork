@@ -35,16 +35,7 @@ const int PERTURBATION_BUFFER_BITS = 8;						//	minimum number of bits of resolu
 const int PERTURBATION_RANGE_BITS = 5;						//	number of bits we will perturb over
 const int MINIMUM_PERTURBATION_RANGE_BITS = 2;				//	initially perturbation range will be 2^2 or 4
 
-//	If this is a 32 bit build, limit the number of points in the disjoint union to one million.  Beyond that and we run out of memory.
-//		For 64 bit builds, go up to 5 million.
-
-#if defined( _WIN32 ) && !defined( _WIN64 )
-	#define MAX_TRIANGLES_IN_DISJOINT_UNION		2000000
-#endif
-
-#ifdef _WIN64
-	#define MAX_TRIANGLES_IN_DISJOINT_UNION		5000000
-#endif
+#define MAX_TRIANGLES_IN_DISJOINT_UNION		5000000
 
 //
 //	Default to double precision, unless CORK_FLOAT_PRECISION is defined

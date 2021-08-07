@@ -34,14 +34,14 @@
 #include <map>
 #include <deque>
 
-#include <boost\container\small_vector.hpp>
+#include <boost/container/small_vector.hpp>
 
-#include "..\CorkDefs.h"
+#include "../CorkDefs.h"
 
-#include "..\Statistics.h"
+#include "../Statistics.h"
 
-#include "..\Util\unionFind.h"
-#include "..\Mesh\EGraphCache.h"
+#include "../Util/unionFind.h"
+#include "../Mesh/EGraphCache.h"
 
 
 
@@ -77,7 +77,7 @@ namespace Cork
 			{}
 
 
-			void			GeometricStatisticsEngine::AddTriangle( const Cork::Math::TriangleByVerticesBase&		nextTriangle   )
+			void			AddTriangle( const Cork::Math::TriangleByVerticesBase&		nextTriangle   )
 			{
 				//	Get the edges
 
@@ -200,7 +200,7 @@ namespace Cork
 			}
 
 
-			void			TopologicalStatisticsEngine::AddTriangle( const Cork::Math::TriangleByIndicesBase&		nextTriangle   )
+			void			AddTriangle( const Cork::Math::TriangleByIndicesBase&		nextTriangle   )
 			{
 				EdgeSet::iterator	itrEdgeAB = m_edges.emplace( nextTriangle.a(), nextTriangle.b() ).first;
 				EdgeSet::iterator	itrEdgeAC = m_edges.emplace( nextTriangle.a(), nextTriangle.c() ).first;

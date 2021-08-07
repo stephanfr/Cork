@@ -26,13 +26,13 @@
 #include "files.h"
 
 
-#include <boost\filesystem\fstream.hpp>
-#include <boost\format.hpp>
-#include <boost\iostreams\stream.hpp>
-#include <boost\iostreams\device\back_inserter.hpp>
-#include <boost\archive\binary_oarchive.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/format.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 
-#include <tbb\task_group.h>
+#include <tbb/task_group.h>
 
 
 
@@ -165,7 +165,9 @@ namespace Cork
 				}
 			}
 
-			return(ReadFileResult( meshBuilder->Mesh() ));
+			std::unique_ptr<Cork::TriangleMesh>		triMesh( std::move( meshBuilder->Mesh() ) );
+
+			return(ReadFileResult( triMesh ));
 		}
 
 

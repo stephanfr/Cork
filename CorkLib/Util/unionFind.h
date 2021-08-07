@@ -265,7 +265,7 @@ public:
 
 		for (size_t i = 0; i < m_size; i++)
 		{
-			m_parents[i]._My_val = i;
+			m_parents[i] = i;
 			m_rank[i] = randomGenerator.next();
 		}
 	}
@@ -286,7 +286,7 @@ public:
 	size_t find(size_t	i)
 	{
 		size_t id = i;
-		size_t initialParent = m_parents[i]._My_val;
+		size_t initialParent = m_parents[i];
 
 /*
 		while( true )
@@ -304,9 +304,9 @@ public:
 		}
 */
 
-		while (m_parents[id]._My_val != id)
+		while (m_parents[id] != id)
 		{
-			id = m_parents[id]._My_val;
+			id = m_parents[id];
 		}
 
 		m_parents[i].compare_exchange_strong(initialParent, id,std::memory_order_relaxed);
@@ -381,7 +381,7 @@ public:
 
 		for (size_t i = 0; i < m_size; i++)
 		{
-			m_parents[i]._My_val = i;
+			m_parents[i] = i;
 			m_rank[i] = randomGenerator.next();
 		}
 	}
@@ -405,15 +405,15 @@ public:
 
 		while (true)
 		{
-			size_t parent = m_parents[id]._My_val;
-			size_t grandParent = m_parents[parent]._My_val;
+			size_t parent = m_parents[id];
+			size_t grandParent = m_parents[parent];
 
 			if (id == parent)
 			{
 				return(parent);
 			}
 
-			m_parents[id]._My_val = grandParent;
+			m_parents[id] = grandParent;
 			id = parent;
 		}
 	}
@@ -474,7 +474,7 @@ private:
 	std::pair<size_t, size_t> findUnoptimized(size_t	i)
 	{
 		size_t id = i;
-		size_t initialParent = m_parents[i]._My_val;
+		size_t initialParent = m_parents[i];
 		/*
 		while( true )
 		{
@@ -491,9 +491,9 @@ private:
 		}
 		*/
 
-		while (m_parents[id]._My_val != id)
+		while (m_parents[id] != id)
 		{
-			id = m_parents[id]._My_val;
+			id = m_parents[id];
 		}
 
 		//		m_parents[i].compare_exchange_strong(initialParent, id, std::memory_order_relaxed);

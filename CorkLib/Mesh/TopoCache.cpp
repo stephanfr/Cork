@@ -26,14 +26,14 @@
 
 
 
-#include "..\Intersection\gmpext4.h"
+#include "../Intersection/gmpext4.h"
 
-#include "..\Mesh\TopoCache.h"
+#include "../Mesh/TopoCache.h"
 
-#include "..\Intersection\quantization.h"
+#include "../Intersection/quantization.h"
 
-#include <tbb\spin_mutex.h>
-#include <tbb\task_group.h>
+#include <tbb/spin_mutex.h>
+#include <tbb/task_group.h>
 
 
 

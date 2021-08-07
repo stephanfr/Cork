@@ -31,7 +31,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "..\util\prelude.h"
+#include "../Util/prelude.h"
 
 
 
@@ -100,7 +100,7 @@ namespace Cork
 
 			// destructive arithmetic
 			inline
-			Vector2DTemplate&	Vector2DTemplate::operator+=( const Vector2DTemplate&	rhs )
+			Vector2DTemplate&	operator+=( const Vector2DTemplate&	rhs )
 			{
 				m_x += rhs.m_x;
 				m_y += rhs.m_y;
@@ -108,7 +108,7 @@ namespace Cork
 			}
 
 			inline
-			Vector2DTemplate&	Vector2DTemplate::operator-=( const Vector2DTemplate&	rhs )
+			Vector2DTemplate&	operator-=( const Vector2DTemplate&	rhs )
 			{
 				m_x -= rhs.m_x;
 				m_y -= rhs.m_y;
@@ -116,7 +116,7 @@ namespace Cork
 			}
 
 			inline
-			Vector2DTemplate&	Vector2DTemplate::operator*=( const T&	rhs )
+			Vector2DTemplate&	operator*=( const T&	rhs )
 			{
 				m_x *= rhs;
 				m_y *= rhs;
@@ -124,7 +124,7 @@ namespace Cork
 			}
 
 			inline
-			Vector2DTemplate&	Vector2DTemplate::operator/=( const T&	rhs )
+			Vector2DTemplate&	operator/=( const T&	rhs )
 			{
 				m_x /= rhs;
 				m_y /= rhs;

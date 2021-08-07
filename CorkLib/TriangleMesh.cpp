@@ -31,9 +31,9 @@
 #include <unordered_map>
 #include <map>
 
-#include <boost\align\aligned_allocator.hpp>
+#include <boost/align/aligned_allocator.hpp>
 
-#include ".\Statistics\StatsImpl.h"
+#include "Statistics/StatsImpl.h"
 
 
 
@@ -270,7 +270,9 @@ namespace Cork
 
 		std::unique_ptr<TriangleMesh>		Mesh()
 		{
-			return(std::unique_ptr<TriangleMesh>( new  TriangleMeshImpl( std::const_pointer_cast<const std::vector<TriangleMesh::TriangleByIndices>>(m_triangles),
+			std::shared_ptr<const std::vector<TriangleMesh::TriangleByIndices>>	triangles = m_triangles;
+			
+			return(std::unique_ptr<TriangleMesh>( new  TriangleMeshImpl( triangles,
 																		 m_indexedVertices,
 																		 boundingBox() ) ));
 		}

@@ -36,7 +36,7 @@
 #include <iostream>
 #include <array>
 
-#include "..\util\prelude.h"
+#include "../Util/prelude.h"
 
 #ifdef __CORK_AVX__
 #include "SSERng.h"
@@ -175,7 +175,24 @@ namespace Cork
 			inline Vector3DTemplate<N>& operator-=(const Vector3DTemplate<N> &rhs);
 			inline Vector3DTemplate<N>& operator*=(const N &rhs);
 			inline Vector3DTemplate<N>& operator/=(const N &rhs);
-  
+
+			template<class T> friend std::ostream& operator<<(std::ostream&, const Vector3DTemplate<T>&);
+			template<class T> friend Vector3DTemplate<T> max(const Vector3DTemplate<T>&, const Vector3DTemplate<T>&);
+			template<class T> friend Vector3DTemplate<T> max(const Vector3DTemplate<T>&, const Vector3DTemplate<T>&, const Vector3DTemplate<T>&);
+			template<class T> friend Vector3DTemplate<T> min(const Vector3DTemplate<T>&, const Vector3DTemplate<T>&);
+			template<class T> friend Vector3DTemplate<T> min(const Vector3DTemplate<T>&, const Vector3DTemplate<T>&, const Vector3DTemplate<T>&);
+			template<class T> friend T dot(const Vector3DTemplate<T>&, const Vector3DTemplate<T>&);
+			template<class T> friend Vector3DTemplate<T> cross(const Vector3DTemplate<T>&, const Vector3DTemplate<T>&);
+			template<class T> friend T det(const Vector3DTemplate<T>&, const Vector3DTemplate<T>&, const Vector3DTemplate<T>&);
+			template<class T> friend T len2(const Vector3DTemplate<T>&);
+			template<class T> friend T len(const Vector3DTemplate<T> &vec);
+			template<class T> friend T max(const Vector3DTemplate<T> &vec);
+			template<class T> friend T min(const Vector3DTemplate<T> &vec);
+			template<class T> friend Vector3DTemplate<T> abs(const Vector3DTemplate<T>&);
+			template<class T> friend uint maxDim(const Vector3DTemplate<T>&);
+			template<class T> friend uint minDim(const Vector3DTemplate<T>&);
+			template<class T> friend Vector2DTemplate<T> proj(uint dim, const Vector3DTemplate<T>&);
+
 			bool operator <( const Vector3DTemplate<N>&		vertexToCompare ) const
 			{
 				//	Equality is by x, then y and finally z
@@ -240,45 +257,45 @@ namespace Cork
 		inline Vector3DTemplate<N> operator/(const Vector3DTemplate<N> &lhs, const N &rhs);
 		template<class N>
 		inline Vector3DTemplate<N> operator-(const Vector3DTemplate<N> &vec);
-		template<class N>
-		inline Vector3DTemplate<N> abs(const Vector3DTemplate<N> &vec);
+//		template<class N>
+//		inline Vector3DTemplate<N> abs(const Vector3DTemplate<N> &vec);
 		// +---------------------------------
 		// component-wise max/min
-		template<class N>
-		inline Vector3DTemplate<N> max(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs);
-		template<class N>
-		inline Vector3DTemplate<N> max(const Vector3DTemplate<N> &vec1, const Vector3DTemplate<N> &vec2, const Vector3DTemplate<N> &vec3 );
-		template<class N>
-		inline Vector3DTemplate<N> min(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs);
-		template<class N>
-		inline Vector3DTemplate<N> min(const Vector3DTemplate<N> &vec1, const Vector3DTemplate<N> &vec2, const Vector3DTemplate<N> &vec3 );
+//		template<class N>
+//		inline Vector3DTemplate<N> max(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs);
+//		template<class N>
+//		inline Vector3DTemplate<N> max(const Vector3DTemplate<N> &vec1, const Vector3DTemplate<N> &vec2, const Vector3DTemplate<N> &vec3 );
+//		template<class N>
+//		inline Vector3DTemplate<N> min(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs);
+//		template<class N>
+//		inline Vector3DTemplate<N> min(const Vector3DTemplate<N> &vec1, const Vector3DTemplate<N> &vec2, const Vector3DTemplate<N> &vec3 );
 		// +---------------------------------
 		// dimension logic for projections
-		template<class N>
-		inline uint maxDim(const Vector3DTemplate<N> &vec);
-		template<class N>
-		inline uint minDim(const Vector3DTemplate<N> &vec);
-		template<class N>
-		inline Vector2DTemplate<N> proj(uint dim, const Vector3DTemplate<N> &vec);
+//		template<class N>
+//		inline uint maxDim(const Vector3DTemplate<N> &vec);
+//		template<class N>
+//		inline uint minDim(const Vector3DTemplate<N> &vec);
+//		template<class N>
+//		inline Vector2DTemplate<N> proj(uint dim, const Vector3DTemplate<N> &vec);
 		// +---------------------------------
 		// more sophisticated vector arithmetic
-		template<class N>
-		inline N dot(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs);
-		template<class N>
-		inline Vector3DTemplate<N> cross(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs);
+//		template<class N>
+//		inline N dot(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs);
+//		template<class N>
+//		inline Vector3DTemplate<N> cross(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs);
 		// determinant of 3 Vector3DTemplates
-		template<class N>
-		inline N det(const Vector3DTemplate<N> &v0, const Vector3DTemplate<N> &v1, const Vector3DTemplate<N> &v2);
+//		template<class N>
+//		inline N det(const Vector3DTemplate<N> &v0, const Vector3DTemplate<N> &v1, const Vector3DTemplate<N> &v2);
 		// +---------------------------------
 		// collapsing measurements
-		template<class N>
-		inline N len2(const Vector3DTemplate<N> &vec);
-		template<class N>
-		inline N len(const Vector3DTemplate<N> &vec);
-		template<class N>
-		inline N max(const Vector3DTemplate<N> &vec);
-		template<class N>
-		inline N min(const Vector3DTemplate<N> &vec);
+//		template<class N>
+//		inline N len2(const Vector3DTemplate<N> &vec);
+//		template<class N>
+//		inline N len(const Vector3DTemplate<N> &vec);
+//		template<class N>
+//		inline N max(const Vector3DTemplate<N> &vec);
+//		template<class N>
+//		inline N min(const Vector3DTemplate<N> &vec);
 		// +---------------------------------
 		// normalization functions
 		template<class N>
@@ -485,8 +502,8 @@ namespace Cork
 		inline N dot(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs) {
 			return lhs.m_x*rhs.m_x + lhs.m_y*rhs.m_y + lhs.m_z*rhs.m_z;
 		}
-		template<class N>
-		inline Vector3DTemplate<N> cross(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs) {
+		template<class T>
+		inline Vector3DTemplate<T> cross(const Vector3DTemplate<T> &lhs, const Vector3DTemplate<T> &rhs) {
 /*
 #ifdef __CORK_AVX__
 				constexpr int mskYZX = _MM_SHUFFLE( 3, 0, 2, 1 ),
@@ -502,7 +519,7 @@ namespace Cork
 					) ) );
 #else
 */
-			return Vector3DTemplate<N>(lhs.m_y*rhs.m_z - lhs.m_z*rhs.m_y,
+			return Vector3DTemplate<T>(lhs.m_y*rhs.m_z - lhs.m_z*rhs.m_y,
 						   lhs.m_z*rhs.m_x - lhs.m_x*rhs.m_z,
 						   lhs.m_x*rhs.m_y - lhs.m_y*rhs.m_x);
 //#endif
@@ -517,8 +534,8 @@ namespace Cork
 		}
 		// +---------------------------------
 		// collapsing measurements
-		template<class N>
-		inline N len2(const Vector3DTemplate<N> &vec) {
+		template<class T>
+		inline T len2(const Vector3DTemplate<T> &vec) {
 			return vec.m_x*vec.m_x + vec.m_y*vec.m_y + vec.m_z*vec.m_z;
 		}
 		template<class N>
@@ -546,6 +563,6 @@ namespace Cork
 
 
 	}	//	namespace Math
-}		//	namespace Cok
+}		//	namespace Cork
 
 

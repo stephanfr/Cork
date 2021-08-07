@@ -2,8 +2,8 @@
 #pragma once
 
 
-#include <tbb\mutex.h>
-#include <tbb\spin_mutex.h>
+#include <tbb/mutex.h>
+#include <tbb/spin_mutex.h>
 
 
 

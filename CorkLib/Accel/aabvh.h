@@ -30,19 +30,19 @@
 #include <vector>
 #include <deque>
 
-#include <boost\container\static_vector.hpp>
-#include <boost\align\aligned_allocator.hpp>
-#include <boost\ptr_container\ptr_vector.hpp>
+#include <boost/container/static_vector.hpp>
+#include <boost/align/aligned_allocator.hpp>
+#include <boost/ptr_container/ptr_vector.hpp>
 
-#include "..\Util\FastStack.h"
-#include "..\Util\ManagedIntrusiveList.h"
+#include "../Util/FastStack.h"
+#include "../Util/ManagedIntrusiveList.h"
 
-#include "..\math\Primitives.h"
+#include "../Math/Primitives.h"
 
-#include "..\Mesh\TopoCache.h"
+#include "../Mesh/TopoCache.h"
 
-#include "tbb\mutex.h"
-#include "tbb\task_group.h"
+#include "tbb/mutex.h"
+#include "tbb/task_group.h"
 
 
 
@@ -317,9 +317,9 @@ namespace Cork
 
 
 
-			void AxisAlignedBoundingVolumeHierarchy::EdgesIntersectingTriangle( const TopoTri&				triangle,
-																				IntersectionType			intersectionType,
-																				TopoEdgePointerVector&		edges )
+			void EdgesIntersectingTriangle( const TopoTri&				triangle,
+											IntersectionType			intersectionType,
+											TopoEdgePointerVector&		edges )
 			{ 
 				//	Set the boolAlgData index for intersections between two bodies or for self-intersections.
 

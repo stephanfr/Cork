@@ -211,6 +211,7 @@
 //		Intel platform so we don't call _control87.
 //
 
+typedef unsigned long long uintptr_t;
 
 
 /* For single precision (which will save some memory and reduce paging),     */

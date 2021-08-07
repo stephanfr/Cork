@@ -31,10 +31,9 @@
 
 #include <cfloat>
 
-// NOTE on usage of BBoxes
-//  all BBoxes are initialized so that
+//  All BBoxes are initialized so that
 //      convex(BBox(), bb) == bb
-//  for any bb
+//  for any bounding box
 
 
 
@@ -60,13 +59,13 @@ namespace Cork
 		public:
 
 	
-			BBox3D::BBox3D()
+			BBox3D()
 				: m_minp( FLT_MAX, FLT_MAX, FLT_MAX),
 				  m_maxp(-FLT_MAX,-FLT_MAX,-FLT_MAX)
 			{}
 
-			 BBox3D( const Vector3D&	minpp,
-					 const Vector3D&	maxpp )
+			BBox3D( const Vector3D&	minpp,
+					const Vector3D&	maxpp )
 				: m_minp(minpp),
 				  m_maxp(maxpp)
 			{}
@@ -218,16 +217,18 @@ namespace Cork
 			{
 				NUMERIC_PRECISION txmin, txmax, tymin, tymax, tzmin, tzmax, txymin, txymax;
 
-				txmin = ( m_bounds[ray.signs()[0]].x() - ray.origin().x() ) * ray.inverseDirection().x();
-				tymax = ( m_bounds[1 - ray.signs()[1]].y() - ray.origin().y() ) * ray.inverseDirection().y();
+				const std::array<Vector3D,2>&		bounds = reinterpret_cast<const std::array<Vector3D,2>&>(m_minp);
+
+				txmin = ( bounds[ray.signs()[0]].x() - ray.origin().x() ) * ray.inverseDirection().x();
+				tymax = ( bounds[1 - ray.signs()[1]].y() - ray.origin().y() ) * ray.inverseDirection().y();
 
 				if( txmin > tymax )
 				{
 					return false;
 				}
 
-				txmax = ( m_bounds[1 - ray.signs()[0]].x() - ray.origin().x() ) * ray.inverseDirection().x();
-				tymin = ( m_bounds[ray.signs()[1]].y() - ray.origin().y() ) * ray.inverseDirection().y();
+				txmax = ( bounds[1 - ray.signs()[0]].x() - ray.origin().x() ) * ray.inverseDirection().x();
+				tymin = ( bounds[ray.signs()[1]].y() - ray.origin().y() ) * ray.inverseDirection().y();
 
 				if( tymin > txmax )
 				{
@@ -237,14 +238,14 @@ namespace Cork
 				txymin = std::max( tymin, txmin );
 				txymax = std::min( txmax, tymax );
 
-				tzmin = ( m_bounds[ray.signs()[2]].z() - ray.origin().z() ) * ray.inverseDirection().z();
+				tzmin = ( bounds[ray.signs()[2]].z() - ray.origin().z() ) * ray.inverseDirection().z();
 
 				if( tzmin > txymax )
 				{
 					return( false );
 				}
 
-				tzmax = ( m_bounds[1 - ray.signs()[2]].z() - ray.origin().z() ) * ray.inverseDirection().z();
+				tzmax = ( bounds[1 - ray.signs()[2]].z() - ray.origin().z() ) * ray.inverseDirection().z();
 
 				return( txymin <= tzmax );
 			}
@@ -253,16 +254,8 @@ namespace Cork
 
 		private :
 
-			union
-			{
-				struct
-				{
-					Vector3D				m_minp;
-					Vector3D				m_maxp;
-				};
-
-				std::array<Vector3D,2>		m_bounds;
-			};
+			Vector3D				m_minp;
+			Vector3D				m_maxp;
 		};
 
 

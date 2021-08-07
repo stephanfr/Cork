@@ -88,8 +88,9 @@ namespace SEFUtility
 
 		//	The CacheType is a deque of pointers with a destructor that destroys all the pointers.
 		//		The class also contains a spin lock to make the class itself thread re-entrant.
-
-		class CacheType : public std::deque<T*>
+ 
+		template <class T1>
+		class CacheType : public std::deque<T1*>
 		{
 		public :
 
@@ -103,10 +104,10 @@ namespace SEFUtility
 			{
 				std::lock_guard<boost::detail::spinlock> guard(m_lock);
 
-				while (!empty())
+				while (!std::deque<T1*>::empty())
 				{
-					delete front();
-					pop_front();
+					delete std::deque<T1*>::front();
+					std::deque<T1*>::pop_front();
 				};
 			}
 
@@ -121,7 +122,7 @@ namespace SEFUtility
 		};
 
 
-		//	The UniquePtr is simply a stand::unique_ptr<T> with a custom destructor based
+		//	The UniquePtr is simply a stand::unique_ptr<T1> with a custom destructor based
 		//		on whether the cache or destroy the object
 
 		typedef std::unique_ptr<T, decltype(&CacheInstance)>			UniquePtr;
@@ -167,7 +168,7 @@ namespace SEFUtility
 
 	private:
 
-		static CacheType			m_cache;
+		inline static CacheType<T>			m_cache;
 	};
 
 };

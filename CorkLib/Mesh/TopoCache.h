@@ -32,20 +32,20 @@
 
 #include <array>
 
-#include <boost\dynamic_bitset.hpp>
-#include <boost\optional.hpp>
-#include <boost\container\static_vector.hpp>
-#include <boost\container\small_vector.hpp>
+#include <boost/dynamic_bitset.hpp>
+#include <boost/optional.hpp>
+#include <boost/container/static_vector.hpp>
+#include <boost/container/small_vector.hpp>
 
-#include "..\Util\AlignedUniquePtr.h"
-#include "..\Util\SparseVector.h"
+#include "../Util/AlignedUniquePtr.h"
+#include "../Util/SparseVector.h"
 
-#include "..\Util\ManagedIntrusiveList.h"
+#include "../Util/ManagedIntrusiveList.h"
 
-#include "..\Intersection\empty3d.h"
-#include "..\Intersection\quantization.h"
+#include "../Intersection/empty3d.h"
+#include "../Intersection/quantization.h"
 
-#include <tbb\spin_mutex.h>
+#include <tbb/spin_mutex.h>
 
 
 
@@ -780,7 +780,7 @@ namespace Cork
 
 		// helpers to create bits and pieces
 
-		TopoVert* TopoCache::newVert()
+		TopoVert* newVert()
 		{
 			size_t        ref = m_meshVertices.size();
                 
@@ -790,13 +790,13 @@ namespace Cork
 		}
 
 
-		TopoEdge* TopoCache::newEdge()
+		TopoEdge* newEdge()
 		{
 			return( m_topoEdgeList.emplace_back() );
 		}
 
 
-		TopoTri* TopoCache::newTri()
+		TopoTri* newTri()
 		{
 			IndexType        ref = m_meshTriangles.size();
     
@@ -808,17 +808,17 @@ namespace Cork
 
 		 // helpers to release bits and pieces
 
-		void TopoCache::freeVert( TopoVert* v)
+		void freeVert( TopoVert* v)
 		{
 			m_topoVertexList.free( v );
 		}
 
-		void TopoCache::freeEdge( TopoEdge* e)
+		void freeEdge( TopoEdge* e)
 		{
 			m_topoEdgeList.free( e );
 		}
 
-		void TopoCache::freeTri( TopoTri* t)
+		void freeTri( TopoTri* t)
 		{
 			m_topoTriList.free( t );
 		}
@@ -826,7 +826,7 @@ namespace Cork
 
 		// helper to delete geometry in a structured way
 
-		void TopoCache::deleteTri( TopoTri* tri)
+		void deleteTri( TopoTri* tri)
 		{
 			// first, unhook the triangle from its faces
     
@@ -873,7 +873,7 @@ namespace Cork
 
 		// helper to flip triangle orientation
 
-		void TopoCache::flipTri( TopoTri* t)
+		void flipTri( TopoTri* t)
 		{
 			t->flip();
 			m_meshTriangles[t->ref()].flip();

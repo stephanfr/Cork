@@ -26,11 +26,11 @@
 #pragma once
 
 
-#include "boost\noncopyable.hpp"
-#include "boost\intrusive\list.hpp"
-#include "boost\intrusive\unordered_set.hpp"
-#include "tbb\concurrent_vector.h"
-#include "tbb\spin_mutex.h"
+#include "boost/noncopyable.hpp"
+#include "boost/intrusive/list.hpp"
+#include "boost/intrusive/unordered_set.hpp"
+#include "tbb/concurrent_vector.h"
+#include "tbb/spin_mutex.h"
 
 
 
@@ -199,22 +199,22 @@ public:
 
 	void		free(T&	valueToFree)
 	{
-		BaseType::erase(iterator_to(valueToFree));
+		BaseType::erase(boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>::iterator_to(valueToFree));
 	}
 
 	void		free( const T&		valueToFree )
 	{
-		BaseType::erase( iterator_to( valueToFree ) );
+		BaseType::erase( boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>::iterator_to( valueToFree ) );
 	}
 
 	void		free(T*	valueToFree)
 	{
-		BaseType::erase(iterator_to(*valueToFree));
+		BaseType::erase(boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>::iterator_to(*valueToFree));
 	}
 
 	void		free( const T*		valueToFree )
 	{
-		BaseType::erase( iterator_to( *valueToFree ) );
+		BaseType::erase( boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>::iterator_to( *valueToFree ) );
 	}
 
 

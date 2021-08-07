@@ -29,7 +29,7 @@
 
 #include <memory>
 
-#include <boost\align.hpp>
+#include <boost/align.hpp>
 
 
 
@@ -42,6 +42,7 @@ public :
 	FastStack()
 		: m_usingInitialStorage( true ),
 		  m_storage( (T*)m_initialStorage ),
+		  m_storage_size( (sizeof(T) + 16) *(INITIAL_SIZE+4) ),
 		  m_size( INITIAL_SIZE + 4 ),
 		  m_limit( INITIAL_SIZE ),
 		  m_nextEmptyElement( 0 )
@@ -55,7 +56,7 @@ public :
 	{
 		if( !m_usingInitialStorage )
 		{
-			_aligned_free( m_storage );
+			free( m_storage );
 		}
 	}
 
@@ -113,6 +114,7 @@ private :
 	unsigned int		m_limit;
 	
 	T*					m_storage;
+	unsigned int		m_storage_size;
 
 	bool				m_usingInitialStorage;
 	unsigned char		m_initialStorage[(sizeof(T) + 16) *(INITIAL_SIZE+4)];			//	Should be safely way overallocated 
@@ -123,20 +125,22 @@ private :
 
 	void				growStorage()
 	{
-		T*		newStorage = (T*)_aligned_malloc( sizeof(T) * ( m_limit * 2 ) + 2, __alignof(T) );
+		unsigned int	new_storage_size = sizeof(T) * ( m_limit * 2 ) + 2;
+		T*		newStorage = (T*)aligned_alloc( new_storage_size, __alignof(T) );
 
 		if( !m_usingInitialStorage )
 		{
-			memcpy( newStorage, m_storage, _aligned_msize( m_storage, __alignof(T), 0 ));
-			_aligned_free( m_storage );
+			memcpy( newStorage, m_storage, m_storage_size );
+			free( m_storage );
 		}
 		else
 		{
-			memcpy( newStorage, m_storage, _aligned_msize( newStorage, __alignof(T), 0 ) / 2 );
+			memcpy( newStorage, m_storage, m_storage_size );
 			m_usingInitialStorage = false;
 		}
 
 		m_storage = newStorage;
+		m_storage_size = new_storage_size;
 		m_limit *= 2;
 		m_size = m_limit + 2;
 	}
