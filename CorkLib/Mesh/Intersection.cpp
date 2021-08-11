@@ -1663,9 +1663,8 @@ namespace Cork
 
 				// find 2 dimensions to project onto get normal
 
-				Cork::Math::Vector3D normal = cross( overts[1]->coordinate() - overts[0]->coordinate(),
-													 overts[2]->coordinate() - overts[0]->coordinate() );
-				uint normdim = maxDim( abs( normal ));
+				Cork::Math::Vector3D normal = (overts[1]->coordinate() - overts[0]->coordinate()).cross( overts[2]->coordinate() - overts[0]->coordinate() );
+				uint normdim = normal.abs().maxDim();
 				uint dim0 = (normdim + 1) % 3;
 				uint dim1 = (normdim + 2) % 3;
 				double sign_flip = (normal[normdim] < 0.0) ? -1.0 : 1.0;

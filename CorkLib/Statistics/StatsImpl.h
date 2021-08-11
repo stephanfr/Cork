@@ -91,13 +91,13 @@ namespace Cork
 					{
 						//	Add the incremental area of this triangle
 					
-						Cork::Math::Vector3D		ABcrossAC = cross( edgeAB, edgeAC );
+						Cork::Math::Vector3D		ABcrossAC = edgeAB.cross( edgeAC );
 
-						m_area += len( ABcrossAC ) / 2;
+						m_area += ABcrossAC.len() / 2;
 
 						//	Do the same for volume
 
-						double		temp = dot( nextTriangle.vertexA(), ABcrossAC );
+						double		temp = nextTriangle.vertexA().dot( ABcrossAC );
 
 						m_volume += temp / 6;
 					}
@@ -106,8 +106,8 @@ namespace Cork
 
 					if(( m_propertiesToCompute & PropertiesToCompute::EDGE_LENGTHS ) != 0 )
 					{
-						m_minEdgeLength = std::min( m_minEdgeLength, (double)std::min( len(  edgeAB ), std::min( len( edgeAC ), len( edgeBC ) )));
-						m_maxEdgeLength = std::max( m_maxEdgeLength, (double)std::max( len(  edgeAB ), std::max( len( edgeAC ), len( edgeBC ) )));
+						m_minEdgeLength = std::min( m_minEdgeLength, (double)std::min( edgeAB.len(), std::min( edgeAC.len(), edgeBC.len() )));
+						m_maxEdgeLength = std::max( m_maxEdgeLength, (double)std::max( edgeAB.len(), std::max( edgeAC.len(), edgeBC.len() )));
 					}
 				}
 

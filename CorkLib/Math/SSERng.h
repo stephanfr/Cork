@@ -36,6 +36,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <stdalign.h>
 
 #include "emmintrin.h"
 
@@ -51,8 +52,7 @@ void srand_sse( unsigned int seed );
 void rand_sse( unsigned int* );
 
 
-
-__declspec( align(16) ) static __m128i cur_seed;
+alignas(16) static __m128i cur_seed;
 
 
 
@@ -68,17 +68,17 @@ inline
 void rand_sse( unsigned int* result )
 {
 
-	__declspec( align(16) ) __m128i cur_seed_split;
-	__declspec( align(16) ) __m128i multiplier;
-	__declspec( align(16) ) __m128i adder;
-	__declspec( align(16) ) __m128i mod_mask;
-	__declspec( align(16) ) __m128i sra_mask;
-	__declspec( align(16) ) __m128i sseresult;
+	alignas(16) __m128i cur_seed_split;
+	alignas(16) __m128i multiplier;
+	alignas(16) __m128i adder;
+	alignas(16) __m128i mod_mask;
+	alignas(16) __m128i sra_mask;
+	alignas(16) __m128i sseresult;
 	
-	__declspec( align(16) ) static const unsigned int mult[4] = { 214013, 17405, 214013, 69069 };
-	__declspec( align(16) ) static const unsigned int gadd[4] = { 2531011, 10395331, 13737667, 1 };
-	__declspec( align(16) ) static const unsigned int mask[4] = { 0xFFFFFFFF, 0, 0xFFFFFFFF, 0 };
-	__declspec( align(16) ) static const unsigned int masklo[4] = { 0x00007FFF, 0x00007FFF, 0x00007FFF, 0x00007FFF };
+	alignas(16) static const unsigned int mult[4] = { 214013, 17405, 214013, 69069 };
+	alignas(16) static const unsigned int gadd[4] = { 2531011, 10395331, 13737667, 1 };
+	alignas(16) static const unsigned int mask[4] = { 0xFFFFFFFF, 0, 0xFFFFFFFF, 0 };
+	alignas(16) static const unsigned int masklo[4] = { 0x00007FFF, 0x00007FFF, 0x00007FFF, 0x00007FFF };
 
 
 
@@ -125,7 +125,7 @@ void rand_sse( unsigned int* result )
 
 const float		g_invMAX = 1.0f / float( RAND_MAX ); 
 
-const __m128	g_invMAXSSE = _mm_load_ps1( &g_invMAX );
+alignas(16) const __m128	g_invMAXSSE = _mm_load_ps1( &g_invMAX );
 
 
 inline
@@ -133,17 +133,17 @@ void drand_sse( __m128&	result, float min, float max )
 {
     float		range = max - min;
 
-	__m128		rangeSSE = _mm_load_ps1( &range );
-	__m128		minSSE = _mm_load_ps1( &min );
+	alignas(16) __m128		rangeSSE = _mm_load_ps1( &range );
+	alignas(16) __m128		minSSE = _mm_load_ps1( &min );
 
-	__m128i		fourRandoms;
+	alignas(16) __m128i		fourRandoms;
 
 	rand_sse( (unsigned int*)&fourRandoms );
 
-	__m128		temp;
+	alignas(16) __m128		temp;
 
 	temp = _mm_cvtepi32_ps( fourRandoms );
 
-	_mm_store_ps( result.m128_f32, _mm_add_ps( _mm_mul_ps( _mm_mul_ps( temp, g_invMAXSSE ), rangeSSE ), minSSE ));
+	_mm_store_ps( (float*)&result, _mm_add_ps( _mm_mul_ps( _mm_mul_ps( temp, g_invMAXSSE ), rangeSSE ), minSSE ));
 }
 

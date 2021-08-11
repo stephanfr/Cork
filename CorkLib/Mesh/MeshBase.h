@@ -257,7 +257,7 @@ namespace Cork
 
 			for (const CorkVertex &v : vertices())
 			{
-				maxMag = std::max(maxMag, max(abs(v)));
+				maxMag = std::max(maxMag, v.abs().max() );
 			}
 
 			//	Find the minimum edge length across all the triangles
@@ -271,8 +271,8 @@ namespace Cork
 				const Cork::Math::Vector3D&	vert1(vertices()[currentTriangle.b()]);
 				const Cork::Math::Vector3D&	vert2(vertices()[currentTriangle.c()]);
 
-				minEdgeLengthSquared = std::min(minEdgeLengthSquared, std::min(len2(vert0 - vert1), std::min(len2(vert0 - vert2), len2(vert1 - vert2))));
-				maxEdgeLengthSquared = std::max(maxEdgeLengthSquared, std::max(len2(vert0 - vert1), std::max(len2(vert0 - vert2), len2(vert1 - vert2))));
+				minEdgeLengthSquared = std::min(minEdgeLengthSquared, std::min((vert0 - vert1).len_squared(), std::min((vert0 - vert2).len_squared(), (vert1 - vert2).len_squared())));
+				maxEdgeLengthSquared = std::max(maxEdgeLengthSquared, std::max((vert0 - vert1).len_squared(), std::max((vert0 - vert2).len_squared(), (vert1 - vert2).len_squared())));
 			}
 
 			return( Quantization::Quantizer(maxMag, sqrt( minEdgeLengthSquared )));

@@ -1,6 +1,6 @@
 
 #include <catch2/catch_all.hpp>
-#include <iostream>
+//#include <iostream>
 #include <mutex>
 
 #include "../CorkLib/Util/ThreadPool.h"
@@ -126,14 +126,17 @@ class UnionFindTestFixture
     std::unique_ptr<Components> m_refComponents;
 };
 
-bool TestRankWeightedSerialUnionFind(const Graph& graph, const Components& refComponents)
+bool TestRankWeightedSerialUnionFind(const Graph& graph, const Components& refComponents,
+                                     Catch::Benchmark::Chronometer meter)
 {
     RankWeightedSerialUnionFind rankUnionFind(graph.numVertices());
 
-    for (auto& edge : graph)
-    {
-        rankUnionFind.unite(edge.first, edge.second);
-    }
+    meter.measure([&rankUnionFind, &graph] {
+        for (auto& edge : graph)
+        {
+            rankUnionFind.unite(edge.first, edge.second);
+        }
+    });
 
     std::unique_ptr<Components> components(GetComponents(graph, rankUnionFind));
 
@@ -142,14 +145,17 @@ bool TestRankWeightedSerialUnionFind(const Graph& graph, const Components& refCo
     return (true);
 }
 
-bool TestRandWeightedSerialUnionFind(const Graph& graph, const Components& refComponents)
+bool TestRandWeightedSerialUnionFind(const Graph& graph, const Components& refComponents,
+                                     Catch::Benchmark::Chronometer meter)
 {
     RandomWeightedSerialUnionFind randUnionFind(graph.numVertices());
 
-    for (auto& edge : graph)
-    {
-        randUnionFind.unite(edge.first, edge.second);
-    }
+    meter.measure([&randUnionFind, &graph] {
+        for (auto& edge : graph)
+        {
+            randUnionFind.unite(edge.first, edge.second);
+        }
+    });
 
     std::unique_ptr<Components> components(GetComponents(graph, randUnionFind));
 
@@ -158,15 +164,18 @@ bool TestRandWeightedSerialUnionFind(const Graph& graph, const Components& refCo
     return (true);
 }
 
-bool TestRandWeightedParallelUnionFind(const Graph& graph, const Components& refComponents)
+bool TestRandWeightedParallelUnionFind(const Graph& graph, const Components& refComponents,
+                                       Catch::Benchmark::Chronometer meter)
 {
     RandomWeightedParallelUnionFind unionFind(graph.numVertices());
 
-    g_threadPool->parallel_for(4, graph.begin(), graph.end(), [&](BlockRange<Graph::const_iterator> edges) {
-        for (auto currentEdge : edges)
-        {
-            unionFind.unite(currentEdge.first, currentEdge.second);
-        }
+    meter.measure([&unionFind, &graph] {
+        g_threadPool->parallel_for(4, graph.begin(), graph.end(), [&](BlockRange<Graph::const_iterator> edges) {
+            for (auto currentEdge : edges)
+            {
+                unionFind.unite(currentEdge.first, currentEdge.second);
+            }
+        });
     });
 
     std::unique_ptr<Components> components(GetComponents(graph, unionFind));
@@ -176,17 +185,20 @@ bool TestRandWeightedParallelUnionFind(const Graph& graph, const Components& ref
     return (true);
 }
 
-bool TestRandWeightedParallelUnionFind1(const Graph& graph, const Components& refComponents)
+bool TestRandWeightedParallelUnionFind1(const Graph& graph, const Components& refComponents,
+                                        Catch::Benchmark::Chronometer meter)
 {
     RandomWeightedParallelUnionFind1 unionFind(graph.numVertices());
 
-    g_threadPool->parallel_for(3, graph.begin(), graph.end(),
-                               [&](Graph::const_iterator blockBegin, Graph::const_iterator blockEnd) {
-                                   for (auto itrElement = blockBegin; itrElement != blockEnd; itrElement++)
-                                   {
-                                       unionFind.unite(itrElement->first, itrElement->second);
-                                   }
-                               });
+    meter.measure([&unionFind, &graph] {
+        g_threadPool->parallel_for(3, graph.begin(), graph.end(),
+                                   [&](Graph::const_iterator blockBegin, Graph::const_iterator blockEnd) {
+                                       for (auto itrElement = blockBegin; itrElement != blockEnd; itrElement++)
+                                       {
+                                           unionFind.unite(itrElement->first, itrElement->second);
+                                       }
+                                   });
+    });
 
     std::unique_ptr<Components> components(GetComponents(graph, unionFind));
 
@@ -201,23 +213,23 @@ TEST_CASE("Basic Union Find with Benchmarks", "[cork-base]")
 
     UnionFindTestFixture testFixture;
 
-    BENCHMARK("Test Rank Weighted Serial Union Find")
+    BENCHMARK_ADVANCED("Test Rank Weighted Serial Union Find")(Catch::Benchmark::Chronometer meter)
     {
-        return TestRankWeightedSerialUnionFind(testFixture.getGraph(), testFixture.getRefComponents());
+        return TestRankWeightedSerialUnionFind(testFixture.getGraph(), testFixture.getRefComponents(), meter);
     };
 
-    BENCHMARK("Test Random Weighted Serial Union Find")
+    BENCHMARK_ADVANCED("Test Random Weighted Serial Union Find")(Catch::Benchmark::Chronometer meter)
     {
-        return TestRandWeightedSerialUnionFind(testFixture.getGraph(), testFixture.getRefComponents());
+        return TestRandWeightedSerialUnionFind(testFixture.getGraph(), testFixture.getRefComponents(), meter);
     };
 
-    BENCHMARK("Test Random Weighted Parallel Union Find")
+    BENCHMARK_ADVANCED("Test Random Weighted Parallel Union Find")(Catch::Benchmark::Chronometer meter)
     {
-        return TestRandWeightedParallelUnionFind(testFixture.getGraph(), testFixture.getRefComponents());
+        return TestRandWeightedParallelUnionFind(testFixture.getGraph(), testFixture.getRefComponents(), meter);
     };
 
-    BENCHMARK("Test Random Weighted Parallel Union Find 1")
+    BENCHMARK_ADVANCED("Test Random Weighted Parallel Union Find 1")(Catch::Benchmark::Chronometer meter)
     {
-        return TestRandWeightedParallelUnionFind1(testFixture.getGraph(), testFixture.getRefComponents());
+        return TestRandWeightedParallelUnionFind1(testFixture.getGraph(), testFixture.getRefComponents(), meter);
     };
 }

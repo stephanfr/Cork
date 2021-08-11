@@ -8,7 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(FetchContent)
 
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -mavx -Wno-deprecated-declarations")
 
 add_compile_definitions( TRILIBRARY )
 

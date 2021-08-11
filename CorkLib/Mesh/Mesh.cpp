@@ -86,7 +86,7 @@ namespace Cork
 					const Cork::Math::Vector3D&		b,
 					const Cork::Math::Vector3D&		c )
 	{
-		return( len( cross( b-a, c-a )));
+		return( ( b-a ).cross( c-a ).len() );
 	}
 
 	inline
@@ -94,7 +94,7 @@ namespace Cork
 						   const Cork::Math::Vector3D&		b,
 						   const Cork::Math::Vector3D&		c )
 	{
-		return( len2( cross( b - a, c - a ) ) );
+		return( (b - a).cross( c - a ).len_squared() );
 	}
 
 
@@ -340,9 +340,9 @@ namespace Cork
 
 		if( CheckForRayTriangleIntersection( r, va, vb, vc ) )
 		{
-			Cork::Math::Vector3D	normal = flip * cross( vb - va, vc - va );
+			Cork::Math::Vector3D	normal = flip * (vb - va).cross( vc - va );
 
-			if( dot( normal, r.direction() ) > 0.0 )
+			if( normal.dot( r.direction() ) > 0.0 )
 			{
 				winding++;
 			}

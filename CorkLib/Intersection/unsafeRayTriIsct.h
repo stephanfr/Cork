@@ -47,13 +47,13 @@ bool CheckForRayTriangleIntersection( Cork::Math::Ray3D&			ray,
 	//  * an edge of the triangle
 	// Keeping orientations in mind...
 
-	double volAB = det( va, vb, ray.direction() );
-	double volBC = det( vb, vc, ray.direction() );
-	double volCA = -det( va, vc, ray.direction() );
+	double volAB = determinant( va, vb, ray.direction() );
+	double volBC = determinant( vb, vc, ray.direction() );
+	double volCA = -determinant( va, vc, ray.direction() );
 
 	// then also compute the volume of tet with the entire triangle as a face...
 
-	double volABC = det( va, vb, vc );
+	double volABC = determinant( va, vb, vc );
 
 	// if any of the signs of the edge tests
 	// disagree with the sign of the whole triangle, then
@@ -104,13 +104,13 @@ bool CheckForRayTriangleIntersectionWithPoint( Cork::Math::Ray3D&				ray,
     //  * an edge of the triangle
     // Keeping orientations in mind...
 
-    double volAB  =   det(va, vb, ray.direction());
-    double volBC  =   det(vb, vc, ray.direction());
-    double volCA  = - det(va, vc, ray.direction());
+    double volAB  =   determinant(va, vb, ray.direction());
+    double volBC  =   determinant(vb, vc, ray.direction());
+    double volCA  = - determinant(va, vc, ray.direction());
 
     // then also compute the volume of tet with the entire triangle as a face...
 
-    double volABC =   det(va, vb, vc);
+    double volABC =   determinant(va, vb, vc);
 
     // if any of the signs of the edge tests
     // disagree with the sign of the whole triangle, then

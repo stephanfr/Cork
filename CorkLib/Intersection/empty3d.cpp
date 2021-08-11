@@ -61,7 +61,7 @@ namespace Cork
 		inline
 		void toAbsExt(AbsExt4_1 &out, const Cork::Math::Vector3D &in)
 		{
-			Cork::Math::Vector3D vec = abs(in);
+			Cork::Math::Vector3D vec = in.abs();
 			out.e0 = vec.x();
 			out.e1 = vec.y();
 			out.e2 = vec.z();

@@ -245,7 +245,7 @@ namespace Cork
 			const Cork::Math::Vector3D& p0 = *(m_verts[0]->quantizedValue());
 			const Cork::Math::Vector3D& p1 = *(m_verts[1]->quantizedValue());
 
-			return( len(p0 - p1) );
+			return( (p0 - p1).len() );
 		}
 
 
