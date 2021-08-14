@@ -7,8 +7,24 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(FetchContent)
+include(cmake/find_avx.cmake)
 
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -mavx -Wno-deprecated-declarations")
+check_for_avx()
+
+message( STATUS "AVX Status: ${HAVE_AVX_EXTENSIONS}" )
+message( STATUS "AVX2 Status: ${HAVE_AVX2_EXTENSIONS}" )
+
+if( HAVE_AVX_EXTENSIONS )
+  SET( AVX_FLAGS "${AVX_FLAGS} -D__HAVE_AVX_EXTENSIONS__" )
+endif ()
+
+if( HAVE_AVX2_EXTENSIONS )
+  SET( AVX_FLAGS "${AVX_FLAGS} -D__HAVE_AVX2_EXTENSIONS__" )
+endif ()
+
+message( STATUS "AVX Flags: ${AVX_FLAGS}" )
+
+SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${AVX_FLAGS} -Wno-deprecated-declarations")
 
 add_compile_definitions( TRILIBRARY )
 

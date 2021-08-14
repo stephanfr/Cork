@@ -113,7 +113,7 @@ namespace Cork
 
 				if(( m_propertiesToCompute & PropertiesToCompute::BOUNDING_BOX ) != 0 )
 				{
-					m_boundingBox.convex( Cork::Math::BBox3D( min( nextTriangle[0], nextTriangle[1], nextTriangle[2] ), max( nextTriangle[0], nextTriangle[1], nextTriangle[2] ) ));
+					m_boundingBox.convex( Cork::Math::BBox3D( nextTriangle[0].min( nextTriangle[1], nextTriangle[2] ), nextTriangle[0].max( nextTriangle[1], nextTriangle[2] ) ));
 				}
 
 				//	Increment the triangle count

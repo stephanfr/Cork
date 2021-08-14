@@ -33,7 +33,7 @@
 
 #pragma once
 
-
+#include <array>
 #include <cmath>
 #include <cstdlib>
 #include <stdalign.h>
@@ -50,6 +50,8 @@
 void srand_sse( unsigned int seed );
 
 void rand_sse( unsigned int* );
+
+void drand_sse( std::array<float,4>& result, float min, float max );
 
 
 alignas(16) static __m128i cur_seed;
@@ -129,7 +131,7 @@ alignas(16) const __m128	g_invMAXSSE = _mm_load_ps1( &g_invMAX );
 
 
 inline
-void drand_sse( __m128&	result, float min, float max )
+void drand_sse( std::array<float,4>& result, float min, float max )
 {
     float		range = max - min;
 
@@ -144,6 +146,6 @@ void drand_sse( __m128&	result, float min, float max )
 
 	temp = _mm_cvtepi32_ps( fourRandoms );
 
-	_mm_store_ps( (float*)&result, _mm_add_ps( _mm_mul_ps( _mm_mul_ps( temp, g_invMAXSSE ), rangeSSE ), minSSE ));
+	_mm_store_ps( result.data(), _mm_add_ps( _mm_mul_ps( _mm_mul_ps( temp, g_invMAXSSE ), rangeSSE ), minSSE ));
 }
 

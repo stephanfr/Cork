@@ -77,7 +77,7 @@ namespace Cork
 				const Cork::Math::Vector3D& p0 = *((idx.verts()[0])->quantizedValue());
 				const Cork::Math::Vector3D& p1 = *((idx.verts()[1])->quantizedValue());
 
-				m_bbox = Cork::Math::BBox3D( min( p0, p1 ), max( p0, p1 ));
+				m_bbox = Cork::Math::BBox3D( p0.min( p1 ), p0.max( p1 ));
 			}
 
 

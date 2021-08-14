@@ -1,4 +1,9 @@
 
+#include <catch2/catch_all.hpp>
+
+#include "../CorkLib/SIMDInstructionSet.h"
+
+#define __AVX_AVAILABLE__
 
 #include "../CorkLib/Math/Vector3DTemplate.h"
 
@@ -11,13 +16,15 @@
 #pragma diag_suppress 2486
 #endif
 
-typedef Cork::Math::Vector2DTemplate<NUMERIC_PRECISION>     Vector2D;
-typedef Cork::Math::Vector3DTemplate<NUMERIC_PRECISION>     Vector3D;
+typedef Cork::Math::Vector2DTemplate<double>     Vector2D;
 
-static std::string     test_case_name = "Vector3D Tests " TEST_CASE_NAME_SUFFIX;
+typedef Cork::Math::Vector3DTemplate<double,SIMDInstructionSet::NONE>   Vector3D;
+typedef Cork::Math::Vector3DTemplate<double,SIMDInstructionSet::AVX>    Vector3DAVX;
 
-TEST_CASE(test_case_name, "[cork-math]")
+TEMPLATE_TEST_CASE("Vector3D Tests", "[cork-math]", Vector3D, Vector3DAVX )
 {
+    typedef TestType     Vector3D;
+    
     SECTION( "Element Access" )
     {
         Vector3D        test_vec( 7, 4, 3 );
@@ -53,6 +60,10 @@ TEST_CASE(test_case_name, "[cork-math]")
         Vector3D    result = test_vec1 * 3.5;
 
         REQUIRE((( result.x() == 11 * 3.5 ) && ( result.y() == 13 * 3.5 ) && ( result.z() == 14 * 3.5 )));
+
+        result = 5.0 * test_vec1;
+
+        REQUIRE( result == Vector3D( 55, 65, 70 ) );
     }
     
     SECTION( "Scalar Multiplication" )
@@ -157,25 +168,25 @@ TEST_CASE(test_case_name, "[cork-math]")
         REQUIRE( test_vec1.max() == 20 );
         REQUIRE( test_vec1.min() == 1 );
 
-        REQUIRE( max( test_vec1, test_vec2 ) == Vector3D( 1, 20, 3 ) );
+        REQUIRE( test_vec1.max( test_vec2 ) == Vector3D( 1, 20, 3 ) );
 
         test_vec1 = Vector3D( 1, 2, 30 );
 
-        REQUIRE( max( test_vec1, test_vec2 ) == Vector3D( 1, 2, 30 ) );
+        REQUIRE( test_vec1.max( test_vec2 ) == Vector3D( 1, 2, 30 ) );
 
         test_vec2 = Vector3D( 10, 2, 3 );
 
-        REQUIRE( max( test_vec1, test_vec2 ) == Vector3D( 10, 2, 30 ) );
+        REQUIRE( test_vec1.max( test_vec2 ) == Vector3D( 10, 2, 30 ) );
 
-        REQUIRE( max( test_vec1, test_vec2, test_vec3 ) == Vector3D( 100, 2, 30 ) );
+        REQUIRE( test_vec1.max( test_vec2, test_vec3 ) == Vector3D( 100, 2, 30 ) );
 
         test_vec3 = Vector3D( 1, 200, 3 );
 
-        REQUIRE( max( test_vec1, test_vec2, test_vec3 ) == Vector3D( 10, 200, 30 ) );
+        REQUIRE( test_vec1.max( test_vec2, test_vec3 ) == Vector3D( 10, 200, 30 ) );
 
         test_vec3 = Vector3D( 1, 2, 300 );
 
-        REQUIRE( max( test_vec1, test_vec2, test_vec3 ) == Vector3D( 10, 2, 300 ) );
+        REQUIRE( test_vec1.max( test_vec2, test_vec3 ) == Vector3D( 10, 2, 300 ) );
     }
 
     SECTION( "Min" )
@@ -184,25 +195,25 @@ TEST_CASE(test_case_name, "[cork-math]")
         Vector3D     test_vec2( 1, 2, 3 );
         Vector3D     test_vec3( 100, 2, -4 );
 
-        REQUIRE( min( test_vec1, test_vec2 ) == Vector3D( -1, 2, 3 ) );
+        REQUIRE( test_vec1.min( test_vec2 ) == Vector3D( -1, 2, 3 ) );
 
         test_vec1 = Vector3D( 1, -2, 30 );
 
-        REQUIRE( min( test_vec1, test_vec2 ) == Vector3D( 1, -2, 3 ) );
+        REQUIRE( test_vec1.min( test_vec2 ) == Vector3D( 1, -2, 3 ) );
 
         test_vec2 = Vector3D( 10, 2, -3 );
 
-        REQUIRE( min( test_vec1, test_vec2 ) == Vector3D( 1, -2, -3 ) );
+        REQUIRE( test_vec1.min( test_vec2 ) == Vector3D( 1, -2, -3 ) );
 
-        REQUIRE( min( test_vec1, test_vec2, test_vec3 ) == Vector3D( 1, -2, -4 ) );
+        REQUIRE( test_vec1.min( test_vec2, test_vec3 ) == Vector3D( 1, -2, -4 ) );
 
         test_vec3 = Vector3D( -1, 200, 3 );
 
-        REQUIRE( min( test_vec1, test_vec2, test_vec3 ) == Vector3D( -1, -2, -3 ) );
+        REQUIRE( test_vec1.min( test_vec2, test_vec3 ) == Vector3D( -1, -2, -3 ) );
 
         test_vec3 = Vector3D( -1, -5, 300 );
 
-        REQUIRE( min( test_vec1, test_vec2, test_vec3 ) == Vector3D( -1, -5, -3 ) );
+        REQUIRE( test_vec1.min( test_vec2, test_vec3 ) == Vector3D( -1, -5, -3 ) );
     }
 
     SECTION( "Max and Min Dimension" )

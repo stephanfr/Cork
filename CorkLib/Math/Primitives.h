@@ -50,34 +50,19 @@
 
 
 #include "Vector2DTemplate.h"
-
-namespace Cork
-{
-	namespace Math
-	{
-		typedef Vector2DTemplate<NUMERIC_PRECISION>			Vector2D;
-	}
-}
-
-
-
 #include "Vector3DTemplate.h"
 
 namespace Cork
 {
 	namespace Math
 	{
-#ifdef __CORK_AVX__
-		__declspec( align( 32 ) )
-#endif
-			typedef Vector3DTemplate<NUMERIC_PRECISION>			Vector3D;
+		typedef Vector2DTemplate<NUMERIC_PRECISION>			Vector2D;
+		typedef Vector3DTemplate<NUMERIC_PRECISION>			Vector3D;
 	}
 }
 
 
-
-
-//	The Ray and Bounding Box clesses depend on the Vector3D and Vertex3D classes
+//	The Ray and Bounding Box classes depend on the Vector3D and Vertex3D classes
 
 #include "Ray3D.h"
 

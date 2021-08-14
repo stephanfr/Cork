@@ -27,14 +27,14 @@ link_directories(/home/steve/dev/Cork/thirdparty/tbb/tbb2017_20170807oss/lib/int
 add_executable( tests
   CachingFactoryTest.cpp
   ConstructOnceResizeableVectorTest.cpp
-  Vector3DTestsDouble.cpp
-  Vector3DTestsDoubleAVX.cpp
+  Vector3DTest.cpp
 )
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain Corklib tbb mpir boost_program_options boost_filesystem boost_system boost_timer boost_thread pthread)
 
 add_executable( benchmarks
   UnionFindBenchmark.cpp
+  Vector3DBenchmark.cpp
 )
 
 target_link_libraries(benchmarks PRIVATE Catch2::Catch2WithMain Corklib tbb mpir boost_program_options boost_filesystem boost_system boost_timer boost_thread pthread)

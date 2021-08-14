@@ -1,6 +1,5 @@
 
 #include <catch2/catch_all.hpp>
-//#include <iostream>
 #include <mutex>
 
 #include "../CorkLib/Util/ThreadPool.h"

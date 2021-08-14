@@ -87,14 +87,14 @@ namespace Cork
 			out.e3 = FixInt::BitInt<IN_BITS>::Rep(1);
 		}
 
-		inline
-		void toGmpExt(GmpExt4_1 &out, const Cork::Math::Vector3D &in, const Quantization::Quantizer& quantizer)
-		{
-			out.e0 = quantizer.quantize2int(in.x());
-			out.e1 = quantizer.quantize2int(in.y());
-			out.e2 = quantizer.quantize2int(in.z());
-			out.e3 = 1;
-		}
+//		inline
+//		void toGmpExt(GmpExt4_1 &out, const Cork::Math::Vector3D &in, const Quantization::Quantizer& quantizer)
+//		{
+//			out.e0 = quantizer.quantize2int(in.x());
+//			out.e1 = quantizer.quantize2int(in.y());
+//			out.e2 = quantizer.quantize2int(in.z());
+//			out.e3 = 1;
+//		}
 
 		inline
 		void toVec3d( Cork::Math::Vector3D &out, const GmpExt4_1 &in, const Quantization::Quantizer& quantizer)

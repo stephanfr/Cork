@@ -50,7 +50,7 @@ namespace Cork
 
 		const double		two = 2.0;
 
-		#ifdef __CORK_AVX__
+		#ifdef __AVX_AVAILABLE__
 		const __m256d		AVXtwo = _mm256_load_pd( &two );
 		#endif
 
@@ -89,7 +89,7 @@ namespace Cork
 
 			Vector3D			center() const
 			{
-		#ifdef __CORK_AVX__
+		#ifdef __AVX_AVAILABLE__
 				Vector3D		result;
 
 				_mm256_store_pd( (double*)&result.m_ymm, _mm256_add_pd( m_minp, _mm256_div_pd( _mm256_sub_pd( m_maxp, m_minp ), AVXtwo ) ));
@@ -119,7 +119,7 @@ namespace Cork
 					   ( pointToTest[2] <= m_maxp[2] ));
 			}
 
-		#ifdef __CORK_AVX__
+		#ifdef __AVX_AVAILABLE__
 	
 			//	SSE2 implementation
 
@@ -171,7 +171,7 @@ namespace Cork
 
 			void		convex(  const BBox3D&		rhs )
 			{
-		#ifdef __CORK_AVX__
+		#ifdef __AVX_AVAILABLE__
 				m_minp = _mm256_min_pd( m_minp, rhs.m_minp );
 				m_maxp = _mm256_max_pd( m_maxp, rhs.m_maxp );	
 		#else
@@ -184,7 +184,7 @@ namespace Cork
 			void		convex( const BBox3D&		rhs,
 								BBox3D&				result ) const
 			{		
-		#ifdef __CORK_AVX__
+		#ifdef __AVX_AVAILABLE__
 				_mm256_store_pd( (double*)&result.m_minp, _mm256_min_pd( m_minp, rhs.m_minp ));
 				_mm256_store_pd( (double*)&result.m_maxp, _mm256_max_pd( m_maxp, rhs.m_maxp ));
 		#else
@@ -196,7 +196,7 @@ namespace Cork
 
 			BBox3D intersection(const BBox3D&		rhs) const
 			{
-				return( BBox3D( max( m_minp, rhs.m_minp ), min( m_maxp, rhs.m_maxp )));
+				return( BBox3D( m_minp.max( rhs.m_minp ), m_maxp.min( rhs.m_maxp )));
 			}
 
 

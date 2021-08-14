@@ -158,14 +158,14 @@ namespace Cork
 		};
 
 
-
-		void toGmpExt( GMPExt4::GmpExt4_1 &out, const Cork::Math::Vector3D &in, const Quantization::Quantizer& quantizer);
-	//	{
-	//		out.e0 = Quantization::quantize2int( in.x() );
-	//		out.e1 = Quantization::quantize2int( in.y() );
-	//		out.e2 = Quantization::quantize2int( in.z() );
-	//		out.e3 = 1;
-	//	}
+		inline
+		void toGmpExt( GMPExt4::GmpExt4_1 &out, const Cork::Math::Vector3D &in, const Quantization::Quantizer& quantizer)
+		{
+			out.e0 = quantizer.quantize2int( in.x() );
+			out.e1 = quantizer.quantize2int( in.y() );
+			out.e2 = quantizer.quantize2int( in.z() );
+			out.e3 = 1;
+		}
 
 
 

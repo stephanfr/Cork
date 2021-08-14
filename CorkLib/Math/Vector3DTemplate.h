@@ -26,25 +26,24 @@
 
 #pragma once
 
-#ifdef __CORK_AVX__
 #include <immintrin.h>
-#endif
 
 #include <array>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 
+#include "../CorkDefs.h"
 #include "Vector2DTemplate.h"
 
-#ifdef __CORK_AVX__
+#ifdef __AVX_AVAILABLE__
 #include "SSERng.h"
 #endif
 
 namespace Cork::Math
 {
-    template <class N>
-    class Vector3DTemplate final
+    template <class N, SIMDInstructionSet SIMD = g_SIMD_Level>
+    class alignas(32) Vector3DTemplate final
     {
        protected:  // names
         union
@@ -59,7 +58,7 @@ namespace Cork::Math
                 N m_spare;
             };
 
-#ifdef __CORK_AVX__
+#ifdef __AVX_AVAILABLE__
             __m256d m_ymm;
 #endif
         };
@@ -77,13 +76,17 @@ namespace Cork::Math
 
         explicit Vector3DTemplate(const N *ns) : m_x(ns[0]), m_y(ns[1]), m_z(ns[2]), m_spare(0.0) {}
 
-        template <typename T>
-        Vector3DTemplate(const std::array<T, 3> &threeTuple)
+        Vector3DTemplate(const std::array<float, 3> &threeTuple)
             : m_x((N)threeTuple[0]), m_y((N)threeTuple[1]), m_z((N)threeTuple[2]), m_spare(0.0)
         {
         }
 
-#ifdef __CORK_AVX__
+        Vector3DTemplate(const std::array<double, 3> &threeTuple)
+            : m_x((N)threeTuple[0]), m_y((N)threeTuple[1]), m_z((N)threeTuple[2]), m_spare(0.0)
+        {
+        }
+
+#ifdef __AVX_AVAILABLE__
         // Constructor to convert from type __m256d used in intrinsics:
         Vector3DTemplate(__m256d const &x) { m_ymm = x; }
         // Assignment operator to convert from type __m256d used in intrinsics:
@@ -112,15 +115,18 @@ namespace Cork::Math
 
         static Vector3DTemplate randomVector(float min, float max)
         {
-#ifdef __CORK_AVX__
-            __m128 result;
+            if constexpr (SIMD == SIMDInstructionSet::AVX)
+            {
+                std::array<float, 4> result;
 
-            drand_sse(result, min, max);
+                drand_sse(result, min, max);
 
-            return (Vector3DTemplate((N)(float *)(result)[0], (N)(float *)(result)[1], (N)(float *)(result)[2]));
-#else
-            return (Vector3DTemplate((N)drand(min, max), (N)drand(min, max), (N)drand(min, max)));
-#endif
+                return Vector3DTemplate((N)result[0], (N)result[1], (N)result[2]);
+            }
+            else
+            {
+                return Vector3DTemplate((N)drand(min, max), (N)drand(min, max), (N)drand(min, max));
+            }
         }
 
         N x() const { return (m_x); }
@@ -134,29 +140,29 @@ namespace Cork::Math
         //  Non Destructive Arithmetic
         //
 
-        Vector3DTemplate<N> operator-() const { return Vector3DTemplate<N>(-m_x, -m_y, -m_z); }
+        Vector3DTemplate operator-() const { return Vector3DTemplate(-m_x, -m_y, -m_z); }
 
-        Vector3DTemplate<N> operator+(const Vector3DTemplate<N> &rhs) const
+        Vector3DTemplate operator+(const Vector3DTemplate &rhs) const
         {
-            Vector3DTemplate<N> res(*this);
+            Vector3DTemplate res(*this);
             return res += rhs;
         }
 
-        Vector3DTemplate<N> operator-(const Vector3DTemplate<N> &rhs) const
+        Vector3DTemplate operator-(const Vector3DTemplate &rhs) const
         {
-            Vector3DTemplate<N> res(*this);
+            Vector3DTemplate res(*this);
             return res -= rhs;
         }
 
-        Vector3DTemplate<N> operator*(const N rhs) const
+        Vector3DTemplate operator*(const N rhs) const
         {
-            Vector3DTemplate<N> res(*this);
+            Vector3DTemplate res(*this);
             return res *= rhs;
         }
 
-        Vector3DTemplate<N> operator/(const N &rhs) const
+        Vector3DTemplate operator/(const N &rhs) const
         {
-            Vector3DTemplate<N> res(*this);
+            Vector3DTemplate res(*this);
             return res /= rhs;
         }
 
@@ -164,7 +170,7 @@ namespace Cork::Math
         //   Destructive Arithmetic
         //
 
-        inline Vector3DTemplate<N> operator+=(const Vector3DTemplate<N> &rhs)
+        inline Vector3DTemplate operator+=(const Vector3DTemplate &rhs)
         {
             m_x += rhs.m_x;
             m_y += rhs.m_y;
@@ -172,7 +178,7 @@ namespace Cork::Math
             return *this;
         }
 
-        inline Vector3DTemplate<N> operator-=(const Vector3DTemplate<N> &rhs)
+        inline Vector3DTemplate operator-=(const Vector3DTemplate &rhs)
         {
             m_x -= rhs.m_x;
             m_y -= rhs.m_y;
@@ -180,7 +186,7 @@ namespace Cork::Math
             return *this;
         }
 
-        inline Vector3DTemplate<N> operator*=(const N &rhs)
+        inline Vector3DTemplate operator*=(const N &rhs)
         {
             m_x *= rhs;
             m_y *= rhs;
@@ -188,7 +194,7 @@ namespace Cork::Math
             return *this;
         }
 
-        inline Vector3DTemplate<N> operator/=(const N &rhs)
+        inline Vector3DTemplate operator/=(const N &rhs)
         {
             m_x /= rhs;
             m_y /= rhs;
@@ -200,17 +206,17 @@ namespace Cork::Math
         //  Comparison operators
         //
 
-        bool operator==(const Vector3DTemplate<N> &rhs) const
+        bool operator==(const Vector3DTemplate &rhs) const
         {
             return m_x == rhs.m_x && m_y == rhs.m_y && m_z == rhs.m_z;
         }
 
-        bool operator!=(const Vector3DTemplate<N> &rhs) const
+        bool operator!=(const Vector3DTemplate &rhs) const
         {
             return m_x != rhs.m_x || m_y != rhs.m_y || m_z != rhs.m_z;
         }
 
-        bool operator<(const Vector3DTemplate<N> &vertexToCompare) const
+        bool operator<(const Vector3DTemplate &vertexToCompare) const
         {
             //	Equality is by x, then y and finally z
 
@@ -267,9 +273,9 @@ namespace Cork::Math
 
         void normalize() { *this /= this->len(); }
 
-        Vector3DTemplate<N> normalized() const
+        Vector3DTemplate normalized() const
         {
-            Vector3DTemplate<N> vec(*this);
+            Vector3DTemplate vec(*this);
             return vec / vec.len();
         }
 
@@ -277,25 +283,25 @@ namespace Cork::Math
         //  Dot and Cross Products
         //
 
-        N dot(const Vector3DTemplate<N> &rhs) const { return m_x * rhs.m_x + m_y * rhs.m_y + m_z * rhs.m_z; }
+        N dot(const Vector3DTemplate &rhs) const { return m_x * rhs.m_x + m_y * rhs.m_y + m_z * rhs.m_z; }
 
-        Vector3DTemplate<N> cross(const Vector3DTemplate<N> &rhs) const
+        Vector3DTemplate cross(const Vector3DTemplate &rhs) const
         {
-            return Vector3DTemplate<N>(m_y * rhs.m_z - m_z * rhs.m_y, m_z * rhs.m_x - m_x * rhs.m_z,
-                                       m_x * rhs.m_y - m_y * rhs.m_x);
+            return Vector3DTemplate(m_y * rhs.m_z - m_z * rhs.m_y, m_z * rhs.m_x - m_x * rhs.m_z,
+                                    m_x * rhs.m_y - m_y * rhs.m_x);
         }
 
         //
         //  Projection
         //
 
-        Vector2DTemplate<N> project(uint dim) { return Vector2DTemplate<N>(m_v[(dim + 1) % 3], m_v[(dim + 2) % 3]); }
+        Vector2DTemplate<N> project(uint dim) { return Vector2DTemplate(m_v[(dim + 1) % 3], m_v[(dim + 2) % 3]); }
 
         //
         //  Other functions
         //
 
-        Vector3DTemplate<N> abs() const { return Vector3DTemplate<N>(fabs(m_x), fabs(m_y), fabs(m_z)); }
+        Vector3DTemplate abs() const { return Vector3DTemplate(fabs(m_x), fabs(m_y), fabs(m_z)); }
 
         N max() const { return std::max(m_x, std::max(m_y, m_z)); }
 
@@ -305,98 +311,90 @@ namespace Cork::Math
 
         uint minDim() const { return (m_x <= m_y) ? ((m_x <= m_z) ? 0 : 2) : ((m_y <= m_z) ? 1 : 2); }
 
+        Vector3DTemplate max(const Vector3DTemplate &rhs) const
+        {
+            if constexpr (SIMD == SIMDInstructionSet::AVX)
+            {
+                return _mm256_max_pd(*this, rhs);
+            }
+            else
+            {
+                return Vector3DTemplate(std::max(m_x, rhs.m_x), std::max(m_y, rhs.m_y), std::max(m_z, rhs.m_z));
+            }
+        }
+
+        Vector3DTemplate max(const Vector3DTemplate &vec2, const Vector3DTemplate &vec3) const
+        {
+            if constexpr (SIMD == SIMDInstructionSet::AVX)
+            {
+                return _mm256_max_pd(*this, _mm256_max_pd(vec2, vec3));
+            }
+            else
+            {
+                return Vector3DTemplate(std::max(m_x, std::max(vec2.m_x, vec3.m_x)),
+                                        std::max(m_y, std::max(vec2.m_y, vec3.m_y)),
+                                        std::max(m_z, std::max(vec2.m_z, vec3.m_z)));
+            }
+        }
+
+        Vector3DTemplate min(const Vector3DTemplate &rhs) const
+        {
+            if constexpr (SIMD == SIMDInstructionSet::AVX)
+            {
+                return _mm256_min_pd(*this, rhs);
+            }
+            else
+            {
+                return Vector3DTemplate(std::min(m_x, rhs.m_x), std::min(m_y, rhs.m_y), std::min(m_z, rhs.m_z));
+            }
+        }
+
+        Vector3DTemplate min(const Vector3DTemplate &vec2, const Vector3DTemplate &vec3) const
+        {
+            if constexpr (SIMD == SIMDInstructionSet::AVX)
+            {
+                return _mm256_min_pd(*this, _mm256_min_pd(vec2, vec3));
+            }
+            else
+            {
+                return Vector3DTemplate(std::min(m_x, std::min(vec2.m_x, vec3.m_x)),
+                                        std::min(m_y, std::min(vec2.m_y, vec3.m_y)),
+                                        std::min(m_z, std::min(vec2.m_z, vec3.m_z)));
+            }
+        }
+
         //
         //  Friends
         //
 
-        template <class T>
-        friend Vector3DTemplate<T> max(const Vector3DTemplate<T> &, const Vector3DTemplate<T> &);
-        template <class T>
-        friend Vector3DTemplate<T> max(const Vector3DTemplate<T> &, const Vector3DTemplate<T> &,
-                                       const Vector3DTemplate<T> &);
-        template <class T>
-        friend Vector3DTemplate<T> min(const Vector3DTemplate<T> &, const Vector3DTemplate<T> &);
-        template <class T>
-        friend Vector3DTemplate<T> min(const Vector3DTemplate<T> &, const Vector3DTemplate<T> &,
-                                       const Vector3DTemplate<T> &);
+        template <class T, SIMDInstructionSet S>
+        friend T determinant(const Vector3DTemplate<T, S> &, const Vector3DTemplate<T, S> &, const Vector3DTemplate<T, S> &);
 
-        template <class T>
-        friend T determinant(const Vector3DTemplate<T> &, const Vector3DTemplate<T> &, const Vector3DTemplate<T> &);
-
-        template <class T>
-        friend std::ostream &operator<<(std::ostream &, const Vector3DTemplate<T> &);
+        template <class T, SIMDInstructionSet S>
+        friend std::ostream &operator<<(std::ostream &, const Vector3DTemplate<T, S> &);
     };
 
     //
     // Non Destructive Arithmetic
     //
 
-    template <class T>
-    Vector3DTemplate<T> operator*(const T &lhs, const Vector3DTemplate<T> &rhs)
+    template <class T, SIMDInstructionSet SIMD>
+    Vector3DTemplate<T, SIMD> operator*(const T &lhs, const Vector3DTemplate<T,SIMD> &rhs)
     {
-        Vector3DTemplate<T> res(rhs);
+        Vector3DTemplate<T,SIMD> res(rhs);
         return res *= lhs;
     }
 
     // output/input stream operators
-    template <class N>
-    inline std::ostream &operator<<(std::ostream &out, const Vector3DTemplate<N> &vec)
+    template <class T, SIMDInstructionSet SIMD>
+    inline std::ostream &operator<<(std::ostream &out, const Vector3DTemplate<T,SIMD> &vec)
     {
         return out << '[' << vec.m_x << ',' << vec.m_y << ',' << vec.m_z << ']';
     }
 
-    // +---------------------------------
-    // component-wise max/min
-
-    template <class N>
-    inline Vector3DTemplate<N> max(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs)
-    {
-#ifdef __CORK_AVX__
-        return _mm256_max_pd(lhs, rhs);
-#else
-        return Vector3DTemplate<N>(std::max(lhs.m_x, rhs.m_x), std::max(lhs.m_y, rhs.m_y), std::max(lhs.m_z, rhs.m_z));
-#endif
-    }
-
-    template <class N>
-    inline Vector3DTemplate<N> max(const Vector3DTemplate<N> &vec1, const Vector3DTemplate<N> &vec2,
-                                   const Vector3DTemplate<N> &vec3)
-    {
-#ifdef __CORK_AVX__
-        return _mm256_max_pd(vec1, _mm256_max_pd(vec2, vec3));
-#else
-        return Vector3DTemplate<N>(std::max(vec1.m_x, std::max(vec2.m_x, vec3.m_x)),
-                                   std::max(vec1.m_y, std::max(vec2.m_y, vec3.m_y)),
-                                   std::max(vec1.m_z, std::max(vec2.m_z, vec3.m_z)));
-#endif
-    }
-
-    template <class N>
-    inline Vector3DTemplate<N> min(const Vector3DTemplate<N> &lhs, const Vector3DTemplate<N> &rhs)
-    {
-#ifdef __CORK_AVX__
-        return _mm256_min_pd(lhs, rhs);
-#else
-        return Vector3DTemplate<N>(std::min(lhs.m_x, rhs.m_x), std::min(lhs.m_y, rhs.m_y), std::min(lhs.m_z, rhs.m_z));
-#endif
-    }
-
-    template <class N>
-    inline Vector3DTemplate<N> min(const Vector3DTemplate<N> &vec1, const Vector3DTemplate<N> &vec2,
-                                   const Vector3DTemplate<N> &vec3)
-    {
-#ifdef __CORK_AVX__
-        return _mm256_min_pd(vec1, _mm256_min_pd(vec2, vec3));
-#else
-        return Vector3DTemplate<N>(std::min(vec1.m_x, std::min(vec2.m_x, vec3.m_x)),
-                                   std::min(vec1.m_y, std::min(vec2.m_y, vec3.m_y)),
-                                   std::min(vec1.m_z, std::min(vec2.m_z, vec3.m_z)));
-#endif
-    }
-
     // determinant of 3 Vector3DTemplates
-    template <class T>
-    inline T determinant(const Vector3DTemplate<T> &v0, const Vector3DTemplate<T> &v1, const Vector3DTemplate<T> &v2)
+    template <class T, SIMDInstructionSet SIMD>
+    inline T determinant(const Vector3DTemplate<T,SIMD> &v0, const Vector3DTemplate<T,SIMD> &v1, const Vector3DTemplate<T,SIMD> &v2)
     {
         T xy = v0.m_x * v1.m_y - v0.m_y * v1.m_x;
         T xz = v0.m_x * v1.m_z - v0.m_z * v1.m_x;

@@ -288,7 +288,7 @@ namespace Cork
 
 			//	Check the bounding box intersection first
 
-			Cork::Math::BBox3D		boundingBox( min( m_verts[tri.a()], m_verts[tri.b()], m_verts[tri.c()] ), max( m_verts[tri.a()], m_verts[tri.b()], m_verts[tri.c()] ) );
+			Cork::Math::BBox3D		boundingBox( m_verts[tri.a()].min( m_verts[tri.b()], m_verts[tri.c()] ), m_verts[tri.a()].max( m_verts[tri.b()], m_verts[tri.c()] ) );
 
 			if( !boundingBox.intersects( directionRay ))
 			{
