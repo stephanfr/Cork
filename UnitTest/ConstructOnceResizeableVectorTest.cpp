@@ -1,7 +1,7 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "../CorkLib/Util/ConstuctOnceResizeableVector.h"
+#include "util/ConstuctOnceResizeableVector.h"
 
 //	Resettable element for testing
 

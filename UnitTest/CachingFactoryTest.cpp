@@ -4,8 +4,8 @@
 #include <chrono>
 #include <thread>
 
-#include "../CorkLib/Util/CachingFactory.h"
-#include "../CorkLib/Util/Resettable.h"
+#include "util/CachingFactory.h"
+#include "util/Resettable.h"
 
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
 

@@ -1,11 +1,11 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "../CorkLib/SIMDInstructionSet.h"
+#include "../src/SIMDInstructionSet.h"
 
 #define __AVX_AVAILABLE__
 
-#include "../CorkLib/Math/Vector3DTemplate.h"
+#include "math/Vector3DTemplate.h"
 
 #include <string>
 

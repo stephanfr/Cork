@@ -53,9 +53,10 @@ include_directories(
   ./thirdparty/tbb/tbb2017_20170807oss/include
   ./thirdparty/mpir/mpir-2.7.2
   ${xoroshiro256plussimd_SOURCE_DIR}/include
+  ./include
   )
 
-add_subdirectory(CorkLib)
+add_subdirectory(src)
 
 if ( DEFINED CORK_IS_MASTER_PROJECT )
   add_subdirectory(RegressionTest)

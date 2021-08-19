@@ -16,10 +16,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 include_directories(
-  ../CorkLib
-  ../thirdparty/boost/boost_1_65_1
-  ../thirdparty/tbb/tbb2017_20170807oss/include
-  ../thirdparty/mpir/mpir-2.7.2
+    ..
+    ../include
   )
 
 link_directories(/home/steve/dev/Cork/thirdparty/tbb/tbb2017_20170807oss/lib/intel64/gcc4.7)

@@ -2,11 +2,9 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "../CorkLib/CorkDefs.h"
-
 #define NUMERIC_PRECISION double
 
-#include "../CorkLib/Math/Vector3DTemplate.h"
+#include "math/Vector3DTemplate.h"
 
 typedef Cork::Math::Vector3DTemplate<NUMERIC_PRECISION, SIMDInstructionSet::NONE> Vector3D;
 typedef Cork::Math::Vector3DTemplate<NUMERIC_PRECISION, SIMDInstructionSet::AVX2> Vector3DAVX;

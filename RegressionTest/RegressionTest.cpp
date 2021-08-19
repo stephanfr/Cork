@@ -38,7 +38,7 @@
 #include <boost/program_options.hpp>
 
 #include "cork.h"
-#include "FileFormats/files.h"
+#include "file_formats/files.h"
 
 
 //#include "C:\Program Files (x86)\Microsoft Visual Studio 12.0\Team Tools\Performance Tools\PerfSDK\VSPerf.h"
@@ -151,6 +151,11 @@ int main(int argc, char* argv[])
 		timingResultsFilePath += "/timing_results.txt";
 
 		timingResults.open( timingResultsFilePath );
+
+		timingResults << "Filename" << "\t" << "CPU Time" << "\t" << "Wall Time" << "\t" << "# Tris Starting" 
+					                << "\t" << "# Tris Final" << "\t" << "Virt Mem Start" << "\t" << "Virt Mem End" << std::endl << std::endl;
+
+		timingResults << std::fixed << std::setprecision(4);
 
 		//	Open a cumulative timing results file
 
@@ -277,8 +282,8 @@ int main(int argc, char* argv[])
 
 					if( writeStats )
 					{
-						timingResults << filename << "\t" << unionedMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds()
-							                      << "\t" << unionedMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds()
+						timingResults << filename << "\t" << unionedMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds() / 1.0E9
+							                      << "\t" << unionedMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds() / 1.0E9
 												  << "\t" << unionedMesh->GetPerformanceStats().numberOfTrianglesInDisjointUnion()
 												  << "\t" << unionedMesh->GetPerformanceStats().numberOfTrianglesInFinalMesh()
 												  << "\t" << unionedMesh->GetPerformanceStats().startingVirtualMemorySizeInMB()
@@ -330,8 +335,8 @@ int main(int argc, char* argv[])
 
 					if( writeStats )
 					{
-						timingResults << filename << "\t" << differenceMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds()
-							                      << "\t" << differenceMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds()
+						timingResults << filename << "\t" << differenceMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds() / 1.0E9
+							                      << "\t" << differenceMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds() / 1.0E9
 							                      << "\t" << differenceMesh->GetPerformanceStats().numberOfTrianglesInDisjointUnion()
 												  << "\t" << differenceMesh->GetPerformanceStats().numberOfTrianglesInFinalMesh()
 												  << "\t" << differenceMesh->GetPerformanceStats().startingVirtualMemorySizeInMB()
@@ -383,8 +388,8 @@ int main(int argc, char* argv[])
 
 					if( writeStats )
 					{
-						timingResults << filename << "\t" << intersectionMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds()
-							                      << "\t" << intersectionMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds()
+						timingResults << filename << "\t" << intersectionMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds() / 1.0E9
+							                      << "\t" << intersectionMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds() / 1.0E9
 							                      << "\t" << intersectionMesh->GetPerformanceStats().numberOfTrianglesInDisjointUnion()
 												  << "\t" << intersectionMesh->GetPerformanceStats().numberOfTrianglesInFinalMesh()
 												  << "\t" << intersectionMesh->GetPerformanceStats().startingVirtualMemorySizeInMB()
@@ -436,8 +441,8 @@ int main(int argc, char* argv[])
 
 					if( writeStats )
 					{
-						timingResults << filename << "\t" << XORMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds()
-							                      << "\t" << XORMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds()
+						timingResults << filename << "\t" << XORMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds() / 1.0E9
+							                      << "\t" << XORMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds() / 1.0E9
 							                      << "\t" << XORMesh->GetPerformanceStats().numberOfTrianglesInDisjointUnion()
 												  << "\t" << XORMesh->GetPerformanceStats().numberOfTrianglesInFinalMesh()
 												  << "\t" << XORMesh->GetPerformanceStats().startingVirtualMemorySizeInMB()
@@ -452,7 +457,7 @@ int main(int argc, char* argv[])
 
 		if( writeStats )
 		{
-			cumulativeTimingResults << firstModel.first.filename() << "\t" << cumulativeCPUTime << "\t" << cumulativeWallTime << std::endl;
+			cumulativeTimingResults << firstModel.first.filename() << "\t" << cumulativeCPUTime / 1.0E9 << "\t" << cumulativeWallTime / 1.0E9 << std::endl;
 		}
 	}
 

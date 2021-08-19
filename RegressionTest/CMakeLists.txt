@@ -1,6 +1,6 @@
 
 include_directories(
-  ../CorkLib
+  ../src
   ../thirdparty/boost/boost_1_65_1
   ../thirdparty/tbb/tbb2017_20170807oss/include
   ../thirdparty/mpir/mpir-2.7.2
