@@ -39,9 +39,25 @@ if (NOT DEFINED CORK_IS_MASTER_PROJECT)
   endif ()
 endif ()
 
+
+FetchContent_Declare(
+  Xoroshiro256PlusSIMD
+  GIT_REPOSITORY https://github.com/stephanfr/Xoroshiro256PlusSIMD.git
+  GIT_TAG        main)
+
+FetchContent_MakeAvailable(Xoroshiro256PlusSIMD)
+
+
 include_directories(
+  ./thirdparty/boost/boost_1_65_1
+  ./thirdparty/tbb/tbb2017_20170807oss/include
+  ./thirdparty/mpir/mpir-2.7.2
+  ${xoroshiro256plussimd_SOURCE_DIR}/include
   )
 
 add_subdirectory(CorkLib)
-add_subdirectory(RegressionTest)
-add_subdirectory(UnitTest)
+
+if ( DEFINED CORK_IS_MASTER_PROJECT )
+  add_subdirectory(RegressionTest)
+  add_subdirectory(UnitTest)
+endif ()

@@ -30,8 +30,8 @@
 
 const int QUANTIZATION_BITS = 30;        //	number of bits to set resolution of quantizing grid snapped to model
 const int PERTURBATION_BUFFER_BITS = 8;  //	minimum number of bits of resolution that we will reserve when perturbing
-                                         //the model 		8 bits means that we will not perturb the mesh more than 1/128th of
-                                         //the length of the smallest edge in the model
+                                         // the model 		8 bits means that we will not perturb the mesh more than
+                                         // 1/128th of the length of the smallest edge in the model
 const int PERTURBATION_RANGE_BITS = 5;          //	number of bits we will perturb over
 const int MINIMUM_PERTURBATION_RANGE_BITS = 2;  //	initially perturbation range will be 2^2 or 4
 
@@ -44,8 +44,14 @@ const int MINIMUM_PERTURBATION_RANGE_BITS = 2;  //	initially perturbation range 
 //
 
 #ifdef __HAVE_AVX_EXTENSIONS__
+#ifdef __HAVE_AVX2_EXTENSIONS__
+constexpr SIMDInstructionSet g_SIMD_Level = SIMDInstructionSet::AVX2;
+#define __AVX_AVAILABLE__
+#define __AVX2_AVAILABLE__
+#else
 constexpr SIMDInstructionSet g_SIMD_Level = SIMDInstructionSet::AVX;
 #define __AVX_AVAILABLE__
+#endif
 #else
 constexpr SIMDInstructionSet g_SIMD_Level = SIMDInstructionSet::NONE;
 #endif

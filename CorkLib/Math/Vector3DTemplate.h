@@ -34,11 +34,8 @@
 #include <iostream>
 
 #include "../CorkDefs.h"
+#include "Xoroshiro256Plus.h"
 #include "Vector2DTemplate.h"
-
-#ifdef __AVX_AVAILABLE__
-#include "SSERng.h"
-#endif
 
 namespace Cork::Math
 {
@@ -62,6 +59,8 @@ namespace Cork::Math
             __m256d m_ymm;
 #endif
         };
+
+        static SEFUtility::RNG::Xoroshiro256Plus<SIMD> random_generator_;
 
         friend class BBox3D;
 
@@ -113,20 +112,9 @@ namespace Cork::Math
         }
 #endif
 
-        static Vector3DTemplate randomVector(float min, float max)
+        static Vector3DTemplate randomVector(N min, N max)
         {
-            if constexpr (SIMD == SIMDInstructionSet::AVX)
-            {
-                std::array<float, 4> result;
-
-                drand_sse(result, min, max);
-
-                return Vector3DTemplate((N)result[0], (N)result[1], (N)result[2]);
-            }
-            else
-            {
-                return Vector3DTemplate((N)drand(min, max), (N)drand(min, max), (N)drand(min, max));
-            }
+            return Vector3DTemplate(random_generator_.dnext4(min,max));
         }
 
         N x() const { return (m_x); }
@@ -313,7 +301,7 @@ namespace Cork::Math
 
         Vector3DTemplate max(const Vector3DTemplate &rhs) const
         {
-            if constexpr (SIMD == SIMDInstructionSet::AVX)
+            if constexpr (SIMD >= SIMDInstructionSet::AVX)
             {
                 return _mm256_max_pd(*this, rhs);
             }
@@ -325,7 +313,7 @@ namespace Cork::Math
 
         Vector3DTemplate max(const Vector3DTemplate &vec2, const Vector3DTemplate &vec3) const
         {
-            if constexpr (SIMD == SIMDInstructionSet::AVX)
+            if constexpr (SIMD >= SIMDInstructionSet::AVX)
             {
                 return _mm256_max_pd(*this, _mm256_max_pd(vec2, vec3));
             }
@@ -339,7 +327,7 @@ namespace Cork::Math
 
         Vector3DTemplate min(const Vector3DTemplate &rhs) const
         {
-            if constexpr (SIMD == SIMDInstructionSet::AVX)
+            if constexpr (SIMD >= SIMDInstructionSet::AVX)
             {
                 return _mm256_min_pd(*this, rhs);
             }
@@ -351,7 +339,7 @@ namespace Cork::Math
 
         Vector3DTemplate min(const Vector3DTemplate &vec2, const Vector3DTemplate &vec3) const
         {
-            if constexpr (SIMD == SIMDInstructionSet::AVX)
+            if constexpr (SIMD >= SIMDInstructionSet::AVX)
             {
                 return _mm256_min_pd(*this, _mm256_min_pd(vec2, vec3));
             }
@@ -368,33 +356,42 @@ namespace Cork::Math
         //
 
         template <class T, SIMDInstructionSet S>
-        friend T determinant(const Vector3DTemplate<T, S> &, const Vector3DTemplate<T, S> &, const Vector3DTemplate<T, S> &);
+        friend T determinant(const Vector3DTemplate<T, S> &, const Vector3DTemplate<T, S> &,
+                             const Vector3DTemplate<T, S> &);
 
         template <class T, SIMDInstructionSet S>
         friend std::ostream &operator<<(std::ostream &, const Vector3DTemplate<T, S> &);
     };
 
     //
+    //  Define the random number generator
+    //
+
+    template <class N, SIMDInstructionSet SIMD>
+    SEFUtility::RNG::Xoroshiro256Plus<SIMD> Vector3DTemplate<N, SIMD>::random_generator_(1);
+
+    //
     // Non Destructive Arithmetic
     //
 
     template <class T, SIMDInstructionSet SIMD>
-    Vector3DTemplate<T, SIMD> operator*(const T &lhs, const Vector3DTemplate<T,SIMD> &rhs)
+    Vector3DTemplate<T, SIMD> operator*(const T &lhs, const Vector3DTemplate<T, SIMD> &rhs)
     {
-        Vector3DTemplate<T,SIMD> res(rhs);
+        Vector3DTemplate<T, SIMD> res(rhs);
         return res *= lhs;
     }
 
     // output/input stream operators
     template <class T, SIMDInstructionSet SIMD>
-    inline std::ostream &operator<<(std::ostream &out, const Vector3DTemplate<T,SIMD> &vec)
+    inline std::ostream &operator<<(std::ostream &out, const Vector3DTemplate<T, SIMD> &vec)
     {
         return out << '[' << vec.m_x << ',' << vec.m_y << ',' << vec.m_z << ']';
     }
 
     // determinant of 3 Vector3DTemplates
     template <class T, SIMDInstructionSet SIMD>
-    inline T determinant(const Vector3DTemplate<T,SIMD> &v0, const Vector3DTemplate<T,SIMD> &v1, const Vector3DTemplate<T,SIMD> &v2)
+    inline T determinant(const Vector3DTemplate<T, SIMD> &v0, const Vector3DTemplate<T, SIMD> &v1,
+                         const Vector3DTemplate<T, SIMD> &v2)
     {
         T xy = v0.m_x * v1.m_y - v0.m_y * v1.m_x;
         T xz = v0.m_x * v1.m_z - v0.m_z * v1.m_x;

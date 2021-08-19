@@ -33,7 +33,7 @@ add_executable( tests
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain Corklib tbb mpir boost_program_options boost_filesystem boost_system boost_timer boost_thread pthread)
 
 add_executable( benchmarks
-  UnionFindBenchmark.cpp
+#  UnionFindBenchmark.cpp
   Vector3DBenchmark.cpp
 )
 

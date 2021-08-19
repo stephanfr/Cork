@@ -31,9 +31,12 @@ THE SOFTWARE.
 #include <atomic>
 #include <tuple>
 
-#include "Xoroshiro128Plus.h"
+#include "../CorkDefs.h"
+
+#include "Xoroshiro256Plus.h"
 
 
+typedef SEFUtility::RNG::Xoroshiro256Plus<g_SIMD_Level> Xoroshiro256Plus;
 
 
 class IUnionFind
@@ -165,7 +168,7 @@ public:
 		//		need the statistical purity it provides - we just need random values to
 		//		determine the ranking of entries.
 
-		Xoroshiro128Plus		randomGenerator(N);
+		Xoroshiro256Plus		randomGenerator(N);
 
 		//	Make each element it's own parent to start.  We can use the relaxed memory ordering here
 		//		as there should not be any memory read issues - we are just storing values.
@@ -254,11 +257,11 @@ public:
 		m_parents = new std::atomic<size_t>[m_size];
 		m_rank = new size_t[m_size];
 
-		//	The choice of Xororshiro128+ here is all about speed.  We absolutely do not
+		//	The choice of Xororshiro256+ here is all about speed.  We absolutely do not
 		//		need the statistical purity it provides - we just need random values to
 		//		determine the ranking of entries.
 
-		Xoroshiro128Plus		randomGenerator(N);
+		Xoroshiro256Plus		randomGenerator(N);
 
 		//	Make each element it's own parent to start.  We can use the relaxed memory ordering here
 		//		as there should not be any memory read issues - we are just storing values.
@@ -370,11 +373,11 @@ public:
 		m_parents = new std::atomic<size_t>[m_size];
 		m_rank = new size_t[m_size];
 
-		//	The choice of Xororshiro128+ here is all about speed.  We absolutely do not
+		//	The choice of Xororshiro256+ here is all about speed.  We absolutely do not
 		//		need the statistical purity it provides - we just need random values to
 		//		determine the ranking of entries.
 
-		Xoroshiro128Plus		randomGenerator(N);
+		Xoroshiro256Plus		randomGenerator(N);
 
 		//	Make each element it's own parent to start.  We can use the relaxed memory ordering here
 		//		as there should not be any memory read issues - we are just storing values.
