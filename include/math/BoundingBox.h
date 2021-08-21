@@ -1,12 +1,12 @@
 // +-------------------------------------------------------------------------
 // | BoundingBox.h
-// | 
+// |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
 // | COPYRIGHT:
 // |    Copyright Gilbert Bernstein 2013
 // |    See the included COPYRIGHT file for further details.
-// |    
+// |
 // |    This file is part of the Cork library.
 // |
 // |    Cork is free software: you can redistribute it and/or modify
@@ -19,253 +19,187 @@
 // |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // |    GNU Lesser General Public License for more details.
 // |
-// |    You should have received a copy 
+// |    You should have received a copy
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
 #pragma once
 
+#include <cfloat>
 
 #include "Primitives.h"
-
-#include <cfloat>
+#include "Ray3D.h"
 
 //  All BBoxes are initialized so that
 //      convex(BBox(), bb) == bb
 //  for any bounding box
 
-
-
-namespace Cork
+namespace Cork::Math
 {
-	namespace Math
-	{
+    // **************************************************************************
+    // *  BBox3 stores 3-dimensional axis aligned bounding boxes
+    // **************************************************************************
 
+    const double two = 2.0;
 
-		// **************************************************************************
-		// *  BBox3 stores 3-dimensional axis aligned bounding boxes
-		// **************************************************************************
+#ifdef __AVX_AVAILABLE__
+    const __m256d AVXtwo = _mm256_load_pd(&two);
+#endif
 
+    class BBox3D final
+    {
+       public:
+        BBox3D() : m_minp(FLT_MAX, FLT_MAX, FLT_MAX), m_maxp(-FLT_MAX, -FLT_MAX, -FLT_MAX) {}
 
-		const double		two = 2.0;
+        BBox3D(const Vector3D& minpp, const Vector3D& maxpp) : m_minp(minpp), m_maxp(maxpp) {}
 
-		#ifdef __AVX_AVAILABLE__
-		const __m256d		AVXtwo = _mm256_load_pd( &two );
-		#endif
+        BBox3D(const BBox3D& bb) : m_minp(bb.m_minp), m_maxp(bb.m_maxp) {}
 
-		class BBox3D final
-		{
-		public:
+        const Vector3D& minima() const { return (m_minp); }
 
-	
-			BBox3D()
-				: m_minp( FLT_MAX, FLT_MAX, FLT_MAX),
-				  m_maxp(-FLT_MAX,-FLT_MAX,-FLT_MAX)
-			{}
+        const Vector3D& maxima() const { return (m_maxp); }
 
-			BBox3D( const Vector3D&	minpp,
-					const Vector3D&	maxpp )
-				: m_minp(minpp),
-				  m_maxp(maxpp)
-			{}
+        Vector3D center() const
+        {
+#ifdef __AVX_AVAILABLE__
+            Vector3D result;
 
-			BBox3D(const BBox3D&	bb)
-				: m_minp(bb.m_minp),
-				  m_maxp(bb.m_maxp)
-			{}
+            _mm256_store_pd((double*)&result.m_ymm,
+                            _mm256_add_pd(m_minp, _mm256_div_pd(_mm256_sub_pd(m_maxp, m_minp), AVXtwo)));
 
+            return (result);
+#else
+            return (m_minp + ((m_maxp - m_minp) / (NUMERIC_PRECISION)2.0));
+#endif
+        }
 
+        bool isEmpty() const { return ((m_maxp[0] < m_minp[0]) || (m_maxp[1] < m_minp[1]) || (m_maxp[2] < m_minp[2])); }
 
-			const Vector3D&		minima() const
-			{
-				return(m_minp);
-			}
+        bool isIn(const Vector3D& pointToTest) const
+        {
+            return ((m_minp[0] <= pointToTest[0]) && (pointToTest[0] <= m_maxp[0]) && (m_minp[1] <= pointToTest[1]) &&
+                    (pointToTest[1] <= m_maxp[1]) && (m_minp[2] <= pointToTest[2]) && (pointToTest[2] <= m_maxp[2]));
+        }
 
-			const Vector3D&		maxima() const
-			{
-				return(m_maxp);
-			}
+#ifdef __AVX_AVAILABLE__
 
-			Vector3D			center() const
-			{
-		#ifdef __AVX_AVAILABLE__
-				Vector3D		result;
+        //	SSE2 implementation
 
-				_mm256_store_pd( (double*)&result.m_ymm, _mm256_add_pd( m_minp, _mm256_div_pd( _mm256_sub_pd( m_maxp, m_minp ), AVXtwo ) ));
+        bool intersects(const BBox3D& rhs) const
+        {
+            return (_mm256_movemask_pd(_mm256_and_pd(_mm256_cmp_pd(m_minp, rhs.m_maxp, _CMP_LE_OQ),
+                                                     _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) == 0x0F);
+        }
 
-				return( result );
-		#else
-				return( m_minp + (( m_maxp - m_minp ) / (NUMERIC_PRECISION)2.0 ));
-		#endif
-			}
+        inline bool doesNotIntersect(const BBox3D& rhs) const
+        {
+            return (_mm256_movemask_pd(_mm256_and_pd(_mm256_cmp_pd(m_minp, rhs.m_maxp, _CMP_LE_OQ),
+                                                     _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) != 0x0F);
+        }
 
+#else
 
-			bool isEmpty() const
-			{
-				return(( m_maxp[0] < m_minp[0] ) ||
-					   ( m_maxp[1] < m_minp[1] ) ||
-					   ( m_maxp[2] < m_minp[2] ));
-			}
+        inline bool intersects(const BBox3D& rhs) const
+        {
+            return ((m_minp[0] <= rhs.m_maxp[0]) && (m_maxp[0] >= rhs.m_minp[0]) && (m_minp[1] <= rhs.m_maxp[1]) &&
+                    (m_maxp[1] >= rhs.m_minp[1]) && (m_minp[2] <= rhs.m_maxp[2]) && (m_maxp[2] >= rhs.m_minp[2]));
+        }
 
+        inline bool doesNotIntersect(const BBox3D& rhs) const
+        {
+            return ((m_minp[0] >= rhs.m_maxp[0]) || (m_maxp[0] <= rhs.m_minp[0]) || (m_minp[1] >= rhs.m_maxp[1]) ||
+                    (m_maxp[1] <= rhs.m_minp[1]) || (m_minp[2] >= rhs.m_maxp[2]) || (m_maxp[2] <= rhs.m_minp[2]));
+        }
 
-			bool isIn( const Vector3D&	pointToTest ) const
-			{
-				return(( m_minp[0] <= pointToTest[0] ) &&
-					   ( pointToTest[0] <= m_maxp[0] ) &&
-					   ( m_minp[1] <= pointToTest[1] ) &&
-					   ( pointToTest[1] <= m_maxp[1] ) &&
-					   ( m_minp[2] <= pointToTest[2] ) &&
-					   ( pointToTest[2] <= m_maxp[2] ));
-			}
+#endif
 
-		#ifdef __AVX_AVAILABLE__
-	
-			//	SSE2 implementation
+        void scale(const Vector3D& scaling)
+        {
+            m_minp = Vector3D(m_minp.x() * scaling.x(), m_minp.y() * scaling.y(), m_minp.z() * scaling.z());
+            m_maxp = Vector3D(m_maxp.x() * scaling.x(), m_maxp.y() * scaling.y(), m_maxp.z() * scaling.z());
+        }
 
-			bool	intersects( const BBox3D&			rhs ) const
-			{
-				return( _mm256_movemask_pd( _mm256_and_pd( _mm256_cmp_pd( m_minp, rhs.m_maxp, _CMP_LE_OQ ), _mm256_cmp_pd( m_maxp, rhs.m_minp, _CMP_GE_OQ ) ) ) == 0x0F );
-			}
+        void convex(const BBox3D& rhs)
+        {
+#ifdef __AVX_AVAILABLE__
+            m_minp = _mm256_min_pd(m_minp, rhs.m_minp);
+            m_maxp = _mm256_max_pd(m_maxp, rhs.m_maxp);
+#else
+            m_minp = min(m_minp, rhs.m_minp);
+            m_maxp = max(m_maxp, rhs.m_maxp);
+#endif
+        }
 
-			inline
-			bool	doesNotIntersect( const BBox3D&		rhs ) const
-			{
-				return( _mm256_movemask_pd( _mm256_and_pd( _mm256_cmp_pd( m_minp, rhs.m_maxp, _CMP_LE_OQ ), _mm256_cmp_pd( m_maxp, rhs.m_minp, _CMP_GE_OQ ) ) ) != 0x0F );
-			}
+        void convex(const BBox3D& rhs, BBox3D& result) const
+        {
+#ifdef __AVX_AVAILABLE__
+            _mm256_store_pd((double*)&result.m_minp, _mm256_min_pd(m_minp, rhs.m_minp));
+            _mm256_store_pd((double*)&result.m_maxp, _mm256_max_pd(m_maxp, rhs.m_maxp));
+#else
+            result.m_minp = min(m_minp, rhs.m_minp);
+            result.m_maxp = max(m_maxp, rhs.m_maxp);
+#endif
+        }
 
-		#else
+        BBox3D intersection(const BBox3D& rhs) const
+        {
+            return (BBox3D(m_minp.max(rhs.m_minp), m_maxp.min(rhs.m_maxp)));
+        }
 
-			inline
-			bool intersects(const BBox3D&		rhs) const
-			{
-				return(( m_minp[0] <= rhs.m_maxp[0] ) &&
-					   ( m_maxp[0] >= rhs.m_minp[0] ) &&
-					   ( m_minp[1] <= rhs.m_maxp[1] ) &&
-					   ( m_maxp[1] >= rhs.m_minp[1] ) &&
-					   ( m_minp[2] <= rhs.m_maxp[2] ) &&
-					   ( m_maxp[2] >= rhs.m_minp[2] ));
-			}
+        Vector3D dim() const { return (m_maxp - m_minp); }
 
-			inline
-			bool	doesNotIntersect( const BBox3D&		rhs ) const
-			{
-				return(( m_minp[0] >= rhs.m_maxp[0] ) ||
-					   ( m_maxp[0] <= rhs.m_minp[0] ) ||
-					   ( m_minp[1] >= rhs.m_maxp[1] ) ||
-					   ( m_maxp[1] <= rhs.m_minp[1] ) ||
-					   ( m_minp[2] >= rhs.m_maxp[2] ) ||
-					   ( m_maxp[2] <= rhs.m_minp[2] ));
-			}
+        NUMERIC_PRECISION surfaceArea() const
+        {
+            Vector3D d = dim();
+            return (2 * (d[1] * d[2] + d[0] * d[2] + d[0] * d[1]));
+        }
 
-		#endif
+        bool intersects(Ray3DWithInverseDirection& ray) const
+        {
+            NUMERIC_PRECISION txmin, txmax, tymin, tymax, tzmin, tzmax, txymin, txymax;
 
+            const std::array<Vector3D, 2>& bounds = reinterpret_cast<const std::array<Vector3D, 2>&>(m_minp);
 
-			void		scale( const Vector3D&		scaling )
-			{
-				m_minp = Vector3D( m_minp.x() * scaling.x(), m_minp.y() * scaling.y(), m_minp.z() * scaling.z() );
-				m_maxp = Vector3D( m_maxp.x() * scaling.x(), m_maxp.y() * scaling.y(), m_maxp.z() * scaling.z() );
-			}
+            txmin = (bounds[ray.signs()[0]].x() - ray.origin().x()) * ray.inverseDirection().x();
+            tymax = (bounds[1 - ray.signs()[1]].y() - ray.origin().y()) * ray.inverseDirection().y();
 
+            if (txmin > tymax)
+            {
+                return false;
+            }
 
+            txmax = (bounds[1 - ray.signs()[0]].x() - ray.origin().x()) * ray.inverseDirection().x();
+            tymin = (bounds[ray.signs()[1]].y() - ray.origin().y()) * ray.inverseDirection().y();
 
-			void		convex(  const BBox3D&		rhs )
-			{
-		#ifdef __AVX_AVAILABLE__
-				m_minp = _mm256_min_pd( m_minp, rhs.m_minp );
-				m_maxp = _mm256_max_pd( m_maxp, rhs.m_maxp );	
-		#else
-				m_minp = min( m_minp, rhs.m_minp );
-				m_maxp = max( m_maxp, rhs.m_maxp );
-		#endif
-			}
-	
+            if (tymin > txmax)
+            {
+                return false;
+            }
 
-			void		convex( const BBox3D&		rhs,
-								BBox3D&				result ) const
-			{		
-		#ifdef __AVX_AVAILABLE__
-				_mm256_store_pd( (double*)&result.m_minp, _mm256_min_pd( m_minp, rhs.m_minp ));
-				_mm256_store_pd( (double*)&result.m_maxp, _mm256_max_pd( m_maxp, rhs.m_maxp ));
-		#else
-				result.m_minp = min( m_minp, rhs.m_minp );
-				result.m_maxp = max( m_maxp, rhs.m_maxp );
-		#endif
-			}
+            txymin = std::max(tymin, txmin);
+            txymax = std::min(txmax, tymax);
 
+            tzmin = (bounds[ray.signs()[2]].z() - ray.origin().z()) * ray.inverseDirection().z();
 
-			BBox3D intersection(const BBox3D&		rhs) const
-			{
-				return( BBox3D( m_minp.max( rhs.m_minp ), m_maxp.min( rhs.m_maxp )));
-			}
+            if (tzmin > txymax)
+            {
+                return (false);
+            }
 
+            tzmax = (bounds[1 - ray.signs()[2]].z() - ray.origin().z()) * ray.inverseDirection().z();
 
-			Vector3D dim() const 
-			{
-				return( m_maxp - m_minp );
-			}
+            return (txymin <= tzmax);
+        }
 
+       private:
+        Vector3D m_minp;
+        Vector3D m_maxp;
+    };
 
-			NUMERIC_PRECISION	surfaceArea() const
-			{
-				Vector3D d = dim();
-				return( 2 * (d[1] * d[2] + d[0] * d[2] + d[0] * d[1]));
-			}
+    inline std::ostream& operator<<(std::ostream& out, const BBox3D& bb)
+    {
+        return out << "[min" << bb.minima() << ";max" << bb.maxima() << ']';
+    }
 
-
-			bool	intersects( Cork::Math::Ray3DWithInverseDirection&				ray ) const
-			{
-				NUMERIC_PRECISION txmin, txmax, tymin, tymax, tzmin, tzmax, txymin, txymax;
-
-				const std::array<Vector3D,2>&		bounds = reinterpret_cast<const std::array<Vector3D,2>&>(m_minp);
-
-				txmin = ( bounds[ray.signs()[0]].x() - ray.origin().x() ) * ray.inverseDirection().x();
-				tymax = ( bounds[1 - ray.signs()[1]].y() - ray.origin().y() ) * ray.inverseDirection().y();
-
-				if( txmin > tymax )
-				{
-					return false;
-				}
-
-				txmax = ( bounds[1 - ray.signs()[0]].x() - ray.origin().x() ) * ray.inverseDirection().x();
-				tymin = ( bounds[ray.signs()[1]].y() - ray.origin().y() ) * ray.inverseDirection().y();
-
-				if( tymin > txmax )
-				{
-					return false;
-				}
-
-				txymin = std::max( tymin, txmin );
-				txymax = std::min( txmax, tymax );
-
-				tzmin = ( bounds[ray.signs()[2]].z() - ray.origin().z() ) * ray.inverseDirection().z();
-
-				if( tzmin > txymax )
-				{
-					return( false );
-				}
-
-				tzmax = ( bounds[1 - ray.signs()[2]].z() - ray.origin().z() ) * ray.inverseDirection().z();
-
-				return( txymin <= tzmax );
-			}
-
-
-
-		private :
-
-			Vector3D				m_minp;
-			Vector3D				m_maxp;
-		};
-
-
-
-		inline std::ostream& operator<<(std::ostream &out, const BBox3D &bb)
-		{
-			return out << "[min" << bb.minima() << ";max" << bb.maxima() << ']';
-		}
-
-
-	}	//	namespace Math
-}		//	namespace Cork
-
+}  // namespace Cork::Math

@@ -28,10 +28,11 @@
 #include <tbb/spin_mutex.h>
 
 #include <array>
+#include <optional>
+
 #include <boost/container/small_vector.hpp>
 #include <boost/container/static_vector.hpp>
 #include <boost/dynamic_bitset.hpp>
-#include <boost/optional.hpp>
 
 #include "intersection/empty3d.h"
 #include "intersection/quantization.h"
@@ -259,7 +260,7 @@ namespace Cork
             const Cork::Math::Vector3D& p1 = *(m_verts[1]->quantizedValue());
             const Cork::Math::Vector3D& p2 = *(m_verts[2]->quantizedValue());
 
-            const_cast<boost::optional<Cork::Math::BBox3D>&>(m_boundingBox).emplace(min(p0, p1, p2), max(p0, p1, p2));
+            const_cast<std::optional<Cork::Math::BBox3D>&>(m_boundingBox).emplace(min(p0, p1, p2), max(p0, p1, p2));
 
             return (m_boundingBox.get());
         }
@@ -453,7 +454,7 @@ namespace Cork
         std::array<TopoEdge*, 3> m_edges;  // edges of this triangle opposite to the given vertex
 
 #ifndef __AVX_AVAILABLE__
-        boost::optional<Cork::Math::BBox3D> m_boundingBox;
+        std::optional<Cork::Math::BBox3D> m_boundingBox;
 #endif
     };
 

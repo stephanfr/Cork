@@ -1,12 +1,12 @@
 // +-------------------------------------------------------------------------
 // | Primitives.h
-// | 
+// |
 // | Author: Stephan Friedl
 // +-------------------------------------------------------------------------
 // | COPYRIGHT:
 // |    Copyright Stephan Friedl 2015
 // |    See the included COPYRIGHT file for further details.
-// |    
+// |
 // |    This file is part of the Cork library.
 // |
 // |    Cork is free software: you can redistribute it and/or modify
@@ -19,315 +19,192 @@
 // |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // |    GNU Lesser General Public License for more details.
 // |
-// |    You should have received a copy 
+// |    You should have received a copy
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
 #pragma once
 
-
-
+#include <array>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <array>
-#include <vector>
 #include <map>
-
-#include <boost/align/aligned_allocator.hpp>
+#include <vector>
 
 #include "CorkDefs.h"
-
-//#include "../Util/prelude.h"
-
-
-
 
 //
 //	Setup the numeric precision and the vector implementation for the build.
 //
 
-
 #include "Vector2DTemplate.h"
 #include "Vector3DTemplate.h"
 
-namespace Cork
+namespace Cork::Math
 {
-	namespace Math
-	{
-		typedef Vector2DTemplate<NUMERIC_PRECISION>			Vector2D;
-		typedef Vector3DTemplate<NUMERIC_PRECISION>			Vector3D;
-	}
-}
-
+    typedef Vector2DTemplate<NUMERIC_PRECISION> Vector2D;
+    typedef Vector3DTemplate<NUMERIC_PRECISION> Vector3D;
+}  // namespace Cork::Math
 
 //	The Ray and Bounding Box classes depend on the Vector3D and Vertex3D classes
 
-#include "Ray3D.h"
-
 #include "BoundingBox.h"
-
-
-
-
+#include "Ray3D.h"
 
 namespace Cork
 {
-	typedef size_t		IndexType;
+    typedef size_t IndexType;
 
-	namespace Math
-	{
+    namespace Math
+    {
+        //	Vertices and vectors share the same implementation of a numeric 3-tuple
 
+        typedef Vector3D Vertex3D;
 
-		//	Vertices and vectors share the same implementation of a numeric 3-tuple
+        struct Vertex3DMapCompare
+        {
+            bool operator()(const Vertex3D& vertex1, const Vertex3D& vertex2) const
+            {
+                //	Equality is by x, then y and finally z
 
-		typedef Vector3D	Vertex3D;
+                if (vertex1.x() < vertex2.x())
+                {
+                    return (true);
+                }
 
+                if (vertex1.x() > vertex2.x())
+                {
+                    return (false);
+                }
 
+                //	X values are equal
 
-		struct Vertex3DMapCompare
-		{
-			bool operator ()( const Vertex3D&		vertex1,
-							  const Vertex3D&		vertex2 ) const
-			{
-				//	Equality is by x, then y and finally z
+                if (vertex1.y() < vertex2.y())
+                {
+                    return (true);
+                }
 
-				if ( vertex1.x() < vertex2.x() )
-				{
-					return(true);
-				}
+                if (vertex1.y() > vertex2.y())
+                {
+                    return (false);
+                }
 
-				if (  vertex1.x() > vertex2.x() )
-				{
-					return(false);
-				}
+                //	X and Y values are equal
 
-				//	X values are equal
+                if (vertex1.z() < vertex2.z())
+                {
+                    return (true);
+                }
 
-				if (  vertex1.y() < vertex2.y() )
-				{
-					return(true);
-				}
+                if (vertex1.z() > vertex2.z())
+                {
+                    return (false);
+                }
 
-				if (  vertex1.y() > vertex2.y() )
-				{
-					return(false);
-				}
+                //	The only way we should end up down here is if the two vertices are equal
 
-				//	X and Y values are equal
+                return (false);
+            }
+        };
 
-				if (  vertex1.z() < vertex2.z() )
-				{
-					return(true);
-				}
+        typedef std::vector<Vector3D> Vector3DVector;
+        typedef std::vector<Vertex3D> Vertex3DVector;
 
-				if (  vertex1.z() > vertex2.z() )
-				{
-					return(false);
-				}
+        //
+        //	Finally, define some base classes for key mesh classes: Triangle by vertex indices, Edges and Triangle by
+        // vertex points
+        //
 
-				//	The only way we should end up down here is if the two vertices are equal
+        typedef size_t VertexIndex;
 
-				return(false);
-			}
-		};
+        class TriangleByIndicesBase
+        {
+           public:
+            TriangleByIndicesBase() : m_a(-1), m_b(-1), m_c(-1) {}
 
+            TriangleByIndicesBase(VertexIndex a, VertexIndex b, VertexIndex c) : m_a(a), m_b(b), m_c(c) {}
 
+            virtual ~TriangleByIndicesBase() {}
 
-		typedef std::vector<Vector3D, boost::alignment::aligned_allocator<Vector3D>>											Vector3DVector;
-		typedef std::vector<Vertex3D, boost::alignment::aligned_allocator<Vertex3D>>											Vertex3DVector;
+            const VertexIndex operator[](size_t index) const { return (m_indices[index]); }
 
+            VertexIndex& operator[](size_t index) { return (m_indices[index]); }
 
-		//
-		//	Finally, define some base classes for key mesh classes: Triangle by vertex indices, Edges and Triangle by vertex points
-		//
+            const VertexIndex a() const { return (m_a); }
 
+            VertexIndex& a() { return (m_a); }
 
-		typedef size_t	VertexIndex;
+            const VertexIndex b() const { return (m_b); }
 
+            VertexIndex& b() { return (m_b); }
 
-		class TriangleByIndicesBase
-		{
-		public :
+            const VertexIndex c() const { return (m_c); }
 
-			TriangleByIndicesBase()
-				: m_a( -1 ),
-				  m_b( -1 ),
-				  m_c( -1 )
-			{}
+            VertexIndex& c() { return (m_c); }
 
-			TriangleByIndicesBase( VertexIndex		a,
-								   VertexIndex		b,
-								   VertexIndex		c )
-				: m_a( a ),
-				  m_b( b ),
-				  m_c( c )
-			{}
+           protected:
+            union
+            {
+                struct
+                {
+                    VertexIndex m_a;
+                    VertexIndex m_b;
+                    VertexIndex m_c;
+                };
 
-	
-			virtual ~TriangleByIndicesBase()
-			{}
+                std::array<VertexIndex, 3> m_indices;
+            };
+        };
 
+        class EdgeBase
+        {
+           public:
+            EdgeBase(VertexIndex a, VertexIndex b) : m_vertexA(std::min(a, b)), m_vertexB(std::max(a, b)) {}
 
-			const VertexIndex				operator[]( size_t		index ) const
-			{
-				return( m_indices[index] );
-			}
+            virtual ~EdgeBase() {}
 
-			VertexIndex&					operator[]( size_t		index )
-			{
-				return( m_indices[index] );
-			}
+            VertexIndex vertexA() const { return (m_vertexA); }
 
+            VertexIndex vertexB() const { return (m_vertexB); }
 
-			const VertexIndex				a() const
-			{
-				return( m_a );
-			}
+            bool operator==(const EdgeBase& edgeToCompare) const
+            {
+                return ((vertexA() == edgeToCompare.vertexA()) && (vertexB() == edgeToCompare.vertexB()));
+            }
 
-			VertexIndex&					a()
-			{
-				return( m_a );
-			}
+           private:
+            VertexIndex m_vertexA;
+            VertexIndex m_vertexB;
+        };
 
-			const VertexIndex				b() const
-			{
-				return( m_b );
-			}
+        class TriangleByVerticesBase
+        {
+           public:
+            TriangleByVerticesBase(const Vertex3D& firstVertex, const Vertex3D& secondVertex,
+                                   const Vertex3D& thirdVertex)
+                : m_vertices({firstVertex, secondVertex, thirdVertex})
+            {
+            }
 
-			VertexIndex&					b()
-			{
-				return( m_b );
-			}
+            const Vertex3D& operator[](unsigned int index) const { return (m_vertices[index]); }
 
-			const VertexIndex				c() const
-			{
-				return( m_c );
-			}
+            const Vertex3D& vertexA() const { return (m_vertices[0]); }
 
-			VertexIndex&					c()
-			{
-				return( m_c );
-			}
+            const Vertex3D& vertexB() const { return (m_vertices[1]); }
 
+            const Vertex3D& vertexC() const { return (m_vertices[2]); }
 
-		protected :
+            Vector3D edgeAB() const { return (m_vertices[0] - m_vertices[1]); }
 
-			union
-			{
-				struct
-				{
-					VertexIndex			m_a;
-					VertexIndex			m_b;
-					VertexIndex			m_c;
-				};
+            Vector3D edgeAC() const { return (m_vertices[0] - m_vertices[2]); }
 
-				std::array<VertexIndex,3>		m_indices;
-			};
-		};
+            Vector3D edgeBC() const { return (m_vertices[1] - m_vertices[2]); }
 
+           private:
+            std::array<Vertex3D, 3> m_vertices;
+        };
 
-
-
-
-		class EdgeBase
-		{
-		public :
-
-			EdgeBase( VertexIndex		a,
-					  VertexIndex		b )
-				: m_vertexA( std::min( a, b ) ),
-				  m_vertexB( std::max( a, b ) )
-			{}
-
-			virtual ~EdgeBase()
-			{}
-
-
-			VertexIndex			vertexA() const
-			{
-				return( m_vertexA );
-			}
-
-			VertexIndex			vertexB() const
-			{
-				return( m_vertexB );
-			}
-
-			bool		operator==( const EdgeBase&		edgeToCompare ) const
-			{
-				return(( vertexA() == edgeToCompare.vertexA() ) && ( vertexB() == edgeToCompare.vertexB() ));
-			}
-
-
-		private :
-
-			VertexIndex			m_vertexA;
-			VertexIndex			m_vertexB;
-		};
-
-
-
-
-
-
-		class TriangleByVerticesBase
-		{
-		public :
-
-			TriangleByVerticesBase( const Vertex3D&			firstVertex,
-									const Vertex3D&			secondVertex,
-									const Vertex3D&			thirdVertex )
-				: m_vertices( { firstVertex, secondVertex, thirdVertex } )
-			{}
-
-
-			const Vertex3D&		operator[]( unsigned int	index ) const
-			{
-				return(m_vertices[index]);
-			}
-
-
-			const Vertex3D&				vertexA() const
-			{
-				return( m_vertices[0] );
-			}
-
-			const Vertex3D&				vertexB() const
-			{
-				return( m_vertices[1] );
-			}
-
-			const Vertex3D&				vertexC() const
-			{
-				return( m_vertices[2] );
-			}
-
-
-			Vector3D					edgeAB() const
-			{
-				return( m_vertices[0] - m_vertices[1] );
-			}
-
-			Vector3D					edgeAC() const
-			{
-				return( m_vertices[0] - m_vertices[2] );
-			}
-
-			Vector3D					edgeBC() const
-			{
-				return( m_vertices[1] - m_vertices[2] );
-			}
-
-
-		private:
-
-			std::array<Vertex3D, 3>			m_vertices;
-
-		};
-
-
-	}	//	Namespace Math
-}		//	Namespace Cork
-
+    }  // namespace Math
+}  // namespace Cork

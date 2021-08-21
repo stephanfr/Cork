@@ -1,12 +1,12 @@
 // +-------------------------------------------------------------------------
 // | Ray3D.h
-// | 
+// |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
 // | COPYRIGHT:
 // |    Copyright Gilbert Bernstein 2013
 // |    See the included COPYRIGHT file for further details.
-// |    
+// |
 // |    This file is part of the Cork library.
 // |
 // |    Cork is free software: you can redistribute it and/or modify
@@ -19,107 +19,67 @@
 // |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // |    GNU Lesser General Public License for more details.
 // |
-// |    You should have received a copy 
+// |    You should have received a copy
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
 #pragma once
 
+#include "Primitives.h"
 
-
-namespace Cork
+namespace Cork::Math
 {
-	namespace Math
-	{
+    class Ray3D
+    {
+       public:
+        Ray3D() {}
 
-		class Ray3D
-		{
-		public :
+        Ray3D(const Vector3D& point, const Vector3D& dir) : m_origin(point), m_direction(dir) {}
 
-			Ray3D()
-			{}
-    
-			Ray3D( const Vector3D&		point,
-				   const Vector3D&		dir )
-				: m_origin( point ),
-				  m_direction( dir )
-			{}
+        Ray3D(const Ray3D& cp) : m_origin(cp.m_origin), m_direction(cp.m_direction) {}
 
-			Ray3D(const Ray3D&		cp)
-				: m_origin( cp.m_origin ),
-				  m_direction( cp.m_direction )
-			{}
+        const Vector3D& origin() const { return (m_origin); }
 
+        const Vector3D& direction() const { return (m_direction); }
 
-			const Vector3D&			origin() const
-			{
-				return( m_origin );
-			}
+       private:
+        Vector3D m_origin;
+        Vector3D m_direction;
+    };
 
-			const Vector3D&			direction() const
-			{
-				return( m_direction );
-			}
+    class Ray3DWithInverseDirection : public Ray3D
+    {
+       public:
+        Ray3DWithInverseDirection() {}
 
+        Ray3DWithInverseDirection(const Vector3D& point, const Vector3D& dir)
+            : Ray3D(point, dir),
+              m_inverseDirection(1.0 / dir.x(), 1.0 / dir.y(), 1.0 / dir.z()),
+              m_signs({(m_inverseDirection.x() < 0), (m_inverseDirection.y() < 0), (m_inverseDirection.z() < 0)})
+        {
+        }
 
+        Ray3DWithInverseDirection(const Ray3D& cp)
+            : Ray3D(cp),
+              m_inverseDirection(1.0 / cp.direction().x(), 1.0 / cp.direction().y(), 1.0 / cp.direction().z()),
+              m_signs({(m_inverseDirection.x() < 0), (m_inverseDirection.y() < 0), (m_inverseDirection.z() < 0)})
+        {
+        }
 
-		private :
+        const Vector3D& inverseDirection() const { return (m_inverseDirection); }
 
-			Vector3D	m_origin;
-			Vector3D	m_direction;
-		};
+        const std::array<int, 3>& signs() const { return (m_signs); }
 
+       private:
+        Vector3D m_inverseDirection;
 
+        std::array<int, 3> m_signs;
+    };
 
-		class Ray3DWithInverseDirection : public Ray3D
-		{
-		public :
+    inline std::ostream& operator<<(std::ostream& out, const Ray3D& ray)
+    {
+        return out << '[' << ray.origin() << ';' << ray.direction() << ']';
+    }
 
-			Ray3DWithInverseDirection()
-			{}
-
-			Ray3DWithInverseDirection( const Vector3D&		point,
-									   const Vector3D&		dir )
-				: Ray3D( point, dir ),
-				  m_inverseDirection( 1.0 / dir.x(), 1.0 / dir.y(), 1.0 / dir.z() ),
-				  m_signs( { ( m_inverseDirection.x() < 0 ), ( m_inverseDirection.y() < 0 ), ( m_inverseDirection.z() < 0 ) } )
-			{}
-
-			Ray3DWithInverseDirection( const Ray3D&		cp )
-				: Ray3D( cp ),
-				  m_inverseDirection( 1.0 / cp.direction().x(), 1.0 / cp.direction().y(), 1.0 / cp.direction().z() ),
-				  m_signs( { ( m_inverseDirection.x() < 0 ), ( m_inverseDirection.y() < 0 ), ( m_inverseDirection.z() < 0 ) } )
-			{}
-
-
-			const Vector3D&					inverseDirection() const
-			{
-				return( m_inverseDirection );
-			}
-
-			const std::array<int, 3>&		signs() const
-			{
-				return( m_signs );
-			}
-
-
-		private:
-
-			Vector3D				m_inverseDirection;
-
-			std::array<int,3>		m_signs;
-		};
-
-
-
-		inline std::ostream& operator<<(std::ostream &out, const Ray3D&	ray)
-		{
-			return out << '[' << ray.origin() << ';' << ray.direction() << ']';
-		}
-
-	}	//	namespace Math
-}		//	namespace Cork
-
-
-
+}  // namespace Cork::Math

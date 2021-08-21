@@ -26,6 +26,10 @@
 
 #pragma once
 
+//  Alignment for platform - 32 bytes is optimal for AVX
+
+#define DEFAULT_MEMORY_ALIGNMENT    32
+
 // NOTE: none of these values should be modified by the clients
 
 const int QUANTIZATION_BITS = 30;        //	number of bits to set resolution of quantizing grid snapped to model
@@ -37,13 +41,11 @@ const int MINIMUM_PERTURBATION_RANGE_BITS = 2;  //	initially perturbation range 
 
 #define MAX_TRIANGLES_IN_DISJOINT_UNION 5000000
 
+//
+//  Set flags to control use of AVX2 instruction set
+//
+
 #include "SIMDInstructionSet.h"
-
-//
-//  Setup the random number generator
-//
-
-#define     RANDOM_SEED 1ULL
 
 #ifdef __HAVE_AVX_EXTENSIONS__
 #ifdef __HAVE_AVX2_EXTENSIONS__
@@ -57,6 +59,12 @@ constexpr SIMDInstructionSet g_SIMD_Level = SIMDInstructionSet::AVX;
 #else
 constexpr SIMDInstructionSet g_SIMD_Level = SIMDInstructionSet::NONE;
 #endif
+
+//
+//  Setup the random number generator
+//
+
+#define     RANDOM_SEED 1ULL
 
 //
 //	Default to double precision, unless CORK_FLOAT_PRECISION is defined

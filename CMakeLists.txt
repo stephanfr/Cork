@@ -41,18 +41,18 @@ endif ()
 
 
 FetchContent_Declare(
-  Xoroshiro256PlusSIMD
-  GIT_REPOSITORY https://github.com/stephanfr/Xoroshiro256PlusSIMD.git
+  Xoshiro256PlusSIMD
+  GIT_REPOSITORY https://github.com/stephanfr/Xoshiro256PlusSIMD.git
   GIT_TAG        main)
 
-FetchContent_MakeAvailable(Xoroshiro256PlusSIMD)
+FetchContent_MakeAvailable(Xoshiro256PlusSIMD)
 
 
 include_directories(
   ./thirdparty/boost/boost_1_65_1
   ./thirdparty/tbb/tbb2017_20170807oss/include
   ./thirdparty/mpir/mpir-2.7.2
-  ${xoroshiro256plussimd_SOURCE_DIR}/include
+  ${xoshiro256plussimd_SOURCE_DIR}/include
   ./include
   )
 

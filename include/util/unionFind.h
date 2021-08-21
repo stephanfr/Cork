@@ -33,10 +33,10 @@ THE SOFTWARE.
 
 #include "CorkDefs.h"
 
-#include "Xoroshiro256Plus.h"
+#include "Xoshiro256Plus.h"
 
 
-typedef SEFUtility::RNG::Xoroshiro256Plus<g_SIMD_Level> Xoroshiro256Plus;
+typedef SEFUtility::RNG::Xoshiro256Plus<g_SIMD_Level> Xoroshiro256Plus;
 
 
 class IUnionFind

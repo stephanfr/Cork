@@ -27,10 +27,8 @@
 
 
 #include <functional>
+#include <optional>
 #include <vector>
-
-#include <boost/align/aligned_allocator.hpp>
-#include <boost/optional.hpp>
 
 #include "util/AlignedUniquePtr.h"
 
@@ -221,7 +219,7 @@ namespace Cork
 
 		const SolverControlBlock&		solverControlBlock() const
 		{
-			return( m_controlBlock.get() );
+			return( *m_controlBlock );
 		}
 
 		TriangleVector&				triangles()
@@ -302,7 +300,7 @@ namespace Cork
 
 		aligned_unique_ptr<Cork::Math::BBox3D>		m_boundingBox;
 
-		boost::optional<SolverControlBlock>			m_controlBlock;
+		std::optional<SolverControlBlock>			m_controlBlock;
 
 		SolverPerfStats								m_performanceStats;
 	};

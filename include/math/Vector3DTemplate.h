@@ -34,7 +34,7 @@
 #include <iostream>
 
 #include "../src/CorkDefs.h"
-#include "Xoroshiro256Plus.h"
+#include "Xoshiro256Plus.h"
 #include "Vector2DTemplate.h"
 
 namespace Cork::Math
@@ -60,7 +60,7 @@ namespace Cork::Math
 #endif
         };
 
-        static SEFUtility::RNG::Xoroshiro256Plus<SIMD> random_generator_;
+        static SEFUtility::RNG::Xoshiro256Plus<SIMD> random_generator_;
 
         friend class BBox3D;
 
@@ -368,7 +368,7 @@ namespace Cork::Math
     //
 
     template <class N, SIMDInstructionSet SIMD>
-    SEFUtility::RNG::Xoroshiro256Plus<SIMD> Vector3DTemplate<N, SIMD>::random_generator_(1);
+    SEFUtility::RNG::Xoshiro256Plus<SIMD> Vector3DTemplate<N, SIMD>::random_generator_(1);
 
     //
     // Non Destructive Arithmetic

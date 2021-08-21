@@ -15,6 +15,5 @@ add_library(Corklib STATIC
     Mesh/Mesh.cpp
     Mesh/TopoCache.cpp
     Mesh/TriangleMesh.cpp
-    util/log.cpp
     util/ThreadPool.cpp
 )

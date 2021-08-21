@@ -57,7 +57,7 @@ namespace Cork
 
 			const NUMERIC_PRECISION*		representativePoints = m_representativePoints[dim].data();
 			
-			size_t							pivotIndex = random_number_generator_.next(begin, end);
+			size_t							pivotIndex = ( random_number_generator_.next() % (end - begin)) + begin;
 			NUMERIC_PRECISION				pivotValue = representativePoints[m_tmpids[pivotIndex]];
 			
 			//	I don't usually care for pointer arithmetic but it makes a substantive difference here.
