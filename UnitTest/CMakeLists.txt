@@ -15,8 +15,16 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
+FetchContent_Declare(
+  Xoshiro256PlusSIMD
+  GIT_REPOSITORY https://github.com/stephanfr/Xoshiro256PlusSIMD.git
+  GIT_TAG        main)
+
+FetchContent_MakeAvailable(Xoshiro256PlusSIMD)
+
 include_directories(
     ../include
+    ${xoshiro256plussimd_SOURCE_DIR}/include
   )
 
 add_executable( tests

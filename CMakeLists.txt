@@ -43,24 +43,10 @@ if (NOT DEFINED CORK_IS_MASTER_PROJECT)
   endif ()
 endif ()
 
-
-FetchContent_Declare(
-  Xoshiro256PlusSIMD
-  GIT_REPOSITORY https://github.com/stephanfr/Xoshiro256PlusSIMD.git
-  GIT_TAG        main)
-
-FetchContent_MakeAvailable(Xoshiro256PlusSIMD)
-
-
 include_directories(
   ./thirdparty/boost/${BOOST_VERSION}
-  ./thirdparty/tbb/${TBB_VERSION}/include
-  ./thirdparty/mpir/${MPIR_VERSION}
-  ${xoshiro256plussimd_SOURCE_DIR}/include
   ./include
   )
-
-link_directories( /home/steve/dev/Cork/thirdparty/tbb/${TBB_VERSION}/lib/intel64/gcc4.8 )
 
 add_subdirectory(src)
 

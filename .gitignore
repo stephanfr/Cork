@@ -1,7 +1,6 @@
 # User-specific files
 build/
 thirdparty/
-thirdparty_old/
 RegressionTest/Results
 RegressionTest/TestSet
 

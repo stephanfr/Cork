@@ -10,6 +10,7 @@ mkdir tbb
 cd tbb
 wget --timestamping https://github.com/oneapi-src/oneTBB/releases/download/v2021.3.0/oneapi-tbb-2021.3.0-lin.tgz
 tar zxvf oneapi-tbb-2021.3.0-lin.tgz
+sudo cp ./oneapi-tbb-2021.3.0/lib/intel64/gcc4.8/* /usr/local/lib/.
 
 cd ..
 
