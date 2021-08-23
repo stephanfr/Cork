@@ -36,8 +36,8 @@
 #include "Xoshiro256Plus.h"
 #include "math/Primitives.h"
 #include "mesh/TopoCache.h"
-#include "tbb/mutex.h"
-#include "tbb/task_group.h"
+#include "oneapi/tbb/spin_mutex.h"
+#include "oneapi/tbb/task_group.h"
 #include "util/FastStack.h"
 #include "util/ManagedIntrusiveList.h"
 
@@ -162,7 +162,7 @@ namespace Cork::AABVH
 
        private:
         boost::ptr_vector<AABVHNodeList> m_nodeCollections;
-        tbb::mutex m_collectionsMutex;
+        oneapi::tbb::spin_mutex m_collectionsMutex;
 
         size_t m_numCollectionsCheckedOut;
     };

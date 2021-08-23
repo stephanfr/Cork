@@ -16,11 +16,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 include_directories(
-    ..
     ../include
   )
-
-link_directories(/home/steve/dev/Cork/thirdparty/tbb/tbb2017_20170807oss/lib/intel64/gcc4.7)
 
 add_executable( tests
   CachingFactoryTest.cpp

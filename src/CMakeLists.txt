@@ -4,7 +4,6 @@ include_directories(
     ../include
   )
   
-  
 add_library(Corklib STATIC 
     Accel/aabvh.cpp
     FileFormats/ifs.cpp

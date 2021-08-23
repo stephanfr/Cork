@@ -6,6 +6,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(BOOST_VERSION "boost_1_77_0")
+set(TBB_VERSION "oneapi-tbb-2021.3.0")
+set(MPIR_VERSION "mpir-3.0.0")
+
 include(FetchContent)
 include(cmake/find_avx.cmake)
 
@@ -49,12 +53,14 @@ FetchContent_MakeAvailable(Xoshiro256PlusSIMD)
 
 
 include_directories(
-  ./thirdparty/boost/boost_1_65_1
-  ./thirdparty/tbb/tbb2017_20170807oss/include
-  ./thirdparty/mpir/mpir-2.7.2
+  ./thirdparty/boost/${BOOST_VERSION}
+  ./thirdparty/tbb/${TBB_VERSION}/include
+  ./thirdparty/mpir/${MPIR_VERSION}
   ${xoshiro256plussimd_SOURCE_DIR}/include
   ./include
   )
+
+link_directories( /home/steve/dev/Cork/thirdparty/tbb/${TBB_VERSION}/lib/intel64/gcc4.8 )
 
 add_subdirectory(src)
 
