@@ -1,12 +1,12 @@
 // +-------------------------------------------------------------------------
 // | Statistics.h
-// | 
+// |
 // | Author: Stephan Friedl
 // +-------------------------------------------------------------------------
 // | COPYRIGHT:
 // |    Copyright Stephan Friedl 2015
 // |    See the included COPYRIGHT file for further details.
-// |    
+// |
 // |    This file is part of the Cork library.
 // |
 // |    Cork is free software: you can redistribute it and/or modify
@@ -19,147 +19,85 @@
 // |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // |    GNU Lesser General Public License for more details.
 // |
-// |    You should have received a copy 
+// |    You should have received a copy
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-
 #pragma once
-
 
 #include <memory>
 
 #include "math/Primitives.h"
-#include "util/AlignedUniquePtr.h"
 
-
-
-namespace Cork
+namespace Cork::Statistics
 {
-	namespace Statistics
-	{
+    class GeometricStatistics
+    {
+       public:
+        GeometricStatistics(size_t numVertices, size_t numTriangles, double area, double volume, double minEdgeLength,
+                            double maxEdgeLength, const Cork::Math::BBox3D& boundingBox)
+            : m_numVertices(numVertices),
+              m_numTriangles(numTriangles),
+              m_area(area),
+              m_volume(volume),
+              m_minEdgeLength(minEdgeLength),
+              m_maxEdgeLength(maxEdgeLength),
+              m_boundingBox(std::make_unique<Cork::Math::BBox3D>(boundingBox))
+        {
+        }
 
+        size_t numVertices() const { return (m_numVertices); }
 
-		class GeometricStatistics
-		{
-		public :
-	
-			GeometricStatistics( size_t							numVertices,
-								 size_t							numTriangles,
-								 double							area,
-								 double							volume,
-								 double							minEdgeLength,
-								 double							maxEdgeLength,
-								 const Cork::Math::BBox3D&		boundingBox )
-				: m_numVertices( numVertices ),
-				  m_numTriangles( numTriangles ),
-				  m_area( area ),
-				  m_volume( volume),
-				  m_minEdgeLength( minEdgeLength ),
-				  m_maxEdgeLength( maxEdgeLength ),
-				  m_boundingBox( make_aligned<Cork::Math::BBox3D>( boundingBox ))
-			{}
+        size_t numTriangles() const { return (m_numTriangles); }
 
+        Cork::Math::BBox3D boundingBox() const { return (*m_boundingBox); }
 
+        double area() const { return (m_area); }
 
-			size_t				numVertices() const
-			{
-				return( m_numVertices );
-			}
+        double volume() const { return (m_volume); }
 
-			size_t				numTriangles() const
-			{
-				return( m_numTriangles );
-			}
+        double minEdgeLength() const { return (m_minEdgeLength); }
 
-			Cork::Math::BBox3D	boundingBox() const
-			{
-				return( *m_boundingBox );
-			}
+        double maxEdgeLength() const { return (m_maxEdgeLength); }
 
-			double				area() const
-			{
-				return( m_area );
-			}
+       private:
+        size_t m_numVertices;
+        size_t m_numTriangles;
+        double m_area;
+        double m_volume;
+        double m_minEdgeLength;
+        double m_maxEdgeLength;
+        std::unique_ptr<Cork::Math::BBox3D> m_boundingBox;
+    };
 
-			double				volume() const
-			{
-				return( m_volume );
-			}
+    class TopologicalStatistics
+    {
+       public:
+        typedef std::vector<Cork::Math::EdgeBase> EdgeVector;
 
-			double				minEdgeLength() const
-			{
-				return( m_minEdgeLength );
-			}
+        TopologicalStatistics(size_t numEdges, size_t numBodies, size_t non2ManifoldEdges)
+            : m_numEdges(numEdges), m_numBodies(numBodies), m_non2ManifoldEdges(non2ManifoldEdges)
+        {
+        }
 
-			double				maxEdgeLength() const
-			{
-				return( m_maxEdgeLength );
-			}
+        TopologicalStatistics(TopologicalStatistics&& statsToMove)
+            : m_numEdges(statsToMove.m_numEdges),
+              m_numBodies(statsToMove.m_numBodies),
+              m_non2ManifoldEdges(statsToMove.m_non2ManifoldEdges)
+        {
+        }
 
+        size_t numEdges() const { return (m_numEdges); }
 
-		private :
+        size_t numBodies() const { return (m_numBodies); }
 
-			size_t										m_numVertices;
-			size_t										m_numTriangles;
-			double										m_area;
-			double										m_volume;
-			double										m_minEdgeLength;
-			double										m_maxEdgeLength;
-			aligned_unique_ptr<Cork::Math::BBox3D>		m_boundingBox; 
-		};
+        bool IsTwoManifold() const { return (m_non2ManifoldEdges == 0); }
 
+       private:
+        size_t m_numEdges;
+        size_t m_numBodies;
+        size_t m_non2ManifoldEdges;
+    };
 
-
-					
-		class TopologicalStatistics
-		{
-		public :
-
-			typedef std::vector<Cork::Math::EdgeBase>			EdgeVector;
-
-
-
-			TopologicalStatistics( size_t						numEdges,
-								   size_t						numBodies,
-								   size_t						non2ManifoldEdges )
-				: m_numEdges( numEdges ),
-				  m_numBodies( numBodies ),
-				  m_non2ManifoldEdges( non2ManifoldEdges )
-			{}
-
-			TopologicalStatistics( TopologicalStatistics&&			statsToMove )
-				: m_numEdges( statsToMove.m_numEdges ),
-				  m_numBodies( statsToMove.m_numBodies ),
-				  m_non2ManifoldEdges( statsToMove.m_non2ManifoldEdges )
-			{}
-
-
-
-			size_t										numEdges() const
-			{
-				return( m_numEdges );
-			}
-
-			size_t										numBodies() const
-			{
-				return( m_numBodies );
-			}
-
-			bool										IsTwoManifold() const
-			{
-				return( m_non2ManifoldEdges == 0 );
-			}
-
-		private :
-
-			size_t							m_numEdges;
-			size_t							m_numBodies;
-			size_t							m_non2ManifoldEdges;
-		};
-
-
-	}
-}
- 
+}  // namespace Cork::Statistics

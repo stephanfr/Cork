@@ -28,7 +28,7 @@
 
 //  Alignment for platform - 32 bytes is optimal for AVX
 
-#define DEFAULT_MEMORY_ALIGNMENT    32
+#define SIMD_MEMORY_ALIGNMENT    32
 
 // NOTE: none of these values should be modified by the clients
 
@@ -96,4 +96,14 @@ constexpr SIMDInstructionSet g_SIMD_Level = SIMDInstructionSet::NONE;
 
 #define PURTURBATION_UNDERFLOW_EDGE_LENGTH 100 * NUMERIC_PRECISION_MIN_EPSILON
 
+#endif
+
+
+//
+//  Macro to check for memory alignment
+//
+#ifdef __AVX_AVAILABLE__
+    #define __CHECK_ALIGNMENT__(x) assert( alignof( x ) == SIMD_MEMORY_ALIGNMENT );
+#else
+    #define __CHECK_ALIGNMENT__(x)
 #endif

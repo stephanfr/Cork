@@ -36,7 +36,6 @@
 
 #include "intersection/empty3d.h"
 #include "intersection/quantization.h"
-#include "util/AlignedUniquePtr.h"
 #include "util/ManagedIntrusiveList.h"
 #include "util/SparseVector.h"
 #include "MeshBase.h"

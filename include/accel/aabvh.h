@@ -59,7 +59,7 @@ namespace Cork::AABVH
 
     const unsigned int LEAF_SIZE = 32;
 
-    class alignas(DEFAULT_MEMORY_ALIGNMENT) GeomBlob
+    class alignas(SIMD_MEMORY_ALIGNMENT) GeomBlob
     {
        public:
         explicit GeomBlob(const TopoEdge& idx) : m_id(idx)
@@ -86,7 +86,7 @@ namespace Cork::AABVH
 
     typedef boost::container::static_vector<IndexType, LEAF_SIZE> BlobIDList;
 
-    class alignas( DEFAULT_MEMORY_ALIGNMENT) AABVHNode  // : public IntrusiveListHook
+    class alignas( SIMD_MEMORY_ALIGNMENT) AABVHNode  // : public IntrusiveListHook
     {
        public:
         AABVHNode() : m_left(nullptr), m_right(nullptr) {}

@@ -1246,7 +1246,7 @@ namespace Cork
 
 			Empty3d::ExactArithmeticContext					m_exactArithmeticContext;
 
-			aligned_unique_ptr<Cork::Math::BBox3D>			m_intersectionBBox;
+			std::unique_ptr<Cork::Math::BBox3D>				m_intersectionBBox;
 
 			//	Quantizer must be in front of the Perturbation as the perturbation initialization depends on the quantizer
 
@@ -2162,7 +2162,7 @@ namespace Cork
 			: TopoCache( owner, workspace ),
 			  m_quantizer(quantizer),
 			  m_perturbation(quantizer),
-			  m_intersectionBBox( make_aligned<Cork::Math::BBox3D>( intersectionBBox )),
+			  m_intersectionBBox( std::make_unique<Cork::Math::BBox3D>( intersectionBBox )),
 			  m_workspace( workspace ),
 			  m_gluePointMarkerList( workspace ),
 			  m_isctVertTypeList( workspace ),

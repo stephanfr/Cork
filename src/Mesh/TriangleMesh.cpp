@@ -56,7 +56,7 @@ namespace Cork
 						  const Cork::Math::BBox3D&										boundingBox )
 			: m_triangles( triangles ),
 			  m_vertices( vertices ),
-			  m_boundingBox( make_aligned<Cork::Math::BBox3D>( boundingBox ))
+			  m_boundingBox( std::make_unique<Cork::Math::BBox3D>( boundingBox ))
 		{}
 
 
@@ -135,7 +135,7 @@ namespace Cork
 		std::shared_ptr<const std::vector<TriangleByIndices>>		m_triangles;
 		std::shared_ptr<VertexVector>								m_vertices;
 
-		aligned_unique_ptr<Cork::Math::BBox3D>						m_boundingBox;
+		std::unique_ptr<Cork::Math::BBox3D>							m_boundingBox;
 	};
 
 
@@ -162,7 +162,7 @@ namespace Cork
 			: m_vertexIndices(),
 			  m_indexedVertices( new TriangleMesh::VertexVector() ),
 			  m_triangles( new std::vector<TriangleMesh::TriangleByIndices>() ),
-			  m_boundingBox( make_aligned<Cork::Math::BBox3D>( Cork::Math::Vector3D( NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX ), Cork::Math::Vector3D( NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN )  ))
+			  m_boundingBox( std::make_unique<Cork::Math::BBox3D>( Cork::Math::Vector3D( NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX ), Cork::Math::Vector3D( NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN )  ))
 		{
 			if ( numVertices > 0 )
 			{
@@ -260,7 +260,7 @@ namespace Cork
 			NUMERIC_PRECISION	maxY = std::max( (NUMERIC_PRECISION)std::max(triByVerts[0].y(), std::max(triByVerts[1].y(), triByVerts[2].y())), boundingBox().maxima().y() );
 			NUMERIC_PRECISION	maxZ = std::max( (NUMERIC_PRECISION)std::max(triByVerts[0].z(), std::max(triByVerts[1].z(), triByVerts[2].z())), boundingBox().maxima().z() );
 
-			m_boundingBox = make_aligned<Cork::Math::BBox3D>( Cork::Math::Vector3D( minX, minY, minZ ), Cork::Math::Vector3D( maxX, maxY, maxZ ) );
+			m_boundingBox = std::make_unique<Cork::Math::BBox3D>( Cork::Math::Vector3D( minX, minY, minZ ), Cork::Math::Vector3D( maxX, maxY, maxZ ) );
 
 			//	All is well if we made it here
 
@@ -288,7 +288,7 @@ namespace Cork
 
 		std::shared_ptr<std::vector<TriangleMesh::TriangleByIndices>>			m_triangles;
 
-		aligned_unique_ptr<Cork::Math::BBox3D>									m_boundingBox;
+		std::unique_ptr<Cork::Math::BBox3D>										m_boundingBox;
 	};
 
 

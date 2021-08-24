@@ -30,17 +30,13 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
 #include <boost/timer/timer.hpp>
+#include <ctime>
 #include <iomanip>
 #include <iostream>
 #include <list>
-#include <ctime>
 
 #include "cork.h"
 #include "file_formats/files.h"
-
-
-#define StopProfile(ignore1, ignore2)
-#define StartProfile(ignore1, ignore2)
 
 // Declare the supported options.
 
@@ -84,15 +80,17 @@ void WriteMeshStatistics(const Cork::TriangleMesh& mesh, const std::string& file
 
 int main(int argc, char* argv[])
 {
-    StopProfile(PROFILE_THREADLEVEL, PROFILE_CURRENTID);
-
     boost::program_options::options_description desc("Allowed options");
-    desc.add_options()("help", "produce help message")("union", "Compute Boolean Union")(
-        "intersection", "Compute Boolean Intersection")("difference", "Compute Boolean Difference")(
-        "xor", "Compute Boolean Exclusive Or")("input-directory", boost::program_options::value<std::string>(),
-                                               "Directory containing input meshes")(
-        "output-directory", boost::program_options::value<std::string>(), "Directory to receive output files")(
-        "write-results", "Write result meshes")("write-statistics", "Write Statistics");
+
+    desc.add_options()
+        ("help", "produce help message")
+        ("union", "Compute Boolean Union")
+        ("intersection", "Compute Boolean Intersection")
+        ("difference", "Compute Boolean Difference")
+        ("xor", "Compute Boolean Exclusive Or")
+        ("input-directory", boost::program_options::value<std::string>(), "Directory containing input meshes")
+        ("output-directory", boost::program_options::value<std::string>(), "Directory to receive output files")
+        ("write-results", "Write result meshes")("write-statistics", "Write Statistics");
 
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -223,7 +221,7 @@ int main(int argc, char* argv[])
         //		}
 
         //		Cork::SelfIntersectionStatistics		selfIntersectionStats =
-        //readModelResult.ReturnPtr()->ComputeSelfIntersectionStatistics();
+        // readModelResult.ReturnPtr()->ComputeSelfIntersectionStatistics();
 
         //		if ( selfIntersectionStats.hasObviousSelfIntersections() )
         //		{
@@ -264,11 +262,7 @@ int main(int argc, char* argv[])
 
             if (computeUnion)
             {
-                StartProfile(PROFILE_THREADLEVEL, PROFILE_CURRENTID);
-
                 Cork::CorkMesh::BooleanOperationResult booleanOpResult = firstMesh->Union(*secondMesh, controlBlock);
-
-                StopProfile(PROFILE_THREADLEVEL, PROFILE_CURRENTID);
 
                 std::string filename = firstModel.first.filename().stem().string() + "_" +
                                        secondModel.first.filename().stem().string() + "_union";
@@ -285,8 +279,8 @@ int main(int argc, char* argv[])
                 {
                     std::unique_ptr<Cork::CorkMesh> unionedMesh(booleanOpResult.ReturnPtr().release());
 
-                    //					std::cout << "Components in finished Mesh: " << unionedMesh->CountComponents() <<
-                    //std::endl;
+                    //					std::cout << "Components in finished Mesh: " << unionedMesh->CountComponents()
+                    //<< std::endl;
 
                     cumulativeCPUTime += unionedMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
                     cumulativeWallTime += unionedMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();
@@ -323,12 +317,8 @@ int main(int argc, char* argv[])
 
             if (computeDifference)
             {
-                StartProfile(PROFILE_THREADLEVEL, PROFILE_CURRENTID);
-
                 Cork::CorkMesh::BooleanOperationResult booleanOpResult =
                     firstMesh->Difference(*secondMesh, controlBlock);
-
-                StopProfile(PROFILE_THREADLEVEL, PROFILE_CURRENTID);
 
                 std::string filename = firstModel.first.filename().stem().string() + "_" +
                                        secondModel.first.filename().stem().string() + "_difference";
@@ -345,8 +335,9 @@ int main(int argc, char* argv[])
                 {
                     std::unique_ptr<Cork::CorkMesh> differenceMesh(booleanOpResult.ReturnPtr().release());
 
-                    //					std::cout << "Components in finished Mesh: " << differenceMesh->CountComponents() <<
-                    //std::endl;
+                    //					std::cout << "Components in finished Mesh: " <<
+                    //differenceMesh->CountComponents()
+                    //<< std::endl;
 
                     cumulativeCPUTime += differenceMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
                     cumulativeWallTime += differenceMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();
@@ -384,12 +375,8 @@ int main(int argc, char* argv[])
 
             if (computeIntersection)
             {
-                StartProfile(PROFILE_THREADLEVEL, PROFILE_CURRENTID);
-
                 Cork::CorkMesh::BooleanOperationResult booleanOpResult =
                     firstMesh->Intersection(*secondMesh, controlBlock);
-
-                StopProfile(PROFILE_THREADLEVEL, PROFILE_CURRENTID);
 
                 std::string filename = firstModel.first.filename().stem().string() + "_" +
                                        secondModel.first.filename().stem().string() + "_intersection";
@@ -406,8 +393,9 @@ int main(int argc, char* argv[])
                 {
                     std::unique_ptr<Cork::CorkMesh> intersectionMesh(booleanOpResult.ReturnPtr().release());
 
-                    //					std::cout << "Components in finished Mesh: " << intersectionMesh->CountComponents() <<
-                    //std::endl;
+                    //					std::cout << "Components in finished Mesh: " <<
+                    //intersectionMesh->CountComponents()
+                    //<< std::endl;
 
                     cumulativeCPUTime += intersectionMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
                     cumulativeWallTime += intersectionMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();
@@ -445,12 +433,8 @@ int main(int argc, char* argv[])
 
             if (computeXOR)
             {
-                StartProfile(PROFILE_THREADLEVEL, PROFILE_CURRENTID);
-
                 Cork::CorkMesh::BooleanOperationResult booleanOpResult =
                     firstMesh->SymmetricDifference(*secondMesh, controlBlock);
-
-                StopProfile(PROFILE_THREADLEVEL, PROFILE_CURRENTID);
 
                 std::string filename = firstModel.first.filename().stem().string() + "_" +
                                        secondModel.first.filename().stem().string() + "_xor";
@@ -468,7 +452,7 @@ int main(int argc, char* argv[])
                     std::unique_ptr<Cork::CorkMesh> XORMesh(booleanOpResult.ReturnPtr().release());
 
                     //					std::cout << "Components in finished Mesh: " << XORMesh->CountComponents() <<
-                    //std::endl;
+                    // std::endl;
 
                     cumulativeCPUTime += XORMesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
                     cumulativeWallTime += XORMesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();
@@ -514,11 +498,11 @@ int main(int argc, char* argv[])
 
     if (writeStats)
     {
-		std::time_t		current_date_time;
+        std::time_t current_date_time;
 
-		time( &current_date_time );
+        time(&current_date_time);
 
-		timingResults << std::endl << std::endl << asctime( localtime( &current_date_time ) ) << std::endl; 
+        timingResults << std::endl << std::endl << asctime(localtime(&current_date_time)) << std::endl;
 
         cumulativeTimingResults << std::endl
                                 << "Success"
@@ -539,10 +523,9 @@ int main(int argc, char* argv[])
 
         cumulativeTimingResults << std::endl
                                 << "Total CPU Time:\t" << grand_total_CPU_time / 1.0E9 << std::endl
-								<< "Total Wall Time:\t" << grand_total_wall_time / 1.0E9
-                                << std::endl;
+                                << "Total Wall Time:\t" << grand_total_wall_time / 1.0E9 << std::endl;
 
-		cumulativeTimingResults << std::endl << std::endl << asctime( localtime( &current_date_time ) ) << std::endl;
+        cumulativeTimingResults << std::endl << std::endl << asctime(localtime(&current_date_time)) << std::endl;
 
         geotopoResults << std::endl
                        << "Success"
@@ -561,7 +544,7 @@ int main(int argc, char* argv[])
                        << "\t" << total_num_vertices << "\t" << total_num_edges << "\t" << total_num_triangles
                        << std::endl;
 
-		geotopoResults << std::endl << std::endl << asctime( localtime( &current_date_time ) ) << std::endl;
+        geotopoResults << std::endl << std::endl << asctime(localtime(&current_date_time)) << std::endl;
     }
 
     cumulativeTimingResults.flush();

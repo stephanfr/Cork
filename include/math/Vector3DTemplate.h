@@ -34,13 +34,13 @@
 #include <iostream>
 
 #include "../src/CorkDefs.h"
-#include "Xoshiro256Plus.h"
 #include "Vector2DTemplate.h"
+#include "Xoshiro256Plus.h"
 
 namespace Cork::Math
 {
     template <class N, SIMDInstructionSet SIMD = g_SIMD_Level>
-    class alignas(32) Vector3DTemplate final
+    class Vector3DTemplate final
     {
        protected:  // names
         union
@@ -56,7 +56,7 @@ namespace Cork::Math
             };
 
 #ifdef __AVX_AVAILABLE__
-            __m256d m_ymm;
+            alignas(SIMD_MEMORY_ALIGNMENT) __m256d m_ymm;
 #endif
         };
 
@@ -67,38 +67,58 @@ namespace Cork::Math
        public:
         //	Constructors
 
-        Vector3DTemplate() : m_spare(0.0) {}
+        Vector3DTemplate() : m_spare(0.0) { __CHECK_ALIGNMENT__(m_ymm); }
 
-        Vector3DTemplate(const N &n0, const N &n1, const N &n2) : m_x(n0), m_y(n1), m_z(n2), m_spare(0.0) {}
+        Vector3DTemplate(const N &n0, const N &n1, const N &n2) : m_x(n0), m_y(n1), m_z(n2), m_spare(0.0)
+        {
+            __CHECK_ALIGNMENT__(m_ymm);
+        }
 
         // build from short array in memory
 
-        explicit Vector3DTemplate(const N *ns) : m_x(ns[0]), m_y(ns[1]), m_z(ns[2]), m_spare(0.0) {}
+        explicit Vector3DTemplate(const N *ns) : m_x(ns[0]), m_y(ns[1]), m_z(ns[2]), m_spare(0.0)
+        {
+            __CHECK_ALIGNMENT__(m_ymm);
+        }
 
         Vector3DTemplate(const std::array<float, 3> &threeTuple)
             : m_x((N)threeTuple[0]), m_y((N)threeTuple[1]), m_z((N)threeTuple[2]), m_spare(0.0)
         {
+            __CHECK_ALIGNMENT__(m_ymm);
         }
 
         Vector3DTemplate(const std::array<double, 3> &threeTuple)
             : m_x((N)threeTuple[0]), m_y((N)threeTuple[1]), m_z((N)threeTuple[2]), m_spare(0.0)
         {
+            __CHECK_ALIGNMENT__(m_ymm);
         }
 
 #ifdef __AVX_AVAILABLE__
         // Constructor to convert from type __m256d used in intrinsics:
-        Vector3DTemplate(__m256d const &x) { m_ymm = x; }
+        Vector3DTemplate(__m256d const &x)
+        {
+            __CHECK_ALIGNMENT__(m_ymm);
+            m_ymm = x;
+        }
         // Assignment operator to convert from type __m256d used in intrinsics:
         Vector3DTemplate &operator=(__m256d const &x)
         {
+            __CHECK_ALIGNMENT__(m_ymm);
+
             m_ymm = x;
             return *this;
         }
         // Type cast operator to convert to __m256d used in intrinsics
-        operator __m256d() const { return m_ymm; }
+        operator __m256d() const
+        {
+            __CHECK_ALIGNMENT__(m_ymm);
+            return m_ymm;
+        }
         // Member function to load from array (unaligned)
         Vector3DTemplate &load(double const *p)
         {
+            __CHECK_ALIGNMENT__(m_ymm);
+
             m_ymm = _mm256_loadu_pd(p);
             return *this;
         }
@@ -107,6 +127,8 @@ namespace Cork::Math
         // divisible by 32
         Vector3DTemplate &load_a(double const *p)
         {
+            __CHECK_ALIGNMENT__(m_ymm);
+
             m_ymm = _mm256_load_pd(p);
             return *this;
         }
@@ -114,7 +136,7 @@ namespace Cork::Math
 
         static Vector3DTemplate randomVector(N min, N max)
         {
-            return Vector3DTemplate(random_generator_.dnext4(min,max));
+            return Vector3DTemplate(random_generator_.dnext4(min, max));
         }
 
         N x() const { return (m_x); }

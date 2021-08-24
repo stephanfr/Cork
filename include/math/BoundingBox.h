@@ -41,10 +41,16 @@ namespace Cork::Math
     // *  BBox3 stores 3-dimensional axis aligned bounding boxes
     // **************************************************************************
 
-    const double two = 2.0;
+    constexpr double two = 2.0;
+
+        static inline constexpr __m256d cnstexpr_mm256_set1_pd(double value)
+        {
+            return (__m256d){value, value, value, value};
+        };
 
 #ifdef __AVX_AVAILABLE__
-    const __m256d AVXtwo = _mm256_load_pd(&two);
+//    constexpr  __m256d AVXtwo = _mm256_load_pd(&two);
+    static constexpr __m256d AVXtwo = cnstexpr_mm256_set1_pd(two);
 #endif
 
     class BBox3D final

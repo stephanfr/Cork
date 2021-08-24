@@ -25,19 +25,17 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
+#include <boost/container/small_vector.hpp>
 #include <boost/chrono/chrono.hpp>  //	Had to include when I upgraded to boost 65 - on windows is griped about a missing library
 #include <boost/timer/timer.hpp>
 #include <sstream>
 
-#include "boost/container/small_vector.hpp"
-
 #include "cork.h"
+#include "intersection/gmpext4.h"
+#include "intersection/unsafe_ray_triangle_intersection.h"
 #include "mesh/TopoCache.h"
 #include "mesh/IntersectionProblem.h"
 #include "mesh/EGraphCache.h"
-#include "intersection/gmpext4.h"
-#include "intersection/unsafe_ray_triangle_intersection.h"
-
 #include "tbb/tbb.h"
 #include "util/CachingFactory.h"
 #include "util/SystemStats.h"
@@ -61,17 +59,17 @@ namespace Cork
 {
     //	template <>
     //	SEFUtility::CachingFactory<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry,
-    //10> > >::CacheType<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry, 10> > >
-    //SEFUtility::CachingFactory<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry,
-    //10> > >::m_cache;
+    // 10> > >::CacheType<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry, 10> > >
+    // SEFUtility::CachingFactory<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry,
+    // 10> > >::m_cache;
 
     //	static template class
-    //SEFUtility::CachingFactory<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry,
-    //10> > >;
+    // SEFUtility::CachingFactory<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry,
+    // 10> > >;
 
     //	template <>
     //	SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::CacheType<Cork::TopoCacheWorkspace>
-    //SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::m_cache;
+    // SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::m_cache;
 
     using namespace Intersection;
 
@@ -188,7 +186,7 @@ namespace Cork
         //		ThreadPool::getPool().parallel_for(numThreads, ecache.columns().begin(), ecache.columns().end(),
         //[&](BlockRange<EGraphCache::SkeletonColumnVector::iterator>	partitionedCloumns )
         //		tbb::parallel_for(tbb::blocked_range<EGraphCache::SkeletonColumnVector::iterator>(ecache.columns().begin(),
-        //ecache.columns().end(), ecache.columns().size() / 4 ),
+        // ecache.columns().end(), ecache.columns().size() / 4 ),
         //			[&](tbb::blocked_range<EGraphCache::SkeletonColumnVector::iterator> partitionedColumns)
         {
             for (auto& column : ecache.columns())
@@ -344,7 +342,7 @@ namespace Cork
             m_tris.emplace_back(inputMesh.triangles()[i], std::byte{0});
         }
 
-        m_boundingBox = make_aligned<Cork::Math::BBox3D>(inputMesh.boundingBox());
+        m_boundingBox = inputMesh.boundingBox();
     }
 
     Mesh::~Mesh() {}
@@ -421,7 +419,7 @@ namespace Cork
 
     Mesh::SetupBooleanProblemResult Mesh::SetupBooleanProblem(const Mesh& rhs)
     {
-        auto intersectionBBox = m_boundingBox->intersection(rhs.boundingBox());
+        auto intersectionBBox = m_boundingBox.intersection(rhs.boundingBox());
 
         //	Form the disjoint union of this mesh and the second operand mesh
 
@@ -477,7 +475,7 @@ namespace Cork
                 //	Resolve failed, check the error code to see if this is a recoverable error or not
 
                 //	If we failed due to a self-intersection, then one of the meshes is bad so no amount of
-                //repurturbation will work.
+                // repurturbation will work.
 
                 if (resolveResult.errorCode() ==
                     IntersectionProblemIfx::IntersectionProblemResultCodes::SELF_INTERSECTING_MESH)
@@ -1135,7 +1133,7 @@ namespace Cork
     }
 
     //	SelfIntersectionStatistics			ComputeTriangleMeshSelfIntersectionStatistics( const Cork::TriangleMesh&
-    //triangleMeshToTest )
+    // triangleMeshToTest )
     //	{
     //		Mesh			meshForTesting( triangleMeshToTest );
     //

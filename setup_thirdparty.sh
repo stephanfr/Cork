@@ -34,3 +34,6 @@ tar --bzip2 -xf boost_1_77_0.tar.bz2
 cd boost_1_77_0
 ./bootstrap.sh
 sudo ./b2 install
+
+sudo echo "/usr/local/lib" > /etc/ld.so.conf.d/cork.dependencies.conf
+sudo ldconfig
