@@ -234,8 +234,8 @@ namespace Cork::AABVH
         {
             //	Set the boolAlgData index for intersections between two bodies or for self-intersections.
 
-            unsigned int blobIDListSelector = std::to_integer<unsigned int>(
-                intersectionType == IntersectionType::BOOLEAN_INTERSECTION ? triangle.boolAlgData() ^ std::byte{1}
+            unsigned int blobIDListSelector = (
+                intersectionType == IntersectionType::BOOLEAN_INTERSECTION ? triangle.boolAlgData() ^ 1
                                                                            : triangle.boolAlgData());
 
             //	Use a recursive search and save edges that intersect the triangle

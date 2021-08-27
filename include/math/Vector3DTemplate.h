@@ -134,43 +134,43 @@ namespace Cork::Math
         }
 #endif
 
-        static Vector3DTemplate randomVector(N min, N max)
+        [[nodiscard]] static Vector3DTemplate randomVector(N min, N max)
         {
             return Vector3DTemplate(random_generator_.dnext4(min, max));
         }
 
-        N x() const { return (m_x); }
-        N y() const { return (m_y); }
-        N z() const { return (m_z); }
+        [[nodiscard]] N x() const { return (m_x); }
+        [[nodiscard]] N y() const { return (m_y); }
+        [[nodiscard]] N z() const { return (m_z); }
 
-        N &operator[](uint i) { return m_v[i]; }
-        N operator[](uint i) const { return m_v[i]; }
+        [[nodiscard]] N &operator[](uint i) { return m_v[i]; }
+        [[nodiscard]] N operator[](uint i) const { return m_v[i]; }
 
         //
         //  Non Destructive Arithmetic
         //
 
-        Vector3DTemplate operator-() const { return Vector3DTemplate(-m_x, -m_y, -m_z); }
+        [[nodiscard]] Vector3DTemplate operator-() const { return Vector3DTemplate(-m_x, -m_y, -m_z); }
 
-        Vector3DTemplate operator+(const Vector3DTemplate &rhs) const
+        [[nodiscard]] Vector3DTemplate operator+(const Vector3DTemplate &rhs) const
         {
             Vector3DTemplate res(*this);
             return res += rhs;
         }
 
-        Vector3DTemplate operator-(const Vector3DTemplate &rhs) const
+        [[nodiscard]] Vector3DTemplate operator-(const Vector3DTemplate &rhs) const
         {
             Vector3DTemplate res(*this);
             return res -= rhs;
         }
 
-        Vector3DTemplate operator*(const N rhs) const
+        [[nodiscard]] Vector3DTemplate operator*(N rhs) const
         {
             Vector3DTemplate res(*this);
             return res *= rhs;
         }
 
-        Vector3DTemplate operator/(const N &rhs) const
+        [[nodiscard]] Vector3DTemplate operator/(N rhs) const
         {
             Vector3DTemplate res(*this);
             return res /= rhs;
@@ -180,7 +180,7 @@ namespace Cork::Math
         //   Destructive Arithmetic
         //
 
-        inline Vector3DTemplate operator+=(const Vector3DTemplate &rhs)
+        Vector3DTemplate operator+=(const Vector3DTemplate &rhs)
         {
             m_x += rhs.m_x;
             m_y += rhs.m_y;
@@ -188,7 +188,7 @@ namespace Cork::Math
             return *this;
         }
 
-        inline Vector3DTemplate operator-=(const Vector3DTemplate &rhs)
+        Vector3DTemplate operator-=(const Vector3DTemplate &rhs)
         {
             m_x -= rhs.m_x;
             m_y -= rhs.m_y;
@@ -196,7 +196,7 @@ namespace Cork::Math
             return *this;
         }
 
-        inline Vector3DTemplate operator*=(const N &rhs)
+        Vector3DTemplate operator*=(const N &rhs)
         {
             m_x *= rhs;
             m_y *= rhs;
@@ -204,7 +204,7 @@ namespace Cork::Math
             return *this;
         }
 
-        inline Vector3DTemplate operator/=(const N &rhs)
+        Vector3DTemplate operator/=(const N &rhs)
         {
             m_x /= rhs;
             m_y /= rhs;
@@ -273,9 +273,9 @@ namespace Cork::Math
         //  Collapsing operations
         //
 
-        N len_squared() const { return (m_x * m_x) + (m_y * m_y) + (m_z * m_z); }
+        [[nodiscard]] N len_squared() const { return (m_x * m_x) + (m_y * m_y) + (m_z * m_z); }
 
-        N len() const { return std::sqrt(len_squared()); }
+        [[nodiscard]] N len() const { return std::sqrt(len_squared()); }
 
         //
         //  Normalization
@@ -283,7 +283,7 @@ namespace Cork::Math
 
         void normalize() { *this /= this->len(); }
 
-        Vector3DTemplate normalized() const
+        [[nodiscard]] Vector3DTemplate normalized() const
         {
             Vector3DTemplate vec(*this);
             return vec / vec.len();
@@ -293,9 +293,9 @@ namespace Cork::Math
         //  Dot and Cross Products
         //
 
-        N dot(const Vector3DTemplate &rhs) const { return m_x * rhs.m_x + m_y * rhs.m_y + m_z * rhs.m_z; }
+        [[nodiscard]] N dot(const Vector3DTemplate &rhs) const { return m_x * rhs.m_x + m_y * rhs.m_y + m_z * rhs.m_z; }
 
-        Vector3DTemplate cross(const Vector3DTemplate &rhs) const
+        [[nodiscard]] Vector3DTemplate cross(const Vector3DTemplate &rhs) const
         {
             return Vector3DTemplate(m_y * rhs.m_z - m_z * rhs.m_y, m_z * rhs.m_x - m_x * rhs.m_z,
                                     m_x * rhs.m_y - m_y * rhs.m_x);
@@ -305,23 +305,23 @@ namespace Cork::Math
         //  Projection
         //
 
-        Vector2DTemplate<N> project(uint dim) { return Vector2DTemplate(m_v[(dim + 1) % 3], m_v[(dim + 2) % 3]); }
+        [[nodiscard]] Vector2DTemplate<N> project(uint dim) { return Vector2DTemplate(m_v[(dim + 1) % 3], m_v[(dim + 2) % 3]); }
 
         //
         //  Other functions
         //
 
-        Vector3DTemplate abs() const { return Vector3DTemplate(fabs(m_x), fabs(m_y), fabs(m_z)); }
+        [[nodiscard]] Vector3DTemplate abs() const { return Vector3DTemplate(fabs(m_x), fabs(m_y), fabs(m_z)); }
 
-        N max() const { return std::max(m_x, std::max(m_y, m_z)); }
+        [[nodiscard]] N max() const { return std::max(m_x, std::max(m_y, m_z)); }
 
-        N min() const { return std::min(m_x, std::min(m_y, m_z)); }
+        [[nodiscard]] N min() const { return std::min(m_x, std::min(m_y, m_z)); }
 
-        uint maxDim() const { return (m_x >= m_y) ? ((m_x >= m_z) ? 0 : 2) : ((m_y >= m_z) ? 1 : 2); }
+        [[nodiscard]] uint maxDim() const { return (m_x >= m_y) ? ((m_x >= m_z) ? 0 : 2) : ((m_y >= m_z) ? 1 : 2); }
 
-        uint minDim() const { return (m_x <= m_y) ? ((m_x <= m_z) ? 0 : 2) : ((m_y <= m_z) ? 1 : 2); }
+        [[nodiscard]] uint minDim() const { return (m_x <= m_y) ? ((m_x <= m_z) ? 0 : 2) : ((m_y <= m_z) ? 1 : 2); }
 
-        Vector3DTemplate max(const Vector3DTemplate &rhs) const
+        [[nodiscard]] Vector3DTemplate max(const Vector3DTemplate &rhs) const
         {
             if constexpr (SIMD >= SIMDInstructionSet::AVX)
             {
@@ -333,7 +333,7 @@ namespace Cork::Math
             }
         }
 
-        Vector3DTemplate max(const Vector3DTemplate &vec2, const Vector3DTemplate &vec3) const
+        [[nodiscard]] Vector3DTemplate max(const Vector3DTemplate &vec2, const Vector3DTemplate &vec3) const
         {
             if constexpr (SIMD >= SIMDInstructionSet::AVX)
             {
@@ -347,7 +347,7 @@ namespace Cork::Math
             }
         }
 
-        Vector3DTemplate min(const Vector3DTemplate &rhs) const
+        [[nodiscard]] Vector3DTemplate min(const Vector3DTemplate &rhs) const
         {
             if constexpr (SIMD >= SIMDInstructionSet::AVX)
             {
@@ -359,7 +359,7 @@ namespace Cork::Math
             }
         }
 
-        Vector3DTemplate min(const Vector3DTemplate &vec2, const Vector3DTemplate &vec3) const
+        [[nodiscard]] Vector3DTemplate min(const Vector3DTemplate &vec2, const Vector3DTemplate &vec3) const
         {
             if constexpr (SIMD >= SIMDInstructionSet::AVX)
             {
@@ -372,17 +372,6 @@ namespace Cork::Math
                                         std::min(m_z, std::min(vec2.m_z, vec3.m_z)));
             }
         }
-
-        //
-        //  Friends
-        //
-
-        template <class T, SIMDInstructionSet S>
-        friend T determinant(const Vector3DTemplate<T, S> &, const Vector3DTemplate<T, S> &,
-                             const Vector3DTemplate<T, S> &);
-
-        template <class T, SIMDInstructionSet S>
-        friend std::ostream &operator<<(std::ostream &, const Vector3DTemplate<T, S> &);
     };
 
     //
@@ -397,7 +386,7 @@ namespace Cork::Math
     //
 
     template <class T, SIMDInstructionSet SIMD>
-    Vector3DTemplate<T, SIMD> operator*(const T &lhs, const Vector3DTemplate<T, SIMD> &rhs)
+    [[nodiscard]] Vector3DTemplate<T, SIMD> operator*(const T &lhs, const Vector3DTemplate<T, SIMD> &rhs)
     {
         Vector3DTemplate<T, SIMD> res(rhs);
         return res *= lhs;
@@ -407,18 +396,18 @@ namespace Cork::Math
     template <class T, SIMDInstructionSet SIMD>
     inline std::ostream &operator<<(std::ostream &out, const Vector3DTemplate<T, SIMD> &vec)
     {
-        return out << '[' << vec.m_x << ',' << vec.m_y << ',' << vec.m_z << ']';
+        return out << '[' << vec.x() << ',' << vec.y() << ',' << vec.z() << ']';
     }
 
     // determinant of 3 Vector3DTemplates
     template <class T, SIMDInstructionSet SIMD>
-    inline T determinant(const Vector3DTemplate<T, SIMD> &v0, const Vector3DTemplate<T, SIMD> &v1,
+    [[nodiscard]] inline T determinant(const Vector3DTemplate<T, SIMD> &v0, const Vector3DTemplate<T, SIMD> &v1,
                          const Vector3DTemplate<T, SIMD> &v2)
     {
-        T xy = v0.m_x * v1.m_y - v0.m_y * v1.m_x;
-        T xz = v0.m_x * v1.m_z - v0.m_z * v1.m_x;
-        T yz = v0.m_y * v1.m_z - v0.m_z * v1.m_y;
-        return xy * v2.m_z - xz * v2.m_y + yz * v2.m_x;
+        T xy = v0.x() * v1.y() - v0.y() * v1.x();
+        T xz = v0.x() * v1.z() - v0.z() * v1.x();
+        T yz = v0.y() * v1.z() - v0.z() * v1.y();
+        return xy * v2.z() - xz * v2.y() + yz * v2.x();
     }
 
 }  // namespace Cork::Math

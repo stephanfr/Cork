@@ -170,12 +170,12 @@ namespace Cork
 
         size_t FindTriForInsideTest(const ComponentType& trisInComponent);
 
-        void doDeleteAndFlip(std::function<TriCode(std::byte bool_alg_data)> classify);
+        void doDeleteAndFlip(std::function<TriCode(uint32_t bool_alg_data)> classify);
 
         void for_ecache(EGraphCache& ecache, int numThreads,
                         std::function<void(const EGraphEntryTIDVector& tids)> action) const;
 
-        bool isInside(IndexType tid, std::byte operand);
+        bool isInside(IndexType tid, uint32_t operand);
 
         void RayTriangleIntersection(const CorkTriangle& tri, Cork::Math::Ray3D& ray, long& winding);
     };
@@ -199,7 +199,7 @@ namespace Cork
 
                         for (IndexType tid : entry.tids())
                         {
-                            if (std::to_integer<bool>(m_tris[tid].boolAlgData() & std::byte{1}))
+                            if (m_tris[tid].boolAlgData() & 1)
                             {
                                 tid1s.push_back(tid);
                             }
@@ -221,7 +221,7 @@ namespace Cork
         }
     }
 
-    inline bool Mesh::isInside(IndexType tid, std::byte operand)
+    inline bool Mesh::isInside(IndexType tid, uint32_t operand)
     {
         // find the point to trace outward from...
 
@@ -245,7 +245,7 @@ namespace Cork
         {
             // ignore triangles from the same operand surface
 
-            if ((tri.boolAlgData() & std::byte{1}) == operand)
+            if ((tri.boolAlgData() & 1) == operand)
             {
                 continue;
             }
@@ -339,7 +339,7 @@ namespace Cork
 
         for (uint i = 0; i < inputMesh.triangles().size(); i++)
         {
-            m_tris.emplace_back(inputMesh.triangles()[i], std::byte{0});
+            m_tris.emplace_back(inputMesh.triangles()[i], 0);
         }
 
         m_boundingBox = inputMesh.boundingBox();
@@ -389,7 +389,7 @@ namespace Cork
 
         for (auto& t : m_tris)
         {
-            t.boolAlgData() = std::byte{0};
+            t.boolAlgData() = 0;
         }
 
         size_t oldVsize = m_verts.size();
@@ -412,7 +412,7 @@ namespace Cork
             auto& tri = m_tris[oldTsize + i];
 
             tri = meshToMerge.m_tris[i];
-            tri.boolAlgData() = std::byte{1};  //	These triangles are part of the RHS so label them as such
+            tri.boolAlgData() = 1;  //	These triangles are part of the RHS so label them as such
             tri.offsetIndices(oldVsize);
         }
     }
@@ -583,7 +583,7 @@ namespace Cork
         {
             column.for_each([this](EGraphEntry& entry) {
                 entry.setIsIsct(false);
-                std::byte operand = m_tris[entry.tids()[0]].boolAlgData();
+                uint32_t operand = m_tris[entry.tids()[0]].boolAlgData();
 
                 for (uint k = 1; k < entry.tids().size(); k++)
                 {
@@ -737,7 +737,7 @@ namespace Cork
 
         //	Do the 'inside' test
 
-        std::byte operand = m_tris[best_tid].boolAlgData();
+        uint32_t operand = m_tris[best_tid].boolAlgData();
         bool inside = isInside(best_tid, operand);
 
         //	Do a breadth first propagation of classification throughout the component.
@@ -749,7 +749,7 @@ namespace Cork
 
         // begin by tagging the first triangle
 
-        m_tris[best_tid].boolAlgData() |= (inside) ? std::byte{2} : std::byte{0};
+        m_tris[best_tid].boolAlgData() |= (inside) ? 2 : 0;
         visited[best_tid] = true;
         work.push_back(best_tid);
 
@@ -765,11 +765,11 @@ namespace Cork
 
                 auto& entry = ecache[a][b];
 
-                std::byte inside_sig = m_tris[curr_tid].boolAlgData() & std::byte{2};
+                uint32_t inside_sig = m_tris[curr_tid].boolAlgData() & 2;
 
                 if (entry.isIsct())
                 {
-                    inside_sig ^= std::byte{2};
+                    inside_sig ^= 2;
                 }
 
                 for (size_t tid : entry.tids())
@@ -779,7 +779,7 @@ namespace Cork
                         continue;
                     }
 
-                    if ((m_tris[tid].boolAlgData() & std::byte{1}) != operand)
+                    if ((m_tris[tid].boolAlgData() & 1) != operand)
                     {
                         continue;
                     }
@@ -846,7 +846,7 @@ namespace Cork
         return (best_tid);
     }
 
-    void Mesh::doDeleteAndFlip(std::function<TriCode(std::byte bool_alg_data)> classify)
+    void Mesh::doDeleteAndFlip(std::function<TriCode(uint32_t bool_alg_data)> classify)
     {
         SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr topoCacheWorkspace(
             SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance());
@@ -910,8 +910,8 @@ namespace Cork
                                                     "Error Occurred During Boolean Problem Setup Phase.", result));
         }
 
-        resultMesh->doDeleteAndFlip([](std::byte data) -> TriCode {
-            if ((data & std::byte{2}) == std::byte{2})  // part of op 0/1 INSIDE op 1/0
+        resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
+            if ((data & 2) == 2 )  // part of op 0/1 INSIDE op 1/0
             {
                 return TriCode::DELETE_TRI;
             }
@@ -961,12 +961,12 @@ namespace Cork
                                                     "Error Occurred During Boolean Problem Setup Phase.", result));
         }
 
-        resultMesh->doDeleteAndFlip([](std::byte data) -> TriCode {
-            if (data == std::byte{2} || data == std::byte{1})  // part of op 0 INSIDE op 1, part of op 1 OUTSIDE op 0
+        resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
+            if (data == 2 || data == 1)  // part of op 0 INSIDE op 1, part of op 1 OUTSIDE op 0
             {
                 return TriCode::DELETE_TRI;
             }
-            else if (data == std::byte{3})  // part of op 1 INSIDE op 1
+            else if (data == 3)  // part of op 1 INSIDE op 1
             {
                 return TriCode::FLIP_TRI;
             }
@@ -1018,8 +1018,8 @@ namespace Cork
 
         //	Don't let the returns below confuse you - the code is a lambda
 
-        resultMesh->doDeleteAndFlip([](std::byte data) -> TriCode {
-            if ((data & std::byte{2}) == std::byte{0})  // part of op 0/1 OUTSIDE op 1/0
+        resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
+            if ((data & 2) == 0)  // part of op 0/1 OUTSIDE op 1/0
             {
                 return (TriCode::DELETE_TRI);
             }
@@ -1071,12 +1071,12 @@ namespace Cork
 
         //	Don't let the returns below confuse you - the code is a lambda
 
-        resultMesh->doDeleteAndFlip([](std::byte data) -> TriCode {
-            if ((data & std::byte{2}) == std::byte{0})  // part of op 0/1 OUTSIDE op 1/0
+        resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
+            if ((data & 2) == 0)  // part of op 0/1 OUTSIDE op 1/0
             {
                 return (TriCode::KEEP_TRI);
             }
-            else if ((data & std::byte{2}) == std::byte{2})
+            else if ((data & 2) == 2)
             {
                 return (TriCode::DELETE_TRI);
             }

@@ -125,7 +125,7 @@ namespace Cork
 				{
 					IndexType	blobid = m_tmpids[begin + k];
 
-					node->AddBlobID( std::to_integer<size_t>((*m_blobs)[blobid].index().boolAlgData()), blobid );
+					node->AddBlobID( (*m_blobs)[blobid].index().boolAlgData(), blobid );
 
 					node->boundingBox().convex( (*m_blobs)[blobid].boundingBox() );
 				}
@@ -199,7 +199,7 @@ namespace Cork
 				{
 					IndexType	blobid = m_tmpids[begin + k];
 
-					node->AddBlobID( std::to_integer<size_t>((*m_blobs)[blobid].index().boolAlgData()), blobid );
+					node->AddBlobID( (*m_blobs)[blobid].index().boolAlgData(), blobid );
 
 					node->boundingBox().convex( (*m_blobs)[blobid].boundingBox() );
 				}

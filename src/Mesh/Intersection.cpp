@@ -2502,6 +2502,10 @@ namespace Cork
 
 					for( auto tri : allTris )
 					{
+							std::cout << tri->boolAlgData() << "    (" << tri->verts()[0]->quantizedValue()->x() << ", " << tri->verts()[0]->quantizedValue()->y() << ", " << tri->verts()[0]->quantizedValue()->z() << ")    (" << tri->verts()[1]->quantizedValue()->x() << ", " << tri->verts()[1]->quantizedValue()->y() << ", " << tri->verts()[1]->quantizedValue()->z() << ")    (" << tri->verts()[2]->quantizedValue()->x() << ", " << tri->verts()[2]->quantizedValue()->y() << ", " << tri->verts()[2]->quantizedValue()->z() << ")" << std::endl;
+							std::cout.flush();
+
+
 						TopoEdgePointerVector			edges;
 
 						m_edgeBVH->EdgesIntersectingTriangle( *tri, Cork::AABVH::IntersectionType::SELF_INTERSECTION, edges );

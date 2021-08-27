@@ -23,6 +23,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Xoshiro256PlusSIMD)
 
 include_directories(
+    ../src
     ../include
     ${xoshiro256plussimd_SOURCE_DIR}/include
   )
@@ -30,6 +31,7 @@ include_directories(
 add_executable( tests
   CachingFactoryTest.cpp
   ConstructOnceResizeableVectorTest.cpp
+  Vector2DTest.cpp
   Vector3DTest.cpp
 )
 

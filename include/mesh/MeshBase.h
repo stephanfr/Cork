@@ -114,14 +114,15 @@ namespace Cork
                     memcpy( &m_a, &triangleToCopy.m_a, sizeof( unsigned int ) * 3 );
                 }
         */
-        CorkTriangle(const Cork::TriangleMesh::TriangleByIndices& triangleToCopy, std::byte boolAlgData)
+        CorkTriangle(const Cork::TriangleMesh::TriangleByIndices& triangleToCopy, uint32_t boolAlgData)
             : Cork::Math::TriangleByIndicesBase(triangleToCopy), m_boolAlgData(boolAlgData)
         {
         }
 
-        const std::byte boolAlgData() const { return (m_boolAlgData); }
+        const uint32_t boolAlgData() const { return (m_boolAlgData); }
 
-        std::byte& boolAlgData() { return (m_boolAlgData); }
+        uint32_t& boolAlgData() { return (m_boolAlgData); }
+
 
         void flip() { std::swap(m_a, m_b); }
 
@@ -133,7 +134,7 @@ namespace Cork
         }
 
        private:
-        std::byte m_boolAlgData;  // internal use by algorithm - value must be copied when the triangle is subdivided
+        uint32_t m_boolAlgData;  // internal use by algorithm - value must be copied when the triangle is subdivided
     };
 
     typedef Cork::Math::Vector3D CorkVertex;

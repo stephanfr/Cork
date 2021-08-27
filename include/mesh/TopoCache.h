@@ -118,9 +118,9 @@ namespace Cork
 
         void setData(void* newValue) { m_data = newValue; }
 
-        std::byte boolAlgData() const { return (m_boolAlgData); }
+        uint32_t boolAlgData() const { return (m_boolAlgData); }
 
-        void setBoolAlgData(std::byte newValue) { m_boolAlgData = newValue; }
+        void setBoolAlgData(uint32_t newValue) { m_boolAlgData = newValue; }
 
         const std::array<TopoVert*, 2>& verts() const { return (m_verts); }
 
@@ -170,7 +170,7 @@ namespace Cork
        private:
         void* m_data;  // algorithm specific handle
 
-        std::byte m_boolAlgData;
+        uint32_t m_boolAlgData;
 
         std::array<TopoVert*, 2> m_verts;  // endpoint vertices
         TopoTrianglePointerList m_tris;    // incident triangles
@@ -300,9 +300,9 @@ namespace Cork
             return (value);
         }
 
-        std::byte boolAlgData() const { return (m_boolAlgData); }
+        uint32_t boolAlgData() const { return (m_boolAlgData); }
 
-        void setBoolAlgData(std::byte newValue) { m_boolAlgData = newValue; }
+        void setBoolAlgData(uint32_t newValue) { m_boolAlgData = newValue; }
 
         void setVertices(std::array<TopoVert*, 3>& vertices)
         {
@@ -447,7 +447,7 @@ namespace Cork
         IndexType m_ref;  // index to actual data
         void* m_data;     // algorithm specific handle
 
-        std::byte m_boolAlgData;
+        uint32_t    m_boolAlgData;
 
         std::array<TopoVert*, 3> m_verts;  // vertices of this triangle
         std::array<TopoEdge*, 3> m_edges;  // edges of this triangle opposite to the given vertex
