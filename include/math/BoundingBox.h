@@ -71,7 +71,7 @@ namespace Cork::Math
 #ifdef __AVX_AVAILABLE__
             Vector3D result;
 
-            _mm256_store_pd((double*)&result.m_ymm,
+            _mm256_store_pd((double*)&result.ymm_,
                             _mm256_add_pd(m_minp, _mm256_div_pd(_mm256_sub_pd(m_maxp, m_minp), AVXtwo)));
 
             return (result);

@@ -6,12 +6,20 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Xoshiro256PlusSIMD)
 
+FetchContent_Declare(
+  fmtlib
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG        8.0.1)
+
+FetchContent_MakeAvailable(fmtlib)
+
 include_directories(
     .
     ../include
     ../thirdparty/tbb/${TBB_VERSION}/include
     ../thirdparty/mpir/${MPIR_VERSION}
     ${xoshiro256plussimd_SOURCE_DIR}/include
+    ${fmtlib_SOURCE_DIR}/include
 )
 
 add_library(Corklib SHARED 

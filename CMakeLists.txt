@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14.0)
 project(Corklib VERSION 0.9.0)
 
 # specify the C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -12,6 +12,13 @@ set(MPIR_VERSION "mpir-3.0.0")
 
 include(FetchContent)
 include(cmake/find_avx.cmake)
+
+FetchContent_Declare(
+  fmtlib
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG        8.0.1)
+
+FetchContent_MakeAvailable(fmtlib)
 
 check_for_avx()
 
@@ -30,7 +37,11 @@ message( STATUS "AVX Flags: ${AVX_FLAGS}" )
 
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${AVX_FLAGS} -Wno-deprecated-declarations")
 
-add_compile_definitions( TRILIBRARY )
+add_compile_definitions(
+  TRILIBRARY
+  FMT_HEADER_ONLY
+  __HAS_PERFORMANCE_STRINGSTREAM__
+)
 
 # Determine if Cork is built as a subproject (using add_subdirectory)
 # or if it is the master project.
@@ -46,6 +57,7 @@ endif ()
 include_directories(
   ./thirdparty/boost/${BOOST_VERSION}
   ./include
+  ${fmtlib_SOURCE_DIR}/include
   )
 
 add_subdirectory(src)
