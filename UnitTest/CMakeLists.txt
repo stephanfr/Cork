@@ -26,21 +26,23 @@ FetchContent_MakeAvailable(Xoshiro256PlusSIMD)
 include_directories(
     ../src
     ../include
+    ../thirdparty/tbb/${TBB_VERSION}/include
     ${xoshiro256plussimd_SOURCE_DIR}/include
 )
 
 add_executable( tests
-  growable_streambuf_test.cpp
-#  CachingFactoryTest.cpp
-#  ConstructOnceResizeableVectorTest.cpp
-#  Vector2DTest.cpp
-#  Vector3DTest.cpp
+  performance_stream_test.cpp
+  off_file_io_test.cpp
+  CachingFactoryTest.cpp
+  ConstructOnceResizeableVectorTest.cpp
+  Vector2DTest.cpp
+  Vector3DTest.cpp
 )
 
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain Corklib tbb mpir boost_program_options boost_filesystem boost_system boost_timer boost_thread pthread)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain Corklib tbb mpir boost_program_options boost_filesystem boost_iostreams boost_system boost_timer boost_thread pthread)
 
 add_executable( benchmarks
-#  UnionFindBenchmark.cpp
+  UnionFindBenchmark.cpp
   Vector3DBenchmark.cpp
 )
 

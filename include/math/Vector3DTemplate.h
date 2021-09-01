@@ -397,7 +397,7 @@ namespace Cork::Math
     template <class T, SIMDInstructionSet SIMD>
     inline std::ostream &operator<<(std::ostream &out, const Vector3DTemplate<T, SIMD> &vec)
     {
-        return out << fmt::format(FMT_COMPILE("[{:f},{:f},{:f}]"), vec.x(), vec.y(), vec.z());
+        return out << fmt::format(FMT_COMPILE("[{:g},{:g},{:g}]"), vec.x(), vec.y(), vec.z());
     }
 
     // determinant of 3 Vector3DTemplates

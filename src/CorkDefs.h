@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include <stdint.h>
 #include <cfloat>
 
 //  Alignment for platform - 32 bytes is optimal for AVX
@@ -35,8 +36,7 @@ constexpr int SIMD_MEMORY_ALIGNMENT = 32;
 // NOTE: none of these values should be modified by the clients
 
 constexpr int QUANTIZATION_BITS = 30;                   //	number of bits to set resolution of quantizing grid snapped to model
-constexpr int PERTURBATION_BUFFER_BITS =
-    8;                                                  //	minimum number of bits of resolution that we will reserve when perturbing
+constexpr int PERTURBATION_BUFFER_BITS = 8;             //	minimum number of bits of resolution that we will reserve when perturbing
                                                         //  the model 8 bits means that we will not perturb the mesh more than
                                                         //  1/128th of the length of the smallest edge in the model
 constexpr int PERTURBATION_RANGE_BITS = 5;              //	number of bits we will perturb over
@@ -88,6 +88,7 @@ constexpr float PURTURBATION_UNDERFLOW_EDGE_LENGTH = (10 * NUMERIC_PRECISION_MIN
 
 #else
 
+//  NOLINTNEXTLINE
 #define NUMERIC_PRECISION double
 
 constexpr double NUMERIC_PRECISION_MAX = DBL_MAX;
@@ -105,7 +106,9 @@ constexpr double PURTURBATION_UNDERFLOW_EDGE_LENGTH = (100 * NUMERIC_PRECISION_M
 //  Macro to check for memory alignment
 //
 #ifdef __AVX_AVAILABLE__
+//  NOLINTNEXTLINE
 #define __CHECK_ALIGNMENT__(x) assert(alignof(x) == SIMD_MEMORY_ALIGNMENT);
 #else
+//  NOLINTNEXTLINE
 #define __CHECK_ALIGNMENT__(x)
 #endif

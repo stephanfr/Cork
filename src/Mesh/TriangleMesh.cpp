@@ -185,6 +185,12 @@ namespace Cork
 			return( *m_boundingBox );
 		}
 
+		
+		size_t		num_vertices() const
+		{
+			return m_indexedVertices->size();
+		}
+
 		TriangleMesh::VertexIndexType		AddVertex( const TriangleMesh::Vertex&					vertexToAdd )
 		{
 			//	Copy on write for the vertex structure.  We need to duplicate the vector if we no longer hold the pointer uniquely.

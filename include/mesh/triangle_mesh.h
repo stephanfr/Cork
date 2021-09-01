@@ -107,6 +107,8 @@ namespace Cork
 
         virtual ~IncrementalVertexIndexTriangleMeshBuilder(){};
 
+        virtual size_t		num_vertices() const = 0;
+
         virtual TriangleMesh::VertexIndexType AddVertex(const TriangleMesh::Vertex& vertexToAdd) = 0;
         virtual TriangleMeshBuilderResultCodes AddTriangle(const TriangleMesh::TriangleByIndices& triangleToAdd) = 0;
 

@@ -2,8 +2,8 @@
 #include <catch2/catch_all.hpp>
 #include <mutex>
 
-#include "../CorkLib/Util/ThreadPool.h"
-#include "../CorkLib/Util/unionFind.h"
+#include "util/ThreadPool.h"
+#include "util/unionFind.h"
 #include "RandomGraphGenerator.h"
 #include "tbb/tbb.h"
 

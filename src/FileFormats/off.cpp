@@ -37,6 +37,7 @@
 #endif
 
 #include "file_formats/files.h"
+#include "util/file_helpers.h"
 
 namespace Cork::Files
 {
@@ -46,7 +47,7 @@ namespace Cork::Files
     }
 
     inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
-                                    const Cork::Math::TriangleByIndicesBase& triToWrite)
+                                                            const Cork::Math::TriangleByIndicesBase& triToWrite)
     {
         fmt::format_to(std::move(out_stream.back_insert_iterator()), FMT_COMPILE("3 {:d} {:d} {:d}"), triToWrite[0],
                        triToWrite[1], triToWrite[2]);
@@ -55,137 +56,170 @@ namespace Cork::Files
     }
 
     inline SEFUtility::PerformanceOStringStream& WriteVertex(SEFUtility::PerformanceOStringStream& out_stream,
-                                     const Cork::Math::Vertex3D& vertex)
+                                                             const Cork::Math::Vertex3D& vertex)
     {
-        fmt::format_to(std::move(out_stream.back_insert_iterator()), FMT_COMPILE("{:f} {:f} {:f}"), vertex.x(),
+        fmt::format_to(std::move(out_stream.back_insert_iterator()), FMT_COMPILE("{:g} {:g} {:g}"), vertex.x(),
                        vertex.y(), vertex.z());
 
         return out_stream;
     }
 
-    inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream, const Cork::Math::Vector3D& vec)
+    inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
+                                                            const Cork::Math::Vector3D& vec)
     {
-        fmt::format_to(std::move(out_stream.back_insert_iterator()), FMT_COMPILE("{:f} {:f} {:f}"), vec.x(), vec.y(),
+        fmt::format_to(std::move(out_stream.back_insert_iterator()), FMT_COMPILE("{:g} {:g} {:g}"), vec.x(), vec.y(),
                        vec.z());
 
         return out_stream;
     }
 
+    //
+    //  Read an OFF or COFF encoded file
+    //
+
     ReadFileResult readOFF(const std::filesystem::path& file_path)
     {
         //	Open the mesh file
 
-        std::ifstream in(file_path);
+        LineByLineFileReader input_file(file_path);
 
-        if (!in.good())
+        if (!input_file.good())
         {
-            return (ReadFileResult::Failure(ReadFileResultCodes::UNABLE_TO_OPEN_FILE,
-                                            boost::format("Unable to open file: %s") % file_path.string()));
+            return ReadFileResult::Failure(ReadFileResultCodes::UNABLE_TO_OPEN_FILE,
+                                           fmt::format("Unable to open file: {}", file_path.string()));
         }
 
         //	Look for the label at the top of the file to indicate formatting of the rest of the file
         //		If the encoding is in the COFF format which includes color info, we will have to strip the color values
 
-        std::string fileType;
+        char string_buffer[64];
 
-        in >> fileType;
+        int items_processed;
+        int chars_processed;
 
-        if ((fileType != "OFF") && (fileType != "COFF"))
+        std::string next_line;
+
+        if (!input_file.read_line_exactly("%60s", 1, string_buffer))
         {
-            return (ReadFileResult::Failure(ReadFileResultCodes::OFF_UNRECOGNIZED_HEADER,
-                                            boost::format("Unrecognized header for OFF file: %s") % fileType));
+            return ReadFileResult::Failure(ReadFileResultCodes::ERROR_READING_FILE_TYPE,
+                                           "Error reading file type in OFF file header");
         }
 
-        bool stripColor = (fileType == "COFF");
+        const std::string file_type(string_buffer);
+
+        if ((file_type != "OFF") && (file_type != "COFF"))
+        {
+            return ReadFileResult::Failure(ReadFileResultCodes::OFF_UNRECOGNIZED_HEADER,
+                                           fmt::format("Unrecognized header for OFF file: {}", file_type));
+        }
+
+        bool strip_color = (file_type == "COFF");
 
         //	Load the number of vertices, faces and edges
 
-        unsigned int numVertices, numFaces, numEdges;
+        unsigned int num_vertices, num_faces, num_edges;
 
-        in >> numVertices >> numFaces >> numEdges;
-
-        if (!in.good())
+        if (!input_file.read_line_exactly("%d %d %d", 3, &num_vertices, &num_faces, &num_edges))
         {
-            return (ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_COUNTS,
-                                            "Error reading counts of vertices, faces and edges."));
+            return ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_COUNTS,
+                                           "Error reading counts of vertices, faces and edges.");
         }
 
         //	Get an incremental indexed vertices mesh builder
 
         std::unique_ptr<IncrementalVertexIndexTriangleMeshBuilder> meshBuilder(
-            IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(numVertices, numFaces));
+            IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(num_vertices, num_faces));
 
         //	Read the Vertex data
 
         {
-            int red, green, blue, lum;
+            double x, y, z;
 
-            NUMERIC_PRECISION x, y, z;
-
-            for (unsigned int i = 0; i < numVertices; ++i)
+            for (unsigned int i = 0; i < num_vertices; ++i)
             {
-                in >> x >> y >> z;
-
-                if (meshBuilder->AddVertex(Cork::Math::Vertex3D(x, y, z)) != i)
+                if (!input_file.read_line_exactly("%lg %lg %lg", 3, &x, &y, &z))
                 {
-                    return (ReadFileResult::Failure(
+                    return ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_VERTICES,
+                                                   "Error reading vertices.");
+                }
+
+                meshBuilder->AddVertex(Cork::Math::Vertex3D(x, y, z));
+
+                if (meshBuilder->num_vertices() != i + 1)
+                {
+                    return ReadFileResult::Failure(
                         ReadFileResultCodes::OFF_READ_DUPLICATE_VERTICES,
-                        boost::format("Error reading vertices - duplicate vertices found in the file: (%f,%f,%f)") % x %
-                            y % z));
+                        fmt::format("Error reading vertices - duplicate vertices found in the file: ( {}, {}, {} )", x,
+                                    y, z));
                 }
 
-                if (stripColor)
+                if (strip_color)
                 {
-                    in >> red >> green >> blue >> lum;
-                }
-            }
+                    next_line = input_file.next_line();
 
-            if (!in.good())
-            {
-                return (ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_VERTICES,
-                                                "Error reading vertices."));
+                    if (!input_file.good())
+                    {
+                        return (ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_STRIPPING_VERTEX_COLOR,
+                                                        "Error stripping out vertex colors."));
+                    }
+                }
             }
         }
 
-        // face data
+        //  Load faces
 
         {
-            TriangleMesh::TriangleByIndices newTriangle(0, 0, 0);
-            unsigned int polySize;
             TriangleMeshBuilderResultCodes resultCode;
 
-            for (unsigned int i = 0; i < numFaces; ++i)
+            for (unsigned int i = 0; i < num_faces; ++i)
             {
-                in >> polySize;
+                uint32_t poly_sides, x_index, y_index, z_index;
 
-                if (polySize != 3)
+                //  We cannot use read_line_exactly as we want to detect non-triangular polygons
+
+                next_line = input_file.next_line();
+
+                if (!input_file.good())
                 {
-                    return (ReadFileResult::Failure(
+                    return ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_FACES,
+                                                   "Error reading faces.");
+                }
+
+                items_processed = sscanf(next_line.c_str(), "%u %u %u %u %n", &poly_sides, &x_index, &y_index, &z_index,
+                                         &chars_processed);
+
+                if ((items_processed >= 1) && (poly_sides != 3))
+                {
+                    return ReadFileResult::Failure(
                         ReadFileResultCodes::OFF_NON_TRIANGULAR_FACE,
-                        boost::format("Non Triangular face encountered on triangle index: %i") % i));
+                        fmt::format("Non Triangular face encountered on triangle index: {}", i));
                 }
 
-                in >> newTriangle;
-
-                if ((resultCode = meshBuilder->AddTriangle(newTriangle)) != TriangleMeshBuilderResultCodes::SUCCESS)
+                if ((items_processed != 4) || (chars_processed != next_line.length()))
                 {
-                    return (ReadFileResult::Failure(
-                        ReadFileResultCodes::OFF_ERROR_ADDING_FACE_TO_MESH,
-                        boost::format("Error adding triangle to mesh encountered on triangle index: %i") % i));
+                    return ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_FACES,
+                                                   "Error reading faces.");
                 }
-            }
 
-            if (!in.good())
-            {
-                return (ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_FACES, "Error reading faces."));
+                if ((resultCode = meshBuilder->AddTriangle(TriangleMesh::TriangleByIndices(
+                         x_index, y_index, z_index))) != TriangleMeshBuilderResultCodes::SUCCESS)
+                {
+                    return ReadFileResult::Failure(
+                        ReadFileResultCodes::OFF_ERROR_ADDING_FACE_TO_MESH,
+                        fmt::format("Error adding triangle to mesh encountered on triangle index: {}", i));
+                }
             }
         }
 
         std::unique_ptr<Cork::TriangleMesh> triMesh(std::move(meshBuilder->Mesh()));
 
-        return (ReadFileResult(triMesh));
+        return ReadFileResult(triMesh);
     }
 
+    //
+    //  Write on OFF file
+    //
+    
     WriteFileResult writeOFF(const std::filesystem::path& file_path, const TriangleMesh& mesh_to_write)
     {
         //	Open the output file
@@ -194,8 +228,8 @@ namespace Cork::Files
 
         if (!out.good())
         {
-            return (WriteFileResult::Failure(WriteFileResultCodes::UNABLE_TO_OPEN_FILE,
-                                             (boost::format("Unable to open file: %s") % file_path.c_str()).str()));
+            return WriteFileResult::Failure(WriteFileResultCodes::UNABLE_TO_OPEN_FILE,
+                                            fmt::format("Unable to open file: {}", file_path.c_str()));
         }
 
         //	Create two memory buffers so we can write the output data in two threads
