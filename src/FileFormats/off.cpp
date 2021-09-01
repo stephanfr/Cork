@@ -135,12 +135,25 @@ namespace Cork::Files
         {
             double x, y, z;
 
+            int r, b, g, lum;
+
             for (unsigned int i = 0; i < num_vertices; ++i)
             {
-                if (!input_file.read_line_exactly("%lg %lg %lg", 3, &x, &y, &z))
+                if (!strip_color)
                 {
-                    return ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_VERTICES,
-                                                   "Error reading vertices.");
+                    if (!input_file.read_line_exactly("%lg %lg %lg", 3, &x, &y, &z))
+                    {
+                        return ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_VERTICES,
+                                                    "Error reading vertices.");
+                    }
+                }
+                else
+                {
+                    if (!input_file.read_line_exactly("%lg %lg %lg %d %d %d %d", 7, &x, &y, &z,&r, &g, &g, &lum ))
+                    {
+                        return ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_VERTICES,
+                                                    "Error reading vertices with color.");
+                    }
                 }
 
                 meshBuilder->AddVertex(Cork::Math::Vertex3D(x, y, z));
@@ -151,17 +164,6 @@ namespace Cork::Files
                         ReadFileResultCodes::OFF_READ_DUPLICATE_VERTICES,
                         fmt::format("Error reading vertices - duplicate vertices found in the file: ( {}, {}, {} )", x,
                                     y, z));
-                }
-
-                if (strip_color)
-                {
-                    next_line = input_file.next_line();
-
-                    if (!input_file.good())
-                    {
-                        return (ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_STRIPPING_VERTEX_COLOR,
-                                                        "Error stripping out vertex colors."));
-                    }
                 }
             }
         }

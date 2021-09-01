@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
 
         if (!read_model_result.Succeeded())
         {
-            std::cout << "Error Reading Model: " << current_model.filename().string() << std::endl;
+            std::cout << "Error Reading Model: " << current_model.filename().string() << "    " << read_model_result.message() << std::endl;
             exit(-1);
         }
 
