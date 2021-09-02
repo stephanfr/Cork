@@ -44,7 +44,7 @@
 #endif
 
 
-#include "util/Result.h"
+#include "CPPResult.hpp"
 
 #include "mesh/triangle_mesh.h"
 
@@ -142,7 +142,7 @@ namespace Cork
 	{
 	public :
 
-		typedef SEFUtility::ResultWithUniqueReturnPtr<BooleanOperationResultCodes, CorkMesh>		BooleanOperationResult;
+		typedef SEFUtility::ResultWithReturnUniquePtr<BooleanOperationResultCodes, CorkMesh>		BooleanOperationResult;
 
 
 

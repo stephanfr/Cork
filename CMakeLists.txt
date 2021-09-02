@@ -20,6 +20,13 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(fmtlib)
 
+FetchContent_Declare(
+  cppresult
+  GIT_REPOSITORY https://github.com/stephanfr/CppResult.git
+  GIT_TAG        main)
+
+FetchContent_MakeAvailable(cppresult)
+
 check_for_avx()
 
 message( STATUS "AVX Status: ${HAVE_AVX_EXTENSIONS}" )
@@ -58,6 +65,7 @@ include_directories(
   ./thirdparty/boost/${BOOST_VERSION}
   ./include
   ${fmtlib_SOURCE_DIR}/include
+  ${cppresult_SOURCE_DIR}/include
   )
 
 add_subdirectory(src)

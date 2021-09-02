@@ -106,7 +106,7 @@ namespace Cork
 
 				if( !sufficientRange() )
 				{
-					return( AdjustPerturbationResult::Failure( AdjustPerturbationResultCodes::MAXIMUM_PERTURBATION_REACHED, "Maximum Perturbation reached" ) );
+					return( AdjustPerturbationResult::failure( AdjustPerturbationResultCodes::MAXIMUM_PERTURBATION_REACHED, "Maximum Perturbation reached" ) );
 				}
 
 				return( AdjustPerturbationResult( m_numAdjustments ) );
@@ -1593,7 +1593,7 @@ namespace Cork
 							std::cout << "exact count: " << m_iprob.ExactArithmeticContext().exact_count << std::endl;
 #endif
 
-							return( ConsolidateResult::Failure( ConsolidateResultCodes::COULD_NOT_FIND_COMMON_VERTEX, "Could not find common vertex in Triangle Problem Consolidate" ));
+							return( ConsolidateResult::failure( ConsolidateResultCodes::COULD_NOT_FIND_COMMON_VERTEX, "Could not find common vertex in Triangle Problem Consolidate" ));
 						}
 
 						// then, find the corresponding OrigVertType*, and connect
@@ -1610,7 +1610,7 @@ namespace Cork
 					}
 				}
 
-				return( ConsolidateResult::Success() );
+				return( ConsolidateResult::success() );
 			}
 
 
@@ -1744,7 +1744,7 @@ namespace Cork
 				{
 					//	When we end up here, it is usually because we have hit some self-intersections.
 
-					return( SubdivideResult::Failure( SubdivideResultCodes::TRIANGULATE_OUT_POINT_COUNT_UNEQUAL_TO_IN_POINT_COUNT, "Unequal number of points before and after triangulation - check input meshes for self intersections." ) );
+					return( SubdivideResult::failure( SubdivideResultCodes::TRIANGULATE_OUT_POINT_COUNT_UNEQUAL_TO_IN_POINT_COUNT, "Unequal number of points before and after triangulation - check input meshes for self intersections." ) );
 				}
 
 				m_gtris.clear();
@@ -1758,7 +1758,7 @@ namespace Cork
 					m_gtris.push_back( m_iprob.newGenericTri(gv0, gv1, gv2));
 				}
 
-				return( SubdivideResult::Success() );
+				return( SubdivideResult::success() );
 			}
 
 
@@ -2270,15 +2270,15 @@ namespace Cork
 
 			if (m_exactArithmeticContext.degeneracy_count > 0)
 			{
-				return(TryToFindIntersectionsResult::Failure(TryToFindIntersectionsResultCodes::TRI_EGDE_DEGENERACIES, "Degeneracies Detected during Triangle Edge instersection computations." ));
+				return(TryToFindIntersectionsResult::failure(TryToFindIntersectionsResultCodes::TRI_EGDE_DEGENERACIES, "Degeneracies Detected during Triangle Edge instersection computations." ));
 			}
 
 			if (!findTriTriTriIntersections())
 			{
-				return(TryToFindIntersectionsResult::Failure(TryToFindIntersectionsResultCodes::TRI_TRI_TRI_INTERSECTIONS_FAILED, "Three Triangle Intersection computation failed."));
+				return(TryToFindIntersectionsResult::failure(TryToFindIntersectionsResultCodes::TRI_TRI_TRI_INTERSECTIONS_FAILED, "Three Triangle Intersection computation failed."));
 			}
 
-			return(TryToFindIntersectionsResult::Success());
+			return(TryToFindIntersectionsResult::success());
 		}
 
 
@@ -2402,22 +2402,22 @@ namespace Cork
 			{
 				TryToFindIntersectionsResult		result = tryToFindIntersections();
 
-				foundIntersections = result.Succeeded();
+				foundIntersections = result.succeeded();
 
 				if( !foundIntersections )
 				{
-					if (result.errorCode() == TryToFindIntersectionsResultCodes::OUT_OF_MEMORY)
+					if (result.error_code() == TryToFindIntersectionsResultCodes::OUT_OF_MEMORY)
 					{
-						return(IntersectionProblemResult::Failure(IntersectionProblemResultCodes::OUT_OF_MEMORY, "Out of Memory", result));
+						return(IntersectionProblemResult::failure(result, IntersectionProblemResultCodes::OUT_OF_MEMORY, "Out of Memory" ));
 					}
 
 					reset();
 
 					auto	perturbAdjustResult = m_perturbation.adjust();
 
-					if (!perturbAdjustResult.Succeeded())
+					if (!perturbAdjustResult.succeeded())
 					{
-						return(IntersectionProblemResult::Failure(IntersectionProblemResultCodes::EXHAUSTED_PURTURBATION_RETRIES, "Perturbation adjustment failed", perturbAdjustResult));
+						return(IntersectionProblemResult::failure(perturbAdjustResult, IntersectionProblemResultCodes::EXHAUSTED_PURTURBATION_RETRIES, "Perturbation adjustment failed" ));
 					}
 
 					perturbPositions();
@@ -2432,13 +2432,13 @@ namespace Cork
 
 			for ( auto& tprob : m_triangleProblemList )
 			{
-				if( !tprob.Consolidate().Succeeded())
+				if( !tprob.Consolidate().succeeded())
 				{	
-					return( IntersectionProblemResult::Failure( IntersectionProblemResultCodes::CONSOLIDATE_FAILED, "Consolidate failed" ) );
+					return( IntersectionProblemResult::failure( IntersectionProblemResultCodes::CONSOLIDATE_FAILED, "Consolidate failed" ) );
 				}
 			}
 
-			return( IntersectionProblemResult::Success() );
+			return( IntersectionProblemResult::success() );
 		}
 
 
@@ -2482,7 +2482,7 @@ namespace Cork
 			{
 				auto result = tprob.Subdivide();
 
-				if( !result.Succeeded() )
+				if( !result.succeeded() )
 				{
 					//	Usually, we fail here as a result of a self-intersecting mesh.  Check for that condition now
 					//		but we only have to check the current collection of triangles associated with this problem.
@@ -2523,10 +2523,10 @@ namespace Cork
 
 					if( numIntersections > 0 )
 					{
-						return( IntersectionProblemResult::Failure( IntersectionProblemResultCodes::SELF_INTERSECTING_MESH, "Self Intersections found in Mesh", result ) );
+						return( IntersectionProblemResult::failure( result, IntersectionProblemResultCodes::SELF_INTERSECTING_MESH, "Self Intersections found in Mesh" ) );
 					}
 					
-					return( IntersectionProblemResult::Failure( IntersectionProblemResultCodes::SUBDIVIDE_FAILED, "Subdivide failed", result ));
+					return( IntersectionProblemResult::failure( result, IntersectionProblemResultCodes::SUBDIVIDE_FAILED, "Subdivide failed" ));
 				}
 			}
     
@@ -2579,7 +2579,7 @@ namespace Cork
 			// This basically takes care of everything EXCEPT one detail *) The base mesh data structures still need to be compacted
 			// This detail should be handled by the calling code...
 
-			return( IntersectionProblemResult::Success() );
+			return( IntersectionProblemResult::success() );
 		}
 
 

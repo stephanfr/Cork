@@ -214,14 +214,14 @@ int main(int argc, char* argv[])
     {
         Cork::Files::ReadFileResult read_model_result = Cork::Files::readOFF(current_model);
 
-        if (!read_model_result.Succeeded())
+        if (!read_model_result.succeeded())
         {
             std::cout << "Error Reading Model: " << current_model.filename().string() << "    " << read_model_result.message() << std::endl;
             exit(-1);
         }
 
         models.emplace_back(
-            std::make_pair(current_model, std::shared_ptr<Cork::TriangleMesh>(read_model_result.ReturnPtr().release())));
+            std::make_pair(current_model, std::shared_ptr<Cork::TriangleMesh>(read_model_result.return_ptr().release())));
     }
 
     for (const NameAndModel& first_model : models)
@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
                 std::string filename = first_model.first.filename().stem().string() + "_" +
                                        second_model.first.filename().stem().string() + "_union";
 
-                if (!boolean_op_result.Succeeded())
+                if (!boolean_op_result.succeeded())
                 {
                     std::cout << "Union Failed: " << boolean_op_result.message() << std::endl;
                     geotopo_results << filename << "    Failed" << std::endl;
@@ -269,7 +269,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    std::unique_ptr<Cork::CorkMesh> unioned_mesh(boolean_op_result.ReturnPtr().release());
+                    std::unique_ptr<Cork::CorkMesh> unioned_mesh(boolean_op_result.return_ptr().release());
 
                     //					std::cout << "Components in finished Mesh: " << unionedMesh->CountComponents()
                     //<< std::endl;
@@ -315,7 +315,7 @@ int main(int argc, char* argv[])
                 std::string filename = first_model.first.filename().stem().string() + "_" +
                                        second_model.first.filename().stem().string() + "_difference";
 
-                if (!boolean_op_result.Succeeded())
+                if (!boolean_op_result.succeeded())
                 {
                     std::cout << "Difference Failed: " << boolean_op_result.message() << std::endl;
                     geotopo_results << filename << "    Failed" << std::endl;
@@ -325,7 +325,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    std::unique_ptr<Cork::CorkMesh> difference_mesh(boolean_op_result.ReturnPtr().release());
+                    std::unique_ptr<Cork::CorkMesh> difference_mesh(boolean_op_result.return_ptr().release());
 
                     cumulative_CPU_time += difference_mesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
                     cumulative_wall_time += difference_mesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();
@@ -369,7 +369,7 @@ int main(int argc, char* argv[])
                 std::string filename = first_model.first.filename().stem().string() + "_" +
                                        second_model.first.filename().stem().string() + "_intersection";
 
-                if (!boolean_op_result.Succeeded())
+                if (!boolean_op_result.succeeded())
                 {
                     std::cout << "Intersection Failed: " << boolean_op_result.message() << std::endl;
                     geotopo_results << filename << "    Failed" << std::endl;
@@ -379,7 +379,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    std::unique_ptr<Cork::CorkMesh> intersection_mesh(boolean_op_result.ReturnPtr().release());
+                    std::unique_ptr<Cork::CorkMesh> intersection_mesh(boolean_op_result.return_ptr().release());
 
                     //					std::cout << "Components in finished Mesh: " <<
                     //intersectionMesh->CountComponents()
@@ -427,7 +427,7 @@ int main(int argc, char* argv[])
                 std::string filename = first_model.first.filename().stem().string() + "_" +
                                        second_model.first.filename().stem().string() + "_xor";
 
-                if (!boolean_op_result.Succeeded())
+                if (!boolean_op_result.succeeded())
                 {
                     std::cout << "Symmetric Difference Failed: " << boolean_op_result.message() << std::endl;
                     geotopo_results << filename << "    Failed" << std::endl;
@@ -437,7 +437,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    std::unique_ptr<Cork::CorkMesh> XOR_mesh(boolean_op_result.ReturnPtr().release());
+                    std::unique_ptr<Cork::CorkMesh> XOR_mesh(boolean_op_result.return_ptr().release());
 
                     cumulative_CPU_time += XOR_mesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
                     cumulative_wall_time += XOR_mesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();

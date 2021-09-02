@@ -155,7 +155,7 @@ namespace Cork
             OUT_OF_MEMORY
         };
 
-        typedef SEFUtility::ResultWithUniqueReturnPtr<BuildEGraphCacheResultCodes, EGraphCache> BuildEGraphCacheResult;
+        typedef SEFUtility::ResultWithReturnUniquePtr<BuildEGraphCacheResultCodes, EGraphCache> BuildEGraphCacheResult;
 
         typedef tbb::concurrent_vector<size_t> ComponentType;
         typedef tbb::concurrent_vector<ComponentType> ComponentList;
@@ -431,7 +431,7 @@ namespace Cork
         if (this->m_tris.size() >= MAX_TRIANGLES_IN_DISJOINT_UNION)
         {
             return (
-                SetupBooleanProblemResult::Failure(SetupBooleanProblemResultCodes::TOO_MANY_TRIANGLES_IN_DISJOINT_UNION,
+                SetupBooleanProblemResult::failure(SetupBooleanProblemResultCodes::TOO_MANY_TRIANGLES_IN_DISJOINT_UNION,
                                                    "Too many triangles in disjoint union, possible out of memory "
                                                    "exception if the operation is attenmpted."));
         }
@@ -444,7 +444,7 @@ namespace Cork
 
         if (!quantizer.sufficientPerturbationRange())
         {
-            return (SetupBooleanProblemResult::Failure(SetupBooleanProblemResultCodes::INSUFFICIENT_PERTURBATION_RANGE,
+            return (SetupBooleanProblemResult::failure(SetupBooleanProblemResultCodes::INSUFFICIENT_PERTURBATION_RANGE,
                                                        "Insufficient Dynamic Range left in model for perturbation."));
         }
 
@@ -458,37 +458,36 @@ namespace Cork
         {
             IntersectionProblemIfx::IntersectionProblemResult findResult = iproblem->FindIntersections();
 
-            if (!findResult.Succeeded())
+            if (!findResult.succeeded())
             {
                 //	If we failed here - not mush to do but return a failed result
 
-                return (SetupBooleanProblemResult::Failure(SetupBooleanProblemResultCodes::FIND_INTERSECTIONS_FAILED,
-                                                           "FindIntersections failed.", findResult));
+                return (SetupBooleanProblemResult::failure(findResult, SetupBooleanProblemResultCodes::FIND_INTERSECTIONS_FAILED,
+                                                           "FindIntersections failed."));
             }
 
             //	Next, resolve them
 
             IntersectionProblemIfx::IntersectionProblemResult resolveResult = iproblem->ResolveAllIntersections();
 
-            if (!resolveResult.Succeeded())
+            if (!resolveResult.succeeded())
             {
                 //	Resolve failed, check the error code to see if this is a recoverable error or not
 
                 //	If we failed due to a self-intersection, then one of the meshes is bad so no amount of
                 // repurturbation will work.
 
-                if (resolveResult.errorCode() ==
+                if (resolveResult.error_code() ==
                     IntersectionProblemIfx::IntersectionProblemResultCodes::SELF_INTERSECTING_MESH)
                 {
-                    return (SetupBooleanProblemResult::Failure(SetupBooleanProblemResultCodes::SELF_INTERSECTING_MESH,
-                                                               "One of the two meshes self intersects", resolveResult));
+                    return SetupBooleanProblemResult::failure(resolveResult, SetupBooleanProblemResultCodes::SELF_INTERSECTING_MESH,
+                                                               "One of the two meshes self intersects" );
                 }
 
                 //	Resolve failed for some other reason.
 
-                return (SetupBooleanProblemResult::Failure(SetupBooleanProblemResultCodes::RESOLVE_INTERSECTIONS_FAILED,
-                                                           "ResolveIntersections failed and exhuasted perturbations.",
-                                                           resolveResult));
+                return SetupBooleanProblemResult::failure(resolveResult, SetupBooleanProblemResultCodes::RESOLVE_INTERSECTIONS_FAILED,
+                                                           "ResolveIntersections failed and exhuasted perturbations." );
             }
 
             iproblem->commit();
@@ -499,13 +498,13 @@ namespace Cork
 
         BuildEGraphCacheResult buildEGraphResult = BuildEdgeGraphCache();
 
-        if (!buildEGraphResult.Succeeded())
+        if (!buildEGraphResult.succeeded())
         {
-            return (SetupBooleanProblemResult::Failure(SetupBooleanProblemResultCodes::POPULATE_EDGE_GRAPH_CACHE_FAILED,
-                                                       "Building Edge Graph Cache Failed", buildEGraphResult));
+            return (SetupBooleanProblemResult::failure(buildEGraphResult, SetupBooleanProblemResultCodes::POPULATE_EDGE_GRAPH_CACHE_FAILED,
+                                                       "Building Edge Graph Cache Failed" ));
         }
 
-        std::unique_ptr<EGraphCache> ecache(std::move(buildEGraphResult.ReturnPtr()));
+        std::unique_ptr<EGraphCache> ecache(std::move(buildEGraphResult.return_ptr()));
 
         // form connected components;
         // we get one component for each connected component in one
@@ -544,7 +543,7 @@ namespace Cork
 
         //	Finished with Success
 
-        return (SetupBooleanProblemResult::Success());
+        return (SetupBooleanProblemResult::success());
     }
 
     Mesh::BuildEGraphCacheResult Mesh::BuildEdgeGraphCache() const
@@ -557,7 +556,7 @@ namespace Cork
         }
         catch (std::bad_alloc& ex)
         {
-            return (BuildEGraphCacheResult::Failure(BuildEGraphCacheResultCodes::OUT_OF_MEMORY,
+            return (BuildEGraphCacheResult::failure(BuildEGraphCacheResultCodes::OUT_OF_MEMORY,
                                                     "Out of Memory resizing the edge cache"));
         }
 
@@ -598,7 +597,7 @@ namespace Cork
 
         //	Finished with success
 
-        return (BuildEGraphCacheResult::Success(ecachePtr.release()));
+        return BuildEGraphCacheResult::success( std::move( ecachePtr));
     }
 
     std::unique_ptr<Mesh::ComponentList> Mesh::FindComponents(EGraphCache& ecache) const
@@ -666,7 +665,7 @@ namespace Cork
     {
         BuildEGraphCacheResult ecacheResult = BuildEdgeGraphCache();
 
-        std::unique_ptr<EGraphCache> ecache(std::move(ecacheResult.ReturnPtr()));
+        std::unique_ptr<EGraphCache> ecache(std::move(ecacheResult.return_ptr()));
 
         std::unique_ptr<ComponentList> components(std::move(FindComponents(*ecache)));
 
@@ -904,10 +903,10 @@ namespace Cork
 
         SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Cork::Mesh&>(rhs));
 
-        if (!result.Succeeded())
+        if (!result.succeeded())
         {
-            return (BooleanOperationResult::Failure(BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
-                                                    "Error Occurred During Boolean Problem Setup Phase.", result));
+            return (BooleanOperationResult::failure( result, BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
+                                                    "Error Occurred During Boolean Problem Setup Phase."));
         }
 
         resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
@@ -933,7 +932,7 @@ namespace Cork
 
         //	Finished with success
 
-        return (BooleanOperationResult::Success(resultMesh.release()));
+        return BooleanOperationResult(std::move(resultMesh));
     }
 
     Mesh::BooleanOperationResult Mesh::Difference(const CorkMesh& rhs,
@@ -955,10 +954,10 @@ namespace Cork
 
         SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Cork::Mesh&>(rhs));
 
-        if (!result.Succeeded())
+        if (!result.succeeded())
         {
-            return (BooleanOperationResult::Failure(BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
-                                                    "Error Occurred During Boolean Problem Setup Phase.", result));
+            return BooleanOperationResult::failure(result, BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
+                                                    "Error Occurred During Boolean Problem Setup Phase.");
         }
 
         resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
@@ -988,7 +987,7 @@ namespace Cork
 
         //	Finished with success
 
-        return (BooleanOperationResult::Success(resultMesh.release()));
+        return BooleanOperationResult::success(std::move(resultMesh));
     }
 
     Mesh::BooleanOperationResult Mesh::Intersection(const CorkMesh& rhs,
@@ -1010,10 +1009,10 @@ namespace Cork
 
         SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Cork::Mesh&>(rhs));
 
-        if (!result.Succeeded())
+        if (!result.succeeded())
         {
-            return (BooleanOperationResult::Failure(BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
-                                                    "Error Occurred During Boolean Problem Setup Phase.", result));
+            return BooleanOperationResult::failure( result, BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
+                                                    "Error Occurred During Boolean Problem Setup Phase." );
         }
 
         //	Don't let the returns below confuse you - the code is a lambda
@@ -1041,7 +1040,7 @@ namespace Cork
 
         //	Finished with success
 
-        return (BooleanOperationResult::Success(resultMesh.release()));
+        return BooleanOperationResult::success(std::move(resultMesh));
     }
 
     Mesh::BooleanOperationResult Mesh::SymmetricDifference(const CorkMesh& rhs,
@@ -1063,10 +1062,10 @@ namespace Cork
 
         SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Cork::Mesh&>(rhs));
 
-        if (!result.Succeeded())
+        if (!result.succeeded())
         {
-            return (BooleanOperationResult::Failure(BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
-                                                    "Error Occurred During Boolean Problem Setup Phase.", result));
+            return BooleanOperationResult::failure( result, BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
+                                                    "Error Occurred During Boolean Problem Setup Phase.");
         }
 
         //	Don't let the returns below confuse you - the code is a lambda
@@ -1098,7 +1097,7 @@ namespace Cork
 
         //	Finished with success
 
-        return (Mesh::BooleanOperationResult::Success(resultMesh.release()));
+        return Mesh::BooleanOperationResult::success(std::move(resultMesh));
     }
 
     std::unique_ptr<TriangleMesh> Mesh::ToTriangleMesh() const

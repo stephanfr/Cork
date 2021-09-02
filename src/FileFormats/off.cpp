@@ -85,7 +85,7 @@ namespace Cork::Files
 
         if (!input_file.good())
         {
-            return ReadFileResult::Failure(ReadFileResultCodes::UNABLE_TO_OPEN_FILE,
+            return ReadFileResult::failure(ReadFileResultCodes::UNABLE_TO_OPEN_FILE,
                                            fmt::format("Unable to open file: {}", file_path.string()));
         }
 
@@ -101,7 +101,7 @@ namespace Cork::Files
 
         if (!input_file.read_line_exactly("%60s", 1, string_buffer))
         {
-            return ReadFileResult::Failure(ReadFileResultCodes::ERROR_READING_FILE_TYPE,
+            return ReadFileResult::failure(ReadFileResultCodes::ERROR_READING_FILE_TYPE,
                                            "Error reading file type in OFF file header");
         }
 
@@ -109,7 +109,7 @@ namespace Cork::Files
 
         if ((file_type != "OFF") && (file_type != "COFF"))
         {
-            return ReadFileResult::Failure(ReadFileResultCodes::OFF_UNRECOGNIZED_HEADER,
+            return ReadFileResult::failure(ReadFileResultCodes::OFF_UNRECOGNIZED_HEADER,
                                            fmt::format("Unrecognized header for OFF file: {}", file_type));
         }
 
@@ -121,7 +121,7 @@ namespace Cork::Files
 
         if (!input_file.read_line_exactly("%d %d %d", 3, &num_vertices, &num_faces, &num_edges))
         {
-            return ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_COUNTS,
+            return ReadFileResult::failure(ReadFileResultCodes::OFF_ERROR_READING_COUNTS,
                                            "Error reading counts of vertices, faces and edges.");
         }
 
@@ -143,7 +143,7 @@ namespace Cork::Files
                 {
                     if (!input_file.read_line_exactly("%lg %lg %lg", 3, &x, &y, &z))
                     {
-                        return ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_VERTICES,
+                        return ReadFileResult::failure(ReadFileResultCodes::OFF_ERROR_READING_VERTICES,
                                                     "Error reading vertices.");
                     }
                 }
@@ -151,7 +151,7 @@ namespace Cork::Files
                 {
                     if (!input_file.read_line_exactly("%lg %lg %lg %d %d %d %d", 7, &x, &y, &z,&r, &g, &g, &lum ))
                     {
-                        return ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_VERTICES,
+                        return ReadFileResult::failure(ReadFileResultCodes::OFF_ERROR_READING_VERTICES,
                                                     "Error reading vertices with color.");
                     }
                 }
@@ -160,7 +160,7 @@ namespace Cork::Files
 
                 if (meshBuilder->num_vertices() != i + 1)
                 {
-                    return ReadFileResult::Failure(
+                    return ReadFileResult::failure(
                         ReadFileResultCodes::OFF_READ_DUPLICATE_VERTICES,
                         fmt::format("Error reading vertices - duplicate vertices found in the file: ( {}, {}, {} )", x,
                                     y, z));
@@ -183,7 +183,7 @@ namespace Cork::Files
 
                 if (!input_file.good())
                 {
-                    return ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_FACES,
+                    return ReadFileResult::failure(ReadFileResultCodes::OFF_ERROR_READING_FACES,
                                                    "Error reading faces.");
                 }
 
@@ -192,30 +192,28 @@ namespace Cork::Files
 
                 if ((items_processed >= 1) && (poly_sides != 3))
                 {
-                    return ReadFileResult::Failure(
+                    return ReadFileResult::failure(
                         ReadFileResultCodes::OFF_NON_TRIANGULAR_FACE,
                         fmt::format("Non Triangular face encountered on triangle index: {}", i));
                 }
 
                 if ((items_processed != 4) || (chars_processed != next_line.length()))
                 {
-                    return ReadFileResult::Failure(ReadFileResultCodes::OFF_ERROR_READING_FACES,
+                    return ReadFileResult::failure(ReadFileResultCodes::OFF_ERROR_READING_FACES,
                                                    "Error reading faces.");
                 }
 
                 if ((resultCode = meshBuilder->AddTriangle(TriangleMesh::TriangleByIndices(
                          x_index, y_index, z_index))) != TriangleMeshBuilderResultCodes::SUCCESS)
                 {
-                    return ReadFileResult::Failure(
+                    return ReadFileResult::failure(
                         ReadFileResultCodes::OFF_ERROR_ADDING_FACE_TO_MESH,
                         fmt::format("Error adding triangle to mesh encountered on triangle index: {}", i));
                 }
             }
         }
 
-        std::unique_ptr<Cork::TriangleMesh> triMesh(std::move(meshBuilder->Mesh()));
-
-        return ReadFileResult(triMesh);
+        return ReadFileResult(std::move(meshBuilder->Mesh()));
     }
 
     //
@@ -230,7 +228,7 @@ namespace Cork::Files
 
         if (!out.good())
         {
-            return WriteFileResult::Failure(WriteFileResultCodes::UNABLE_TO_OPEN_FILE,
+            return WriteFileResult::failure(WriteFileResultCodes::UNABLE_TO_OPEN_FILE,
                                             fmt::format("Unable to open file: {}", file_path.c_str()));
         }
 
@@ -279,13 +277,13 @@ namespace Cork::Files
 
         if (!out)
         {
-            return (WriteFileResult::Failure(WriteFileResultCodes::ERROR_WRITING_TO_OFS_FILE,
+            return (WriteFileResult::failure(WriteFileResultCodes::ERROR_WRITING_TO_OFS_FILE,
                                              "Unknown Error writing to OFS file"));
         }
 
         out.flush();
 
-        return (WriteFileResult::Success());
+        return (WriteFileResult::success());
     }
 
 }  // namespace Cork::Files

@@ -46,9 +46,11 @@
 #include <string>
 #include <vector>
 
+#include "CPPResult.hpp"
+
 #include "math/BoundingBox.h"
 #include "statistics/statistics.h"
-#include "util/Result.h"
+
 
 namespace Cork
 {
@@ -96,7 +98,7 @@ namespace Cork
         MESH_NOT_2_MANIFOLD
     };
 
-    typedef SEFUtility::ResultWithUniqueReturnPtr<TriangleMeshBuilderResultCodes, TriangleMesh>
+    typedef SEFUtility::ResultWithReturnUniquePtr<TriangleMeshBuilderResultCodes, TriangleMesh>
         TriangleMeshBuilderResult;
 
     class IncrementalVertexIndexTriangleMeshBuilder

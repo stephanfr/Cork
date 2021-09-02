@@ -3,6 +3,10 @@
 
 #include "util/ConstuctOnceResizeableVector.h"
 
+constexpr int   DEFAULT_NUMBER_OF_ELEMENTS = 10;
+constexpr int   RESIZE_VALUE = 5;
+constexpr int   REALLY_BIG_SIZE = 123456;
+
 //	Resettable element for testing
 
 class TestElement : public SEFUtility::Resettable
@@ -162,19 +166,19 @@ TEST_CASE("Construct Once Resizeable Vector Test", "[cork-base]")
 {
     //	Construct the vector of ten elements and insure it is correctly sized at zero initially
 
-    SEFUtility::ConstructOnceResizeableVector<TestElement> testVector(10);
+    SEFUtility::ConstructOnceResizeableVector<TestElement> testVector(DEFAULT_NUMBER_OF_ELEMENTS);
 
     REQUIRE(testVector.size() == 0);
 
-    REQUIRE(testVector.reservedSize() == 10);
+    REQUIRE(testVector.reservedSize() == DEFAULT_NUMBER_OF_ELEMENTS);
 
-    //	Resize the vector to 5 - insure it works correctly
+    //	Resize the vector to RESIZE_VALUE - insure it works correctly
 
-    testVector.resize(5);
+    testVector.resize(RESIZE_VALUE);
 
     REQUIRE(CheckAllReset(testVector));
 
-    CheckSize(testVector, 5);
+    CheckSize(testVector, RESIZE_VALUE);
 
     long i = 0;
     long runningSum = 0;
@@ -194,13 +198,13 @@ TEST_CASE("Construct Once Resizeable Vector Test", "[cork-base]")
 
     CheckSize(testVector, 0);
 
-    //	Reset the vector t oa size of 6
+    //	Reset the vector to a size of RESIZE_VALUE + 1
 
-    testVector.resize(6);
+    testVector.resize(RESIZE_VALUE + 1);
 
     CheckSize(testVector, 6);
 
-    REQUIRE(CheckAllReset(testVector));
+    REQUIRE(CheckAllReset(RESIZE_VALUE + 1));
 
     i = 0;
     runningSum = 0;
@@ -214,19 +218,19 @@ TEST_CASE("Construct Once Resizeable Vector Test", "[cork-base]")
     REQUIRE(CheckAllNotReset(testVector));
     REQUIRE(ComputeRunningSum(testVector) == runningSum);
 
-    //	Directly resize the vector to a size of 4
+    //	Directly resize the vector to a size of RESIZE_VALUE - 1
 
-    testVector.resize(4);
+    testVector.resize(RESIZE_VALUE - 1);
 
-    CheckSize(testVector, 4);
+    CheckSize(testVector, RESIZE_VALUE - 1);
 
     REQUIRE(CheckAllReset(testVector));
 
     //	Resize to a large vector and test
 
-    testVector.resize(123456);
+    testVector.resize(REALLY_BIG_SIZE);
 
-    CheckSize(testVector, 123456);
+    CheckSize(testVector, REALLY_BIG_SIZE);
 
     REQUIRE(CheckAllReset(testVector));
 

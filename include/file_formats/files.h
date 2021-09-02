@@ -92,8 +92,8 @@ namespace Cork::Files
         ERROR_WRITING_TO_IFS_FILE
     };
 
-    typedef SEFUtility::ResultWithUniqueReturnPtr<ReadFileResultCodes, TriangleMesh> ReadFileResult;
-    typedef SEFUtility::Result<WriteFileResultCodes> WriteFileResult;
+    using ReadFileResult = SEFUtility::ResultWithReturnUniquePtr<ReadFileResultCodes, TriangleMesh>;
+    using WriteFileResult = SEFUtility::Result<WriteFileResultCodes>;
 
     CORKLIB_API ReadFileResult readOFF(const std::filesystem::path& file_path);
     CORKLIB_API WriteFileResult writeOFF(const std::filesystem::path& file_path, const TriangleMesh& mesh_to_write);

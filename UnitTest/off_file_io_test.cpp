@@ -16,16 +16,16 @@ TEST_CASE("OFF File Tests", "[file io]")
     {
         auto read_result = Cork::Files::readOFF( "../../UnitTest/Test Files/Quadrilateral1.off" );
         
-        REQUIRE( read_result.Succeeded() );
+        REQUIRE( read_result.succeeded() );
 
-        auto* mesh( read_result.ReturnPtr().release() );
+        auto* mesh( read_result.return_ptr().release() );
 
         REQUIRE( mesh->numVertices() == 26 );
         REQUIRE( mesh->numTriangles() == 48 );
         
         auto write_result = Cork::Files::writeOFF("../../UnitTest/Test Results/Quadrilateral1.off", *mesh );
 
-        REQUIRE( write_result.Succeeded() );
+        REQUIRE( write_result.succeeded() );
 
         REQUIRE_THAT( "../../UnitTest/Test Files/Quadrilateral1.off", MatchesFile( "../../UnitTest/Test Results/Quadrilateral1.off" ) );
     }
@@ -35,37 +35,37 @@ TEST_CASE("OFF File Tests", "[file io]")
         {
             auto read_result = Cork::Files::readOFF( "nosuchfile" );
             
-            REQUIRE(( read_result.Failed() && ( read_result.errorCode() == Cork::Files::ReadFileResultCodes::UNABLE_TO_OPEN_FILE )));
+            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::Files::ReadFileResultCodes::UNABLE_TO_OPEN_FILE )));
         }
 
         {
             auto read_result = Cork::Files::readOFF( "../../UnitTest/Test Files/Quadrilateral1 Bad Vertex.off" );
             
-            REQUIRE(( read_result.Failed() && ( read_result.errorCode() == Cork::Files::ReadFileResultCodes::OFF_ERROR_READING_VERTICES )));
+            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::Files::ReadFileResultCodes::OFF_ERROR_READING_VERTICES )));
         }
 
         {
             auto read_result = Cork::Files::readOFF( "../../UnitTest/Test Files/Quadrilateral1 Bad Triangle.off" );
             
-            REQUIRE(( read_result.Failed() && ( read_result.errorCode() == Cork::Files::ReadFileResultCodes::OFF_ERROR_READING_FACES )));
+            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::Files::ReadFileResultCodes::OFF_ERROR_READING_FACES )));
         }
 
         {
             auto read_result = Cork::Files::readOFF( "../../UnitTest/Test Files/Quadrilateral1 Bad Counts.off" );
             
-            REQUIRE(( read_result.Failed() && ( read_result.errorCode() == Cork::Files::ReadFileResultCodes::OFF_ERROR_READING_COUNTS )));
+            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::Files::ReadFileResultCodes::OFF_ERROR_READING_COUNTS )));
         }
 
         {
             auto read_result = Cork::Files::readOFF( "../../UnitTest/Test Files/Quadrilateral1 One Nontriangle Face.off" );
             
-            REQUIRE(( read_result.Failed() && ( read_result.errorCode() == Cork::Files::ReadFileResultCodes::OFF_NON_TRIANGULAR_FACE )));
+            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::Files::ReadFileResultCodes::OFF_NON_TRIANGULAR_FACE )));
         }
 
         {
             auto read_result = Cork::Files::readOFF( "../../UnitTest/Test Files/Quadrilateral1 Duplicate Vertex.off" );
             
-            REQUIRE(( read_result.Failed() && ( read_result.errorCode() == Cork::Files::ReadFileResultCodes::OFF_READ_DUPLICATE_VERTICES )));
+            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::Files::ReadFileResultCodes::OFF_READ_DUPLICATE_VERTICES )));
         }
     }
 }
