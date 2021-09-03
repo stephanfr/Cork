@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <cfloat>
+#include <cstdint>
 
 //  Alignment for platform - 32 bytes is optimal for AVX
 

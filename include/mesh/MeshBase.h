@@ -114,7 +114,7 @@ namespace Cork
                     memcpy( &m_a, &triangleToCopy.m_a, sizeof( unsigned int ) * 3 );
                 }
         */
-        CorkTriangle(const Cork::TriangleMesh::TriangleByIndices& triangleToCopy, uint32_t boolAlgData)
+        CorkTriangle(const Cork::TriangleByIndices& triangleToCopy, uint32_t boolAlgData)
             : Cork::Math::TriangleByIndicesBase(triangleToCopy), m_boolAlgData(boolAlgData)
         {
         }

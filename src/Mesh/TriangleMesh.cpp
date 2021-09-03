@@ -160,8 +160,8 @@ namespace Cork
 		IncrementalVertexIndexTriangleMeshBuilderImpl( size_t		numVertices,
 													   size_t		numTriangles )
 			: m_vertexIndices(),
-			  m_indexedVertices( new TriangleMesh::VertexVector() ),
-			  m_triangles( new std::vector<TriangleMesh::TriangleByIndices>() ),
+			  m_indexedVertices( new VertexVector() ),
+			  m_triangles( new std::vector<TriangleByIndices>() ),
 			  m_boundingBox( std::make_unique<Cork::Math::BBox3D>( Cork::Math::Vector3D( NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX ), Cork::Math::Vector3D( NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN )  ))
 		{
 			if ( numVertices > 0 )
@@ -191,13 +191,13 @@ namespace Cork
 			return m_indexedVertices->size();
 		}
 
-		TriangleMesh::VertexIndexType		AddVertex( const TriangleMesh::Vertex&					vertexToAdd )
+		VertexIndexType		AddVertex( const Vertex&					vertexToAdd )
 		{
 			//	Copy on write for the vertex structure.  We need to duplicate the vector if we no longer hold the pointer uniquely.
 
 			if ( !m_indexedVertices.unique() )
 			{
-				m_indexedVertices = std::shared_ptr<TriangleMesh::VertexVector>( new TriangleMesh::VertexVector( *m_indexedVertices ) );
+				m_indexedVertices = std::shared_ptr<VertexVector>( new VertexVector( *m_indexedVertices ) );
 			}
 
 			//	Add the vertex, de-duplicate on the fly.
@@ -224,7 +224,7 @@ namespace Cork
 			return(m_vertexIndexRemapper.size() - 1);
 		}
 
-		TriangleMeshBuilderResultCodes		AddTriangle( const TriangleMesh::TriangleByIndices&		triangleToAdd )
+		TriangleMeshBuilderResultCodes		AddTriangle( const TriangleByIndices&		triangleToAdd )
 		{
 			//	Insure the indices are in bounds
 
@@ -239,12 +239,12 @@ namespace Cork
 
 			if ( !m_triangles.unique() )
 			{
-				m_triangles = std::shared_ptr<std::vector<TriangleMesh::TriangleByIndices>>( new std::vector<TriangleMesh::TriangleByIndices>( *m_triangles ) );
+				m_triangles = std::shared_ptr<std::vector<TriangleByIndices>>( new std::vector<TriangleByIndices>( *m_triangles ) );
 			}
 
 			//	Remap the triangle indices
 
-			TriangleMesh::TriangleByIndices		remappedTriangle( m_vertexIndexRemapper[triangleToAdd[0]],
+			TriangleByIndices		remappedTriangle( m_vertexIndexRemapper[triangleToAdd[0]],
 																  m_vertexIndexRemapper[triangleToAdd[1]],
 																  m_vertexIndexRemapper[triangleToAdd[2]] );
 
@@ -254,7 +254,7 @@ namespace Cork
 
 			//	Update the bounding box
 
-			TriangleMesh::TriangleByVertices		triByVerts( (*m_indexedVertices)[remappedTriangle[0]],
+			TriangleByVertices		triByVerts( (*m_indexedVertices)[remappedTriangle[0]],
 																(*m_indexedVertices)[remappedTriangle[1]],
 																(*m_indexedVertices)[remappedTriangle[2]] );
 
@@ -276,7 +276,7 @@ namespace Cork
 
 		std::unique_ptr<TriangleMesh>		Mesh()
 		{
-			std::shared_ptr<const std::vector<TriangleMesh::TriangleByIndices>>	triangles = m_triangles;
+			std::shared_ptr<const std::vector<TriangleByIndices>>	triangles = m_triangles;
 			
 			return(std::unique_ptr<TriangleMesh>( new  TriangleMeshImpl( triangles,
 																		 m_indexedVertices,
@@ -289,10 +289,10 @@ namespace Cork
 		typedef std::map<Cork::Math::Vertex3D, IndexType, Cork::Math::Vertex3DMapCompare, boost::alignment::aligned_allocator<Cork::Math::Vertex3D>>			VertexIndexLookupMap;
 
 		VertexIndexLookupMap													m_vertexIndices;
-		std::shared_ptr<TriangleMesh::VertexVector>								m_indexedVertices;
-		std::vector<TriangleMesh::VertexIndexType>								m_vertexIndexRemapper;
+		std::shared_ptr<VertexVector>								m_indexedVertices;
+		std::vector<VertexIndexType>								m_vertexIndexRemapper;
 
-		std::shared_ptr<std::vector<TriangleMesh::TriangleByIndices>>			m_triangles;
+		std::shared_ptr<std::vector<TriangleByIndices>>			m_triangles;
 
 		std::unique_ptr<Cork::Math::BBox3D>										m_boundingBox;
 	};

@@ -28,9 +28,11 @@
 #include <fmt/format-inl.h>
 #include <tbb/task_group.h>
 
+#include <cstdio>
 #include <fstream>
 #include <iterator>
 #include <sstream>
+
 
 #ifdef __HAS_PERFORMANCE_STRINGSTREAM__
 #include "util/performance_stringstream.h"
@@ -41,6 +43,8 @@
 
 namespace Cork::Files
 {
+    constexpr uint32_t INITIAL_WRITE_BUFFER_SIZE = 131072;
+
     inline std::istream& operator>>(std::istream& inStream, Cork::Math::TriangleByIndicesBase& triToRead)
     {
         return (inStream >> triToRead[0] >> triToRead[1] >> triToRead[2]);
@@ -49,7 +53,7 @@ namespace Cork::Files
     inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
                                                             const Cork::Math::TriangleByIndicesBase& triToWrite)
     {
-        fmt::format_to(std::move(out_stream.back_insert_iterator()), FMT_COMPILE("3 {:d} {:d} {:d}"), triToWrite[0],
+        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("3 {:d} {:d} {:d}"), triToWrite[0],
                        triToWrite[1], triToWrite[2]);
 
         return (out_stream);
@@ -58,7 +62,7 @@ namespace Cork::Files
     inline SEFUtility::PerformanceOStringStream& WriteVertex(SEFUtility::PerformanceOStringStream& out_stream,
                                                              const Cork::Math::Vertex3D& vertex)
     {
-        fmt::format_to(std::move(out_stream.back_insert_iterator()), FMT_COMPILE("{:g} {:g} {:g}"), vertex.x(),
+        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("{:g} {:g} {:g}"), vertex.x(),
                        vertex.y(), vertex.z());
 
         return out_stream;
@@ -67,7 +71,7 @@ namespace Cork::Files
     inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
                                                             const Cork::Math::Vector3D& vec)
     {
-        fmt::format_to(std::move(out_stream.back_insert_iterator()), FMT_COMPILE("{:g} {:g} {:g}"), vec.x(), vec.y(),
+        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("{:g} {:g} {:g}"), vec.x(), vec.y(),
                        vec.z());
 
         return out_stream;
@@ -81,7 +85,7 @@ namespace Cork::Files
     {
         //	Open the mesh file
 
-        LineByLineFileReader input_file(file_path);
+        LineByLineFileReader input_file(file_path, LineByLineFileReader::DEFAULT_BUFFER_SIZE, "#");
 
         if (!input_file.good())
         {
@@ -92,20 +96,22 @@ namespace Cork::Files
         //	Look for the label at the top of the file to indicate formatting of the rest of the file
         //		If the encoding is in the COFF format which includes color info, we will have to strip the color values
 
-        char string_buffer[64];
+        constexpr int STRING_BUFFER_LENGTH = 64;
 
-        int items_processed;
-        int chars_processed;
+        std::array<char, STRING_BUFFER_LENGTH> string_buffer;           //  NOLINT
+
+        int items_processed(0);
+        int chars_processed(0);
 
         std::string next_line;
 
-        if (!input_file.read_line_exactly("%60s", 1, string_buffer))
+        if (!input_file.read_line_exactly("%60s", string_buffer.data()))
         {
             return ReadFileResult::failure(ReadFileResultCodes::ERROR_READING_FILE_TYPE,
                                            "Error reading file type in OFF file header");
         }
 
-        const std::string file_type(string_buffer);
+        const std::string file_type(string_buffer.data());
 
         if ((file_type != "OFF") && (file_type != "COFF"))
         {
@@ -117,9 +123,11 @@ namespace Cork::Files
 
         //	Load the number of vertices, faces and edges
 
-        unsigned int num_vertices, num_faces, num_edges;
+        uint32_t num_vertices(0);
+        uint32_t num_faces(0);
+        uint32_t num_edges(0);
 
-        if (!input_file.read_line_exactly("%d %d %d", 3, &num_vertices, &num_faces, &num_edges))
+        if (!input_file.read_line_exactly("%d %d %d", &num_vertices, &num_faces, &num_edges))
         {
             return ReadFileResult::failure(ReadFileResultCodes::OFF_ERROR_READING_COUNTS,
                                            "Error reading counts of vertices, faces and edges.");
@@ -133,26 +141,31 @@ namespace Cork::Files
         //	Read the Vertex data
 
         {
-            double x, y, z;
-
-            int r, b, g, lum;
+            double x(0.0);
+            double y(0.0);
+            double z(0.0);
 
             for (unsigned int i = 0; i < num_vertices; ++i)
             {
                 if (!strip_color)
                 {
-                    if (!input_file.read_line_exactly("%lg %lg %lg", 3, &x, &y, &z))
+                    if (!input_file.read_line_exactly("%lg %lg %lg", &x, &y, &z))
                     {
                         return ReadFileResult::failure(ReadFileResultCodes::OFF_ERROR_READING_VERTICES,
-                                                    "Error reading vertices.");
+                                                       "Error reading vertices.");
                     }
                 }
                 else
                 {
-                    if (!input_file.read_line_exactly("%lg %lg %lg %d %d %d %d", 7, &x, &y, &z,&r, &g, &g, &lum ))
+                    int32_t r(0);
+                    int32_t b(0);
+                    int32_t g(0);
+                    int32_t lum(0);
+
+                    if (!input_file.read_line_exactly("%lg %lg %lg %d %d %d %d", &x, &y, &z, &r, &g, &g, &lum))
                     {
                         return ReadFileResult::failure(ReadFileResultCodes::OFF_ERROR_READING_VERTICES,
-                                                    "Error reading vertices with color.");
+                                                       "Error reading vertices with color.");
                     }
                 }
 
@@ -175,7 +188,11 @@ namespace Cork::Files
 
             for (unsigned int i = 0; i < num_faces; ++i)
             {
-                uint32_t poly_sides, x_index, y_index, z_index;
+                uint32_t poly_sides(0);
+
+                uint32_t x_index(0);
+                uint32_t y_index(0);
+                uint32_t z_index(0);
 
                 //  We cannot use read_line_exactly as we want to detect non-triangular polygons
 
@@ -187,7 +204,8 @@ namespace Cork::Files
                                                    "Error reading faces.");
                 }
 
-                items_processed = sscanf(next_line.c_str(), "%u %u %u %u %n", &poly_sides, &x_index, &y_index, &z_index,
+                //  NOLINTNEXTLINE(cert-err34-c)
+                items_processed = std::sscanf(next_line.c_str(), "%u %u %u %u %n", &poly_sides, &x_index, &y_index, &z_index,
                                          &chars_processed);
 
                 if ((items_processed >= 1) && (poly_sides != 3))
@@ -203,8 +221,8 @@ namespace Cork::Files
                                                    "Error reading faces.");
                 }
 
-                if ((resultCode = meshBuilder->AddTriangle(TriangleMesh::TriangleByIndices(
-                         x_index, y_index, z_index))) != TriangleMeshBuilderResultCodes::SUCCESS)
+                if ( meshBuilder->AddTriangle(TriangleByIndices(x_index, y_index, z_index)) !=
+                    TriangleMeshBuilderResultCodes::SUCCESS)
                 {
                     return ReadFileResult::failure(
                         ReadFileResultCodes::OFF_ERROR_ADDING_FACE_TO_MESH,
@@ -219,7 +237,7 @@ namespace Cork::Files
     //
     //  Write on OFF file
     //
-    
+
     WriteFileResult writeOFF(const std::filesystem::path& file_path, const TriangleMesh& mesh_to_write)
     {
         //	Open the output file
@@ -234,8 +252,8 @@ namespace Cork::Files
 
         //	Create two memory buffers so we can write the output data in two threads
 
-        SEFUtility::PerformanceOStringStream vertices_stream(1000000);
-        SEFUtility::PerformanceOStringStream triangles_stream(1000000);
+        SEFUtility::PerformanceOStringStream vertices_stream(INITIAL_WRITE_BUFFER_SIZE);
+        SEFUtility::PerformanceOStringStream triangles_stream(INITIAL_WRITE_BUFFER_SIZE);
 
         //	We will be writing in 'OFF' format, no color information.  Write the format label first.
 

@@ -24,7 +24,7 @@ include_directories(
 
 add_library(Corklib SHARED 
     Accel/aabvh.cpp
-    FileFormats/ifs.cpp
+#    FileFormats/ifs.cpp
     FileFormats/off.cpp
     Intersection/empty3d.cpp
     Intersection/triangle.c

@@ -26,49 +26,38 @@
 
 #pragma once
 
-// The following ifdef block is the standard way of creating macros which make exporting
-// from a DLL simpler. All files within this DLL are compiled with the CORKLIB_EXPORTS
-// symbol defined on the command line. This symbol should not be defined on any project
-// that uses this DLL. This way any other project whose source files include this file see
-// CORKLIB_API functions as being imported from a DLL, whereas this DLL sees symbols
-// defined with this macro as being exported.
-#ifdef WINDOWS
-#ifdef CORKLIB_EXPORTS
-#define CORKLIB_API __declspec(dllexport)
-#else
-#define CORKLIB_API __declspec(dllimport)
-#endif
-#else
-#define CORKLIB_API
-#endif
-
-#include <array>
-#include <string>
 #include <vector>
 
 #include "CPPResult.hpp"
-
 #include "math/BoundingBox.h"
+#include "math/Primitives.h"
 #include "statistics/statistics.h"
-
 
 namespace Cork
 {
+    using IndexType = Cork::Math::IndexType;
+
+    using VertexIndexType = IndexType;
+
+    using Vertex = Cork::Math::Vertex3D;
+    using VertexVector = Cork::Math::Vertex3DVector;
+
+    using Edge = Cork::Math::EdgeBase;
+
+    using TriangleByIndices = Cork::Math::TriangleByIndicesBase;
+    using TriangleByVertices = Cork::Math::TriangleByVerticesBase;
+
+    class Hole
+    {
+       public:
+       private:
+        std::vector<Edge> edges_;
+        std::vector<Vertex> vertices_;
+    };
+
     class TriangleMesh
     {
        public:
-        //	Include the relevent types for the triangle mesh into the class itself.
-        //		May look verbose in code but forces crystal clarity on class associations.
-
-        typedef Cork::IndexType VertexIndexType;
-
-        typedef Cork::Math::Vertex3D Vertex;
-        typedef Cork::Math::Vertex3DVector VertexVector;
-
-        typedef Cork::Math::TriangleByIndicesBase TriangleByIndices;
-
-        typedef Cork::Math::TriangleByVerticesBase TriangleByVertices;
-
         //	Methods follow
 
         virtual ~TriangleMesh(){};
@@ -80,8 +69,6 @@ namespace Cork
         virtual const std::vector<TriangleByIndices>& triangles() const = 0;
 
         virtual TriangleByVertices triangleByVertices(const TriangleByIndices& triangleByIndices) const = 0;
-
-        //		virtual SelfIntersectionStatistics					ComputeSelfIntersectionStatistics() const = 0;
 
         virtual const Cork::Math::BBox3D& boundingBox() const = 0;
 
@@ -109,10 +96,10 @@ namespace Cork
 
         virtual ~IncrementalVertexIndexTriangleMeshBuilder(){};
 
-        virtual size_t		num_vertices() const = 0;
+        virtual size_t num_vertices() const = 0;
 
-        virtual TriangleMesh::VertexIndexType AddVertex(const TriangleMesh::Vertex& vertexToAdd) = 0;
-        virtual TriangleMeshBuilderResultCodes AddTriangle(const TriangleMesh::TriangleByIndices& triangleToAdd) = 0;
+        virtual VertexIndexType AddVertex(const Vertex& vertexToAdd) = 0;
+        virtual TriangleMeshBuilderResultCodes AddTriangle(const TriangleByIndices& triangleToAdd) = 0;
 
         virtual std::unique_ptr<TriangleMesh> Mesh() = 0;
     };

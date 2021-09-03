@@ -26,7 +26,6 @@
 // +-------------------------------------------------------------------------
 
 #include <boost/container/small_vector.hpp>
-#include <boost/chrono/chrono.hpp>  //	Had to include when I upgraded to boost 65 - on windows is griped about a missing library
 #include <boost/timer/timer.hpp>
 #include <sstream>
 
@@ -42,35 +41,8 @@
 #include "util/ThreadPool.h"
 #include "util/unionFind.h"
 
-/*
-//template <>
-//Cork::EGraphCache::SkeletonColumnVectorFactory::CacheType
-Cork::EGraphCache::SkeletonColumnVectorFactory::m_cache;
-
-SEFUtility::CachingFactory<Cork::EGraphCache::SkeletonColumnVector>::CacheType<Cork::EGraphCache::SkeletonColumnVector>
-SEFUtility::CachingFactory<Cork::EGraphCache::SkeletonColumnVector>::m_cache;
-
-template <>
-SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::CacheType
-SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::m_cache;
-*/
-
 namespace Cork
 {
-    //	template <>
-    //	SEFUtility::CachingFactory<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry,
-    // 10> > >::CacheType<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry, 10> > >
-    // SEFUtility::CachingFactory<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry,
-    // 10> > >::m_cache;
-
-    //	static template class
-    // SEFUtility::CachingFactory<SEFUtility::ConstructOnceResizeableVector<SEFUtility::SparseVector<Cork::EGraphEntry,
-    // 10> > >;
-
-    //	template <>
-    //	SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::CacheType<Cork::TopoCacheWorkspace>
-    // SEFUtility::CachingFactory<Cork::TopoCacheWorkspace>::m_cache;
-
     using namespace Intersection;
 
     inline double triArea(const Cork::Math::Vector3D& a, const Cork::Math::Vector3D& b, const Cork::Math::Vector3D& c)
@@ -330,7 +302,7 @@ namespace Cork
 
         //	Start by copying the vertices.
 
-        for (Cork::TriangleMesh::Vertex currentVertex : inputMesh.vertices())
+        for (Cork::Vertex currentVertex : inputMesh.vertices())
         {
             m_verts.emplace_back(currentVertex.x(), currentVertex.y(), currentVertex.z());
         }
@@ -462,7 +434,8 @@ namespace Cork
             {
                 //	If we failed here - not mush to do but return a failed result
 
-                return (SetupBooleanProblemResult::failure(findResult, SetupBooleanProblemResultCodes::FIND_INTERSECTIONS_FAILED,
+                return (SetupBooleanProblemResult::failure(findResult,
+                                                           SetupBooleanProblemResultCodes::FIND_INTERSECTIONS_FAILED,
                                                            "FindIntersections failed."));
             }
 
@@ -480,14 +453,16 @@ namespace Cork
                 if (resolveResult.error_code() ==
                     IntersectionProblemIfx::IntersectionProblemResultCodes::SELF_INTERSECTING_MESH)
                 {
-                    return SetupBooleanProblemResult::failure(resolveResult, SetupBooleanProblemResultCodes::SELF_INTERSECTING_MESH,
-                                                               "One of the two meshes self intersects" );
+                    return SetupBooleanProblemResult::failure(resolveResult,
+                                                              SetupBooleanProblemResultCodes::SELF_INTERSECTING_MESH,
+                                                              "One of the two meshes self intersects");
                 }
 
                 //	Resolve failed for some other reason.
 
-                return SetupBooleanProblemResult::failure(resolveResult, SetupBooleanProblemResultCodes::RESOLVE_INTERSECTIONS_FAILED,
-                                                           "ResolveIntersections failed and exhuasted perturbations." );
+                return SetupBooleanProblemResult::failure(resolveResult,
+                                                          SetupBooleanProblemResultCodes::RESOLVE_INTERSECTIONS_FAILED,
+                                                          "ResolveIntersections failed and exhuasted perturbations.");
             }
 
             iproblem->commit();
@@ -500,8 +475,9 @@ namespace Cork
 
         if (!buildEGraphResult.succeeded())
         {
-            return (SetupBooleanProblemResult::failure(buildEGraphResult, SetupBooleanProblemResultCodes::POPULATE_EDGE_GRAPH_CACHE_FAILED,
-                                                       "Building Edge Graph Cache Failed" ));
+            return (SetupBooleanProblemResult::failure(buildEGraphResult,
+                                                       SetupBooleanProblemResultCodes::POPULATE_EDGE_GRAPH_CACHE_FAILED,
+                                                       "Building Edge Graph Cache Failed"));
         }
 
         std::unique_ptr<EGraphCache> ecache(std::move(buildEGraphResult.return_ptr()));
@@ -597,7 +573,7 @@ namespace Cork
 
         //	Finished with success
 
-        return BuildEGraphCacheResult::success( std::move( ecachePtr));
+        return BuildEGraphCacheResult::success(std::move(ecachePtr));
     }
 
     std::unique_ptr<Mesh::ComponentList> Mesh::FindComponents(EGraphCache& ecache) const
@@ -905,12 +881,13 @@ namespace Cork
 
         if (!result.succeeded())
         {
-            return (BooleanOperationResult::failure( result, BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
+            return (BooleanOperationResult::failure(result,
+                                                    BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
                                                     "Error Occurred During Boolean Problem Setup Phase."));
         }
 
         resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
-            if ((data & 2) == 2 )  // part of op 0/1 INSIDE op 1/0
+            if ((data & 2) == 2)  // part of op 0/1 INSIDE op 1/0
             {
                 return TriCode::DELETE_TRI;
             }
@@ -956,8 +933,9 @@ namespace Cork
 
         if (!result.succeeded())
         {
-            return BooleanOperationResult::failure(result, BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
-                                                    "Error Occurred During Boolean Problem Setup Phase.");
+            return BooleanOperationResult::failure(result,
+                                                   BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
+                                                   "Error Occurred During Boolean Problem Setup Phase.");
         }
 
         resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
@@ -1011,8 +989,9 @@ namespace Cork
 
         if (!result.succeeded())
         {
-            return BooleanOperationResult::failure( result, BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
-                                                    "Error Occurred During Boolean Problem Setup Phase." );
+            return BooleanOperationResult::failure(result,
+                                                   BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
+                                                   "Error Occurred During Boolean Problem Setup Phase.");
         }
 
         //	Don't let the returns below confuse you - the code is a lambda
@@ -1064,8 +1043,9 @@ namespace Cork
 
         if (!result.succeeded())
         {
-            return BooleanOperationResult::failure( result, BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
-                                                    "Error Occurred During Boolean Problem Setup Phase.");
+            return BooleanOperationResult::failure(result,
+                                                   BooleanOperationResultCodes::ERROR_DURING_BOOLEAN_PROBLEM_SETUP,
+                                                   "Error Occurred During Boolean Problem Setup Phase.");
         }
 
         //	Don't let the returns below confuse you - the code is a lambda
@@ -1102,18 +1082,18 @@ namespace Cork
 
     std::unique_ptr<TriangleMesh> Mesh::ToTriangleMesh() const
     {
-        std::unique_ptr<Cork::IncrementalVertexIndexTriangleMeshBuilder> triangleMeshBuilder(
-            Cork::IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(vertices().size(), triangles().size()));
+        std::unique_ptr<IncrementalVertexIndexTriangleMeshBuilder> triangleMeshBuilder(
+            IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(vertices().size(), triangles().size()));
 
         for (auto& currentVertex : vertices())
         {
-            triangleMeshBuilder->AddVertex(Cork::TriangleMesh::Vertex((NUMERIC_PRECISION)currentVertex.x(),
-                                                                      (NUMERIC_PRECISION)currentVertex.y(),
-                                                                      (NUMERIC_PRECISION)currentVertex.z()));
+            triangleMeshBuilder->AddVertex(Vertex((NUMERIC_PRECISION)currentVertex.x(),
+                                                  (NUMERIC_PRECISION)currentVertex.y(),
+                                                  (NUMERIC_PRECISION)currentVertex.z()));
         }
 
         for_raw_tris([&](IndexType a, IndexType b, IndexType c) {
-            triangleMeshBuilder->AddTriangle(TriangleMesh::TriangleByIndices(a, b, c));
+            triangleMeshBuilder->AddTriangle(TriangleByIndices(a, b, c));
         });
 
         return (triangleMeshBuilder->Mesh());
@@ -1130,13 +1110,5 @@ namespace Cork
 
         return (defaultBlock);
     }
-
-    //	SelfIntersectionStatistics			ComputeTriangleMeshSelfIntersectionStatistics( const Cork::TriangleMesh&
-    // triangleMeshToTest )
-    //	{
-    //		Mesh			meshForTesting( triangleMeshToTest );
-    //
-    //		return( meshForTesting.ComputeSelfIntersectionStatistics() );
-    //	}
 
 }  // namespace Cork
