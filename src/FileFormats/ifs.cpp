@@ -32,8 +32,8 @@
 // using std::ofstream;
 using boost::filesystem::ifstream;
 using boost::filesystem::ofstream;
-//using std::cout;
-//using std::endl;
+// using std::cout;
+// using std::endl;
 #include <ios>
 
 namespace Cork::Files
@@ -355,5 +355,5 @@ namespace Cork::Files
 
         return 0;
     }
-    */
-}	//	namespace Cork::Files
+*/
+}

@@ -24,20 +24,15 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#pragma once
-
-#include <array>
 #include <boost/container/small_vector.hpp>
-#include <deque>
-#include <list>
-#include <map>
-#include <unordered_map>
 #include <unordered_set>
 
 #include "CorkDefs.h"
-#include "mesh/EGraphCache.h"
+
+//#include "math/Primitives.h"
+//#include "mesh/EGraphCache.h"
 #include "statistics/statistics.h"
-#include "util/unionFind.h"
+//#include "util/unionFind.h"
 
 namespace Cork::Statistics
 {

@@ -204,7 +204,7 @@ namespace Cork::Files
                                                    "Error reading faces.");
                 }
 
-                //  NOLINTNEXTLINE(cert-err34-c)
+                //  NOLINTNEXTLINE(cert-err34-c, cppcoreguidelines-pro-type-vararg, hicpp-vararg)
                 items_processed = std::sscanf(next_line.c_str(), "%u %u %u %u %n", &poly_sides, &x_index, &y_index, &z_index,
                                          &chars_processed);
 

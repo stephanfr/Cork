@@ -78,6 +78,7 @@
         "csetjmp": "cpp",
         "any": "cpp",
         "source_location": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "format": "cpp"
     }
 }

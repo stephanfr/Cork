@@ -108,7 +108,7 @@ namespace Cork
 		{
 			for(int i=0; i<4; i++)
 			{
-				out.v[i] = fabs(in.v[i]);
+				out.v[i] = fabs(in[i]);
 			}
 		}
 
@@ -116,7 +116,7 @@ namespace Cork
 		{
 			for(int i=0; i<6; i++)
 			{
-				out.v[i] = fabs(in.v[i]);
+				out.v[i] = fabs(in[i]);
 			}
 		}
 

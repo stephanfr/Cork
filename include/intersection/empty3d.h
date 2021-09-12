@@ -57,31 +57,53 @@ namespace Cork
 		};
 
 
-		struct TriIn
+		class TriIn
 		{
+			public :
+
+			TriIn() = delete;
+
 			TriIn( const Cork::Math::Vector3D&		tri0,
 				   const Cork::Math::Vector3D&		tri1,
 				   const Cork::Math::Vector3D&		tri2 )
-			  : p0( tri0 ),
-				p1( tri1 ),
-				p2( tri2 )
+			  : p0_( tri0 ),
+				p1_( tri1 ),
+				p2_( tri2 )
 			{}
 
-			const Cork::Math::Vector3D&		p0;
-			const Cork::Math::Vector3D&		p1;
-			const Cork::Math::Vector3D&		p2;
+			const Ext4::Ext4_1&		p0() const { return p0_; };
+			const Ext4::Ext4_1&		p1() const { return p1_; };
+			const Ext4::Ext4_1&		p2() const { return p2_; };
+
+			private :
+
+			const Ext4::Ext4_1		p0_;
+			const Ext4::Ext4_1		p1_;
+			const Ext4::Ext4_1		p2_;
+
 		};
 
-		struct EdgeIn
+		class EdgeIn
 		{
+			public :
+
+			EdgeIn() = delete;
+
 			EdgeIn( const Cork::Math::Vector3D&		edge0,
 					const Cork::Math::Vector3D&		edge1 )
-				: p0( edge0 ),
-				  p1( edge1 )
+				: p0_( edge0 ),
+				  p1_( edge1 )
 			{}
 
-			const Cork::Math::Vector3D&		p0;
-			const Cork::Math::Vector3D&		p1;
+
+			const Ext4::Ext4_1&		p0() const { return p0_; }
+			const Ext4::Ext4_1&		p1() const { return p1_; }
+
+
+			private :
+
+			const Ext4::Ext4_1		p0_;
+			const Ext4::Ext4_1		p1_;
 		};
 
 
@@ -96,9 +118,6 @@ namespace Cork
 				 edge( _edge )
 			{}
 
-			TriIn   tri;
-			EdgeIn  edge;
-
 			bool isEmpty( ExactArithmeticContext&				context ) const;
 
 			bool emptyExact( const Quantization::Quantizer&		quantizer,
@@ -109,6 +128,10 @@ namespace Cork
 
 
 		private :
+
+			TriIn   tri;
+			EdgeIn  edge;
+
 
 			int			emptyFilter() const;
 
@@ -164,6 +187,15 @@ namespace Cork
 			out.e0 = quantizer.quantize2int( in.x() );
 			out.e1 = quantizer.quantize2int( in.y() );
 			out.e2 = quantizer.quantize2int( in.z() );
+			out.e3 = 1;
+		}
+
+		inline
+		void toGmpExt( GMPExt4::GmpExt4_1 &out, const Ext4::Ext4_1 &in, const Quantization::Quantizer& quantizer)
+		{
+			out.e0 = quantizer.quantize2int( in.e0() );
+			out.e1 = quantizer.quantize2int( in.e1() );
+			out.e2 = quantizer.quantize2int( in.e2() );
 			out.e3 = 1;
 		}
 

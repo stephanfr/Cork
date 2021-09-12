@@ -9,6 +9,11 @@
 
 namespace Cork::Files
 {
+    //
+    //  The next class is a bit hard to follow - it has some compile time functions as well
+    //      mixed in to make the interface little more robust when literals are used for the format string.
+    //
+
     class LineByLineFileReader
     {
        public:
