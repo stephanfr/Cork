@@ -32,26 +32,10 @@
 
 namespace Cork::Empty3d
 {
-    using namespace AbsExt4;
+    using namespace Ext4;
     using namespace FixExt4;
     using namespace GMPExt4;
 
-    inline void toAbsExt(AbsExt4_1& out, const Cork::Math::Vector3D& in)
-    {
-        Cork::Math::Vector3D vec = in.abs();
-        out.e0 = vec.x();
-        out.e1 = vec.y();
-        out.e2 = vec.z();
-        out.e3 = 1.0f;
-    }
-
-    //    inline void toVec3d(Cork::Math::Vector3D& out, const Ext4::Ext4_1& in)
-    //    {
-    // Warning: beware of division by zero!
-
-    //        out = Cork::Math::Vector3D((NUMERIC_PRECISION)(in.e0 / in.e3), (NUMERIC_PRECISION)(in.e1 / in.e3),
-    //                                   (NUMERIC_PRECISION)(in.e2 / in.e3));
-    //    }
 
     constexpr int IN_BITS = QUANTIZATION_BITS + 1;  // +1 for sign bit
 
@@ -87,43 +71,38 @@ namespace Cork::Empty3d
     {
         context.callcount++;
 
-        ;
-
-        Ext4::Ext4_3 t_ext3;
         Ext4::Ext4_2 temp_e2(tri.p0().join(tri.p1()));
-        t_ext3 = temp_e2.join(tri.p2());
+        Ext4::Ext4_3 t_ext3 = temp_e2.join(tri.p2());
 
         Ext4::Ext4_2 e_ext2(edge.p0().join(edge.p1()));
 
         // compute the point of intersection
 
-        Ext4::Ext4_1 p_isct( e_ext2.meet( t_ext3 ) );
+        Ext4::Ext4_1 p_isct(e_ext2.meet(t_ext3));
 
         // need to adjust for negative w-coordinate
 
         if (p_isct.e3() < 0.0)
         {
-            neg(p_isct, p_isct);
+            p_isct.negate();
         }
 
         // a_t0 is the variation of t_ext3 with tp0 replaced with p_isct
         // a_t1 is the variation of t_ext3 with tp1 replaced with p_isct
         // and so on...
 
-        Ext4::Ext4_3 a_t0, a_t1, a_t2;
-
         temp_e2 = p_isct.join(tri.p1());
-        a_t0 = temp_e2.join(tri.p2());
+        Ext4::Ext4_3 a_t0(temp_e2.join(tri.p2()));
         temp_e2 = tri.p0().join(p_isct);
-        a_t1 = temp_e2.join(tri.p2());
+        Ext4::Ext4_3 a_t1(temp_e2.join(tri.p2()));
         temp_e2 = tri.p0().join(tri.p1());
-        a_t2 = temp_e2.join(p_isct);
+        Ext4::Ext4_3 a_t2(temp_e2.join(p_isct));
 
         Ext4::Ext4_2 a_e0(p_isct.join(edge.p1()));
         Ext4::Ext4_2 a_e1(edge.p0().join(p_isct));
 
-        return ((inner(t_ext3, a_t0) < 0.0) || (inner(t_ext3, a_t1) < 0.0) || (inner(t_ext3, a_t2) < 0.0) ||
-                (inner(e_ext2, a_e0) < 0.0) || (inner(e_ext2, a_e1) < 0.0));
+        return ((t_ext3.inner(a_t0) < 0.0) || (t_ext3.inner(a_t1) < 0.0) || (t_ext3.inner(a_t2) < 0.0) ||
+                (e_ext2.inner(a_e0) < 0.0) || (e_ext2.inner(a_e1) < 0.0));
     }
 
     inline Cork::Math::Vector3D TriEdgeIn::coords() const
@@ -137,7 +116,7 @@ namespace Cork::Empty3d
 
         // compute the point of intersection
 
-        Ext4::Ext4_1 p_isct( e_ext2.meet( t_ext3 ) );
+        Ext4::Ext4_1 p_isct(e_ext2.meet(t_ext3));
 
         // no need to adjust for negative w-coordinate.
         // will drop out in divide.
@@ -153,40 +132,38 @@ namespace Cork::Empty3d
 
     int TriEdgeIn::emptyFilter() const
     {
-        AbsExt4_2 ktemp2;
+//        AbsExt4_2 ktemp2;
         std::array<AbsExt4_1, 2> kep;
         std::array<AbsExt4_1, 3> ktp;
-        AbsExt4_2 ke_ext2;
-        Ext4::Ext4_3 t_ext3;
-        AbsExt4_3 kt_ext3;
+//        AbsExt4_2 ke_ext2;
+//        AbsExt4_3 kt_ext3;
 
         // load the points
 
-        abs(kep[0], edge.p0());
-        abs(kep[1], edge.p1());
+        kep[0] = edge.p0();
+        kep[1] = edge.p1();
 
-        abs(ktp[0], tri.p0());
-        abs(ktp[1], tri.p1());
-        abs(ktp[2], tri.p2());
+        ktp[0] = tri.p0();
+        ktp[1] = tri.p1();
+        ktp[2] = tri.p2();
 
         // form the edge and triangle
 
         Ext4::Ext4_2 e_ext2(edge.p0().join(edge.p1()));
-        join(ke_ext2, kep[0], kep[1]);
+        AbsExt4_2 ke_ext2( kep[0]. join(kep[1]));
         Ext4::Ext4_2 temp2(tri.p0().join(tri.p1()));
-        join(ktemp2, ktp[0], ktp[1]);
-        t_ext3 = temp2.join(tri.p2());
-        join(kt_ext3, ktemp2, ktp[2]);
+        AbsExt4_2 ktemp2( ktp[0].join(ktp[1]));
+        Ext4::Ext4_3 t_ext3(temp2.join(tri.p2()));
+        AbsExt4_3 kt_ext3( ktemp2.join(ktp[2]));
 
         // compute the point of intersection
 
-        Ext4::Ext4_1 pisct( e_ext2.meet( t_ext3 ) );
-        AbsExt4_1 kpisct;
-        meet(kpisct, ke_ext2, kt_ext3);
+        Ext4::Ext4_1 pisct(e_ext2.meet(t_ext3));
+        AbsExt4_1 kpisct( ke_ext2.meet( kt_ext3));
 
         // We perform one of the filter exit tests here...
 
-        if (!filterCheck(pisct.e3(), kpisct.e3, COEFF_IT12_PISCT))
+        if (!filterCheck(pisct.e3(), kpisct.e3(), COEFF_IT12_PISCT))
         {
             return 0;  // i.e. uncertain
         }
@@ -195,7 +172,7 @@ namespace Cork::Empty3d
 
         if (pisct.e3() < 0.0)
         {
-            neg(pisct, pisct);
+            pisct.negate();
         }
 
         bool uncertain = false;
@@ -207,10 +184,10 @@ namespace Cork::Empty3d
             AbsExt4_2 ka;
 
             Ext4::Ext4_2 a(((i == 0) ? pisct : edge.p0()).join((i == 1) ? pisct : edge.p1()));
-            join(ka, (i == 0) ? kpisct : kep[0], (i == 1) ? kpisct : kep[1]);
+            ka = ((i == 0) ? kpisct : kep[0]).join( (i == 1) ? kpisct : kep[1]);
 
-            double dot = inner(e_ext2, a);
-            double kdot = inner(ke_ext2, ka);
+            double dot = e_ext2.inner(a);
+            double kdot = ke_ext2.inner( ka);
 
             // now figure out what to do...
 
@@ -232,16 +209,15 @@ namespace Cork::Empty3d
 
         for (int i = 0; i < 3; i++)
         {
-            Ext4::Ext4_3 a;
-            AbsExt4_3 ka;
+//            AbsExt4_3 ka;
 
             temp2 = ((i == 0) ? pisct : tri.p0()).join((i == 1) ? pisct : tri.p1());
-            a = temp2.join((i == 2) ? pisct : tri.p2());
-            join(ktemp2, (i == 0) ? kpisct : ktp[0], (i == 1) ? kpisct : ktp[1]);
-            join(ka, ktemp2, (i == 2) ? kpisct : ktp[2]);
+            Ext4::Ext4_3 a(temp2.join((i == 2) ? pisct : tri.p2()));
+            ktemp2 = ((i == 0) ? kpisct : ktp[0]).join( (i == 1) ? kpisct : ktp[1]);
+            AbsExt4_3 ka( ktemp2.join( (i == 2) ? kpisct : ktp[2]));
 
-            double dot = inner(t_ext3, a);
-            double kdot = inner(kt_ext3, ka);
+            double dot = t_ext3.inner(a);
+            double kdot = kt_ext3.inner( ka);
 
             // now figure out what to do...
 
@@ -449,14 +425,14 @@ namespace Cork::Empty3d
 
         // compute the point of intersection
 
-        Ext4::Ext4_2 temp_e2( meet( t_ext3s[0], t_ext3s[1]));
-        Ext4::Ext4_1 p_isct(temp_e2.meet( t_ext3s[2]));
+        Ext4::Ext4_2 temp_e2(t_ext3s[0].meet(t_ext3s[1]));
+        Ext4::Ext4_1 p_isct(temp_e2.meet(t_ext3s[2]));
 
         // need to adjust for negative w-coordinate
 
         if (p_isct.e3() < 0.0)
         {
-            neg(p_isct, p_isct);
+            p_isct.negate();
         }
 
         // Test whether p_isct is inside each triangle
@@ -472,7 +448,7 @@ namespace Cork::Empty3d
                 Ext4::Ext4_3 a;
                 Ext4::Ext4_2 temp_e2(((pi == 0) ? p_isct : m_tri[ti].p0()).join(((pi == 1) ? p_isct : m_tri[ti].p1())));
                 a = temp_e2.join(((pi == 2) ? p_isct : m_tri[ti].p2()));
-                double test = inner(t_ext3s[ti], a);
+                double test = t_ext3s[ti].inner(a);
                 if (test < 0.0)  // AHA, p_isct IS outside this triangle
                     return true;
             }
@@ -496,8 +472,8 @@ namespace Cork::Empty3d
 
         // compute the point of intersection
 
-        Ext4::Ext4_2 temp_e2( meet( t_ext3s[0], t_ext3s[1]));
-        Ext4::Ext4_1 p_isct( temp_e2.meet(t_ext3s[2]));
+        Ext4::Ext4_2 temp_e2(t_ext3s[0].meet(t_ext3s[1]));
+        Ext4::Ext4_1 p_isct(temp_e2.meet(t_ext3s[2]));
 
         // no need to adjust for negative w-coordinate.
         // will come out in the divide.
@@ -513,7 +489,6 @@ namespace Cork::Empty3d
 
     int TriTriTriIn::emptyFilter() const
     {
-        AbsExt4_2 ktemp2;
         std::array<std::array<AbsExt4_1, 3>, 3> kp;
         std::array<Ext4::Ext4_3, 3> t;
         std::array<AbsExt4_3, 3> kt;
@@ -522,27 +497,26 @@ namespace Cork::Empty3d
 
         for (uint i = 0; i < 3; i++)
         {
-            abs(kp[i][0], m_tri[i].p0());
-            abs(kp[i][1], m_tri[i].p1());
-            abs(kp[i][2], m_tri[i].p2());
+            kp[i][0] = m_tri[i].p0();
+            kp[i][1] = m_tri[i].p1();
+            kp[i][2] = m_tri[i].p2();
 
             Ext4::Ext4_2 temp2(m_tri[i].p0().join(m_tri[i].p1()));
-            join(ktemp2, kp[i][0], kp[i][1]);
+            AbsExt4_2 ktemp2( kp[i][0].join(kp[i][1]));
             t[i] = temp2.join(m_tri[i].p2());
-            join(kt[i], ktemp2, kp[i][2]);
+            kt[i] = ktemp2.join( kp[i][2]);
         }
 
         // compute the point of intersection
-        AbsExt4_1 kpisct;
 
-        Ext4::Ext4_2 temp2( meet( t[0], t[1]));
-        meet(ktemp2, kt[0], kt[1]);
-        Ext4::Ext4_1 pisct( temp2.meet( t[2]));
-        meet(kpisct, ktemp2, kt[2]);
+        Ext4::Ext4_2 temp2(t[0].meet(t[1]));
+        AbsExt4_2 ktemp2( kt[0].meet( kt[1]));
+        Ext4::Ext4_1 pisct(temp2.meet(t[2]));
+        AbsExt4_1 kpisct(ktemp2.meet(kt[2]));
 
         // We perform one of the filter exit tests here...
 
-        if (!filterCheck(pisct.e3(), kpisct.e3, COEFF_IT222_PISCT))
+        if (!filterCheck(pisct.e3(), kpisct.e3(), COEFF_IT222_PISCT))
         {
             return 0;  // i.e. uncertain
         }
@@ -551,7 +525,7 @@ namespace Cork::Empty3d
 
         if (pisct.e3() < 0.0)
         {
-            neg(pisct, pisct);
+            pisct.negate();
         }
 
         bool uncertain = false;
@@ -560,17 +534,15 @@ namespace Cork::Empty3d
         {
             for (int j = 0; j < 3; j++)
             {
-                AbsExt4_2 kb;
-                Ext4::Ext4_3 a;
-                AbsExt4_3 ka;
+//                AbsExt4_3 ka;
 
                 Ext4::Ext4_2 b(((j == 0) ? pisct : m_tri[i].p0()).join((j == 1) ? pisct : m_tri[i].p1()));
-                a = b.join((j == 2) ? pisct : m_tri[i].p2());
-                join(kb, (j == 0) ? kpisct : kp[i][0], (j == 1) ? kpisct : kp[i][1]);
-                join(ka, kb, (j == 2) ? kpisct : kp[i][2]);
+                Ext4::Ext4_3 a(b.join((j == 2) ? pisct : m_tri[i].p2()));
+                AbsExt4_2 kb( ((j == 0) ? kpisct : kp[i][0]).join((j == 1) ? kpisct : kp[i][1]));
+                AbsExt4_3   ka(kb.join((j == 2) ? kpisct : kp[i][2]));
 
-                double dot = inner(t[i], a);
-                double kdot = inner(kt[i], ka);
+                double dot = t[i].inner(a);
+                double kdot = kt[i].inner(ka);
 
                 // then consider the filtering...
 

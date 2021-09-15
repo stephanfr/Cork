@@ -39,42 +39,63 @@
 
 namespace Ext4
 {
+    namespace Constants
+    {
+        constexpr double DOUBLE_ONE = 1.0;
+    }
+
     // types for k-vectors in R4:
     //      Ext4_k
 
     class Ext4_2;
     class Ext4_3;
+    class AbsExt4_1;
+    class AbsExt4_2;
+    class AbsExt4_3;
 
     class Ext4_1
     {
        public:
-
         explicit Ext4_1(const Ext4_1 &ext_to_copy) : v_(ext_to_copy.v_) {}
-        explicit Ext4_1(Ext4_1 &&ext_to_copy)
-        {
-            v_ = ext_to_copy.v_;
-        }
+        explicit Ext4_1(Ext4_1 &&ext_to_copy) { v_ = ext_to_copy.v_; }
 
 #if defined(NUMERIC_PRECISION) && NUMERIC_PRECISION == double
 
-        explicit Ext4_1(const Cork::Math::Vector3D &vector) : vector_(vector) { e3_ = 1.0f; }
+        explicit Ext4_1(const Cork::Math::Vector3D &vector) : vector_(vector) { e3_ = Constants::DOUBLE_ONE; }
+
+#ifdef __AVX_AVAILABLE__
+        explicit Ext4_1(__m256d ymm) : ymm_(ymm) {}
 
         const Ext4_1 &operator=(const Cork::Math::Vector3D &vector)
         {
-            vector_ = vector;
-            e3_ = 1.0f;
+            ymm_ = vector;
+            e3_ = Constants::DOUBLE_ONE;
 
             return *this;
         }
+#else  //  __AVX_AVAILABLE__
+        const Ext4_1 &operator=(const Cork::Math::Vector3D &vector)
+        {
+            vector_ = vector;
+            e3_ = Constants::DOUBLE_ONE;
+
+            return *this;
+        }
+
+        operator __mm356d() const { return ymm_; }
+
+#endif  //  __AVX_AVAILABLE__
 
         operator Cork::Math::Vector3D() const
         {
             // Warning: beware of division by zero!
 
+            assert(e3_ != 0);
             return vector_ / e3_;
         }
 #else
-        explicit Ext4_1(const Cork::Math::Vector3D &vector) : e0(vector.x()), e1(vector.y()), e1(vector.z()), e3(1.0f)
+        explicit Ext4_1(const Cork::Math::Vector3D &vector)
+            : e0(vector.x()), e1(vector.y()), e1(vector.z()), e3(Constants::DOUBLE_ONE)
         {
         }
 
@@ -83,12 +104,12 @@ namespace Ext4
             e0 = vector.x();
             e1 = vector.y();
             e2 = vector.z();
-            e3 = 1.0f;
+            e3 = Constants::DOUBLE_ONE;
 
             return *this;
         }
 
-        Cork::Math::Vector3D operator() const
+        [[nodiscard]] Cork::Math::Vector3D operator() const
         {
             // Warning: beware of division by zero!
 
@@ -106,16 +127,44 @@ namespace Ext4
         double &operator[](size_t index) { return v_[index]; }
         double operator[](size_t index) const { return v_[index]; }
 
+        // Negation takes a k-vector and returns its negation neg(X,Y) and is safe for X=Y
+
+        Ext4_1 &negate()
+        {
+            e0_ = -e0_;
+            e1_ = -e1_;
+            e2_ = -e2_;
+            e3_ = -e3_;
+
+            return *this;
+        }
+
+        [[nodiscard]] Ext4_1 negate() const { return Ext4_1(-e0_, -e1_, -e2_, -e3_); }
+
         //  A dual operation takes a k-vector and returns a (4-k)-vector
         //      A reverse dual operation inverts the dual operation
         //      dual(X,Y) is not safe for X=Y (same with revdual)
 
-        Ext4_3 dual() const;
-        Ext4_3 reverse_dual() const;
+        [[nodiscard]] Ext4_3 dual() const;
+        [[nodiscard]] Ext4_3 reverse_dual() const;
 
         //  Join takes a j-vector and a k-vector and returns a (j+k)-vector
 
-        Ext4_2 join(const Ext4_1 &rhs) const;
+        [[nodiscard]] Ext4_3 join(const Ext4_2 &rhs) const;
+
+        [[nodiscard]] Ext4_2 join(const Ext4_1 &rhs) const;
+
+        [[nodiscard]] double inner(const Ext4_1 &rhs) const
+        {
+            double acc = 0.0;
+
+            for (int i = 0; i < 4; i++)
+            {
+                acc += v_[i] * rhs[i];
+            }
+
+            return (acc);
+        }
 
        private:
         Ext4_1(double e0, double e1, double e2, double e3) : e0_(e0), e1_(e1), e2_(e2), e3_(e3){};
@@ -143,231 +192,506 @@ namespace Ext4
 
         friend class Ext4_2;
         friend class Ext4_3;
+        friend class AbsExt4_1;
     };
 
     class Ext4_2
     {
        public:
-        double &operator[](size_t index) { return v[index]; }
-        double operator[](size_t index) const { return v[index]; }
+        double &operator[](size_t index) { return v_[index]; }
+        double operator[](size_t index) const { return v_[index]; }
 
-        Ext4_2 negate() const { return Ext4_2(-e01, -e02, -e03, -e12, -e13, -e23); }
+        double e01() const { return e01_; }
+        double e02() const { return e02_; }
+        double e03() const { return e03_; }
+        double e12() const { return e12_; }
+        double e13() const { return e13_; }
+        double e23() const { return e23_; }
 
-        Ext4_2 dual() const { return Ext4_2(e23, -e13, e12, e03, -e02, e01); }
+        Ext4_2 &negate()
+        {
+            e01_ = -e01_;
+            e02_ = -e02_;
+            e03_ = -e03_;
+            e12_ = -e12_;
+            e13_ = -e13_;
+            e23_ = -e23_;
+            return *this;
+        }
 
-        Ext4_2 reverse_dual() const { return Ext4_2(e23, -e13, e12, e03, -e02, e01); }
+        [[nodiscard]] Ext4_2 negate() const { return Ext4_2(-e01_, -e02_, -e03_, -e12_, -e13_, -e23_); }
 
-        Ext4_3 join(const Ext4_1 &rhs) const;
+        [[nodiscard]] Ext4_2 dual() const { return Ext4_2(e23_, -e13_, e12_, e03_, -e02_, e01_); }
 
-        Ext4_1 meet(const Ext4_3 &rhs) const;
+        [[nodiscard]] Ext4_2 reverse_dual() const { return Ext4_2(e23_, -e13_, e12_, e03_, -e02_, e01_); }
+
+        [[nodiscard]] Ext4_3 join(const Ext4_1 &rhs) const;
+
+        [[nodiscard]] Ext4_1 meet(const Ext4_3 &rhs) const;
+
+        // An inner product takes two k-vectors and produces a single number
+
+        [[nodiscard]] double inner(const Ext4_2 &rhs) const
+        {
+            double acc = 0.0;
+
+            for (int i = 0; i < 6; i++)
+            {
+                acc += v_[i] * rhs[i];
+            }
+
+            return (acc);
+        }
 
        private:
         Ext4_2(){};
 
-        Ext4_2(double e01__, double e02__, double e03__, double e12__, double e13__, double e23__)
-            : e01(e01__), e02(e02__), e03(e03__), e12(e12__), e13(e13__), e23(e23__)
+        Ext4_2(double e01, double e02, double e03, double e12, double e13, double e23)
+            : e01_(e01), e02_(e02), e03_(e03), e12_(e12), e13_(e13), e23_(e23)
         {
         }
 
         union
         {
-            double v[6];
+            double v_[6];
 
             struct
             {
-                double e01;
-                double e02;
-                double e03;
-                double e12;
-                double e13;
-                double e23;
+                double e01_;
+                double e02_;
+                double e03_;
+                double e12_;
+                double e13_;
+                double e23_;
             };
         };
 
         friend class Ext4_1;
+        friend class AbsExt4_2;
     };
 
-    struct Ext4_3
+    class Ext4_3
     {
+       public:
+        //  Accessors
+
+        double e012() const { return e012_; }
+        double e013() const { return e013_; }
+        double e023() const { return e023_; }
+        double e123() const { return e123_; }
+
+        Ext4_3 &negate()
+        {
+            e012_ = -e012_;
+            e013_ = -e013_;
+            e023_ = -e023_;
+            e123_ = -e123_;
+            return *this;
+        }
+
+        double &operator[](size_t index) { return v_[index]; }
+        double operator[](size_t index) const { return v_[index]; }
+
+        [[nodiscard]] Ext4_3 negate() const { return Ext4_3(-e012_, -e013_, -e023_, -e123_); }
+        
+        Ext4_1 dual() const { return Ext4_1(e123_, -e023_, e013_, -e012_); };
+
+        Ext4_1 revdual() const { return Ext4_1(-e123_, e023_, -e013_, e012_); }
+
+        // A meet takes a j-vector and a k-vector and returns a (j+k-4)-vector
+
+        Ext4_2 meet(const Ext4_3 &rhs) const { return dual().join(rhs.dual()).reverse_dual(); }
+
+        Ext4_1 meet(const Ext4_2 &rhs) const { return dual().join(rhs.dual()).revdual(); }
+
+        [[nodiscard]] double inner(const Ext4_3 &rhs)
+        {
+            double acc = 0.0;
+
+            for (int i = 0; i < 4; i++)
+            {
+                acc += v_[i] * rhs[i];
+            }
+
+            return (acc);
+        }
+
+        Ext4_3(){};
+
+       private:
+        Ext4_3(double e012, double e013, double e023, double e123) : e012_(e012), e013_(e013), e023_(e023), e123_(e123)
+        {
+        }
+
         union
         {
-            double v[4];
+            double v_[4];
 
             struct
             {
-                double e012;
-                double e013;
-                double e023;
-                double e123;
+                double e012_;
+                double e013_;
+                double e023_;
+                double e123_;
             };
+
+#ifdef __AVX_AVAILABLE__
+            alignas(SIMD_MEMORY_ALIGNMENT) __m256d ymm_;
+#endif
         };
 
-        Ext4_1 dual() const { return Ext4_1(e123, -e023, e013, -e012); };
-
-        Ext4_1 revdual() const { return Ext4_1(-e123, e023, -e013, e012); }
+        friend class Ext4_1;
+        friend class Ext4_2;
+        friend class AbsExt4_3;
     };
 
-    // ************************
-    // Output routines
-
-    // NONE CURRENTLY
-
-    // ************************
-    // A neg takes a k-vector and returns its negation
-    // neg(X,Y) is safe for X=Y
-
-    inline void neg(Ext4_1 &out, const Ext4_1 &in)
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            out[i] = -in[i];
-        }
-    }
-
-    inline void neg(Ext4_3 &out, const Ext4_3 &in)
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            out.v[i] = -in.v[i];
-        }
-    }
-
-    // ************************
     // A dual operation takes a k-vector and returns a (4-k)-vector
     // A reverse dual operation inverts the dual operation
     // dual(X,Y) is not safe for X=Y (same with revdual)
 
-    inline Ext4_3 Ext4_1::dual() const
-    {
-        Ext4_3 out;
+    inline Ext4_3 Ext4_1::dual() const { return Ext4_3(e3_, -e2_, e1_, -e0_); }
 
-        out.e012 = e3_;
-        out.e013 = -e2_;
-        out.e023 = e1_;
-        out.e123 = -e0_;
+    inline Ext4_3 Ext4_1::reverse_dual() const { return Ext4_3(-e3_, e2_, -e1_, e0_); }
 
-        return out;
-    }
-
-    inline Ext4_3 Ext4_1::reverse_dual() const
-    {
-        Ext4_3 out;
-
-        out.e012 = -e3_;
-        out.e013 = e2_;
-        out.e023 = -e1_;
-        out.e123 = e0_;
-
-        return out;
-    }
+    // A join takes a j-vector and a k-vector and returns a (j+k)-vector
 
     inline Ext4_2 Ext4_1::join(const Ext4_1 &rhs) const
     {
         Ext4_2 out;
 
-        out.e01 = (e0_ * rhs.e1_) - (rhs.e0_ * e1_);
-        out.e02 = (e0_ * rhs.e2_) - (rhs.e0_ * e2_);
-        out.e03 = (e0_ * rhs.e3_) - (rhs.e0_ * e3_);
-        out.e12 = (e1_ * rhs.e2_) - (rhs.e1_ * e2_);
-        out.e13 = (e1_ * rhs.e3_) - (rhs.e1_ * e3_);
-        out.e23 = (e2_ * rhs.e3_) - (rhs.e2_ * e3_);
+        out.e01_ = (e0_ * rhs.e1_) - (rhs.e0_ * e1_);
+        out.e02_ = (e0_ * rhs.e2_) - (rhs.e0_ * e2_);
+        out.e03_ = (e0_ * rhs.e3_) - (rhs.e0_ * e3_);
+        out.e12_ = (e1_ * rhs.e2_) - (rhs.e1_ * e2_);
+        out.e13_ = (e1_ * rhs.e3_) - (rhs.e1_ * e3_);
+        out.e23_ = (e2_ * rhs.e3_) - (rhs.e2_ * e3_);
 
         return out;
+    }
+
+    inline Ext4_3 Ext4_1::join(const Ext4_2 &rhs) const
+    {
+        return rhs.join(*this);
+        // no negation since swapping the arguments requires two
+        // swaps of 1-vectors
     }
 
     inline Ext4_3 Ext4_2::join(const Ext4_1 &rhs) const
     {
         Ext4_3 out;
 
-        out.e012 = (e01 * rhs.e2_) - (e02 * rhs.e1_) + (e12 * rhs.e0_);
-        out.e013 = (e01 * rhs.e3_) - (e03 * rhs.e1_) + (e13 * rhs.e0_);
-        out.e023 = (e02 * rhs.e3_) - (e03 * rhs.e2_) + (e23 * rhs.e0_);
-        out.e123 = (e12 * rhs.e3_) - (e13 * rhs.e2_) + (e23 * rhs.e1_);
+        out.e012_ = (e01_ * rhs.e2_) - (e02_ * rhs.e1_) + (e12_ * rhs.e0_);
+        out.e013_ = (e01_ * rhs.e3_) - (e03_ * rhs.e1_) + (e13_ * rhs.e0_);
+        out.e023_ = (e02_ * rhs.e3_) - (e03_ * rhs.e2_) + (e23_ * rhs.e0_);
+        out.e123_ = (e12_ * rhs.e3_) - (e13_ * rhs.e2_) + (e23_ * rhs.e1_);
 
         return out;
     }
 
     inline Ext4_1 Ext4_2::meet(const Ext4_3 &rhs) const { return (dual().join(rhs.dual())).revdual(); }
 
-    // ************************
-    // A join takes a j-vector and a k-vector and returns a (j+k)-vector
-    /*
-        inline void join(Ext4_2 &out, const Ext4_1 &lhs, const Ext4_1 &rhs)
-        {
-            out.e01 = (lhs.e0 * rhs.e1) - (rhs.e0 * lhs.e1);
-            out.e02 = (lhs.e0 * rhs.e2) - (rhs.e0 * lhs.e2);
-            out.e03 = (lhs.e0 * rhs.e3) - (rhs.e0 * lhs.e3);
-            out.e12 = (lhs.e1 * rhs.e2) - (rhs.e1 * lhs.e2);
-            out.e13 = (lhs.e1 * rhs.e3) - (rhs.e1 * lhs.e3);
-            out.e23 = (lhs.e2 * rhs.e3) - (rhs.e2 * lhs.e3);
-        }
+    //
+    // An abs takes a k-vector and returns a version with
+    //  absolute values of all the coordinates taken
+    //
 
-        inline void join(Ext4_3 &out, const Ext4_2 &lhs, const Ext4_1 &rhs)
-        {
-            out.e012 = (lhs.e01 * rhs.e2) - (lhs.e02 * rhs.e1) + (lhs.e12 * rhs.e0);
-            out.e013 = (lhs.e01 * rhs.e3) - (lhs.e03 * rhs.e1) + (lhs.e13 * rhs.e0);
-            out.e023 = (lhs.e02 * rhs.e3) - (lhs.e03 * rhs.e2) + (lhs.e23 * rhs.e0);
-            out.e123 = (lhs.e12 * rhs.e3) - (lhs.e13 * rhs.e2) + (lhs.e23 * rhs.e1);
-        }
-    */
-
-    inline Ext4_3 join(const Ext4_1 &lhs, const Ext4_2 &rhs)
+    class AbsExt4_1
     {
-        return rhs.join(lhs);
-        // no negation since swapping the arguments requires two
-        // swaps of 1-vectors
+       public:
+        AbsExt4_1(){};
+
+#ifdef __AVX_AVAILABLE__
+        explicit AbsExt4_1(__m256d ymm) : ymm_(ymm) {}
+
+        explicit AbsExt4_1(const AbsExt4_1 &element) : ymm_(element.ymm_) {}
+
+        operator __m256d() const { return ymm_; }
+
+        const AbsExt4_1 &operator=(const AbsExt4_1 &element)
+        {
+            ymm_ = element.ymm_;
+
+            return *this;
+        }
+#endif
+
+        explicit AbsExt4_1(const Ext4::Ext4_1 &element)
+            : e0_(fabs(element.e0())), e1_(fabs(element.e1())), e2_(fabs(element.e2())), e3_(fabs(element.e3()))
+        {
+        }
+
+        const AbsExt4_1 &operator=(const Ext4::Ext4_1 &element)
+        {
+            e0_ = fabs(element.e0());
+            e1_ = fabs(element.e1());
+            e2_ = fabs(element.e2());
+            e3_ = fabs(element.e3());
+
+            return *this;
+        }
+
+        //  Accessors
+
+        double e0() const { return e0_; }
+        double e1() const { return e1_; }
+        double e2() const { return e2_; }
+        double e3() const { return e3_; }
+
+        double &operator[](size_t index) { return v_[index]; }
+        double operator[](size_t index) const { return v_[index]; }
+
+        //  Negation does not change anything for the AbsExt classes, prett much a no-op.
+
+        AbsExt4_1 &negate() { return *this; }
+
+        [[nodiscard]] AbsExt4_1 negate() const { return AbsExt4_1(*this); }
+
+        // A dual operation takes a k-vector and returns a (4-k)-vector
+        // A reverse dual operation inverts the dual operation
+        // dual(X,Y) is not safe for X=Y (same with revdual)
+
+        AbsExt4_3 dual() const;
+        AbsExt4_3 reverse_dual() const;
+
+        // A join takes a j-vector and a k-vector and returns a (j+k)-vector
+
+        AbsExt4_2 join(const AbsExt4_1 &rhs) const;
+        AbsExt4_3 join(const AbsExt4_2 &rhs) const;
+
+        // An inner product takes two k-vectors and produces a single number
+
+        double inner(const AbsExt4_1 &rhs) const
+        {
+            double acc = 0.0;
+
+            for (int i = 0; i < 4; i++)
+            {
+                acc += v_[i] * rhs.v_[i];
+            }
+
+            return (acc);
+        }
+
+       private:
+        AbsExt4_1(double e0, double e1, double e2, double e3) : e0_(e0), e1_(e1), e2_(e2), e3_(e3) {}
+
+        union
+        {
+            double v_[4];
+
+            struct
+            {
+                double e0_;
+                double e1_;
+                double e2_;
+                double e3_;
+            };
+
+#ifdef __AVX_AVAILABLE__
+            alignas(SIMD_MEMORY_ALIGNMENT) __m256d ymm_;
+#endif
+        };
+
+        friend class Ext4_1;
+        friend class AbsExt4_3;
+    };
+
+    class AbsExt4_2
+    {
+       public:
+        AbsExt4_2(){};
+
+        AbsExt4_2(double e01, double e02, double e03, double e12, double e13, double e23)
+            : e01_(e01), e02_(e02), e03_(e03), e12_(e12), e13_(e13), e23_(e23)
+        {
+        }
+
+        explicit AbsExt4_2(Ext4_2 &ext_to_abs)
+            : e01_(fabs(ext_to_abs.e01())),
+              e02_(fabs(ext_to_abs.e02())),
+              e03_(fabs(ext_to_abs.e03())),
+              e12_(fabs(ext_to_abs.e12())),
+              e13_(fabs(ext_to_abs.e13())),
+              e23_(fabs(ext_to_abs.e23()))
+        {
+        }
+
+        //  Accessors
+
+        double e01() const { return e01_; }
+        double e02() const { return e02_; }
+        double e03() const { return e03_; }
+        double e12() const { return e12_; }
+        double e13() const { return e13_; }
+        double e23() const { return e23_; }
+
+        double &operator[](size_t index) { return v_[index]; }
+        double operator[](size_t index) const { return v_[index]; }
+
+        //  Negation does not change anything for the AbsExt classes
+
+        AbsExt4_2 &negate() { return *this; }
+
+        [[nodiscard]] AbsExt4_2 negate() const { return AbsExt4_2(*this); }
+
+        // A dual operation takes a k-vector and returns a (4-k)-vector
+        // A reverse dual operation inverts the dual operation
+        // dual(X,Y) is not safe for X=Y (same with revdual)
+
+        AbsExt4_2 dual() const { return AbsExt4_2(e23_, e13_, e12_, e03_, e02_, e01_); }
+
+        AbsExt4_2 reverse_dual() const { return AbsExt4_2(e23_, e13_, e12_, e03_, e02_, e01_); }
+
+        AbsExt4_3 join(const AbsExt4_1 &rhs) const;
+
+        AbsExt4_1 meet(const AbsExt4_3 &rhs) const;
+
+        double inner(const AbsExt4_2 &rhs) const
+        {
+            double acc = 0.0;
+
+            for (int i = 0; i < 6; i++)
+            {
+                acc += v_[i] * rhs.v_[i];
+            }
+
+            return (acc);
+        }
+
+       private:
+        union
+        {
+            double v_[6];
+
+            struct
+            {
+                double e01_;
+                double e02_;
+                double e03_;
+                double e12_;
+                double e13_;
+                double e23_;
+            };
+        };
+
+        friend class AbsExt4_1;
+    };
+
+    struct AbsExt4_3
+    {
+        AbsExt4_3(){};
+
+        AbsExt4_3(double e012, double e013, double e023, double e123)
+            : e012_(e012), e013_(e013), e023_(e023), e123_(e123)
+        {
+        }
+
+        explicit AbsExt4_3(const Ext4_3 &ext_to_abs)
+            : e012_(fabs(ext_to_abs.e012())),
+              e013_(fabs(ext_to_abs.e013())),
+              e023_(fabs(ext_to_abs.e023())),
+              e123_(fabs(ext_to_abs.e123()))
+        {
+        }
+
+        //  Accessors
+
+        double e012() const { return e012_; }
+        double e013() const { return e013_; }
+        double e023() const { return e023_; }
+        double e123() const { return e123_; }
+
+        double &operator[](size_t index) { return v_[index]; }
+        double operator[](size_t index) const { return v_[index]; }
+
+        //  Negation does not change anything for the AbsExt classes
+
+        AbsExt4_3 &negate() { return *this; }
+
+        [[nodiscard]] AbsExt4_3 negate() const { return AbsExt4_3(*this); }
+
+        // A dual operation takes a k-vector and returns a (4-k)-vector
+        // A reverse dual operation inverts the dual operation
+        // dual(X,Y) is not safe for X=Y (same with revdual)
+        //
+        //  Dual and Reverse Dual are identical for the Abs... classes.
+
+        AbsExt4_1 dual() const { return AbsExt4_1(e123_, e023_, e013_, e012_); }
+
+        AbsExt4_1 reverse_dual() const { return AbsExt4_1(e123_, e023_, e013_, e012_); }
+
+        // A meet takes a j-vector and a k-vector and returns a (j+k-4)-vector
+
+        AbsExt4_2 meet(const AbsExt4_3 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
+
+        AbsExt4_1 meet(const AbsExt4_2 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
+
+        double inner(const AbsExt4_3 &rhs) const
+        {
+            double acc = 0.0;
+
+            for (int i = 0; i < 4; i++)
+            {
+                acc += v_[i] * rhs.v_[i];
+            }
+
+            return (acc);
+        }
+
+        union
+        {
+            double v_[4];
+
+            struct
+            {
+                double e012_;
+                double e013_;
+                double e023_;
+                double e123_;
+            };
+        };
+
+        friend class AbsExt4_2;
+    };
+
+    // A dual operation takes a k-vector and returns a (4-k)-vector
+    // A reverse dual operation inverts the dual operation
+    // dual(X,Y) is not safe for X=Y (same with revdual)
+
+    inline AbsExt4_3 AbsExt4_1::dual() const { return AbsExt4_3(e3_, e2_, e1_, e0_); }
+
+    inline AbsExt4_3 AbsExt4_1::reverse_dual() const { return AbsExt4_3(e3_, e2_, e1_, e0_); }
+
+    inline AbsExt4_2 AbsExt4_1::join(const AbsExt4_1 &rhs) const
+    {
+        AbsExt4_2 result;
+
+        result.e01_ = (e0_ * rhs.e1_) + (rhs.e0_ * e1_);
+        result.e02_ = (e0_ * rhs.e2_) + (rhs.e0_ * e2_);
+        result.e03_ = (e0_ * rhs.e3_) + (rhs.e0_ * e3_);
+        result.e12_ = (e1_ * rhs.e2_) + (rhs.e1_ * e2_);
+        result.e13_ = (e1_ * rhs.e3_) + (rhs.e1_ * e3_);
+        result.e23_ = (e2_ * rhs.e3_) + (rhs.e2_ * e3_);
+
+        return result;
     }
 
-    // ************************
+    inline AbsExt4_3 AbsExt4_2::join(const AbsExt4_1 &rhs) const
+    {
+        AbsExt4_3 result;
+
+        result.e012_ = (e01_ * rhs.e2()) + (e02_ * rhs.e1()) + (e12_ * rhs.e0());
+        result.e013_ = (e01_ * rhs.e3()) + (e03_ * rhs.e1()) + (e13_ * rhs.e0());
+        result.e023_ = (e02_ * rhs.e3()) + (e03_ * rhs.e2()) + (e23_ * rhs.e0());
+        result.e123_ = (e12_ * rhs.e3()) + (e13_ * rhs.e2()) + (e23_ * rhs.e1());
+
+        return result;
+    }
+
+    inline AbsExt4_3 AbsExt4_1::join(const AbsExt4_2 &rhs) const { return rhs.join(*this); }
+
     // A meet takes a j-vector and a k-vector and returns a (j+k-4)-vector
 
-    inline Ext4_2  meet( const Ext4_3 &lhs, const Ext4_3 &rhs)
-    {
-        return lhs.dual().join(rhs.dual()).reverse_dual();
-    }
-
-    inline Ext4_1 meet( const Ext4_3 &lhs, const Ext4_2 &rhs)
-    {
-        return join(lhs.dual(), rhs.dual()).revdual();
-    }
-
-    // ************************
-    // An inner product takes two k-vectors and produces a single number
-
-    inline double inner(const Ext4_1 &lhs, const Ext4_1 &rhs)
-    {
-        double acc = 0.0;
-
-        for (int i = 0; i < 4; i++)
-        {
-            acc += lhs[i] * rhs[i];
-        }
-
-        return (acc);
-    }
-
-    inline double inner(const Ext4_2 &lhs, const Ext4_2 &rhs)
-    {
-        double acc = 0.0;
-
-        for (int i = 0; i < 6; i++)
-        {
-            acc += lhs[i] * rhs[i];
-        }
-
-        return (acc);
-    }
-
-    inline double inner(const Ext4_3 &lhs, const Ext4_3 &rhs)
-    {
-        double acc = 0.0;
-
-        for (int i = 0; i < 4; i++)
-        {
-            acc += lhs.v[i] * rhs.v[i];
-        }
-
-        return (acc);
-    }
+    inline AbsExt4_1 AbsExt4_2::meet(const AbsExt4_3 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
 
 }  // namespace Ext4
