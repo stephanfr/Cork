@@ -27,17 +27,51 @@
 
 #include <immintrin.h>
 
+#include <gsl/gsl_util>
+
 #include "math/Primitives.h"
 
 /*
- *
- *  Ext4
- *
- *      Support for performing exterior calculus in R4
- *
+
+   ExteriorCalculusR4
+
+       Support for performing exterior calculus in R4
+
+   The subscripts in the different classes refer to elements in vectors or matrices.
+       The 'k-value' indicates the dimension of the class, i.e. Ext4_1 is one dimensional so it is a vector.
+       Ext4_2 is two dimensional so it is a matrix.  Ext4_3 is three dimensional and is a vector of matrices.
+       Ext4_2 and Ext4_3 are upper diagonal
+
+     Ext4_1 ->  [ e0   e1   e2   e3 ]
+
+                 -                   -
+                 | e01  e02  e03     |
+      Ext4_2 ->  |      e12  e13     |
+                 |           e23     |
+                 |                   |
+                 -                   -
+
+                -                                     -
+                | -               - -               - |
+                | |               | |               | |
+      Ext4_3 -> | |      e12  e13 | |               | |
+                | |           e23 | |           e23 | |
+                | -               - -               - |
+                -                                     -
+
+    The join() operation is simply the wedge product of the two items.  The wedge product takes two operands and returns
+    an item with a k-value which is the sum of the two k values of the operands.  Thus :
+
+        Ext4_1 ^ Ext4_1 -> Ext4_2
+        Ext4_1 ^ Ext4_2 -> Ext4_3
+        Ext4_2 ^ Ext4_1 -> Ext4_3
+
+    The wedge product of an Ext4_3 with an Ext4_1 or Ext4_2 would result in a k-value >= the order 4, so these
+   operations are not allowed.  I don't think they make physical sense.
+
  */
 
-namespace Ext4
+namespace ExteriorCalculusR4
 {
     namespace Constants
     {
@@ -57,14 +91,13 @@ namespace Ext4
     {
        public:
         explicit Ext4_1(const Ext4_1 &ext_to_copy) : v_(ext_to_copy.v_) {}
-        explicit Ext4_1(Ext4_1 &&ext_to_copy) { v_ = ext_to_copy.v_; }
 
 #if defined(NUMERIC_PRECISION) && NUMERIC_PRECISION == double
 
         explicit Ext4_1(const Cork::Math::Vector3D &vector) : vector_(vector) { e3_ = Constants::DOUBLE_ONE; }
 
 #ifdef __AVX_AVAILABLE__
-        explicit Ext4_1(__m256d ymm) : ymm_(ymm) {}
+        explicit Ext4_1(__m256d &ymm) : ymm_(ymm) {}
 
         const Ext4_1 &operator=(const Cork::Math::Vector3D &vector)
         {
@@ -82,7 +115,8 @@ namespace Ext4
             return *this;
         }
 
-        operator __mm356d() const { return ymm_; }
+        operator __m256d &() { return ymm_; }
+        operator __m256d() const { return ymm_; }
 
 #endif  //  __AVX_AVAILABLE__
 
@@ -119,17 +153,29 @@ namespace Ext4
 
 #endif
 
-        double e0() const { return e0_; }
-        double e1() const { return e1_; }
-        double e2() const { return e2_; }
-        double e3() const { return e3_; }
+        [[nodiscard]] double e0() const { return e0_; }
+        [[nodiscard]] double e1() const { return e1_; }
+        [[nodiscard]] double e2() const { return e2_; }
+        [[nodiscard]] double e3() const { return e3_; }
 
-        double &operator[](size_t index) { return v_[index]; }
-        double operator[](size_t index) const { return v_[index]; }
+        [[nodiscard]] double &operator[](size_t index) { return gsl::at(v_, index); }
+        [[nodiscard]] double operator[](size_t index) const { return gsl::at(v_, index); }
+
+        [[nodiscard]] bool operator==(const Ext4_1 &r4_to_compare) const
+        {
+            return ((e0_ == r4_to_compare.e0_) && (e1_ == r4_to_compare.e1_) && (e2_ == r4_to_compare.e2_) &&
+                    (e3_ == r4_to_compare.e3_));
+        }
+
+        [[nodiscard]] bool operator!=(const Ext4_1 &r4_to_compare) const
+        {
+            return ((e0_ != r4_to_compare.e0_) || (e1_ != r4_to_compare.e1_) || (e2_ != r4_to_compare.e2_) ||
+                    (e3_ != r4_to_compare.e3_));
+        }
 
         // Negation takes a k-vector and returns its negation neg(X,Y) and is safe for X=Y
 
-        Ext4_1 &negate()
+        const Ext4_1 &negate()
         {
             e0_ = -e0_;
             e1_ = -e1_;
@@ -139,7 +185,7 @@ namespace Ext4
             return *this;
         }
 
-        [[nodiscard]] Ext4_1 negate() const { return Ext4_1(-e0_, -e1_, -e2_, -e3_); }
+        [[nodiscard]] Ext4_1 negative() const { return Ext4_1(-e0_, -e1_, -e2_, -e3_); }
 
         //  A dual operation takes a k-vector and returns a (4-k)-vector
         //      A reverse dual operation inverts the dual operation
@@ -148,15 +194,20 @@ namespace Ext4
         [[nodiscard]] Ext4_3 dual() const;
         [[nodiscard]] Ext4_3 reverse_dual() const;
 
-        //  Join takes a j-vector and a k-vector and returns a (j+k)-vector
+        //  Join takes a j-vector and a k-vector and returns a (j+k) vector
+        //      Join is the wedge product.
 
         [[nodiscard]] Ext4_3 join(const Ext4_2 &rhs) const;
 
         [[nodiscard]] Ext4_2 join(const Ext4_1 &rhs) const;
 
+        //  The inner product is the familiar dot product.
+
         [[nodiscard]] double inner(const Ext4_1 &rhs) const
         {
             double acc = 0.0;
+
+            //  The loop below gets unwound and optimized by the compiler
 
             for (int i = 0; i < 4; i++)
             {
@@ -198,15 +249,31 @@ namespace Ext4
     class Ext4_2
     {
        public:
-        double &operator[](size_t index) { return v_[index]; }
-        double operator[](size_t index) const { return v_[index]; }
+        //  Operators
 
-        double e01() const { return e01_; }
-        double e02() const { return e02_; }
-        double e03() const { return e03_; }
-        double e12() const { return e12_; }
-        double e13() const { return e13_; }
-        double e23() const { return e23_; }
+        [[nodiscard]] double &operator[](size_t index) { return gsl::at(v_, index); }
+        [[nodiscard]] double operator[](size_t index) const { return gsl::at(v_, index); }
+
+        [[nodiscard]] double e01() const { return e01_; }
+        [[nodiscard]] double e02() const { return e02_; }
+        [[nodiscard]] double e03() const { return e03_; }
+        [[nodiscard]] double e12() const { return e12_; }
+        [[nodiscard]] double e13() const { return e13_; }
+        [[nodiscard]] double e23() const { return e23_; }
+
+        [[nodiscard]] bool operator==(const Ext4_2 &r4_to_compare) const
+        {
+            return ((e01_ == r4_to_compare.e01_) && (e02_ == r4_to_compare.e02_) && (e03_ == r4_to_compare.e03_) &&
+                    (e12_ == r4_to_compare.e12_) && (e13_ == r4_to_compare.e13_) && (e23_ == r4_to_compare.e23_));
+        }
+
+        [[nodiscard]] bool operator!=(const Ext4_2 &r4_to_compare) const
+        {
+            return ((e01_ != r4_to_compare.e01_) || (e02_ != r4_to_compare.e02_) || (e03_ != r4_to_compare.e03_) ||
+                    (e12_ != r4_to_compare.e12_) || (e13_ != r4_to_compare.e13_) || (e23_ != r4_to_compare.e23_));
+        }
+
+        //  Negation
 
         Ext4_2 &negate()
         {
@@ -219,13 +286,19 @@ namespace Ext4
             return *this;
         }
 
-        [[nodiscard]] Ext4_2 negate() const { return Ext4_2(-e01_, -e02_, -e03_, -e12_, -e13_, -e23_); }
+        [[nodiscard]] Ext4_2 negative() const { return Ext4_2(-e01_, -e02_, -e03_, -e12_, -e13_, -e23_); }
+
+        //  Dual and Reverse Dual
 
         [[nodiscard]] Ext4_2 dual() const { return Ext4_2(e23_, -e13_, e12_, e03_, -e02_, e01_); }
 
         [[nodiscard]] Ext4_2 reverse_dual() const { return Ext4_2(e23_, -e13_, e12_, e03_, -e02_, e01_); }
 
+        //  Join
+
         [[nodiscard]] Ext4_3 join(const Ext4_1 &rhs) const;
+
+        //  Meet
 
         [[nodiscard]] Ext4_1 meet(const Ext4_3 &rhs) const;
 
@@ -253,7 +326,7 @@ namespace Ext4
 
         union
         {
-            double v_[6];
+            std::array<double, 6> v_;
 
             struct
             {
@@ -275,10 +348,27 @@ namespace Ext4
        public:
         //  Accessors
 
-        double e012() const { return e012_; }
-        double e013() const { return e013_; }
-        double e023() const { return e023_; }
-        double e123() const { return e123_; }
+        [[nodiscard]] double e012() const { return e012_; }
+        [[nodiscard]] double e013() const { return e013_; }
+        [[nodiscard]] double e023() const { return e023_; }
+        [[nodiscard]] double e123() const { return e123_; }
+
+        [[nodiscard]] double &operator[](size_t index) { return gsl::at(v_, index); }
+        [[nodiscard]] double operator[](size_t index) const { return gsl::at(v_, index); }
+
+        [[nodiscard]] bool operator==(const Ext4_3 &r4_to_compare) const
+        {
+            return ((e012_ == r4_to_compare.e012_) && (e013_ == r4_to_compare.e013_) &&
+                    (e023_ == r4_to_compare.e023_) && (e123_ == r4_to_compare.e123_));
+        }
+
+        [[nodiscard]] bool operator!=(const Ext4_3 &r4_to_compare) const
+        {
+            return ((e012_ != r4_to_compare.e012_) || (e013_ != r4_to_compare.e013_) ||
+                    (e023_ != r4_to_compare.e023_) || (e123_ != r4_to_compare.e123_));
+        }
+
+        //  Negation
 
         Ext4_3 &negate()
         {
@@ -289,20 +379,21 @@ namespace Ext4
             return *this;
         }
 
-        double &operator[](size_t index) { return v_[index]; }
-        double operator[](size_t index) const { return v_[index]; }
+        [[nodiscard]] Ext4_3 negative() const { return Ext4_3(-e012_, -e013_, -e023_, -e123_); }
 
-        [[nodiscard]] Ext4_3 negate() const { return Ext4_3(-e012_, -e013_, -e023_, -e123_); }
-        
-        Ext4_1 dual() const { return Ext4_1(e123_, -e023_, e013_, -e012_); };
+        //  Dual and reverse dual
 
-        Ext4_1 revdual() const { return Ext4_1(-e123_, e023_, -e013_, e012_); }
+        [[nodiscard]] Ext4_1 dual() const { return Ext4_1(e123_, -e023_, e013_, -e012_); };
+
+        [[nodiscard]] Ext4_1 reverse_dual() const { return Ext4_1(-e123_, e023_, -e013_, e012_); }
 
         // A meet takes a j-vector and a k-vector and returns a (j+k-4)-vector
 
-        Ext4_2 meet(const Ext4_3 &rhs) const { return dual().join(rhs.dual()).reverse_dual(); }
+        [[nodiscard]] Ext4_2 meet(const Ext4_3 &rhs) const { return dual().join(rhs.dual()).reverse_dual(); }
 
-        Ext4_1 meet(const Ext4_2 &rhs) const { return dual().join(rhs.dual()).revdual(); }
+        [[nodiscard]] Ext4_1 meet(const Ext4_2 &rhs) const { return dual().join(rhs.dual()).reverse_dual(); }
+
+        //  Dot product
 
         [[nodiscard]] double inner(const Ext4_3 &rhs)
         {
@@ -325,7 +416,7 @@ namespace Ext4
 
         union
         {
-            double v_[4];
+            std::array<double, 4> v_;
 
             struct
             {
@@ -371,9 +462,9 @@ namespace Ext4
 
     inline Ext4_3 Ext4_1::join(const Ext4_2 &rhs) const
     {
+        // no negation since swapping the arguments requires two swaps of 1-vectors
+
         return rhs.join(*this);
-        // no negation since swapping the arguments requires two
-        // swaps of 1-vectors
     }
 
     inline Ext4_3 Ext4_2::join(const Ext4_1 &rhs) const
@@ -388,7 +479,7 @@ namespace Ext4
         return out;
     }
 
-    inline Ext4_1 Ext4_2::meet(const Ext4_3 &rhs) const { return (dual().join(rhs.dual())).revdual(); }
+    inline Ext4_1 Ext4_2::meet(const Ext4_3 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
 
     //
     // An abs takes a k-vector and returns a version with
@@ -415,12 +506,12 @@ namespace Ext4
         }
 #endif
 
-        explicit AbsExt4_1(const Ext4::Ext4_1 &element)
+        explicit AbsExt4_1(const Ext4_1 &element)
             : e0_(fabs(element.e0())), e1_(fabs(element.e1())), e2_(fabs(element.e2())), e3_(fabs(element.e3()))
         {
         }
 
-        const AbsExt4_1 &operator=(const Ext4::Ext4_1 &element)
+        const AbsExt4_1 &operator=(const Ext4_1 &element)
         {
             e0_ = fabs(element.e0());
             e1_ = fabs(element.e1());
@@ -444,7 +535,7 @@ namespace Ext4
 
         AbsExt4_1 &negate() { return *this; }
 
-        [[nodiscard]] AbsExt4_1 negate() const { return AbsExt4_1(*this); }
+        [[nodiscard]] AbsExt4_1 negative() const { return AbsExt4_1(*this); }
 
         // A dual operation takes a k-vector and returns a (4-k)-vector
         // A reverse dual operation inverts the dual operation
@@ -532,7 +623,7 @@ namespace Ext4
 
         AbsExt4_2 &negate() { return *this; }
 
-        [[nodiscard]] AbsExt4_2 negate() const { return AbsExt4_2(*this); }
+        [[nodiscard]] AbsExt4_2 negative() const { return AbsExt4_2(*this); }
 
         // A dual operation takes a k-vector and returns a (4-k)-vector
         // A reverse dual operation inverts the dual operation
@@ -608,7 +699,7 @@ namespace Ext4
 
         AbsExt4_3 &negate() { return *this; }
 
-        [[nodiscard]] AbsExt4_3 negate() const { return AbsExt4_3(*this); }
+        [[nodiscard]] AbsExt4_3 negative() const { return AbsExt4_3(*this); }
 
         // A dual operation takes a k-vector and returns a (4-k)-vector
         // A reverse dual operation inverts the dual operation
@@ -694,4 +785,4 @@ namespace Ext4
 
     inline AbsExt4_1 AbsExt4_2::meet(const AbsExt4_3 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
 
-}  // namespace Ext4
+}  // namespace ExteriorCalculusR4

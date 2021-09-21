@@ -14,6 +14,13 @@ include(FetchContent)
 include(cmake/find_avx.cmake)
 
 FetchContent_Declare(
+  guidelines_support_lib
+  GIT_REPOSITORY https://github.com/microsoft/GSL.git
+  GIT_TAG        v3.1.0)
+
+FetchContent_MakeAvailable(guidelines_support_lib)
+
+FetchContent_Declare(
   fmtlib
   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
   GIT_TAG        8.0.1)
@@ -48,6 +55,7 @@ add_compile_definitions(
   TRILIBRARY
   FMT_HEADER_ONLY
   __HAS_PERFORMANCE_STRINGSTREAM__
+  GSL_UNENFORCED_ON_CONTRACT_VIOLATION
 )
 
 # Determine if Cork is built as a subproject (using add_subdirectory)
@@ -66,6 +74,7 @@ include_directories(
   ./include
   ${fmtlib_SOURCE_DIR}/include
   ${cppresult_SOURCE_DIR}/include
+  ${guidelines_support_lib_SOURCE_DIR}/include
   )
 
 add_subdirectory(src)

@@ -79,6 +79,7 @@
         "any": "cpp",
         "source_location": "cpp",
         "variant": "cpp",
-        "format": "cpp"
+        "format": "cpp",
+        "gsl_assert": "cpp"
     }
 }

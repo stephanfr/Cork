@@ -32,14 +32,13 @@
 
 namespace Cork::Empty3d
 {
-    using namespace Ext4;
     using namespace FixExt4;
     using namespace GMPExt4;
 
 
     constexpr int IN_BITS = QUANTIZATION_BITS + 1;  // +1 for sign bit
 
-    inline void toFixExt(FixExt4_1<IN_BITS>& out, const Ext4::Ext4_1& in, const Quantization::Quantizer& quantizer)
+    inline void toFixExt(FixExt4_1<IN_BITS>& out, const ExteriorCalculusR4::Ext4_1& in, const Quantization::Quantizer& quantizer)
     {
         out.e0 = FixInt::BitInt<IN_BITS>::Rep(quantizer.quantize2int(in.e0()));
         out.e1 = FixInt::BitInt<IN_BITS>::Rep(quantizer.quantize2int(in.e1()));
@@ -71,14 +70,14 @@ namespace Cork::Empty3d
     {
         context.callcount++;
 
-        Ext4::Ext4_2 temp_e2(tri.p0().join(tri.p1()));
-        Ext4::Ext4_3 t_ext3 = temp_e2.join(tri.p2());
+        ExteriorCalculusR4::Ext4_2 temp_e2(tri.p0().join(tri.p1()));
+        ExteriorCalculusR4::Ext4_3 t_ext3 = temp_e2.join(tri.p2());
 
-        Ext4::Ext4_2 e_ext2(edge.p0().join(edge.p1()));
+        ExteriorCalculusR4::Ext4_2 e_ext2(edge.p0().join(edge.p1()));
 
         // compute the point of intersection
 
-        Ext4::Ext4_1 p_isct(e_ext2.meet(t_ext3));
+        ExteriorCalculusR4::Ext4_1 p_isct(e_ext2.meet(t_ext3));
 
         // need to adjust for negative w-coordinate
 
@@ -92,14 +91,14 @@ namespace Cork::Empty3d
         // and so on...
 
         temp_e2 = p_isct.join(tri.p1());
-        Ext4::Ext4_3 a_t0(temp_e2.join(tri.p2()));
+        ExteriorCalculusR4::Ext4_3 a_t0(temp_e2.join(tri.p2()));
         temp_e2 = tri.p0().join(p_isct);
-        Ext4::Ext4_3 a_t1(temp_e2.join(tri.p2()));
+        ExteriorCalculusR4::Ext4_3 a_t1(temp_e2.join(tri.p2()));
         temp_e2 = tri.p0().join(tri.p1());
-        Ext4::Ext4_3 a_t2(temp_e2.join(p_isct));
+        ExteriorCalculusR4::Ext4_3 a_t2(temp_e2.join(p_isct));
 
-        Ext4::Ext4_2 a_e0(p_isct.join(edge.p1()));
-        Ext4::Ext4_2 a_e1(edge.p0().join(p_isct));
+        ExteriorCalculusR4::Ext4_2 a_e0(p_isct.join(edge.p1()));
+        ExteriorCalculusR4::Ext4_2 a_e1(edge.p0().join(p_isct));
 
         return ((t_ext3.inner(a_t0) < 0.0) || (t_ext3.inner(a_t1) < 0.0) || (t_ext3.inner(a_t2) < 0.0) ||
                 (e_ext2.inner(a_e0) < 0.0) || (e_ext2.inner(a_e1) < 0.0));
@@ -107,16 +106,16 @@ namespace Cork::Empty3d
 
     inline Cork::Math::Vector3D TriEdgeIn::coords() const
     {
-        Ext4::Ext4_2 temp_e2(tri.p0().join(tri.p1()));
-        Ext4::Ext4_3 t_ext3(temp_e2.join(tri.p2()));
+        ExteriorCalculusR4::Ext4_2 temp_e2(tri.p0().join(tri.p1()));
+        ExteriorCalculusR4::Ext4_3 t_ext3(temp_e2.join(tri.p2()));
 
         // construct the edge
 
-        Ext4::Ext4_2 e_ext2(edge.p0().join(edge.p1()));
+        ExteriorCalculusR4::Ext4_2 e_ext2(edge.p0().join(edge.p1()));
 
         // compute the point of intersection
 
-        Ext4::Ext4_1 p_isct(e_ext2.meet(t_ext3));
+        ExteriorCalculusR4::Ext4_1 p_isct(e_ext2.meet(t_ext3));
 
         // no need to adjust for negative w-coordinate.
         // will drop out in divide.
@@ -132,11 +131,8 @@ namespace Cork::Empty3d
 
     int TriEdgeIn::emptyFilter() const
     {
-//        AbsExt4_2 ktemp2;
-        std::array<AbsExt4_1, 2> kep;
-        std::array<AbsExt4_1, 3> ktp;
-//        AbsExt4_2 ke_ext2;
-//        AbsExt4_3 kt_ext3;
+        std::array<ExteriorCalculusR4::AbsExt4_1, 2> kep;
+        std::array<ExteriorCalculusR4::AbsExt4_1, 3> ktp;
 
         // load the points
 
@@ -149,17 +145,17 @@ namespace Cork::Empty3d
 
         // form the edge and triangle
 
-        Ext4::Ext4_2 e_ext2(edge.p0().join(edge.p1()));
-        AbsExt4_2 ke_ext2( kep[0]. join(kep[1]));
-        Ext4::Ext4_2 temp2(tri.p0().join(tri.p1()));
-        AbsExt4_2 ktemp2( ktp[0].join(ktp[1]));
-        Ext4::Ext4_3 t_ext3(temp2.join(tri.p2()));
-        AbsExt4_3 kt_ext3( ktemp2.join(ktp[2]));
+        ExteriorCalculusR4::Ext4_2 e_ext2(edge.p0().join(edge.p1()));
+        ExteriorCalculusR4::AbsExt4_2 ke_ext2( kep[0]. join(kep[1]));
+        ExteriorCalculusR4::Ext4_2 temp2(tri.p0().join(tri.p1()));
+        ExteriorCalculusR4::AbsExt4_2 ktemp2( ktp[0].join(ktp[1]));
+        ExteriorCalculusR4::Ext4_3 t_ext3(temp2.join(tri.p2()));
+        ExteriorCalculusR4::AbsExt4_3 kt_ext3( ktemp2.join(ktp[2]));
 
         // compute the point of intersection
 
-        Ext4::Ext4_1 pisct(e_ext2.meet(t_ext3));
-        AbsExt4_1 kpisct( ke_ext2.meet( kt_ext3));
+        ExteriorCalculusR4::Ext4_1 pisct(e_ext2.meet(t_ext3));
+        ExteriorCalculusR4::AbsExt4_1 kpisct( ke_ext2.meet( kt_ext3));
 
         // We perform one of the filter exit tests here...
 
@@ -181,9 +177,9 @@ namespace Cork::Empty3d
 
         for (int i = 0; i < 2; i++)
         {
-            AbsExt4_2 ka;
+            ExteriorCalculusR4::AbsExt4_2 ka;
 
-            Ext4::Ext4_2 a(((i == 0) ? pisct : edge.p0()).join((i == 1) ? pisct : edge.p1()));
+            ExteriorCalculusR4::Ext4_2 a(((i == 0) ? pisct : edge.p0()).join((i == 1) ? pisct : edge.p1()));
             ka = ((i == 0) ? kpisct : kep[0]).join( (i == 1) ? kpisct : kep[1]);
 
             double dot = e_ext2.inner(a);
@@ -209,12 +205,10 @@ namespace Cork::Empty3d
 
         for (int i = 0; i < 3; i++)
         {
-//            AbsExt4_3 ka;
-
             temp2 = ((i == 0) ? pisct : tri.p0()).join((i == 1) ? pisct : tri.p1());
-            Ext4::Ext4_3 a(temp2.join((i == 2) ? pisct : tri.p2()));
+            ExteriorCalculusR4::Ext4_3 a(temp2.join((i == 2) ? pisct : tri.p2()));
             ktemp2 = ((i == 0) ? kpisct : ktp[0]).join( (i == 1) ? kpisct : ktp[1]);
-            AbsExt4_3 ka( ktemp2.join( (i == 2) ? kpisct : ktp[2]));
+            ExteriorCalculusR4::AbsExt4_3 ka( ktemp2.join( (i == 2) ? kpisct : ktp[2]));
 
             double dot = t_ext3.inner(a);
             double kdot = kt_ext3.inner( ka);
@@ -415,18 +409,18 @@ namespace Cork::Empty3d
         context.callcount++;
 
         // construct the triangles
-        std::array<Ext4::Ext4_3, 3> t_ext3s;
+        std::array<ExteriorCalculusR4::Ext4_3, 3> t_ext3s;
 
         for (uint ti = 0; ti < 3; ti++)
         {
-            Ext4::Ext4_2 temp_e2(m_tri[ti].p0().join(m_tri[ti].p1()));
+            ExteriorCalculusR4::Ext4_2 temp_e2(m_tri[ti].p0().join(m_tri[ti].p1()));
             t_ext3s[ti] = temp_e2.join(m_tri[ti].p2());
         }
 
         // compute the point of intersection
 
-        Ext4::Ext4_2 temp_e2(t_ext3s[0].meet(t_ext3s[1]));
-        Ext4::Ext4_1 p_isct(temp_e2.meet(t_ext3s[2]));
+        ExteriorCalculusR4::Ext4_2 temp_e2(t_ext3s[0].meet(t_ext3s[1]));
+        ExteriorCalculusR4::Ext4_1 p_isct(temp_e2.meet(t_ext3s[2]));
 
         // need to adjust for negative w-coordinate
 
@@ -445,8 +439,8 @@ namespace Cork::Empty3d
         {
             for (uint pi = 0; pi < 3; pi++)
             {  // three copies...
-                Ext4::Ext4_3 a;
-                Ext4::Ext4_2 temp_e2(((pi == 0) ? p_isct : m_tri[ti].p0()).join(((pi == 1) ? p_isct : m_tri[ti].p1())));
+                ExteriorCalculusR4::Ext4_3 a;
+                ExteriorCalculusR4::Ext4_2 temp_e2(((pi == 0) ? p_isct : m_tri[ti].p0()).join(((pi == 1) ? p_isct : m_tri[ti].p1())));
                 a = temp_e2.join(((pi == 2) ? p_isct : m_tri[ti].p2()));
                 double test = t_ext3s[ti].inner(a);
                 if (test < 0.0)  // AHA, p_isct IS outside this triangle
@@ -462,18 +456,18 @@ namespace Cork::Empty3d
     Cork::Math::Vector3D TriTriTriIn::coords() const
     {
         // construct the triangles
-        std::array<Ext4::Ext4_3, 3> t_ext3s;
+        std::array<ExteriorCalculusR4::Ext4_3, 3> t_ext3s;
 
         for (uint ti = 0; ti < 3; ti++)
         {
-            Ext4::Ext4_2 temp_e2(m_tri[ti].p0().join(m_tri[ti].p1()));
+            ExteriorCalculusR4::Ext4_2 temp_e2(m_tri[ti].p0().join(m_tri[ti].p1()));
             t_ext3s[ti] = temp_e2.join(m_tri[ti].p2());
         }
 
         // compute the point of intersection
 
-        Ext4::Ext4_2 temp_e2(t_ext3s[0].meet(t_ext3s[1]));
-        Ext4::Ext4_1 p_isct(temp_e2.meet(t_ext3s[2]));
+        ExteriorCalculusR4::Ext4_2 temp_e2(t_ext3s[0].meet(t_ext3s[1]));
+        ExteriorCalculusR4::Ext4_1 p_isct(temp_e2.meet(t_ext3s[2]));
 
         // no need to adjust for negative w-coordinate.
         // will come out in the divide.
@@ -489,9 +483,9 @@ namespace Cork::Empty3d
 
     int TriTriTriIn::emptyFilter() const
     {
-        std::array<std::array<AbsExt4_1, 3>, 3> kp;
-        std::array<Ext4::Ext4_3, 3> t;
-        std::array<AbsExt4_3, 3> kt;
+        std::array<std::array<ExteriorCalculusR4::AbsExt4_1, 3>, 3> kp;
+        std::array<ExteriorCalculusR4::Ext4_3, 3> t;
+        std::array<ExteriorCalculusR4::AbsExt4_3, 3> kt;
 
         // load the points and form triangles
 
@@ -501,18 +495,18 @@ namespace Cork::Empty3d
             kp[i][1] = m_tri[i].p1();
             kp[i][2] = m_tri[i].p2();
 
-            Ext4::Ext4_2 temp2(m_tri[i].p0().join(m_tri[i].p1()));
-            AbsExt4_2 ktemp2( kp[i][0].join(kp[i][1]));
+            ExteriorCalculusR4::Ext4_2 temp2(m_tri[i].p0().join(m_tri[i].p1()));
+            ExteriorCalculusR4::AbsExt4_2 ktemp2( kp[i][0].join(kp[i][1]));
             t[i] = temp2.join(m_tri[i].p2());
             kt[i] = ktemp2.join( kp[i][2]);
         }
 
         // compute the point of intersection
 
-        Ext4::Ext4_2 temp2(t[0].meet(t[1]));
-        AbsExt4_2 ktemp2( kt[0].meet( kt[1]));
-        Ext4::Ext4_1 pisct(temp2.meet(t[2]));
-        AbsExt4_1 kpisct(ktemp2.meet(kt[2]));
+        ExteriorCalculusR4::Ext4_2 temp2(t[0].meet(t[1]));
+        ExteriorCalculusR4::AbsExt4_2 ktemp2( kt[0].meet( kt[1]));
+        ExteriorCalculusR4::Ext4_1 pisct(temp2.meet(t[2]));
+        ExteriorCalculusR4::AbsExt4_1 kpisct(ktemp2.meet(kt[2]));
 
         // We perform one of the filter exit tests here...
 
@@ -536,10 +530,10 @@ namespace Cork::Empty3d
             {
 //                AbsExt4_3 ka;
 
-                Ext4::Ext4_2 b(((j == 0) ? pisct : m_tri[i].p0()).join((j == 1) ? pisct : m_tri[i].p1()));
-                Ext4::Ext4_3 a(b.join((j == 2) ? pisct : m_tri[i].p2()));
-                AbsExt4_2 kb( ((j == 0) ? kpisct : kp[i][0]).join((j == 1) ? kpisct : kp[i][1]));
-                AbsExt4_3   ka(kb.join((j == 2) ? kpisct : kp[i][2]));
+                ExteriorCalculusR4::Ext4_2 b(((j == 0) ? pisct : m_tri[i].p0()).join((j == 1) ? pisct : m_tri[i].p1()));
+                ExteriorCalculusR4::Ext4_3 a(b.join((j == 2) ? pisct : m_tri[i].p2()));
+                ExteriorCalculusR4::AbsExt4_2 kb( ((j == 0) ? kpisct : kp[i][0]).join((j == 1) ? kpisct : kp[i][1]));
+                ExteriorCalculusR4::AbsExt4_3   ka(kb.join((j == 2) ? kpisct : kp[i][2]));
 
                 double dot = t[i].inner(a);
                 double kdot = kt[i].inner(ka);
