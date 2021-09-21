@@ -229,14 +229,16 @@ namespace Cork::Empty3d
             }
         }
 
-        if (uncertain)
-        {
-            return 0;
-        }
-        else
-        {
-            return -1;  // i.e. false (the intersection is not empty)
-        }
+        return uncertain ? 0 : -1;
+
+//        if (uncertain)
+//        {
+//            return 0;
+//        }
+//        else
+//        {
+//            return -1;  // i.e. false (the intersection is not empty)
+//        }
     }
 
     bool TriEdgeIn::exactFallback(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const
@@ -295,8 +297,10 @@ namespace Cork::Empty3d
 
         // process edge
 
-        FixExt4_2<LINE_A_BITS> ae0, ae1;
-        FixInt::BitInt<INNER_LINE_BITS>::Rep test_e0, test_e1;
+        FixExt4_2<LINE_A_BITS> ae0;
+        FixExt4_2<LINE_A_BITS> ae1;
+        FixInt::BitInt<INNER_LINE_BITS>::Rep test_e0;
+        FixInt::BitInt<INNER_LINE_BITS>::Rep test_e1;
 
         join(ae0, pisct, ep[1]);
         join(ae1, ep[0], pisct);
@@ -307,11 +311,15 @@ namespace Cork::Empty3d
 
         // process triangle
 
-        FixExt4_3<TRI_A_BITS> at0, at1, at2;
-        FixExt4_2<LINE_A_BITS> temp0, temp1;
+        FixExt4_3<TRI_A_BITS> at0;
+        FixExt4_3<TRI_A_BITS> at1;
+        FixExt4_3<TRI_A_BITS> at2;
+        FixExt4_2<LINE_A_BITS> temp0;
+        FixExt4_2<LINE_A_BITS> temp1;
         FixExt4_2<LINE_BITS> temp2;
-        FixInt::BitInt<INNER_TRI_BITS>::Rep test_t0, test_t1, test_t2;
-        int sign_t0, sign_t1, sign_t2;
+        FixInt::BitInt<INNER_TRI_BITS>::Rep test_t0;
+        FixInt::BitInt<INNER_TRI_BITS>::Rep test_t1;
+        FixInt::BitInt<INNER_TRI_BITS>::Rep test_t2;
 
         join(temp0, pisct, tp[1]);
         join(at0, temp0, tp[2]);
@@ -322,9 +330,9 @@ namespace Cork::Empty3d
         inner(test_t0, t, at0);
         inner(test_t1, t, at1);
         inner(test_t2, t, at2);
-        sign_t0 = sign(test_t0);
-        sign_t1 = sign(test_t1);
-        sign_t2 = sign(test_t2);
+        int     sign_t0 = sign(test_t0);
+        int     sign_t1 = sign(test_t1);
+        int     sign_t2 = sign(test_t2);
 
         if (sign_e0 < 0 || sign_e1 < 0 || sign_t0 < 0 || sign_t1 < 0 || sign_t2 < 0)
         {
@@ -350,10 +358,10 @@ namespace Cork::Empty3d
             context.exact_count++;
             return (exactFallback(quantizer, context));
         }
-        else
-        {
+//        else
+//        {
             return (filter > 0);
-        }
+//        }
     }
 
     Cork::Math::Vector3D TriEdgeIn::coordsExact(const Quantization::Quantizer& quantizer) const
@@ -441,10 +449,14 @@ namespace Cork::Empty3d
             {  // three copies...
                 ExteriorCalculusR4::Ext4_3 a;
                 ExteriorCalculusR4::Ext4_2 temp_e2(((pi == 0) ? p_isct : m_tri[ti].p0()).join(((pi == 1) ? p_isct : m_tri[ti].p1())));
+                
                 a = temp_e2.join(((pi == 2) ? p_isct : m_tri[ti].p2()));
                 double test = t_ext3s[ti].inner(a);
+                
                 if (test < 0.0)  // AHA, p_isct IS outside this triangle
+                {
                     return true;
+                }
             }
         }
 
@@ -555,14 +567,16 @@ namespace Cork::Empty3d
             }
         }
 
-        if (uncertain)
-        {
-            return 0;
-        }
-        else
-        {
-            return -1;  // i.e. false (the intersection is not empty)
-        }
+        return uncertain ? 0 : -1;
+
+//        if (uncertain)
+//        {
+//            return 0;
+//        }
+//        else
+//        {
+//            return -1;  // i.e. false (the intersection is not empty)
+//        }
     }
 
     bool TriTriTriIn::exactFallback(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const
@@ -579,8 +593,8 @@ namespace Cork::Empty3d
         constexpr int EXT3_TA_BITS = EXT2_TA_BITS + IN_BITS + 2;
         constexpr int INNER_BITS = EXT3_TA_BITS + EXT3_UP_BITS + 2;
 
-        FixExt4_1<IN_BITS> p[3][3];
-        FixExt4_3<EXT3_UP_BITS> t[3];
+        std::array<std::array<FixExt4_1<IN_BITS>,3>,3> p;
+        std::array<FixExt4_3<EXT3_UP_BITS>,3> t;
 
         for (uint i = 0; i < 3; i++)
         {
@@ -621,7 +635,7 @@ namespace Cork::Empty3d
 
         for (uint i = 0; i < 3; i++)
         {
-            FixExt4_3<EXT3_TA_BITS> a[3];
+            std::array<FixExt4_3<EXT3_TA_BITS>,3> a;
             FixExt4_2<EXT2_TA_BITS> temp;
             FixExt4_2<EXT2_UP_BITS> tmp2;
 
@@ -668,10 +682,10 @@ namespace Cork::Empty3d
             context.exact_count++;
             return (exactFallback(quantizer, context));
         }
-        else
-        {
+//        else
+//        {
             return (filter > 0);
-        }
+//        }
     }
 
     Cork::Math::Vector3D TriTriTriIn::coordsExact(const Quantization::Quantizer& quantizer) const

@@ -49,57 +49,57 @@ namespace Cork
         {
         }
 
-        unsigned long numberOfTrianglesInDisjointUnion() const { return (m_numberOfTrianglesInDisjointUnion); }
+        uint64_t numberOfTrianglesInDisjointUnion() const { return (m_numberOfTrianglesInDisjointUnion); }
 
-        unsigned long numberOfTrianglesInFinalMesh() const { return (m_numberOfTrianglesInFinalMesh); }
+        uint64_t numberOfTrianglesInFinalMesh() const { return (m_numberOfTrianglesInFinalMesh); }
 
-        unsigned long long elapsedCPUTimeInNanoSeconds() const { return (m_elapsedCPUTimeInNanoSeconds); }
+        uint64_t elapsedCPUTimeInNanoSeconds() const { return (m_elapsedCPUTimeInNanoSeconds); }
 
-        unsigned long long elapsedWallTimeInNanoSeconds() const { return (m_elapsedWallTimeInNanoSeconds); }
+        uint64_t elapsedWallTimeInNanoSeconds() const { return (m_elapsedWallTimeInNanoSeconds); }
 
-        unsigned long startingVirtualMemorySizeInMB() const { return (m_startingVirtualMemorySizeInMB); }
+        uint64_t startingVirtualMemorySizeInMB() const { return (m_startingVirtualMemorySizeInMB); }
 
-        unsigned long endingVirtualMemorySizeInMB() const { return (m_endingVirtualMemorySizeInMB); }
+        uint64_t endingVirtualMemorySizeInMB() const { return (m_endingVirtualMemorySizeInMB); }
 
-        void setNumberOfTrianglesInDisjointUnion(unsigned long numberOfTrianglesInDisjointUnion)
+        void setNumberOfTrianglesInDisjointUnion(uint64_t numberOfTrianglesInDisjointUnion)
         {
             m_numberOfTrianglesInDisjointUnion = numberOfTrianglesInDisjointUnion;
         }
 
-        void setNumberOfTrianglesInFinalMesh(unsigned long numberOfTrianglesInFinalMesh)
+        void setNumberOfTrianglesInFinalMesh(uint64_t numberOfTrianglesInFinalMesh)
         {
             m_numberOfTrianglesInFinalMesh = numberOfTrianglesInFinalMesh;
         }
 
-        void setElapsedCPUTimeInNanoSeconds(unsigned long long elapsedCPUTimeInNanoSeconds)
+        void setElapsedCPUTimeInNanoSeconds(uint64_t elapsedCPUTimeInNanoSeconds)
         {
             m_elapsedCPUTimeInNanoSeconds = elapsedCPUTimeInNanoSeconds;
         }
 
-        void setElapsedWallTimeInNanoSeconds(unsigned long long elapsedWallTimeInNanoSeconds)
+        void setElapsedWallTimeInNanoSeconds(uint64_t elapsedWallTimeInNanoSeconds)
         {
             m_elapsedWallTimeInNanoSeconds = elapsedWallTimeInNanoSeconds;
         }
 
-        void setStartingVirtualMemorySizeInMB(unsigned long startingVirtualMemorySizeInMB)
+        void setStartingVirtualMemorySizeInMB(uint64_t startingVirtualMemorySizeInMB)
         {
             m_startingVirtualMemorySizeInMB = startingVirtualMemorySizeInMB;
         }
 
-        void setEndingVirtualMemorySizeInMB(unsigned long endingVirtualMemorySizeInMB)
+        void setEndingVirtualMemorySizeInMB(uint64_t endingVirtualMemorySizeInMB)
         {
             m_endingVirtualMemorySizeInMB = endingVirtualMemorySizeInMB;
         }
 
        private:
-        unsigned long m_numberOfTrianglesInDisjointUnion;
-        unsigned long m_numberOfTrianglesInFinalMesh;
+        uint64_t m_numberOfTrianglesInDisjointUnion;
+        uint64_t m_numberOfTrianglesInFinalMesh;
 
-        unsigned long long m_elapsedCPUTimeInNanoSeconds;
-        unsigned long long m_elapsedWallTimeInNanoSeconds;
+        uint64_t m_elapsedCPUTimeInNanoSeconds;
+        uint64_t m_elapsedWallTimeInNanoSeconds;
 
-        unsigned long m_startingVirtualMemorySizeInMB;
-        unsigned long m_endingVirtualMemorySizeInMB;
+        uint64_t m_startingVirtualMemorySizeInMB;
+        uint64_t m_endingVirtualMemorySizeInMB;
     };
 
     class CorkTriangle : public Cork::Math::TriangleByIndicesBase
