@@ -250,18 +250,18 @@ namespace Cork
 
         const Cork::Math::BBox3D& boundingBox() const
         {
-            if (m_boundingBox.is_initialized())
+            if (m_boundingBox.has_value())
             {
-                return (m_boundingBox.get());
+                return (m_boundingBox.value());
             }
 
             const Cork::Math::Vector3D& p0 = *(m_verts[0]->quantizedValue());
             const Cork::Math::Vector3D& p1 = *(m_verts[1]->quantizedValue());
             const Cork::Math::Vector3D& p2 = *(m_verts[2]->quantizedValue());
 
-            const_cast<std::optional<Cork::Math::BBox3D>&>(m_boundingBox).emplace(min(p0, p1, p2), max(p0, p1, p2));
+            const_cast<std::optional<Cork::Math::BBox3D>&>(m_boundingBox).emplace(p0.min(p1, p2), p0.max(p1, p2));
 
-            return (m_boundingBox.get());
+            return (m_boundingBox.value());
         }
 #else
         //	With SSE, the min/max functions and bounding box computation is quick enough that computing the

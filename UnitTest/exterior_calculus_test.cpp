@@ -231,7 +231,7 @@ TEST_CASE("Exterior Calculus Tests", "[ext calc basics]")
                  (result.y() == Catch::Approx(120.0 / 29.0).epsilon(0.00001)) &&
                  (result.z() == Catch::Approx(249.0 / 145.0).epsilon(0.00001))));
     }
-    
+
     SECTION("Ext4_3 Basic Tests")
     {
         ExteriorCalculusR4::Ext4_1 tri_1(Cork::Math::Vector3D(2, 2, 1));
@@ -242,33 +242,36 @@ TEST_CASE("Exterior Calculus Tests", "[ext calc basics]")
 
         ExteriorCalculusR4::Ext4_3 t_ext3((tri_1.join(tri_2)).join(tri_3));
 
-        REQUIRE((( t_ext3.e012() == 9 ) && ( t_ext3.e013() == 31 ) && ( t_ext3.e023() == 8 ) && ( t_ext3.e123() == -3 ) ));
-        REQUIRE((( t_ext3[0] == 9 ) && ( t_ext3[1] == 31 ) && ( t_ext3[2] == 8 ) && ( t_ext3[3] == -3 ) ));
+        REQUIRE(((t_ext3.e012() == 9) && (t_ext3.e013() == 31) && (t_ext3.e023() == 8) && (t_ext3.e123() == -3)));
+        REQUIRE(((t_ext3[0] == 9) && (t_ext3[1] == 31) && (t_ext3[2] == 8) && (t_ext3[3] == -3)));
 
         //  Negation
 
-        ExteriorCalculusR4::Ext4_3  t_ext3_negative( t_ext3.negative() );
+        ExteriorCalculusR4::Ext4_3 t_ext3_negative(t_ext3.negative());
 
-        REQUIRE((( t_ext3_negative.e012() == -9 ) && ( t_ext3_negative.e013() == -31 ) && ( t_ext3_negative.e023() == -8 ) && ( t_ext3_negative.e123() == 3 ) ));
-
-        t_ext3.negate();
-
-        REQUIRE( t_ext3 == t_ext3_negative );
+        REQUIRE(((t_ext3_negative.e012() == -9) && (t_ext3_negative.e013() == -31) && (t_ext3_negative.e023() == -8) &&
+                 (t_ext3_negative.e123() == 3)));
 
         t_ext3.negate();
 
-        REQUIRE( t_ext3 != t_ext3_negative );
-        REQUIRE((( t_ext3.e012() == 9 ) && ( t_ext3.e013() == 31 ) && ( t_ext3.e023() == 8 ) && ( t_ext3.e123() == -3 ) ));
+        REQUIRE(t_ext3 == t_ext3_negative);
+
+        t_ext3.negate();
+
+        REQUIRE(t_ext3 != t_ext3_negative);
+        REQUIRE(((t_ext3.e012() == 9) && (t_ext3.e013() == 31) && (t_ext3.e023() == 8) && (t_ext3.e123() == -3)));
 
         //  Dual and Reverse Dual
 
-        ExteriorCalculusR4::Ext4_1  t_ext3_dual( t_ext3.dual() );
+        ExteriorCalculusR4::Ext4_1 t_ext3_dual(t_ext3.dual());
 
-        REQUIRE((( t_ext3_dual.e0() == -3 ) && ( t_ext3_dual.e1() == -8 ) && ( t_ext3_dual.e2() == 31 ) && ( t_ext3_dual.e3() == -9 ) ));
+        REQUIRE(((t_ext3_dual.e0() == -3) && (t_ext3_dual.e1() == -8) && (t_ext3_dual.e2() == 31) &&
+                 (t_ext3_dual.e3() == -9)));
 
-        ExteriorCalculusR4::Ext4_1  t_ext3_reverse_dual( t_ext3.reverse_dual() );
+        ExteriorCalculusR4::Ext4_1 t_ext3_reverse_dual(t_ext3.reverse_dual());
 
-        REQUIRE((( t_ext3_reverse_dual.e0() == 3 ) && ( t_ext3_reverse_dual.e1() == 8 ) && ( t_ext3_reverse_dual.e2() == -31 ) && ( t_ext3_reverse_dual.e3() == 9 ) ));
+        REQUIRE(((t_ext3_reverse_dual.e0() == 3) && (t_ext3_reverse_dual.e1() == 8) &&
+                 (t_ext3_reverse_dual.e2() == -31) && (t_ext3_reverse_dual.e3() == 9)));
     }
 
     SECTION("Triangle Triangle Triangle Intersection with Ext4_3 Meet")
@@ -308,9 +311,105 @@ TEST_CASE("Exterior Calculus Tests", "[ext calc basics]")
 
         Cork::Math::Vector3D result(intersection);
 
-        REQUIRE(((result.x() == Catch::Approx(104.0/23.0).epsilon(0.00001)) &&
-                 (result.y() == Catch::Approx(499.0/69.0).epsilon(0.00001)) &&
-                 (result.z() == Catch::Approx(248.0/69.0).epsilon(0.00001))));
+        REQUIRE(((result.x() == Catch::Approx(104.0 / 23.0).epsilon(0.00001)) &&
+                 (result.y() == Catch::Approx(499.0 / 69.0).epsilon(0.00001)) &&
+                 (result.z() == Catch::Approx(248.0 / 69.0).epsilon(0.00001))));
+    }
+
+    //*******************************************************************************************************
+    //
+    //  ABS Ext classes next
+    //
+    //*******************************************************************************************************
+
+    SECTION("Basic AbsExt4_1 Functionality")
+    {
+        //  Create from a vector, assignment and equality
+
+        Cork::Math::Vector3D test_vec(-7, -4, -3);
+        Cork::Math::Vector3D test_vec_2(-7, 4, -3);
+
+        ExteriorCalculusR4::Ext4_1 temp(test_vec);
+
+        ExteriorCalculusR4::AbsExt4_1 test_R4_ext(temp);
+        ExteriorCalculusR4::AbsExt4_1 test_R4_ext_copy(test_R4_ext);
+
+        REQUIRE(
+            ((test_R4_ext.e0() == 7) && (test_R4_ext.e1() == 4) && (test_R4_ext.e2() == 3) && (test_R4_ext.e3() == 1)));
+        REQUIRE(((test_R4_ext[0] == 7) && (test_R4_ext[1] == 4) && (test_R4_ext[2] == 3) && (test_R4_ext[3] == 1)));
+
+        temp = test_vec_2;
+
+        REQUIRE(test_R4_ext == test_R4_ext_copy);
+        REQUIRE(test_R4_ext == ExteriorCalculusR4::AbsExt4_1(temp));
+
+        //  Negation - destructive and non-destructive.
+
+        test_R4_ext.negate();
+
+        REQUIRE(
+            ((test_R4_ext.e0() == 7) && (test_R4_ext.e1() == 4) && (test_R4_ext.e2() == 3) && (test_R4_ext.e3() == 1)));
+
+        ExteriorCalculusR4::AbsExt4_1 negated_test_R4_ext(test_R4_ext.negative());
+
+        REQUIRE(
+            ((test_R4_ext.e0() == 7) && (test_R4_ext.e1() == 4) && (test_R4_ext.e2() == 3) && (test_R4_ext.e3() == 1)));
+        REQUIRE(((negated_test_R4_ext.e0() == 7) && (negated_test_R4_ext.e1() == 4) &&
+                 (negated_test_R4_ext.e2() == 3) && (negated_test_R4_ext.e3() == 1)));
+
+        //  Dual and reverse dual
+        //
+        //  Dual of an Ext4_1 returns an Ext4_3 (n=4, k=1, n-k = 3).  Reverse Dual on the Ext4_3 returns an Ext4_1 (n=4,
+        //  k=3, n-k=1) which is identical to the original vector.  Same for Ext4_1::reverse_dual() and Ext4_3::dual()
+
+        test_R4_ext = ExteriorCalculusR4::AbsExt4_1(ExteriorCalculusR4::Ext4_1(test_vec));
+
+        ExteriorCalculusR4::AbsExt4_3 dual = test_R4_ext.dual();
+        ExteriorCalculusR4::AbsExt4_3 reverse_dual = test_R4_ext.reverse_dual();
+
+        REQUIRE(((dual.e012() == 1) && (dual.e013() == 3) && (dual.e023() == 4) && (dual.e123() == 7)));
+        REQUIRE(((reverse_dual.e012() == 1) && (reverse_dual.e013() == 3) && (reverse_dual.e023() == 4) &&
+                 (reverse_dual.e123() == 7)));
+
+        ExteriorCalculusR4::AbsExt4_1 original = dual.reverse_dual();
+
+        REQUIRE(original == test_R4_ext);
+
+        original = reverse_dual.dual();
+
+        REQUIRE(original == test_R4_ext);
+    }
+
+    SECTION("AbsExt4_1 Join (Wedge Product)")
+    {
+        ExteriorCalculusR4::AbsExt4_1 vec_1(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(-3, 4, 5)));
+        ExteriorCalculusR4::AbsExt4_1 vec_2(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, -7, 8)));
+        ExteriorCalculusR4::AbsExt4_1 vec_3(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(14, 10, -5)));
+
+        //  Compute wedge of two AbsExt4_1 vectors
+
+        ExteriorCalculusR4::AbsExt4_2 vec_1_wedge_vec_2 = vec_1.join(vec_2);
+
+        REQUIRE(((vec_1_wedge_vec_2.e01() == 45) && (vec_1_wedge_vec_2.e02() == 54) &&
+                 (vec_1_wedge_vec_2.e03() == 9) && (vec_1_wedge_vec_2.e12() == 67) &&
+                 (vec_1_wedge_vec_2.e13() == 11) && (vec_1_wedge_vec_2.e23() == 13)));
+
+        //  Now wedge of AbsExt4_1 vector and the AbsExt4_2 from the wedge operation above.  This results in a AbsExt4_3.
+
+        ExteriorCalculusR4::AbsExt4_3 vec_1_wedge_vec_2_wedge_vec_3 = vec_3.join(vec_1_wedge_vec_2);
+
+        REQUIRE(((vec_1_wedge_vec_2_wedge_vec_3.e012() == 1703) && (vec_1_wedge_vec_2_wedge_vec_3.e013() == 289) &&
+                 (vec_1_wedge_vec_2_wedge_vec_3.e023() == 281) && (vec_1_wedge_vec_2_wedge_vec_3.e123() == 252)));
+    }
+
+    SECTION("AbsExt4_1 Inner (Dot Product)")
+    {
+        ExteriorCalculusR4::AbsExt4_1 vec_1(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(3, -4, 5)));
+        ExteriorCalculusR4::AbsExt4_1 vec_2(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, 7, -8)));
+
+        double dot_1_2 = vec_1.inner(vec_2);
+
+        REQUIRE(dot_1_2 == 87);
     }
 }
 

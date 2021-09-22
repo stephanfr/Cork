@@ -71,6 +71,9 @@
 
  */
 
+
+#undef __AVX_AVAILABLE__
+
 namespace ExteriorCalculusR4
 {
     namespace Constants
@@ -106,7 +109,11 @@ namespace ExteriorCalculusR4
 
             return *this;
         }
-#else  //  __AVX_AVAILABLE__
+
+        operator __m256d &() { return ymm_; }
+        operator __m256d() const { return ymm_; }
+
+#else  //  NOT __AVX_AVAILABLE__
         const Ext4_1 &operator=(const Cork::Math::Vector3D &vector)
         {
             vector_ = vector;
@@ -114,9 +121,6 @@ namespace ExteriorCalculusR4
 
             return *this;
         }
-
-        operator __m256d &() { return ymm_; }
-        operator __m256d() const { return ymm_; }
 
 #endif  //  __AVX_AVAILABLE__
 
@@ -492,15 +496,39 @@ namespace ExteriorCalculusR4
         AbsExt4_1(){};
 
 #ifdef __AVX_AVAILABLE__
-        explicit AbsExt4_1(__m256d ymm) : ymm_(ymm) {}
 
         explicit AbsExt4_1(const AbsExt4_1 &element) : ymm_(element.ymm_) {}
+        explicit AbsExt4_1(AbsExt4_1 &&element) : ymm_(element.ymm_) {}
 
         operator __m256d() const { return ymm_; }
-
-        const AbsExt4_1 &operator=(const AbsExt4_1 &element)
+        
+        AbsExt4_1 &operator=(const AbsExt4_1 &element)
         {
             ymm_ = element.ymm_;
+
+            return *this;
+        }
+
+        AbsExt4_1 &operator=(AbsExt4_1 &&element)
+        {
+            ymm_ = element.ymm_;
+
+            return *this;
+        }
+#else
+        explicit AbsExt4_1(const AbsExt4_1 &element) : v_(element.v_){}
+        explicit AbsExt4_1(AbsExt4_1 &&element) : v_(element.v_) {}
+
+        AbsExt4_1 &operator=(const AbsExt4_1 &element)
+        {
+            v_ = element.v_;
+
+            return *this;
+        }
+
+        AbsExt4_1 &operator=(AbsExt4_1 &&element)
+        {
+            v_ = element.v_;
 
             return *this;
         }
@@ -511,7 +539,22 @@ namespace ExteriorCalculusR4
         {
         }
 
+        explicit AbsExt4_1( Ext4_1 &&element)
+            : e0_(fabs(element.e0())), e1_(fabs(element.e1())), e2_(fabs(element.e2())), e3_(fabs(element.e3()))
+        {
+        }
+
         const AbsExt4_1 &operator=(const Ext4_1 &element)
+        {
+            e0_ = fabs(element.e0());
+            e1_ = fabs(element.e1());
+            e2_ = fabs(element.e2());
+            e3_ = fabs(element.e3());
+
+            return *this;
+        }
+
+        const AbsExt4_1 &operator=(Ext4_1 &&element)
         {
             e0_ = fabs(element.e0());
             e1_ = fabs(element.e1());
@@ -530,6 +573,18 @@ namespace ExteriorCalculusR4
 
         double &operator[](size_t index) { return v_[index]; }
         double operator[](size_t index) const { return v_[index]; }
+
+        [[nodiscard]] bool operator==(const AbsExt4_1 &r4_to_compare) const
+        {
+            return ((e0_ == r4_to_compare.e0_) && (e1_ == r4_to_compare.e1_) && (e2_ == r4_to_compare.e2_) &&
+                    (e3_ == r4_to_compare.e3_));
+        }
+
+        [[nodiscard]] bool operator!=(const AbsExt4_1 &r4_to_compare) const
+        {
+            return ((e0_ != r4_to_compare.e0_) || (e1_ != r4_to_compare.e1_) || (e2_ != r4_to_compare.e2_) ||
+                    (e3_ != r4_to_compare.e3_));
+        }
 
         //  Negation does not change anything for the AbsExt classes, prett much a no-op.
 
@@ -568,7 +623,7 @@ namespace ExteriorCalculusR4
 
         union
         {
-            double v_[4];
+            std::array<double,4> v_;
 
             struct
             {
@@ -766,6 +821,8 @@ namespace ExteriorCalculusR4
 
         return result;
     }
+
+
 
     inline AbsExt4_3 AbsExt4_2::join(const AbsExt4_1 &rhs) const
     {
