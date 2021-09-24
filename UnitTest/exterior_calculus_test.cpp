@@ -390,11 +390,12 @@ TEST_CASE("Exterior Calculus Tests", "[ext calc basics]")
 
         ExteriorCalculusR4::AbsExt4_2 vec_1_wedge_vec_2 = vec_1.join(vec_2);
 
-        REQUIRE(((vec_1_wedge_vec_2.e01() == 45) && (vec_1_wedge_vec_2.e02() == 54) &&
-                 (vec_1_wedge_vec_2.e03() == 9) && (vec_1_wedge_vec_2.e12() == 67) &&
-                 (vec_1_wedge_vec_2.e13() == 11) && (vec_1_wedge_vec_2.e23() == 13)));
+        REQUIRE(((vec_1_wedge_vec_2.e01() == 45) && (vec_1_wedge_vec_2.e02() == 54) && (vec_1_wedge_vec_2.e03() == 9) &&
+                 (vec_1_wedge_vec_2.e12() == 67) && (vec_1_wedge_vec_2.e13() == 11) &&
+                 (vec_1_wedge_vec_2.e23() == 13)));
 
-        //  Now wedge of AbsExt4_1 vector and the AbsExt4_2 from the wedge operation above.  This results in a AbsExt4_3.
+        //  Now wedge of AbsExt4_1 vector and the AbsExt4_2 from the wedge operation above.  This results in a
+        //  AbsExt4_3.
 
         ExteriorCalculusR4::AbsExt4_3 vec_1_wedge_vec_2_wedge_vec_3 = vec_3.join(vec_1_wedge_vec_2);
 
@@ -410,6 +411,226 @@ TEST_CASE("Exterior Calculus Tests", "[ext calc basics]")
         double dot_1_2 = vec_1.inner(vec_2);
 
         REQUIRE(dot_1_2 == 87);
+    }
+
+    SECTION("Basic AbsExt4_2 Functionality")
+    {
+        //  Create from an Ext4_2 from joining a pair of vectors and create an AbsExt2 from it
+
+        ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(7, 4, 3));
+        ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(11, 17, 13));
+
+        ExteriorCalculusR4::Ext4_2 ext2 = vec_1.join(vec_2);
+
+        REQUIRE(((ext2.e01() == 75) && (ext2.e02() == 58) && (ext2.e03() == -4) && (ext2.e12() == 1) &&
+                 (ext2.e13() == -13) && (ext2.e23() == -10)));
+
+        ExteriorCalculusR4::AbsExt4_2 absext2(ext2);
+
+        REQUIRE(((absext2.e01() == 75) && (absext2.e02() == 58) && (absext2.e03() == 4) && (absext2.e12() == 1) &&
+                 (absext2.e13() == 13) && (absext2.e23() == 10)));
+
+        //  Negation - nothing should change - all values remain positive
+
+        ExteriorCalculusR4::AbsExt4_2 absext2_negative = absext2.negative();
+
+        REQUIRE(((absext2_negative.e01() == 75) && (absext2_negative.e02() == 58) && (absext2_negative.e03() == 4) &&
+                 (absext2_negative.e12() == 1) && (absext2_negative.e13() == 13) && (absext2_negative.e23() == 10)));
+
+        REQUIRE(absext2_negative == absext2);
+
+        ExteriorCalculusR4::Ext4_2 ext2_negative = ext2.negative();  //  This flips all the signs to insure we get for
+                                                                     //  abs of all the data members in the Ext4_2
+
+        REQUIRE(absext2_negative == ExteriorCalculusR4::AbsExt4_2(ext2_negative));
+
+        absext2_negative.negate();
+
+        REQUIRE(absext2_negative == absext2);
+
+        //  Dual and Reverse Dual
+        //
+        //  Reverse dual of the dual is the original R4 2
+
+        ExteriorCalculusR4::AbsExt4_2 dual = absext2.dual();
+
+        REQUIRE(((dual.e01() == 10) && (dual.e02() == 13) && (dual.e03() == 1) && (dual.e12() == 4) &&
+                 (dual.e13() == 58) && (dual.e23() == 75)));
+
+        ExteriorCalculusR4::AbsExt4_2 original = dual.reverse_dual();
+
+        REQUIRE(((original.e01() == 75) && (original.e02() == 58) && (original.e03() == 4) && (original.e12() == 1) &&
+                 (original.e13() == 13) && (original.e23() == 10)));
+        REQUIRE(original == absext2);
+    }
+
+    SECTION("AbsExt4_2 Join (Wedge Product)")
+    {
+        //  Create from a pair of vectors and check values
+
+        ExteriorCalculusR4::AbsExt4_1 vec_1(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(7, 4, 3)));
+        ExteriorCalculusR4::AbsExt4_1 vec_2(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(11, 17, 13)));
+
+        ExteriorCalculusR4::AbsExt4_2 ext2 = vec_1.join(vec_2);
+
+        REQUIRE(((ext2.e01() == 163) && (ext2.e02() == 124) && (ext2.e03() == 18) && (ext2.e12() == 103) &&
+                 (ext2.e13() == 21) && (ext2.e23() == 16)));
+        REQUIRE(((ext2[0] == 163) && (ext2[1] == 124) && (ext2[2] == 18) && (ext2[3] == 103) && (ext2[4] == 21) &&
+                 (ext2[5] == 16)));
+
+        //  Compute the wedge product of the Ext4_2 and the vector leaving an Ext4_3
+
+        ExteriorCalculusR4::AbsExt4_1 vec_3(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(14, -10, 5)));
+
+        ExteriorCalculusR4::AbsExt4_3 ext3 = ext2.join(vec_3);
+
+        REQUIRE(((ext3.e012() == 3497) && (ext3.e013() == 637) && (ext3.e023() == 438) && (ext3.e123() == 368)));
+    }
+
+    SECTION("AbsExt4_2 Inner (Dot Product)")
+    {
+        //  First Ext4_2
+
+        ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(7, 4, 3));
+        ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(11, 17, 13));
+
+        ExteriorCalculusR4::Ext4_2 ext2_1 = vec_1.join(vec_2);
+
+        REQUIRE(((ext2_1.e01() == 75) && (ext2_1.e02() == 58) && (ext2_1.e03() == -4) && (ext2_1.e12() == 1) &&
+                 (ext2_1.e13() == -13) && (ext2_1.e23() == -10)));
+
+        //  Second Ext4_2
+
+        ExteriorCalculusR4::Ext4_1 vec_3(Cork::Math::Vector3D(-5, 6, 9));
+        ExteriorCalculusR4::Ext4_1 vec_4(Cork::Math::Vector3D(13, -17, 4));
+
+        ExteriorCalculusR4::Ext4_2 ext2_2 = vec_3.join(vec_4);
+
+        REQUIRE(((ext2_2.e01() == 7) && (ext2_2.e02() == -137) && (ext2_2.e03() == -18) && (ext2_2.e12() == 177) &&
+                 (ext2_2.e13() == 23) && (ext2_2.e23() == 5)));
+
+        //  Inner product
+
+        ExteriorCalculusR4::AbsExt4_2 absext_1(ext2_1);
+        ExteriorCalculusR4::AbsExt4_2 absext_2(ext2_2);
+
+        double dot_product = absext_1.inner(absext_2);
+
+        REQUIRE(dot_product == 9069);
+    }
+
+    SECTION("Triangle Edge Intersection with AbsExt4_2 Meet")
+    {
+        ExteriorCalculusR4::AbsExt4_1 tri_1(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(2, 2, 1)));
+        ExteriorCalculusR4::AbsExt4_1 tri_2(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(7, 4, 2)));
+        ExteriorCalculusR4::AbsExt4_1 tri_3(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(4, 9, 3)));
+
+        ExteriorCalculusR4::AbsExt4_1 edge_1(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(2, 2, 3)));
+        ExteriorCalculusR4::AbsExt4_1 edge_2(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, 7, 0)));
+
+        //  Build the Ext4_3 for the triangle
+
+        ExteriorCalculusR4::AbsExt4_3 t_ext3((tri_1.join(tri_2)).join(tri_3));
+
+        //  Now the Ext4_2 for the edge
+
+        ExteriorCalculusR4::AbsExt4_2 e_ext2(edge_1.join(edge_2));
+
+        //  Compute the point of intersection.  Meet does some duals and a join.
+
+        ExteriorCalculusR4::AbsExt4_1 intersection(e_ext2.meet(t_ext3));
+
+        //  Convert back into a point, which is mostly just normalizing by e3.
+        //      Negative e3 values will be resolved by the division.
+
+        Cork::Math::Vector3D result(intersection);
+
+        REQUIRE(((result.x() == Catch::Approx(5162.0/1255.0).epsilon(0.00001)) &&
+                 (result.y() == Catch::Approx(5818.0/1255.0).epsilon(0.00001)) &&
+                 (result.z() == Catch::Approx(519.0/251.0).epsilon(0.00001))));
+    }
+
+    
+    SECTION("AbsExt4_3 Basic Tests")
+    {
+        ExteriorCalculusR4::AbsExt4_1 tri_1(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(2, -2, 1)));
+        ExteriorCalculusR4::AbsExt4_1 tri_2(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(-7, 4, 2)));
+        ExteriorCalculusR4::AbsExt4_1 tri_3(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(4, 9, -3)));
+
+        //  Build the AbsExt4_3 for the triangle
+
+        ExteriorCalculusR4::AbsExt4_3 t_ext3((tri_1.join(tri_2)).join(tri_3));
+
+        REQUIRE(((t_ext3.e012() == 197) && (t_ext3.e013() == 127) && (t_ext3.e023() == 50) && (t_ext3.e123() == 53)));
+        REQUIRE(((t_ext3[0] == 197) && (t_ext3[1] == 127) && (t_ext3[2] == 50) && (t_ext3[3] == 53)));
+
+        //  Negation - does nothing
+
+        ExteriorCalculusR4::AbsExt4_3 t_ext3_negative(t_ext3.negative());
+
+        REQUIRE(((t_ext3_negative.e012() == 197) && (t_ext3_negative.e013() == 127) && (t_ext3_negative.e023() == 50) && (t_ext3_negative.e123() == 53)));
+
+        t_ext3.negate();
+
+        REQUIRE(t_ext3 == t_ext3_negative);
+
+        t_ext3.negate();
+
+        REQUIRE(t_ext3 == t_ext3_negative);
+        REQUIRE(((t_ext3.e012() == 197) && (t_ext3.e013() == 127) && (t_ext3.e023() == 50) && (t_ext3.e123() == 53)));
+        
+        //  Dual and Reverse Dual - are the same, reversed order of elements
+
+        ExteriorCalculusR4::AbsExt4_1 t_ext3_dual(t_ext3.dual());
+
+        REQUIRE(((t_ext3_dual.e0() == 53) && (t_ext3_dual.e1() == 50) && (t_ext3_dual.e2() == 127) &&
+                 (t_ext3_dual.e3() == 197)));
+
+        ExteriorCalculusR4::AbsExt4_1 t_ext3_reverse_dual(t_ext3.reverse_dual());
+
+        REQUIRE( t_ext3_reverse_dual == t_ext3_dual );
+    }
+
+    SECTION("Triangle Triangle Triangle Intersection with Ext4_3 Meet")
+    {
+        ExteriorCalculusR4::AbsExt4_1 tri1_1(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(1, 3, 1)));
+        ExteriorCalculusR4::AbsExt4_1 tri1_2(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(4, 7, 4)));
+        ExteriorCalculusR4::AbsExt4_1 tri1_3(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(7, 9, 3)));
+
+        ExteriorCalculusR4::AbsExt4_1 tri2_1(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(2, 2, 3)));
+        ExteriorCalculusR4::AbsExt4_1 tri2_2(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, 7, 3)));
+        ExteriorCalculusR4::AbsExt4_1 tri2_3(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(4, 8, 4)));
+
+        ExteriorCalculusR4::AbsExt4_1 tri3_1(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(2, 2, 4)));
+        ExteriorCalculusR4::AbsExt4_1 tri3_2(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, 7, 1)));
+        ExteriorCalculusR4::AbsExt4_1 tri3_3(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(4, 8, 5)));
+
+        //  Build the AbsExt4_3 for the triangle 1
+
+        ExteriorCalculusR4::AbsExt4_3 t1_ext3((tri1_1.join(tri1_2)).join(tri1_3));
+
+        //  Build the AbsExt4_3 for the triangle 2
+
+        ExteriorCalculusR4::AbsExt4_3 t2_ext3((tri2_1.join(tri2_2)).join(tri2_3));
+
+        //  Build the AbsExt4_3 for the triangle 3
+
+        ExteriorCalculusR4::AbsExt4_3 t3_ext3((tri3_1.join(tri3_2)).join(tri3_3));
+
+        //  Compute the point of intersection.  First we get an edge on the first two triangles and then
+        //      we find the intersection of that edge with the third triangle.
+
+        ExteriorCalculusR4::AbsExt4_2 intersect_edge_1_2(t1_ext3.meet(t2_ext3));
+        ExteriorCalculusR4::AbsExt4_1 intersection(intersect_edge_1_2.meet(t3_ext3));
+
+        //  Convert back into a point, which is mostly just normalizing by e3.
+        //      Negative e3 values will be resolved by the division.
+
+        Cork::Math::Vector3D result(intersection);
+
+        REQUIRE(((result.x() == Catch::Approx(5336236.0/1532419.0).epsilon(0.00001)) &&
+                 (result.y() == Catch::Approx(7677043.0/1532419.0).epsilon(0.00001)) &&
+                 (result.z() == Catch::Approx(4316208.0/1532419.0).epsilon(0.00001))));
     }
 }
 

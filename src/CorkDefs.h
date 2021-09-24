@@ -29,6 +29,8 @@
 #include <cfloat>
 #include <cstdint>
 
+#include <gsl/gsl_util>
+
 //  Alignment for platform - 32 bytes is optimal for AVX
 
 constexpr int SIMD_MEMORY_ALIGNMENT = 32;

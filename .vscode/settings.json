@@ -81,5 +81,6 @@
         "variant": "cpp",
         "format": "cpp",
         "gsl_assert": "cpp"
-    }
+    },
+    "C_Cpp.default.browse.path": ["${workspaceRoot}"]
 }

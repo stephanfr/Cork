@@ -27,9 +27,7 @@
 
 #include <immintrin.h>
 
-#include <gsl/gsl_util>
-
-#include "math/Primitives.h"
+#include "ext4_base.hpp"
 
 /*
 
@@ -71,16 +69,8 @@
 
  */
 
-
-#undef __AVX_AVAILABLE__
-
 namespace ExteriorCalculusR4
 {
-    namespace Constants
-    {
-        constexpr double DOUBLE_ONE = 1.0;
-    }
-
     // types for k-vectors in R4:
     //      Ext4_k
 
@@ -90,46 +80,28 @@ namespace ExteriorCalculusR4
     class AbsExt4_2;
     class AbsExt4_3;
 
-    class Ext4_1
+
+
+
+    class Ext4_1 : public Ext4_1Base
     {
        public:
-        explicit Ext4_1(const Ext4_1 &ext_to_copy) : v_(ext_to_copy.v_) {}
+        explicit Ext4_1(const Ext4_1 &ext_to_copy) : Ext4_1Base(ext_to_copy.v_) {}
 
 #if defined(NUMERIC_PRECISION) && NUMERIC_PRECISION == double
 
-        explicit Ext4_1(const Cork::Math::Vector3D &vector) : vector_(vector) { e3_ = Constants::DOUBLE_ONE; }
-
-#ifdef __AVX_AVAILABLE__
-        explicit Ext4_1(__m256d &ymm) : ymm_(ymm) {}
+        explicit Ext4_1(const Cork::Math::Vector3D &vector)
+            : Ext4_1Base(reinterpret_cast<const std::array<double, 4> &>(vector))
+        {
+            e3_ = Constants::DOUBLE_ONE;
+        }
 
         const Ext4_1 &operator=(const Cork::Math::Vector3D &vector)
         {
-            ymm_ = vector;
+            v_ = reinterpret_cast<const std::array<double, 4> &>(vector);
             e3_ = Constants::DOUBLE_ONE;
 
             return *this;
-        }
-
-        operator __m256d &() { return ymm_; }
-        operator __m256d() const { return ymm_; }
-
-#else  //  NOT __AVX_AVAILABLE__
-        const Ext4_1 &operator=(const Cork::Math::Vector3D &vector)
-        {
-            vector_ = vector;
-            e3_ = Constants::DOUBLE_ONE;
-
-            return *this;
-        }
-
-#endif  //  __AVX_AVAILABLE__
-
-        operator Cork::Math::Vector3D() const
-        {
-            // Warning: beware of division by zero!
-
-            assert(e3_ != 0);
-            return vector_ / e3_;
         }
 #else
         explicit Ext4_1(const Cork::Math::Vector3D &vector)
@@ -146,36 +118,7 @@ namespace ExteriorCalculusR4
 
             return *this;
         }
-
-        [[nodiscard]] Cork::Math::Vector3D operator() const
-        {
-            // Warning: beware of division by zero!
-
-            return Cork::Math::Vector3D((NUMERIC_PRECISION)(e0 / e3), (NUMERIC_PRECISION)(e1 / e3),
-                                        (NUMERIC_PRECISION)(e2 / e3));
-        }
-
 #endif
-
-        [[nodiscard]] double e0() const { return e0_; }
-        [[nodiscard]] double e1() const { return e1_; }
-        [[nodiscard]] double e2() const { return e2_; }
-        [[nodiscard]] double e3() const { return e3_; }
-
-        [[nodiscard]] double &operator[](size_t index) { return gsl::at(v_, index); }
-        [[nodiscard]] double operator[](size_t index) const { return gsl::at(v_, index); }
-
-        [[nodiscard]] bool operator==(const Ext4_1 &r4_to_compare) const
-        {
-            return ((e0_ == r4_to_compare.e0_) && (e1_ == r4_to_compare.e1_) && (e2_ == r4_to_compare.e2_) &&
-                    (e3_ == r4_to_compare.e3_));
-        }
-
-        [[nodiscard]] bool operator!=(const Ext4_1 &r4_to_compare) const
-        {
-            return ((e0_ != r4_to_compare.e0_) || (e1_ != r4_to_compare.e1_) || (e2_ != r4_to_compare.e2_) ||
-                    (e3_ != r4_to_compare.e3_));
-        }
 
         // Negation takes a k-vector and returns its negation neg(X,Y) and is safe for X=Y
 
@@ -205,78 +148,17 @@ namespace ExteriorCalculusR4
 
         [[nodiscard]] Ext4_2 join(const Ext4_1 &rhs) const;
 
-        //  The inner product is the familiar dot product.
-
-        [[nodiscard]] double inner(const Ext4_1 &rhs) const
-        {
-            double acc = 0.0;
-
-            //  The loop below gets unwound and optimized by the compiler
-
-            for (int i = 0; i < 4; i++)
-            {
-                acc += v_[i] * rhs[i];
-            }
-
-            return (acc);
-        }
-
        private:
-        Ext4_1(double e0, double e1, double e2, double e3) : e0_(e0), e1_(e1), e2_(e2), e3_(e3){};
-
-        union
-        {
-            std::array<double, 4> v_;
-
-            struct
-            {
-                double e0_;
-                double e1_;
-                double e2_;
-                double e3_;
-            };
-
-#if defined(NUMERIC_PRECISION) && NUMERIC_PRECISION == double
-            Cork::Math::Vector3D vector_;
-#endif
-
-#ifdef __AVX_AVAILABLE__
-            alignas(SIMD_MEMORY_ALIGNMENT) __m256d ymm_;
-#endif
-        };
+        Ext4_1(double e0, double e1, double e2, double e3) : Ext4_1Base(e0, e1, e2, e3){};
 
         friend class Ext4_2;
         friend class Ext4_3;
         friend class AbsExt4_1;
     };
 
-    class Ext4_2
+    class Ext4_2 : public Ext4_2Base
     {
        public:
-        //  Operators
-
-        [[nodiscard]] double &operator[](size_t index) { return gsl::at(v_, index); }
-        [[nodiscard]] double operator[](size_t index) const { return gsl::at(v_, index); }
-
-        [[nodiscard]] double e01() const { return e01_; }
-        [[nodiscard]] double e02() const { return e02_; }
-        [[nodiscard]] double e03() const { return e03_; }
-        [[nodiscard]] double e12() const { return e12_; }
-        [[nodiscard]] double e13() const { return e13_; }
-        [[nodiscard]] double e23() const { return e23_; }
-
-        [[nodiscard]] bool operator==(const Ext4_2 &r4_to_compare) const
-        {
-            return ((e01_ == r4_to_compare.e01_) && (e02_ == r4_to_compare.e02_) && (e03_ == r4_to_compare.e03_) &&
-                    (e12_ == r4_to_compare.e12_) && (e13_ == r4_to_compare.e13_) && (e23_ == r4_to_compare.e23_));
-        }
-
-        [[nodiscard]] bool operator!=(const Ext4_2 &r4_to_compare) const
-        {
-            return ((e01_ != r4_to_compare.e01_) || (e02_ != r4_to_compare.e02_) || (e03_ != r4_to_compare.e03_) ||
-                    (e12_ != r4_to_compare.e12_) || (e13_ != r4_to_compare.e13_) || (e23_ != r4_to_compare.e23_));
-        }
-
         //  Negation
 
         Ext4_2 &negate()
@@ -306,71 +188,22 @@ namespace ExteriorCalculusR4
 
         [[nodiscard]] Ext4_1 meet(const Ext4_3 &rhs) const;
 
-        // An inner product takes two k-vectors and produces a single number
-
-        [[nodiscard]] double inner(const Ext4_2 &rhs) const
-        {
-            double acc = 0.0;
-
-            for (int i = 0; i < 6; i++)
-            {
-                acc += v_[i] * rhs[i];
-            }
-
-            return (acc);
-        }
-
        private:
-        Ext4_2(){};
+        Ext4_2() = default;
 
         Ext4_2(double e01, double e02, double e03, double e12, double e13, double e23)
-            : e01_(e01), e02_(e02), e03_(e03), e12_(e12), e13_(e13), e23_(e23)
+            : Ext4_2Base(e01, e02, e03, e12, e13, e23)
         {
         }
-
-        union
-        {
-            std::array<double, 6> v_;
-
-            struct
-            {
-                double e01_;
-                double e02_;
-                double e03_;
-                double e12_;
-                double e13_;
-                double e23_;
-            };
-        };
 
         friend class Ext4_1;
         friend class AbsExt4_2;
     };
 
-    class Ext4_3
+    class Ext4_3 : public Ext4_3Base
     {
        public:
-        //  Accessors
-
-        [[nodiscard]] double e012() const { return e012_; }
-        [[nodiscard]] double e013() const { return e013_; }
-        [[nodiscard]] double e023() const { return e023_; }
-        [[nodiscard]] double e123() const { return e123_; }
-
-        [[nodiscard]] double &operator[](size_t index) { return gsl::at(v_, index); }
-        [[nodiscard]] double operator[](size_t index) const { return gsl::at(v_, index); }
-
-        [[nodiscard]] bool operator==(const Ext4_3 &r4_to_compare) const
-        {
-            return ((e012_ == r4_to_compare.e012_) && (e013_ == r4_to_compare.e013_) &&
-                    (e023_ == r4_to_compare.e023_) && (e123_ == r4_to_compare.e123_));
-        }
-
-        [[nodiscard]] bool operator!=(const Ext4_3 &r4_to_compare) const
-        {
-            return ((e012_ != r4_to_compare.e012_) || (e013_ != r4_to_compare.e013_) ||
-                    (e023_ != r4_to_compare.e023_) || (e123_ != r4_to_compare.e123_));
-        }
+        Ext4_3() = default;
 
         //  Negation
 
@@ -397,43 +230,8 @@ namespace ExteriorCalculusR4
 
         [[nodiscard]] Ext4_1 meet(const Ext4_2 &rhs) const { return dual().join(rhs.dual()).reverse_dual(); }
 
-        //  Dot product
-
-        [[nodiscard]] double inner(const Ext4_3 &rhs)
-        {
-            double acc = 0.0;
-
-            for (int i = 0; i < 4; i++)
-            {
-                acc += v_[i] * rhs[i];
-            }
-
-            return (acc);
-        }
-
-        Ext4_3(){};
-
        private:
-        Ext4_3(double e012, double e013, double e023, double e123) : e012_(e012), e013_(e013), e023_(e023), e123_(e123)
-        {
-        }
-
-        union
-        {
-            std::array<double, 4> v_;
-
-            struct
-            {
-                double e012_;
-                double e013_;
-                double e023_;
-                double e123_;
-            };
-
-#ifdef __AVX_AVAILABLE__
-            alignas(SIMD_MEMORY_ALIGNMENT) __m256d ymm_;
-#endif
-        };
+        Ext4_3(double e012, double e013, double e023, double e123) : Ext4_3Base(e012, e013, e023, e123) {}
 
         friend class Ext4_1;
         friend class Ext4_2;
@@ -486,61 +284,22 @@ namespace ExteriorCalculusR4
     inline Ext4_1 Ext4_2::meet(const Ext4_3 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
 
     //
-    // An abs takes a k-vector and returns a version with
-    //  absolute values of all the coordinates taken
+    //  The AbsExt4_1 is just Ext4_1 with absolute values taken an no subtraction in operations.
+    //      All values are positive all the time.
     //
 
-    class AbsExt4_1
+    class AbsExt4_1 : public AbsExt4_1Base
     {
        public:
-        AbsExt4_1(){};
-
-#ifdef __AVX_AVAILABLE__
-
-        explicit AbsExt4_1(const AbsExt4_1 &element) : ymm_(element.ymm_) {}
-        explicit AbsExt4_1(AbsExt4_1 &&element) : ymm_(element.ymm_) {}
-
-        operator __m256d() const { return ymm_; }
-        
-        AbsExt4_1 &operator=(const AbsExt4_1 &element)
-        {
-            ymm_ = element.ymm_;
-
-            return *this;
-        }
-
-        AbsExt4_1 &operator=(AbsExt4_1 &&element)
-        {
-            ymm_ = element.ymm_;
-
-            return *this;
-        }
-#else
-        explicit AbsExt4_1(const AbsExt4_1 &element) : v_(element.v_){}
-        explicit AbsExt4_1(AbsExt4_1 &&element) : v_(element.v_) {}
-
-        AbsExt4_1 &operator=(const AbsExt4_1 &element)
-        {
-            v_ = element.v_;
-
-            return *this;
-        }
-
-        AbsExt4_1 &operator=(AbsExt4_1 &&element)
-        {
-            v_ = element.v_;
-
-            return *this;
-        }
-#endif
+        AbsExt4_1() = default;
 
         explicit AbsExt4_1(const Ext4_1 &element)
-            : e0_(fabs(element.e0())), e1_(fabs(element.e1())), e2_(fabs(element.e2())), e3_(fabs(element.e3()))
+            : AbsExt4_1Base(fabs(element.e0()), fabs(element.e1()), fabs(element.e2()), fabs(element.e3()))
         {
         }
 
-        explicit AbsExt4_1( Ext4_1 &&element)
-            : e0_(fabs(element.e0())), e1_(fabs(element.e1())), e2_(fabs(element.e2())), e3_(fabs(element.e3()))
+        explicit AbsExt4_1(Ext4_1 &&element)
+            : AbsExt4_1Base(fabs(element.e0()), fabs(element.e1()), fabs(element.e2()), fabs(element.e3()))
         {
         }
 
@@ -564,29 +323,7 @@ namespace ExteriorCalculusR4
             return *this;
         }
 
-        //  Accessors
-
-        double e0() const { return e0_; }
-        double e1() const { return e1_; }
-        double e2() const { return e2_; }
-        double e3() const { return e3_; }
-
-        double &operator[](size_t index) { return v_[index]; }
-        double operator[](size_t index) const { return v_[index]; }
-
-        [[nodiscard]] bool operator==(const AbsExt4_1 &r4_to_compare) const
-        {
-            return ((e0_ == r4_to_compare.e0_) && (e1_ == r4_to_compare.e1_) && (e2_ == r4_to_compare.e2_) &&
-                    (e3_ == r4_to_compare.e3_));
-        }
-
-        [[nodiscard]] bool operator!=(const AbsExt4_1 &r4_to_compare) const
-        {
-            return ((e0_ != r4_to_compare.e0_) || (e1_ != r4_to_compare.e1_) || (e2_ != r4_to_compare.e2_) ||
-                    (e3_ != r4_to_compare.e3_));
-        }
-
-        //  Negation does not change anything for the AbsExt classes, prett much a no-op.
+        //  Negation does not change anything for the AbsExt classes, it is a no-op.
 
         AbsExt4_1 &negate() { return *this; }
 
@@ -596,83 +333,30 @@ namespace ExteriorCalculusR4
         // A reverse dual operation inverts the dual operation
         // dual(X,Y) is not safe for X=Y (same with revdual)
 
-        AbsExt4_3 dual() const;
-        AbsExt4_3 reverse_dual() const;
+        [[nodiscard]] AbsExt4_3 dual() const;
+        [[nodiscard]] AbsExt4_3 reverse_dual() const;
 
         // A join takes a j-vector and a k-vector and returns a (j+k)-vector
 
-        AbsExt4_2 join(const AbsExt4_1 &rhs) const;
-        AbsExt4_3 join(const AbsExt4_2 &rhs) const;
-
-        // An inner product takes two k-vectors and produces a single number
-
-        double inner(const AbsExt4_1 &rhs) const
-        {
-            double acc = 0.0;
-
-            for (int i = 0; i < 4; i++)
-            {
-                acc += v_[i] * rhs.v_[i];
-            }
-
-            return (acc);
-        }
+        [[nodiscard]] AbsExt4_2 join(const AbsExt4_1 &rhs) const;
+        [[nodiscard]] AbsExt4_3 join(const AbsExt4_2 &rhs) const;
 
        private:
-        AbsExt4_1(double e0, double e1, double e2, double e3) : e0_(e0), e1_(e1), e2_(e2), e3_(e3) {}
+        AbsExt4_1(double e0, double e1, double e2, double e3) : AbsExt4_1Base(e0, e1, e2, e3) {}
 
-        union
-        {
-            std::array<double,4> v_;
-
-            struct
-            {
-                double e0_;
-                double e1_;
-                double e2_;
-                double e3_;
-            };
-
-#ifdef __AVX_AVAILABLE__
-            alignas(SIMD_MEMORY_ALIGNMENT) __m256d ymm_;
-#endif
-        };
-
-        friend class Ext4_1;
         friend class AbsExt4_3;
     };
 
-    class AbsExt4_2
+    class AbsExt4_2 : public AbsExt4_2Base
     {
        public:
-        AbsExt4_2(){};
-
-        AbsExt4_2(double e01, double e02, double e03, double e12, double e13, double e23)
-            : e01_(e01), e02_(e02), e03_(e03), e12_(e12), e13_(e13), e23_(e23)
-        {
-        }
+        AbsExt4_2() = default;
 
         explicit AbsExt4_2(Ext4_2 &ext_to_abs)
-            : e01_(fabs(ext_to_abs.e01())),
-              e02_(fabs(ext_to_abs.e02())),
-              e03_(fabs(ext_to_abs.e03())),
-              e12_(fabs(ext_to_abs.e12())),
-              e13_(fabs(ext_to_abs.e13())),
-              e23_(fabs(ext_to_abs.e23()))
+            : AbsExt4_2Base(fabs(ext_to_abs.e01()), fabs(ext_to_abs.e02()), fabs(ext_to_abs.e03()),
+                            fabs(ext_to_abs.e12()), fabs(ext_to_abs.e13()), fabs(ext_to_abs.e23()))
         {
         }
-
-        //  Accessors
-
-        double e01() const { return e01_; }
-        double e02() const { return e02_; }
-        double e03() const { return e03_; }
-        double e12() const { return e12_; }
-        double e13() const { return e13_; }
-        double e23() const { return e23_; }
-
-        double &operator[](size_t index) { return v_[index]; }
-        double operator[](size_t index) const { return v_[index]; }
 
         //  Negation does not change anything for the AbsExt classes
 
@@ -684,71 +368,33 @@ namespace ExteriorCalculusR4
         // A reverse dual operation inverts the dual operation
         // dual(X,Y) is not safe for X=Y (same with revdual)
 
-        AbsExt4_2 dual() const { return AbsExt4_2(e23_, e13_, e12_, e03_, e02_, e01_); }
+        [[nodiscard]] AbsExt4_2 dual() const { return AbsExt4_2(e23_, e13_, e12_, e03_, e02_, e01_); }
 
-        AbsExt4_2 reverse_dual() const { return AbsExt4_2(e23_, e13_, e12_, e03_, e02_, e01_); }
+        [[nodiscard]] AbsExt4_2 reverse_dual() const { return AbsExt4_2(e23_, e13_, e12_, e03_, e02_, e01_); }
 
-        AbsExt4_3 join(const AbsExt4_1 &rhs) const;
+        [[nodiscard]] AbsExt4_3 join(const AbsExt4_1 &rhs) const;
 
-        AbsExt4_1 meet(const AbsExt4_3 &rhs) const;
-
-        double inner(const AbsExt4_2 &rhs) const
-        {
-            double acc = 0.0;
-
-            for (int i = 0; i < 6; i++)
-            {
-                acc += v_[i] * rhs.v_[i];
-            }
-
-            return (acc);
-        }
+        [[nodiscard]] AbsExt4_1 meet(const AbsExt4_3 &rhs) const;
 
        private:
-        union
+        AbsExt4_2(double e01, double e02, double e03, double e12, double e13, double e23)
+            : AbsExt4_2Base(e01, e02, e03, e12, e13, e23)
         {
-            double v_[6];
-
-            struct
-            {
-                double e01_;
-                double e02_;
-                double e03_;
-                double e12_;
-                double e13_;
-                double e23_;
-            };
-        };
+        }
 
         friend class AbsExt4_1;
     };
 
-    struct AbsExt4_3
+    class AbsExt4_3 : public AbsExt4_3Base
     {
-        AbsExt4_3(){};
-
-        AbsExt4_3(double e012, double e013, double e023, double e123)
-            : e012_(e012), e013_(e013), e023_(e023), e123_(e123)
-        {
-        }
+       public:
+        AbsExt4_3() = default;
 
         explicit AbsExt4_3(const Ext4_3 &ext_to_abs)
-            : e012_(fabs(ext_to_abs.e012())),
-              e013_(fabs(ext_to_abs.e013())),
-              e023_(fabs(ext_to_abs.e023())),
-              e123_(fabs(ext_to_abs.e123()))
+            : AbsExt4_3Base(fabs(ext_to_abs.e012()), fabs(ext_to_abs.e013()), fabs(ext_to_abs.e023()),
+                            fabs(ext_to_abs.e123()))
         {
         }
-
-        //  Accessors
-
-        double e012() const { return e012_; }
-        double e013() const { return e013_; }
-        double e023() const { return e023_; }
-        double e123() const { return e123_; }
-
-        double &operator[](size_t index) { return v_[index]; }
-        double operator[](size_t index) const { return v_[index]; }
 
         //  Negation does not change anything for the AbsExt classes
 
@@ -762,41 +408,21 @@ namespace ExteriorCalculusR4
         //
         //  Dual and Reverse Dual are identical for the Abs... classes.
 
-        AbsExt4_1 dual() const { return AbsExt4_1(e123_, e023_, e013_, e012_); }
+        [[nodiscard]] AbsExt4_1 dual() const { return AbsExt4_1(e123_, e023_, e013_, e012_); }
 
-        AbsExt4_1 reverse_dual() const { return AbsExt4_1(e123_, e023_, e013_, e012_); }
+        [[nodiscard]] AbsExt4_1 reverse_dual() const { return AbsExt4_1(e123_, e023_, e013_, e012_); }
 
         // A meet takes a j-vector and a k-vector and returns a (j+k-4)-vector
 
-        AbsExt4_2 meet(const AbsExt4_3 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
+        [[nodiscard]] AbsExt4_2 meet(const AbsExt4_3 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
 
-        AbsExt4_1 meet(const AbsExt4_2 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
+        [[nodiscard]] AbsExt4_1 meet(const AbsExt4_2 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
 
-        double inner(const AbsExt4_3 &rhs) const
-        {
-            double acc = 0.0;
+        private :
+        
+        AbsExt4_3(double e012, double e013, double e023, double e123) : AbsExt4_3Base(e012, e013, e023, e123) {}
 
-            for (int i = 0; i < 4; i++)
-            {
-                acc += v_[i] * rhs.v_[i];
-            }
-
-            return (acc);
-        }
-
-        union
-        {
-            double v_[4];
-
-            struct
-            {
-                double e012_;
-                double e013_;
-                double e023_;
-                double e123_;
-            };
-        };
-
+        friend class AbsExt4_1;
         friend class AbsExt4_2;
     };
 
@@ -821,8 +447,6 @@ namespace ExteriorCalculusR4
 
         return result;
     }
-
-
 
     inline AbsExt4_3 AbsExt4_2::join(const AbsExt4_1 &rhs) const
     {

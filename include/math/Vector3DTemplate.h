@@ -48,7 +48,7 @@ namespace Cork::Math
        protected:  // names
         union
         {
-            N v_[4];
+            std::array<N,4> v_;
 
             struct
             {

@@ -146,7 +146,7 @@ namespace Cork::Empty3d
         // form the edge and triangle
 
         ExteriorCalculusR4::Ext4_2 e_ext2(edge.p0().join(edge.p1()));
-        ExteriorCalculusR4::AbsExt4_2 ke_ext2( kep[0]. join(kep[1]));
+        ExteriorCalculusR4::AbsExt4_2 ke_ext2( kep[0].join(kep[1]));
         ExteriorCalculusR4::Ext4_2 temp2(tri.p0().join(tri.p1()));
         ExteriorCalculusR4::AbsExt4_2 ktemp2( ktp[0].join(ktp[1]));
         ExteriorCalculusR4::Ext4_3 t_ext3(temp2.join(tri.p2()));
@@ -177,10 +177,8 @@ namespace Cork::Empty3d
 
         for (int i = 0; i < 2; i++)
         {
-            ExteriorCalculusR4::AbsExt4_2 ka;
-
             ExteriorCalculusR4::Ext4_2 a(((i == 0) ? pisct : edge.p0()).join((i == 1) ? pisct : edge.p1()));
-            ka = ((i == 0) ? kpisct : kep[0]).join( (i == 1) ? kpisct : kep[1]);
+            ExteriorCalculusR4::AbsExt4_2 ka( ((i == 0) ? kpisct : kep[0]).join( (i == 1) ? kpisct : kep[1]));
 
             double dot = e_ext2.inner(a);
             double kdot = ke_ext2.inner( ka);
