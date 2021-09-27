@@ -29,8 +29,7 @@
 #include <atomic>
 
 #include "ext4.h"
-//#include "absext4.h"
-#include "fixext4.h"
+#include "fixext4.hpp"
 #include "gmpext4.h"
 #include "math/Primitives.h"
 #include "quantization.h"

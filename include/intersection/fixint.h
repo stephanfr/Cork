@@ -77,7 +77,7 @@ namespace FixInt
 #define ZERO_PATTERN (mp_limb_t(0))
 // function which tests sign and returns
 #define SIGN_LIMB(limbs, n) (((limbs)[(n)-1] & LIMB_SIGN_MASK) ? ONES_PATTERN : ZERO_PATTERN)
-#define BITS_TO_LIMBS(n) ((((n)-1) / LIMB_BIT_SIZE) + 1)
+#define BITS_TO_LIMBS(n) ((((n)-1) / FixInt::LIMB_BIT_SIZE) + 1)
 
     template <int Nlimbs>
     class LimbInt
@@ -85,9 +85,11 @@ namespace FixInt
        public:
         mp_limb_t limbs[Nlimbs];
 
-        explicit inline LimbInt(int init)
+        LimbInt() = default;
+
+        explicit inline LimbInt(long init)
         {
-            ASSERT_STATIC<(sizeof(int) <= sizeof(mp_limb_t))>::test();
+            ASSERT_STATIC<(sizeof(long) <= sizeof(mp_limb_t))>::test();
             limbs[0] = init;
 
             if (Nlimbs > 1)
@@ -99,8 +101,6 @@ namespace FixInt
                 }
             }
         }
-
-        inline LimbInt() {}
     };
 
     template <int N>
@@ -134,6 +134,34 @@ namespace FixInt
                 out.limbs[i] = fill;
             }
         }
+    }
+
+    template <int Nlhs, int Nrhs>
+    bool operator==(const LimbInt<Nlhs> &lhs, const LimbInt<Nrhs> &rhs)
+    {
+        assert(Nlhs == Nrhs);
+
+        return mpn_cmp(lhs.limbs, rhs.limbs, Nlhs) == 0;
+    }
+
+    template <int Nlhs>
+    bool operator==(const LimbInt<Nlhs> &lhs, long rhs )
+    {
+        return mpn_cmp(lhs.limbs, LimbInt<Nlhs>(rhs).limbs, Nlhs) == 0;
+    }
+
+    template <int Nlhs, int Nrhs>
+    bool operator!=(const LimbInt<Nlhs> &lhs, const LimbInt<Nrhs> &rhs)
+    {
+        assert(Nlhs == Nrhs);
+
+        return mpn_cmp(lhs.limbs, rhs.limbs, Nlhs) != 0;
+    }
+
+    template <int Nlhs>
+    bool operator!=(const LimbInt<Nlhs> &lhs, long rhs )
+    {
+        return mpn_cmp(lhs.limbs, LimbInt<Nlhs>( rhs ).limbs, Nlhs) != 0;
     }
 
     template <int Nout, int Nlhs, int Nrhs>

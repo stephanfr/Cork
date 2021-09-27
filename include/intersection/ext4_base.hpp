@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CorkDefs.h"
-
 #include "math/Primitives.h"
 
 namespace ExteriorCalculusR4
@@ -39,24 +38,24 @@ namespace ExteriorCalculusR4
 
 #if defined(NUMERIC_PRECISION) && NUMERIC_PRECISION == double
 
-        operator Cork::Math::Vector3D() const
-        {
-            assert(e3_ != 0);  //  Trap any divisions by zero!
+            operator Cork::Math::Vector3D() const
+            {
+                assert(e3_ != 0);  //  Trap any divisions by zero!
 
-            Cork::Math::Vector3D vec(reinterpret_cast<const Cork::Math::Vector3D &>(v_));
-            vec /= e3_;
+                Cork::Math::Vector3D vec(reinterpret_cast<const Cork::Math::Vector3D &>(v_));
+                vec /= e3_;
 
-            return vec;
-        }
+                return vec;
+            }
 #else
 
-        [[nodiscard]] Cork::Math::Vector3D operator() const
-        {
-            // Warning: beware of division by zero!
+            [[nodiscard]] Cork::Math::Vector3D operator() const
+            {
+                // Warning: beware of division by zero!
 
-            return Cork::Math::Vector3D((NUMERIC_PRECISION)(e0_ / e3_), (NUMERIC_PRECISION)(e1_ / e3_),
-                                        (NUMERIC_PRECISION)(e2_ / e3_));
-        }
+                return Cork::Math::Vector3D((NUMERIC_PRECISION)(e0_ / e3_), (NUMERIC_PRECISION)(e1_ / e3_),
+                                            (NUMERIC_PRECISION)(e2_ / e3_));
+            }
 
 #endif
 
@@ -171,13 +170,13 @@ namespace ExteriorCalculusR4
            public:
             //  Accessors
 
-            [[nodiscard]] double e012() const { return e012_; }
-            [[nodiscard]] double e013() const { return e013_; }
-            [[nodiscard]] double e023() const { return e023_; }
-            [[nodiscard]] double e123() const { return e123_; }
+            [[nodiscard]] T e012() const { return e012_; }
+            [[nodiscard]] T e013() const { return e013_; }
+            [[nodiscard]] T e023() const { return e023_; }
+            [[nodiscard]] T e123() const { return e123_; }
 
-            [[nodiscard]] double &operator[](size_t index) { return gsl::at(v_, index); }
-            [[nodiscard]] double operator[](size_t index) const { return gsl::at(v_, index); }
+            [[nodiscard]] T &operator[](size_t index) { return gsl::at(v_, index); }
+            [[nodiscard]] T operator[](size_t index) const { return gsl::at(v_, index); }
 
             [[nodiscard]] bool operator==(const Ext4_3Base &r4_to_compare) const
             {
@@ -193,7 +192,7 @@ namespace ExteriorCalculusR4
 
             //  Dot product
 
-            [[nodiscard]] double inner(const Ext4_3Base &rhs)
+            [[nodiscard]] double inner(const Ext4_3Base &rhs) const
             {
                 double acc = 0.0;
 
@@ -206,7 +205,7 @@ namespace ExteriorCalculusR4
             }
 
            protected:
-           Ext4_3Base() = default;
+            Ext4_3Base() = default;
             Ext4_3Base(T e012, T e013, T e023, T e123) : e012_(e012), e013_(e013), e023_(e023), e123_(e123) {}
 
             union
@@ -221,7 +220,16 @@ namespace ExteriorCalculusR4
                     T e123_;
                 };
             };
+
+            template <typename T1>
+            friend std::ostream &operator<<(std::ostream &out, const Ext4_3Base<T1> &ext);
         };
+
+        template <typename T>
+        std::ostream &operator<<(std::ostream &out, const Ext4_3Base<T> &ext)
+        {
+            return out << '[' << ext.e012_ << ',' << ext.e013_ << ',' << ext.e023_ << ',' << ext.e123_ << ']';
+        }
     }  // namespace Bases
 
     using Ext4_1Base = Bases::Ext4_1Base<double>;

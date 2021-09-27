@@ -32,19 +32,7 @@
 
 namespace Cork::Empty3d
 {
-    using namespace FixExt4;
     using namespace GMPExt4;
-
-
-    constexpr int IN_BITS = QUANTIZATION_BITS + 1;  // +1 for sign bit
-
-    inline void toFixExt(FixExt4_1<IN_BITS>& out, const ExteriorCalculusR4::Ext4_1& in, const Quantization::Quantizer& quantizer)
-    {
-        out.e0 = FixInt::BitInt<IN_BITS>::Rep(quantizer.quantize2int(in.e0()));
-        out.e1 = FixInt::BitInt<IN_BITS>::Rep(quantizer.quantize2int(in.e1()));
-        out.e2 = FixInt::BitInt<IN_BITS>::Rep(quantizer.quantize2int(in.e2()));
-        out.e3 = FixInt::BitInt<IN_BITS>::Rep(1);
-    }
 
     inline void toVec3d(Cork::Math::Vector3D& out, const GmpExt4_1& in, const Quantization::Quantizer& quantizer)
     {
@@ -146,16 +134,16 @@ namespace Cork::Empty3d
         // form the edge and triangle
 
         ExteriorCalculusR4::Ext4_2 e_ext2(edge.p0().join(edge.p1()));
-        ExteriorCalculusR4::AbsExt4_2 ke_ext2( kep[0].join(kep[1]));
+        ExteriorCalculusR4::AbsExt4_2 ke_ext2(kep[0].join(kep[1]));
         ExteriorCalculusR4::Ext4_2 temp2(tri.p0().join(tri.p1()));
-        ExteriorCalculusR4::AbsExt4_2 ktemp2( ktp[0].join(ktp[1]));
+        ExteriorCalculusR4::AbsExt4_2 ktemp2(ktp[0].join(ktp[1]));
         ExteriorCalculusR4::Ext4_3 t_ext3(temp2.join(tri.p2()));
-        ExteriorCalculusR4::AbsExt4_3 kt_ext3( ktemp2.join(ktp[2]));
+        ExteriorCalculusR4::AbsExt4_3 kt_ext3(ktemp2.join(ktp[2]));
 
         // compute the point of intersection
 
         ExteriorCalculusR4::Ext4_1 pisct(e_ext2.meet(t_ext3));
-        ExteriorCalculusR4::AbsExt4_1 kpisct( ke_ext2.meet( kt_ext3));
+        ExteriorCalculusR4::AbsExt4_1 kpisct(ke_ext2.meet(kt_ext3));
 
         // We perform one of the filter exit tests here...
 
@@ -178,10 +166,10 @@ namespace Cork::Empty3d
         for (int i = 0; i < 2; i++)
         {
             ExteriorCalculusR4::Ext4_2 a(((i == 0) ? pisct : edge.p0()).join((i == 1) ? pisct : edge.p1()));
-            ExteriorCalculusR4::AbsExt4_2 ka( ((i == 0) ? kpisct : kep[0]).join( (i == 1) ? kpisct : kep[1]));
+            ExteriorCalculusR4::AbsExt4_2 ka(((i == 0) ? kpisct : kep[0]).join((i == 1) ? kpisct : kep[1]));
 
             double dot = e_ext2.inner(a);
-            double kdot = ke_ext2.inner( ka);
+            double kdot = ke_ext2.inner(ka);
 
             // now figure out what to do...
 
@@ -205,11 +193,11 @@ namespace Cork::Empty3d
         {
             temp2 = ((i == 0) ? pisct : tri.p0()).join((i == 1) ? pisct : tri.p1());
             ExteriorCalculusR4::Ext4_3 a(temp2.join((i == 2) ? pisct : tri.p2()));
-            ktemp2 = ((i == 0) ? kpisct : ktp[0]).join( (i == 1) ? kpisct : ktp[1]);
-            ExteriorCalculusR4::AbsExt4_3 ka( ktemp2.join( (i == 2) ? kpisct : ktp[2]));
+            ktemp2 = ((i == 0) ? kpisct : ktp[0]).join((i == 1) ? kpisct : ktp[1]);
+            ExteriorCalculusR4::AbsExt4_3 ka(ktemp2.join((i == 2) ? kpisct : ktp[2]));
 
             double dot = t_ext3.inner(a);
-            double kdot = kt_ext3.inner( ka);
+            double kdot = kt_ext3.inner(ka);
 
             // now figure out what to do...
 
@@ -229,63 +217,53 @@ namespace Cork::Empty3d
 
         return uncertain ? 0 : -1;
 
-//        if (uncertain)
-//        {
-//            return 0;
-//        }
-//        else
-//        {
-//            return -1;  // i.e. false (the intersection is not empty)
-//        }
+        //        if (uncertain)
+        //        {
+        //            return 0;
+        //        }
+        //        else
+        //        {
+        //            return -1;  // i.e. false (the intersection is not empty)
+        //        }
     }
 
     bool TriEdgeIn::exactFallback(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const
     {
-        // How many bits do we need for various intermediary values?
-        // Here we label the amount with the relevant type (i.e. EXT2)
-        // and the relevant role
-
-        constexpr int LINE_BITS = 2 * IN_BITS + 1;
-        constexpr int TRI_BITS = LINE_BITS + IN_BITS + 2;
-        constexpr int ISCT_BITS = TRI_BITS + LINE_BITS + 2;
-        constexpr int LINE_A_BITS = ISCT_BITS + IN_BITS + 1;
-        constexpr int TRI_A_BITS = LINE_A_BITS + IN_BITS + 2;
-        constexpr int INNER_LINE_BITS = LINE_A_BITS + LINE_BITS + 3;
-        constexpr int INNER_TRI_BITS = TRI_A_BITS + TRI_BITS + 2;
+        //  We use 'auto' for type deduction extensively in this method.  The lengths of the
+        //      FixExt? types change depending on the operations used.  For example, 64 bits would be
+        //      required to store the product of two 32 bit fixed integer types.  The types can get
+        //      large and unwieldly.  Type deduction here simply lets the compiler make sure everything
+        //      matches up properly.
+        //
+        //  Unit tests should check that the results of the operations are correct in size and value. 
 
         // pull in points
 
-        std::array<FixExt4_1<IN_BITS>, 2> ep;
-        std::array<FixExt4_1<IN_BITS>, 3> tp;
-
-        toFixExt(ep[0], edge.p0(), quantizer);
-        toFixExt(ep[1], edge.p1(), quantizer);
-
-        toFixExt(tp[0], tri.p0(), quantizer);
-        toFixExt(tp[1], tri.p1(), quantizer);
-        toFixExt(tp[2], tri.p2(), quantizer);
+        std::array<ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>, 2> ep{
+            {ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>(edge.p0(), quantizer),
+             ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>(edge.p1(), quantizer)}};
+        std::array<ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>, 3> tp{
+            {ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>(tri.p0(), quantizer),
+             ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>(tri.p1(), quantizer),
+             ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>(tri.p2(), quantizer)}};
 
         // construct geometry
 
-        FixExt4_2<LINE_BITS> e;
-        join(e, ep[0], ep[1]);
-        FixExt4_2<LINE_BITS> temp_up;
-        FixExt4_3<TRI_BITS> t;
-        join(temp_up, tp[0], tp[1]);
-        join(t, temp_up, tp[2]);
+        auto e = ep[0].join(ep[1]);
+        auto temp_up = tp[0].join(tp[1]);
+        auto t = temp_up.join(tp[2]);
 
         // compute the point of intersection
 
-        FixExt4_1<ISCT_BITS> pisct;
-        meet(pisct, e, t);
+        auto pisct = e.meet(t);
 
         // need to adjust for negative w-coordinate
 
-        int e3sign = sign(pisct.e3);
+        int e3sign = sign(pisct.e3());
 
         if (e3sign < 0)
         {
-            neg(pisct, pisct);
+            pisct.negate();
         }
         else if (e3sign == 0)
         {
@@ -295,42 +273,32 @@ namespace Cork::Empty3d
 
         // process edge
 
-        FixExt4_2<LINE_A_BITS> ae0;
-        FixExt4_2<LINE_A_BITS> ae1;
-        FixInt::BitInt<INNER_LINE_BITS>::Rep test_e0;
-        FixInt::BitInt<INNER_LINE_BITS>::Rep test_e1;
+        auto ae0 = pisct.join(ep[1]);
+        auto ae1 = ep[0].join(pisct);
 
-        join(ae0, pisct, ep[1]);
-        join(ae1, ep[0], pisct);
-        inner(test_e0, e, ae0);
-        inner(test_e1, e, ae1);
+        auto test_e0 = e.inner(ae0);
+        auto test_e1 = e.inner(ae1);
         int sign_e0 = sign(test_e0);
         int sign_e1 = sign(test_e1);
 
         // process triangle
 
-        FixExt4_3<TRI_A_BITS> at0;
-        FixExt4_3<TRI_A_BITS> at1;
-        FixExt4_3<TRI_A_BITS> at2;
-        FixExt4_2<LINE_A_BITS> temp0;
-        FixExt4_2<LINE_A_BITS> temp1;
-        FixExt4_2<LINE_BITS> temp2;
-        FixInt::BitInt<INNER_TRI_BITS>::Rep test_t0;
-        FixInt::BitInt<INNER_TRI_BITS>::Rep test_t1;
-        FixInt::BitInt<INNER_TRI_BITS>::Rep test_t2;
+        auto temp0 = pisct.join(tp[1]);
+        auto at0 = temp0.join(tp[2]);
 
-        join(temp0, pisct, tp[1]);
-        join(at0, temp0, tp[2]);
-        join(temp1, tp[0], pisct);
-        join(at1, temp1, tp[2]);
-        join(temp2, tp[0], tp[1]);
-        join(at2, temp2, pisct);
-        inner(test_t0, t, at0);
-        inner(test_t1, t, at1);
-        inner(test_t2, t, at2);
-        int     sign_t0 = sign(test_t0);
-        int     sign_t1 = sign(test_t1);
-        int     sign_t2 = sign(test_t2);
+        auto temp1 = tp[0].join( pisct);
+        auto at1 = temp1.join(tp[2]);
+
+        auto temp2 = tp[0].join( tp[1]);
+        auto at2 = temp2.join(pisct);
+
+        auto test_t0 = t.inner( at0);
+        auto test_t1 = t.inner( at1);
+        auto test_t2 = t.inner( at2);
+
+        int sign_t0 = sign(test_t0);
+        int sign_t1 = sign(test_t1);
+        int sign_t2 = sign(test_t2);
 
         if (sign_e0 < 0 || sign_e1 < 0 || sign_t0 < 0 || sign_t1 < 0 || sign_t2 < 0)
         {
@@ -356,25 +324,14 @@ namespace Cork::Empty3d
             context.exact_count++;
             return (exactFallback(quantizer, context));
         }
-//        else
-//        {
-            return (filter > 0);
-//        }
+        //        else
+        //        {
+        return (filter > 0);
+        //        }
     }
 
     Cork::Math::Vector3D TriEdgeIn::coordsExact(const Quantization::Quantizer& quantizer) const
     {
-        // How many bits do we need for various intermediary values?
-        // Here we label the amount with the relevant type (i.e. EXT2)
-        // and the relevant role
-        // const static int LINE_BITS       = 2*IN_BITS + 1;
-        // const static int TRI_BITS        = LINE_BITS + IN_BITS + 2;
-        // const static int ISCT_BITS       = TRI_BITS + LINE_BITS + 2;
-        // const static int LINE_A_BITS     = ISCT_BITS + IN_BITS + 1;
-        // const static int TRI_A_BITS      = LINE_A_BITS + IN_BITS + 2;
-        // const static int INNER_LINE_BITS = LINE_A_BITS + LINE_BITS + 3;
-        // const static int INNER_TRI_BITS  = TRI_A_BITS + TRI_BITS + 2;
-
         // pull in points
 
         std::array<GmpExt4_1, 2> ep;
@@ -446,11 +403,12 @@ namespace Cork::Empty3d
             for (uint pi = 0; pi < 3; pi++)
             {  // three copies...
                 ExteriorCalculusR4::Ext4_3 a;
-                ExteriorCalculusR4::Ext4_2 temp_e2(((pi == 0) ? p_isct : m_tri[ti].p0()).join(((pi == 1) ? p_isct : m_tri[ti].p1())));
-                
+                ExteriorCalculusR4::Ext4_2 temp_e2(
+                    ((pi == 0) ? p_isct : m_tri[ti].p0()).join(((pi == 1) ? p_isct : m_tri[ti].p1())));
+
                 a = temp_e2.join(((pi == 2) ? p_isct : m_tri[ti].p2()));
                 double test = t_ext3s[ti].inner(a);
-                
+
                 if (test < 0.0)  // AHA, p_isct IS outside this triangle
                 {
                     return true;
@@ -506,15 +464,15 @@ namespace Cork::Empty3d
             kp[i][2] = m_tri[i].p2();
 
             ExteriorCalculusR4::Ext4_2 temp2(m_tri[i].p0().join(m_tri[i].p1()));
-            ExteriorCalculusR4::AbsExt4_2 ktemp2( kp[i][0].join(kp[i][1]));
+            ExteriorCalculusR4::AbsExt4_2 ktemp2(kp[i][0].join(kp[i][1]));
             t[i] = temp2.join(m_tri[i].p2());
-            kt[i] = ktemp2.join( kp[i][2]);
+            kt[i] = ktemp2.join(kp[i][2]);
         }
 
         // compute the point of intersection
 
         ExteriorCalculusR4::Ext4_2 temp2(t[0].meet(t[1]));
-        ExteriorCalculusR4::AbsExt4_2 ktemp2( kt[0].meet( kt[1]));
+        ExteriorCalculusR4::AbsExt4_2 ktemp2(kt[0].meet(kt[1]));
         ExteriorCalculusR4::Ext4_1 pisct(temp2.meet(t[2]));
         ExteriorCalculusR4::AbsExt4_1 kpisct(ktemp2.meet(kt[2]));
 
@@ -538,12 +496,10 @@ namespace Cork::Empty3d
         {
             for (int j = 0; j < 3; j++)
             {
-//                AbsExt4_3 ka;
-
                 ExteriorCalculusR4::Ext4_2 b(((j == 0) ? pisct : m_tri[i].p0()).join((j == 1) ? pisct : m_tri[i].p1()));
                 ExteriorCalculusR4::Ext4_3 a(b.join((j == 2) ? pisct : m_tri[i].p2()));
-                ExteriorCalculusR4::AbsExt4_2 kb( ((j == 0) ? kpisct : kp[i][0]).join((j == 1) ? kpisct : kp[i][1]));
-                ExteriorCalculusR4::AbsExt4_3   ka(kb.join((j == 2) ? kpisct : kp[i][2]));
+                ExteriorCalculusR4::AbsExt4_2 kb(((j == 0) ? kpisct : kp[i][0]).join((j == 1) ? kpisct : kp[i][1]));
+                ExteriorCalculusR4::AbsExt4_3 ka(kb.join((j == 2) ? kpisct : kp[i][2]));
 
                 double dot = t[i].inner(a);
                 double kdot = kt[i].inner(ka);
@@ -567,14 +523,14 @@ namespace Cork::Empty3d
 
         return uncertain ? 0 : -1;
 
-//        if (uncertain)
-//        {
-//            return 0;
-//        }
-//        else
-//        {
-//            return -1;  // i.e. false (the intersection is not empty)
-//        }
+        //        if (uncertain)
+        //        {
+        //            return 0;
+        //        }
+        //        else
+        //        {
+        //            return -1;  // i.e. false (the intersection is not empty)
+        //        }
     }
 
     bool TriTriTriIn::exactFallback(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const
@@ -583,45 +539,53 @@ namespace Cork::Empty3d
         // Here we label the amount with the relevant type (i.e. EXT2)
         // and the relevant role
 
-        constexpr int EXT2_UP_BITS = 2 * IN_BITS + 1;
-        constexpr int EXT3_UP_BITS = EXT2_UP_BITS + IN_BITS + 2;
+        constexpr int EXT2_UP_BITS = 2 * FIXED_INTEGER_BITS + 1;
+        constexpr int EXT3_UP_BITS = EXT2_UP_BITS + FIXED_INTEGER_BITS + 2;
         constexpr int EXT2_DN_BITS = 2 * EXT3_UP_BITS + 1;
         constexpr int ISCT_BITS = EXT2_DN_BITS + EXT3_UP_BITS + 2;
-        constexpr int EXT2_TA_BITS = ISCT_BITS + IN_BITS + 1;
-        constexpr int EXT3_TA_BITS = EXT2_TA_BITS + IN_BITS + 2;
+        constexpr int EXT2_TA_BITS = ISCT_BITS + FIXED_INTEGER_BITS + 1;
+        constexpr int EXT3_TA_BITS = EXT2_TA_BITS + FIXED_INTEGER_BITS + 2;
         constexpr int INNER_BITS = EXT3_TA_BITS + EXT3_UP_BITS + 2;
 
-        std::array<std::array<FixExt4_1<IN_BITS>,3>,3> p;
-        std::array<FixExt4_3<EXT3_UP_BITS>,3> t;
+        std::array<std::array<ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>, 3>, 3> p;
+        std::array<ExteriorCalculusR4::FixExt4_3<EXT3_UP_BITS>, 3> t;
 
         for (uint i = 0; i < 3; i++)
         {
-            toFixExt(p[i][0], m_tri[i].p0(), quantizer);
-            toFixExt(p[i][1], m_tri[i].p1(), quantizer);
-            toFixExt(p[i][2], m_tri[i].p2(), quantizer);
+//            toFixExt(p[i][0], m_tri[i].p0(), quantizer);
+//            toFixExt(p[i][1], m_tri[i].p1(), quantizer);
+//            toFixExt(p[i][2], m_tri[i].p2(), quantizer);
 
-            FixExt4_2<EXT2_UP_BITS> temp;
+            p[i][0] = ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>( m_tri[i].p0(), quantizer);
+            p[i][1] = ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>( m_tri[i].p1(), quantizer);
+            p[i][2] = ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>( m_tri[i].p2(), quantizer);
 
-            join(temp, p[i][0], p[i][1]);
-            join(t[i], temp, p[i][2]);
+
+//            ExteriorCalculusR4::FixExt4_2<EXT2_UP_BITS> temp;
+
+//            join(temp, p[i][0], p[i][1]);
+            auto temp = p[i][0].join( p[i][1]);
+//            join(t[i], temp, p[i][2]);
+            t[i] = temp.join( p[i][2]);
         }
 
         // compute the point of intersection
 
-        FixExt4_1<ISCT_BITS> pisct;
+        ExteriorCalculusR4::FixExt4_1<ISCT_BITS> pisct;
         {
-            FixExt4_2<EXT2_DN_BITS> temp;
-            meet(temp, t[0], t[1]);
-            meet(pisct, temp, t[2]);
+//            ExteriorCalculusR4::FixExt4_2<EXT2_DN_BITS> temp;
+            auto temp = t[0].meet(t[1]);
+//            meet(pisct, temp, t[2]);
+            pisct = temp.meet(t[2]);
         }
 
         // need to adjust for negative w-coordinate
 
-        int e3sign = sign(pisct.e3);
+        int e3sign = sign(pisct.e3());
 
         if (e3sign < 0)
         {
-            neg(pisct, pisct);
+            pisct.negate();
         }
         else if (e3sign == 0)
         {
@@ -633,21 +597,32 @@ namespace Cork::Empty3d
 
         for (uint i = 0; i < 3; i++)
         {
-            std::array<FixExt4_3<EXT3_TA_BITS>,3> a;
-            FixExt4_2<EXT2_TA_BITS> temp;
-            FixExt4_2<EXT2_UP_BITS> tmp2;
+            std::array<ExteriorCalculusR4::FixExt4_3<EXT3_TA_BITS>, 3> a;
+//            ExteriorCalculusR4::FixExt4_2<EXT2_TA_BITS> temp;
+//            ExteriorCalculusR4::FixExt4_2<EXT2_UP_BITS> tmp2;
 
-            join(temp, pisct, p[i][1]);
-            join(a[0], temp, p[i][2]);
-            join(temp, p[i][0], pisct);
-            join(a[1], temp, p[i][2]);
-            join(tmp2, p[i][0], p[i][1]);
-            join(a[2], tmp2, pisct);
+//            join(temp, pisct, p[i][1]);
+            auto temp = pisct.join(p[i][1]);
+
+//            join(a[0], temp, p[i][2]);
+            a[0] = temp.join(p[i][2]);
+
+//            join(temp, p[i][0], pisct);
+            temp = p[i][0].join(pisct);
+
+//            join(a[1], temp, p[i][2]);
+            a[1] = temp.join(p[i][2]);
+
+//            join(tmp2, p[i][0], p[i][1]);
+            auto tmp2 = p[i][0].join( p[i][1]);
+//            join(a[2], tmp2, pisct);
+            a[2] = tmp2.join(pisct);
+
 
             for (uint j = 0; j < 3; j++)
             {
-                FixInt::BitInt<INNER_BITS>::Rep test;
-                inner(test, a[j], t[i]);
+//                FixInt::BitInt<INNER_BITS>::Rep test;
+                auto test = a[j].inner(t[i]);
                 int testsign = sign(test);
 
                 if (testsign < 0)
@@ -680,25 +655,14 @@ namespace Cork::Empty3d
             context.exact_count++;
             return (exactFallback(quantizer, context));
         }
-//        else
-//        {
-            return (filter > 0);
-//        }
+        //        else
+        //        {
+        return (filter > 0);
+        //        }
     }
 
     Cork::Math::Vector3D TriTriTriIn::coordsExact(const Quantization::Quantizer& quantizer) const
     {
-        // How many bits do we need for various intermediary values?
-        // Here we label the amount with the relevant type (i.e. EXT2)
-        // and the relevant role
-        // const static int EXT2_UP_BITS = 2*IN_BITS + 1;
-        // const static int EXT3_UP_BITS = EXT2_UP_BITS + IN_BITS + 2;
-        // const static int EXT2_DN_BITS = 2*EXT3_UP_BITS + 1;
-        // const static int ISCT_BITS    = EXT2_DN_BITS + EXT3_UP_BITS + 2;
-        // const static int EXT2_TA_BITS = ISCT_BITS + IN_BITS + 1;
-        // const static int EXT3_TA_BITS = EXT2_TA_BITS + IN_BITS + 2;
-        // const static int INNER_BITS   = EXT3_TA_BITS + EXT3_UP_BITS + 2;
-
         std::array<std::array<GmpExt4_1, 3>, 3> p;
         std::array<GmpExt4_3, 3> t;
 
@@ -751,16 +715,6 @@ namespace Cork::Empty3d
     Cork::Math::Vector3D coordsExact(const GMPExt4::GmpExt4_3& triangle0, const GMPExt4::GmpExt4_3& triangle1,
                                      const GMPExt4::GmpExt4_3& triangle2, const Quantization::Quantizer& quantizer)
     {
-        // How many bits do we need for various intermediary values?
-        // Here we label the amount with the relevant type (i.e. EXT2)
-        // and the relevant role
-        // const static int EXT2_UP_BITS = 2*IN_BITS + 1;
-        // const static int EXT3_UP_BITS = EXT2_UP_BITS + IN_BITS + 2;
-        // const static int EXT2_DN_BITS = 2*EXT3_UP_BITS + 1;
-        // const static int ISCT_BITS    = EXT2_DN_BITS + EXT3_UP_BITS + 2;
-        // const static int EXT2_TA_BITS = ISCT_BITS + IN_BITS + 1;
-        // const static int EXT3_TA_BITS = EXT2_TA_BITS + IN_BITS + 2;
-        // const static int INNER_BITS   = EXT3_TA_BITS + EXT3_UP_BITS + 2;
 
         // compute the point of intersection
         GmpExt4_1 pisct;

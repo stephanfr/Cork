@@ -1,6 +1,8 @@
 #include <catch2/catch_all.hpp>
 
 #include "intersection/ext4.h"
+#include "intersection/fixext4.hpp"
+#include "intersection/quantization.h"
 
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
 
@@ -272,6 +274,14 @@ TEST_CASE("Exterior Calculus Tests", "[ext calc basics]")
 
         REQUIRE(((t_ext3_reverse_dual.e0() == 3) && (t_ext3_reverse_dual.e1() == 8) &&
                  (t_ext3_reverse_dual.e2() == -31) && (t_ext3_reverse_dual.e3() == 9)));
+
+        //  Print to stream
+
+        std::ostringstream test_stream;
+
+        test_stream << t_ext3 << std::flush;
+
+        REQUIRE_THAT(test_stream.str(), Catch::Matchers::Equals("[9,31,8,-3]"));
     }
 
     SECTION("Triangle Triangle Triangle Intersection with Ext4_3 Meet")
@@ -545,12 +555,11 @@ TEST_CASE("Exterior Calculus Tests", "[ext calc basics]")
 
         Cork::Math::Vector3D result(intersection);
 
-        REQUIRE(((result.x() == Catch::Approx(5162.0/1255.0).epsilon(0.00001)) &&
-                 (result.y() == Catch::Approx(5818.0/1255.0).epsilon(0.00001)) &&
-                 (result.z() == Catch::Approx(519.0/251.0).epsilon(0.00001))));
+        REQUIRE(((result.x() == Catch::Approx(5162.0 / 1255.0).epsilon(0.00001)) &&
+                 (result.y() == Catch::Approx(5818.0 / 1255.0).epsilon(0.00001)) &&
+                 (result.z() == Catch::Approx(519.0 / 251.0).epsilon(0.00001))));
     }
 
-    
     SECTION("AbsExt4_3 Basic Tests")
     {
         ExteriorCalculusR4::AbsExt4_1 tri_1(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(2, -2, 1)));
@@ -568,7 +577,8 @@ TEST_CASE("Exterior Calculus Tests", "[ext calc basics]")
 
         ExteriorCalculusR4::AbsExt4_3 t_ext3_negative(t_ext3.negative());
 
-        REQUIRE(((t_ext3_negative.e012() == 197) && (t_ext3_negative.e013() == 127) && (t_ext3_negative.e023() == 50) && (t_ext3_negative.e123() == 53)));
+        REQUIRE(((t_ext3_negative.e012() == 197) && (t_ext3_negative.e013() == 127) && (t_ext3_negative.e023() == 50) &&
+                 (t_ext3_negative.e123() == 53)));
 
         t_ext3.negate();
 
@@ -578,7 +588,7 @@ TEST_CASE("Exterior Calculus Tests", "[ext calc basics]")
 
         REQUIRE(t_ext3 == t_ext3_negative);
         REQUIRE(((t_ext3.e012() == 197) && (t_ext3.e013() == 127) && (t_ext3.e023() == 50) && (t_ext3.e123() == 53)));
-        
+
         //  Dual and Reverse Dual - are the same, reversed order of elements
 
         ExteriorCalculusR4::AbsExt4_1 t_ext3_dual(t_ext3.dual());
@@ -588,7 +598,7 @@ TEST_CASE("Exterior Calculus Tests", "[ext calc basics]")
 
         ExteriorCalculusR4::AbsExt4_1 t_ext3_reverse_dual(t_ext3.reverse_dual());
 
-        REQUIRE( t_ext3_reverse_dual == t_ext3_dual );
+        REQUIRE(t_ext3_reverse_dual == t_ext3_dual);
     }
 
     SECTION("Triangle Triangle Triangle Intersection with Ext4_3 Meet")
@@ -628,9 +638,136 @@ TEST_CASE("Exterior Calculus Tests", "[ext calc basics]")
 
         Cork::Math::Vector3D result(intersection);
 
-        REQUIRE(((result.x() == Catch::Approx(5336236.0/1532419.0).epsilon(0.00001)) &&
-                 (result.y() == Catch::Approx(7677043.0/1532419.0).epsilon(0.00001)) &&
-                 (result.z() == Catch::Approx(4316208.0/1532419.0).epsilon(0.00001))));
+        REQUIRE(((result.x() == Catch::Approx(5336236.0 / 1532419.0).epsilon(0.00001)) &&
+                 (result.y() == Catch::Approx(7677043.0 / 1532419.0).epsilon(0.00001)) &&
+                 (result.z() == Catch::Approx(4316208.0 / 1532419.0).epsilon(0.00001))));
+    }
+
+    //***********************************************************************************************
+    //
+    //      FixInt flavors follow
+    //
+    //***********************************************************************************************
+
+    SECTION("Basic FixExt4_1 Functionality")
+    {
+        //  Create from a vector, assignment and equality
+
+        Cork::Math::Vector3D test_vec(7, 4, 3);
+        Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
+            Cork::Quantization::Quantizer::get_quantizer(10e2, 10e-2);
+
+        REQUIRE(get_quantizer_result.succeeded());
+
+        Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+
+        ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> test_R4_ext(test_vec.x(), test_vec.y(), test_vec.z(), 1.0,
+                                                                      quantizer);
+
+        ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> test_R4_ext_copy(test_R4_ext);
+
+        REQUIRE(((test_R4_ext.e0() == 3670016) && (test_R4_ext.e1() == 2097152) && (test_R4_ext.e2() == 1572864) &&
+                 (test_R4_ext.e3() == 524288)));
+        REQUIRE(((test_R4_ext[0] == 3670016) && (test_R4_ext[1] == 2097152) && (test_R4_ext[2] == 1572864) &&
+                 (test_R4_ext[3] == 524288)));
+
+        REQUIRE(test_R4_ext == test_R4_ext_copy);
+        REQUIRE(test_R4_ext != test_R4_ext_copy.negative());
+
+        //  Negation - destructive and non-destructive.
+
+        test_R4_ext.negate();
+
+        REQUIRE(((test_R4_ext.e0() == -3670016) && (test_R4_ext.e1() == -2097152) && (test_R4_ext.e2() == -1572864) &&
+                 (test_R4_ext.e3() == -524288)));
+
+        ExteriorCalculusR4::FixExt4_1 negated_test_R4_ext(test_R4_ext.negative());
+
+        REQUIRE(((test_R4_ext.e0() == -3670016) && (test_R4_ext.e1() == -2097152) && (test_R4_ext.e2() == -1572864) &&
+                 (test_R4_ext.e3() == -524288)));
+        REQUIRE(((negated_test_R4_ext.e0() == 3670016) && (negated_test_R4_ext.e1() == 2097152) &&
+                 (negated_test_R4_ext.e2() == 1572864) && (negated_test_R4_ext.e3() == 524288)));
+
+        test_R4_ext.negate();
+
+        REQUIRE(((test_R4_ext.e0() == 3670016) && (test_R4_ext.e1() == 2097152) && (test_R4_ext.e2() == 1572864) &&
+                 (test_R4_ext.e3() == 524288)));
+
+        //  Dual and reverse dual
+        //
+        //  Dual of an Ext4_1 returns an Ext4_3 (n=4, k=1, n-k = 3).  Reverse Dual on the Ext4_3 returns an Ext4_1 (n=4,
+        //  k=3, n-k=1) which is identical to the original vector.  Same for Ext4_1::reverse_dual() and Ext4_3::dual()
+
+        ExteriorCalculusR4::FixExt4_3<FIXED_INTEGER_BITS> dual = test_R4_ext.dual();
+        ExteriorCalculusR4::FixExt4_3<FIXED_INTEGER_BITS> reverse_dual = test_R4_ext.reverse_dual();
+
+        REQUIRE(((dual.e012() == 524288) && (dual.e013() == -1572864) && (dual.e023() == 2097152) &&
+                 (dual.e123() == -3670016)));
+        REQUIRE(((reverse_dual.e012() == -524288) && (reverse_dual.e013() == 1572864) &&
+                 (reverse_dual.e023() == -2097152) && (reverse_dual.e123() == 3670016)));
+
+        auto original = dual.reverse_dual();
+
+        REQUIRE(original == test_R4_ext);
+
+        original = reverse_dual.dual();
+
+        REQUIRE(original == test_R4_ext);
+    }
+
+    SECTION("Ext4_1 Join (Wedge Product)")
+    {
+        Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
+            Cork::Quantization::Quantizer::get_quantizer(10e2, 10e-2);
+
+        REQUIRE(get_quantizer_result.succeeded());
+
+        Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+
+        ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> vec_1(
+            ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(3, 4, 5)), quantizer);
+        ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> vec_2(
+            ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, 7, 8)), quantizer);
+        ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> vec_3(
+            ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(14, -10, 5)), quantizer);
+
+        //  Compute wedge of two Ext4_1 vectors
+
+        auto vec_1_wedge_vec_2 = vec_1.join(vec_2);
+
+        REQUIRE(((vec_1_wedge_vec_2.e01() == -824633720832) && (vec_1_wedge_vec_2.e02() == -1649267441664) &&
+                 (vec_1_wedge_vec_2.e03() == -824633720832) && (vec_1_wedge_vec_2.e12() == -824633720832) &&
+                 (vec_1_wedge_vec_2.e13() == -824633720832) && (vec_1_wedge_vec_2.e23() == -824633720832)));
+
+        //  Now wedge of Ext4_1 vector and the Ext4_2 parallelogram.  This results in a Ext4_3.
+
+        auto parallelogram = vec_1_wedge_vec_2;
+
+        auto vec_3_wedge_pgram = vec_1_wedge_vec_2.join(vec_3);
+
+        //        REQUIRE(((vec_3_wedge_pgram.e012 == FixInt::LimbInt<2>(-16861477004875137024)) &&
+        //        (vec_3_wedge_pgram.e013 == FixInt::LimbInt<2>(-10808639105689190400)) &&
+        //                 (vec_3_wedge_pgram.e023 == FixInt::LimbInt<2>(-4755801206503243776)) &&
+        //                 (vec_3_wedge_pgram.e123 == FixInt::LimbInt<2>(6052837899185946624))));
+    }
+
+    SECTION("FixExt4_1 Inner (Dot Product)")
+    {
+        Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
+            Cork::Quantization::Quantizer::get_quantizer(10e2, 10e-2);
+
+        REQUIRE(get_quantizer_result.succeeded());
+
+        Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+
+        ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> vec_1(
+            ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(3, 4, 5)), quantizer);
+        ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> vec_2(
+            ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, 7, 8)), quantizer);
+
+        auto dot_1_2 = vec_1.inner(vec_2);
+
+        REQUIRE(dot_1_2 == 23914377904128);
     }
 }
 

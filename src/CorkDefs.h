@@ -35,15 +35,6 @@
 
 constexpr int SIMD_MEMORY_ALIGNMENT = 32;
 
-// NOTE: none of these values should be modified by the clients
-
-constexpr int QUANTIZATION_BITS = 30;                   //	number of bits to set resolution of quantizing grid snapped to model
-constexpr int PERTURBATION_BUFFER_BITS = 8;             //	minimum number of bits of resolution that we will reserve when perturbing
-                                                        //  the model 8 bits means that we will not perturb the mesh more than
-                                                        //  1/128th of the length of the smallest edge in the model
-constexpr int PERTURBATION_RANGE_BITS = 5;              //	number of bits we will perturb over
-constexpr int MINIMUM_PERTURBATION_RANGE_BITS = 2;      //	initially perturbation range will be 2^2 or 4
-
 constexpr int MAX_TRIANGLES_IN_DISJOINT_UNION = 5000000;
 
 //
@@ -88,6 +79,17 @@ constexpr int PURTURBATION_ORDERS_OF_MAG_LESS 4;
 
 constexpr float PURTURBATION_UNDERFLOW_EDGE_LENGTH = (10 * NUMERIC_PRECISION_MIN_EPSILON);
 
+// NOTE: none of these values should be modified by the clients
+
+constexpr int QUANTIZATION_BITS = 30;                       //	number of bits to set resolution of quantizing grid snapped to model
+constexpr int PERTURBATION_BUFFER_BITS = 8;                 //	minimum number of bits of resolution that we will reserve when perturbing
+                                                            //  the model 8 bits means that we will not perturb the mesh more than
+                                                            //  1/128th of the length of the smallest edge in the model
+constexpr int PERTURBATION_RANGE_BITS = 5;                  //	number of bits we will perturb over
+constexpr int MINIMUM_PERTURBATION_RANGE_BITS = 2;          //	initially perturbation range will be 2^2 or 4
+
+constexpr int FIXED_INTEGER_BITS = QUANTIZATION_BITS + 1;   // +1 for sign bit
+
 #else
 
 //  NOLINTNEXTLINE
@@ -101,6 +103,17 @@ constexpr double NUMERIC_PRECISION_MIN_EPSILON = (100 * DBL_EPSILON);
 constexpr int PURTURBATION_ORDERS_OF_MAG_LESS = 5;
 
 constexpr double PURTURBATION_UNDERFLOW_EDGE_LENGTH = (100 * NUMERIC_PRECISION_MIN_EPSILON);
+
+// NOTE: none of these values should be modified by the clients
+
+constexpr int QUANTIZATION_BITS = 30;                       //	number of bits to set resolution of quantizing grid snapped to model
+constexpr int PERTURBATION_BUFFER_BITS = 8;                 //	minimum number of bits of resolution that we will reserve when perturbing
+                                                            //  the model 8 bits means that we will not perturb the mesh more than
+                                                            //  1/128th of the length of the smallest edge in the model
+constexpr int PERTURBATION_RANGE_BITS = 5;                  //	number of bits we will perturb over
+constexpr int MINIMUM_PERTURBATION_RANGE_BITS = 2;          //	initially perturbation range will be 2^2 or 4
+
+constexpr int FIXED_INTEGER_BITS = QUANTIZATION_BITS + 1;   // +1 for sign bit
 
 #endif
 

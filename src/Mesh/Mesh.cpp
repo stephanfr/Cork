@@ -112,7 +112,7 @@ namespace Cork
         {
             SUCCESS = 0,
             TOO_MANY_TRIANGLES_IN_DISJOINT_UNION,
-            INSUFFICIENT_PERTURBATION_RANGE,
+            QUANTIZER_CREATION_FAILED,
             FIND_INTERSECTIONS_FAILED,
             RESOLVE_INTERSECTIONS_FAILED,
             POPULATE_EDGE_GRAPH_CACHE_FAILED,
@@ -412,13 +412,15 @@ namespace Cork
 
         int tries = 5;
 
-        Quantization::Quantizer quantizer = getQuantizer();
+        Quantization::Quantizer::GetQuantizerResult get_quantizer_result = getQuantizer();
 
-        if (!quantizer.sufficientPerturbationRange())
+        if (!get_quantizer_result.succeeded() )
         {
-            return (SetupBooleanProblemResult::failure(SetupBooleanProblemResultCodes::INSUFFICIENT_PERTURBATION_RANGE,
-                                                       "Insufficient Dynamic Range left in model for perturbation."));
+            return (SetupBooleanProblemResult::failure( get_quantizer_result, SetupBooleanProblemResultCodes::QUANTIZER_CREATION_FAILED,
+                                                       "Failed to create quantizer" ));
         }
+
+        Quantization::Quantizer     quantizer( get_quantizer_result.return_value() );
 
         //	Find intersections and then resolve them.  We might have to repurturb if finding and resolving fails.
         //		We can repurturb until we run out of perturbation resolution.

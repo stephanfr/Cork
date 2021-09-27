@@ -1,12 +1,12 @@
 // +-------------------------------------------------------------------------
 // | quantization.h
-// | 
+// |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
 // | COPYRIGHT:
 // |    Copyright Gilbert Bernstein 2013
 // |    See the included COPYRIGHT file for further details.
-// |    
+// |
 // |    This file is part of the Cork library.
 // |
 // |    Cork is free software: you can redistribute it and/or modify
@@ -19,131 +19,128 @@
 // |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // |    GNU Lesser General Public License for more details.
 // |
-// |    You should have received a copy 
+// |    You should have received a copy
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 #pragma once
 
-#include<cmath>
+#include <cmath>
 
+#include "CPPResult.hpp"
 #include "math/Primitives.h"
-
-
 
 namespace Cork
 {
-	namespace Quantization
-	{
+    namespace Quantization
+    {
+        constexpr int MINIMUM_BITS_REQUIRED_FOR_QUANTIZATION = 10;
 
-		class Quantizer
-		{
-		public:
+        class Quantizer
+        {
+           public:
+            enum class QuantizerResultCodes
+            {
+                SUCCESS = 0,
 
-			Quantizer( double	maxMagnitude,
-				       double	minEdgeLength)
-			{
-				calibrate( maxMagnitude, minEdgeLength);
-			}
+                EXCESSIVE_DYNAMIC_RANGE_FOR_QUANTIZATION,
+				INSUFFICIENT_PERTURBATION_RANGE
+            };
+            using GetQuantizerResult = SEFUtility::ResultWithReturnValue<QuantizerResultCodes, Quantizer>;
 
+            static GetQuantizerResult get_quantizer(double max_magnitude, double min_edge_length)
+            {
+                Quantizer quantizer;
 
-			Quantizer(const Quantizer&		quantizerToCopy)
-				: m_magnify(quantizerToCopy.m_magnify),
-				  m_reshrink(quantizerToCopy.m_reshrink)
-			{}
+                QuantizerResultCodes result_code = quantizer.calibrate(max_magnitude, min_edge_length);
 
+                if (result_code != QuantizerResultCodes::SUCCESS)
+                {
+					std::cout << "GetQuantizer Excessive dynamic range" << std::endl;
 
-			bool	sufficientPerturbationRange() const
-			{
-				return( m_bitsOfPurturbationRange >= PERTURBATION_BUFFER_BITS + MINIMUM_PERTURBATION_RANGE_BITS);
-			}
+                    return GetQuantizerResult::failure(result_code,
+                                                       "Mesh triangulation likely has excessive "
+                                                       "difference between the max and min edge lengths");
+                }
 
-			int	bitsOfPurturbationRange() const
-			{
-				return(m_bitsOfPurturbationRange);
-			}
-
-			double	purturbationQuantum() const
-			{
-				return(m_reshrink);
-			}
-
-			int quantize2int(double number) const
-			{
-				return(int(number * m_magnify));
-			}
-
-			double quantizedInt2double(int number) const
-			{
-				return(m_reshrink * double(number));
-			}
-
-			double quantize(double number) const
-			{
-				return(m_reshrink * double(int(number * m_magnify)));
-			}
-
-			double quantize(float number) const
-			{
-				return((float)m_reshrink * float(int(number * (float)m_magnify)));
-			}
-
-			double reshrink(double  number) const
-			{
-				return(m_reshrink * number);
-			}
+                return GetQuantizerResult::success(quantizer);
+            }
 
 
+            Quantizer(const Quantizer& quantizerToCopy)
+                : m_magnify(quantizerToCopy.m_magnify), m_reshrink(quantizerToCopy.m_reshrink)
+            {
+            }
 
-			Cork::Math::Vector3D	quantize(const Cork::Math::Vector3D&		vectorToQuantize) const
-			{
-				return(Cork::Math::Vector3D(quantize(vectorToQuantize.x()), quantize(vectorToQuantize.y()), quantize(vectorToQuantize.z())));
-			}
+            int bitsOfPurturbationRange() const { return (m_bitsOfPurturbationRange); }
 
+            double purturbationQuantum() const { return (m_reshrink); }
 
-		private :
+            int quantize2int(double number) const { return (int(number * m_magnify)); }
 
-			//	Given the specified number of bits, and bound on the coordinate values of points,
-			//		fit as fine-grained a grid as possible over the space.
+            double quantizedInt2double(int number) const { return (m_reshrink * double(number)); }
 
-			void calibrate( double	maxMagnitude,
-							double	minEdgeLength )
-			{
-				int maxCoordinateValueBinaryExponent;
+            double quantize(double number) const { return (m_reshrink * double(int(number * m_magnify))); }
 
-				std::frexp(maxMagnitude, &maxCoordinateValueBinaryExponent);
+            double quantize(float number) const { return ((float)m_reshrink * float(int(number * (float)m_magnify))); }
 
-				maxCoordinateValueBinaryExponent++; // ensure that 2^max_exponent > maximumMagnitude
+            double reshrink(double number) const { return (m_reshrink * number); }
 
-				// set constants
-				m_magnify = std::pow(2.0, QUANTIZATION_BITS - maxCoordinateValueBinaryExponent);
+            Cork::Math::Vector3D quantize(const Cork::Math::Vector3D& vectorToQuantize) const
+            {
+                return (Cork::Math::Vector3D(quantize(vectorToQuantize.x()), quantize(vectorToQuantize.y()),
+                                             quantize(vectorToQuantize.z())));
+            }
 
-				// we are guaranteed that maximumMagnitude * MAGNIFY < 2.0^BITS
-				m_reshrink = std::pow(2.0, maxCoordinateValueBinaryExponent - QUANTIZATION_BITS);
+           private:
+            Quantizer() = default;
 
-				int		minEdgeLengthBinaryExponent;
+            //	Given the specified number of bits, and bound on the coordinate values of points,
+            //		fit as fine-grained a grid as possible over the space.
 
-				std::frexp(minEdgeLength, &minEdgeLengthBinaryExponent);
+            QuantizerResultCodes calibrate(double maxMagnitude, double minEdgeLength)
+            {
+                int maxCoordinateValueBinaryExponent;
 
-				int		quantaBitsPerMinEdge = minEdgeLengthBinaryExponent - (maxCoordinateValueBinaryExponent - QUANTIZATION_BITS);
+                std::frexp(maxMagnitude, &maxCoordinateValueBinaryExponent);
 
-				if (quantaBitsPerMinEdge < 10 )
+                maxCoordinateValueBinaryExponent++;  // ensure that 2^max_exponent > maximumMagnitude
+
+                //	Set constants
+                m_magnify = std::pow(2.0, QUANTIZATION_BITS - maxCoordinateValueBinaryExponent);
+
+                //	We are guaranteed that maximumMagnitude * MAGNIFY < 2.0^BITS
+                m_reshrink = std::pow(2.0, maxCoordinateValueBinaryExponent - QUANTIZATION_BITS);
+
+                int minEdgeLengthBinaryExponent;
+
+                std::frexp(minEdgeLength, &minEdgeLengthBinaryExponent);
+
+                int quantaBitsPerMinEdge =
+                    minEdgeLengthBinaryExponent - (maxCoordinateValueBinaryExponent - QUANTIZATION_BITS);
+
+                if (quantaBitsPerMinEdge < MINIMUM_BITS_REQUIRED_FOR_QUANTIZATION)
+                {
+                    return QuantizerResultCodes::EXCESSIVE_DYNAMIC_RANGE_FOR_QUANTIZATION;
+                }
+
+                m_bitsOfPurturbationRange = abs(quantaBitsPerMinEdge);
+
+                if(m_bitsOfPurturbationRange < PERTURBATION_BUFFER_BITS + MINIMUM_PERTURBATION_RANGE_BITS)
 				{
-					std::cout << "Insufficient number of quanta bits for min edge length" << std::endl;
+					return QuantizerResultCodes::INSUFFICIENT_PERTURBATION_RANGE;
 				}
 
-				m_bitsOfPurturbationRange = abs(quantaBitsPerMinEdge);
-			}
+                return QuantizerResultCodes::SUCCESS;
+            }
 
-		private :
+           private:
+            double m_magnify;
+            double m_reshrink;
 
-			double	m_magnify;
-			double	m_reshrink;
+            int m_bitsOfPurturbationRange;
+        };
 
-			int		m_bitsOfPurturbationRange;
-		};
+    }  // end namespace Quantization
 
-	} // end namespace Quantization
-
-}	//	end namespace Cork
-
+}  // namespace Cork

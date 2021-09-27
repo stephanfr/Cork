@@ -169,7 +169,7 @@ namespace Cork
 
         const Cork::Math::BBox3D& boundingBox() const { return  m_boundingBox; }
 
-        const Cork::Quantization::Quantizer getQuantizer() const
+        const Cork::Quantization::Quantizer::GetQuantizerResult getQuantizer() const
         {
             //	Calibrate the quantization unit...
 
@@ -201,7 +201,7 @@ namespace Cork
                                       std::max((vert0 - vert2).len_squared(), (vert1 - vert2).len_squared())));
             }
 
-            return (Quantization::Quantizer(maxMag, sqrt(minEdgeLengthSquared)));
+            return (Quantization::Quantizer::get_quantizer(maxMag, sqrt(minEdgeLengthSquared)));
         }
 
         void for_raw_tris(std::function<void(IndexType, IndexType, IndexType)> func)
