@@ -43,224 +43,189 @@
 
 #include <iostream>
 
-namespace GMPExt4
+#include "ext4_base.hpp"
+#include "intersection/quantization.h"
+
+namespace Cork::ExteriorCalculusR4
 {
-    // types for k-vectors in R4:
-    //      Ext4_k
+    class GMPExt4_2;
+    class GMPExt4_3;
 
-    struct GmpExt4_1
+    class GMPExt4_1 : public Bases::Ext4_1Base<mpz_class>
     {
-        mpz_class e0;
-        mpz_class e1;
-        mpz_class e2;
-        mpz_class e3;
+       public:
+        GMPExt4_1() = default;
+
+        explicit GMPExt4_1(const Math::Vector3D &in, const Quantization::Quantizer &quantizer)
+        {
+            e0_ = quantizer.quantize2int(in.x());
+            e1_ = quantizer.quantize2int(in.y());
+            e2_ = quantizer.quantize2int(in.z());
+            e3_ = 1;
+        }
+
+        ~GMPExt4_1() = default;
+
+        // Negation takes a k-vector and returns its negation neg(X,Y) and is safe for X=Y
+
+        const GMPExt4_1 &negate()
+        {
+            e0_ = -e0_;
+            e1_ = -e1_;
+            e2_ = -e2_;
+            e3_ = -e3_;
+
+            return *this;
+        }
+
+        [[nodiscard]] GMPExt4_1 negative() const { return GMPExt4_1(-e0_, -e1_, -e2_, -e3_); }
+
+        //  A dual operation takes a k-vector and returns a (4-k)-vector
+        //      A reverse dual operation inverts the dual operation
+        //      dual(X,Y) is not safe for X=Y (same with revdual)
+
+        [[nodiscard]] GMPExt4_3 dual() const;
+        [[nodiscard]] GMPExt4_3 reverse_dual() const;
+
+        //  Join takes a j-vector and a k-vector and returns a (j+k) vector
+        //      Join is the wedge product.
+
+        [[nodiscard]] GMPExt4_3 join(const GMPExt4_2 &rhs) const;
+
+        [[nodiscard]] GMPExt4_2 join(const GMPExt4_1 &rhs) const;
+
+       private:
+        GMPExt4_1(mpz_class e0, mpz_class e1, mpz_class e2, mpz_class e3) : Ext4_1Base(e0, e1, e2, e3){};
+
+        friend class GMPExt4_2;
+        friend class GMPExt4_3;
     };
 
-    struct GmpExt4_2
+    class GMPExt4_2 : public Bases::Ext4_2Base<mpz_class>
     {
-        mpz_class e01;
-        mpz_class e02;
-        mpz_class e03;
-        mpz_class e12;
-        mpz_class e13;
-        mpz_class e23;
+       public:
+        //  Negation
+
+        GMPExt4_2 &negate()
+        {
+            e01_ = -e01_;
+            e02_ = -e02_;
+            e03_ = -e03_;
+            e12_ = -e12_;
+            e13_ = -e13_;
+            e23_ = -e23_;
+            return *this;
+        }
+
+        [[nodiscard]] GMPExt4_2 negative() const { return GMPExt4_2(-e01_, -e02_, -e03_, -e12_, -e13_, -e23_); }
+
+        //  Dual and Reverse Dual
+
+        [[nodiscard]] GMPExt4_2 dual() const { return GMPExt4_2(e23_, -e13_, e12_, e03_, -e02_, e01_); }
+
+        [[nodiscard]] GMPExt4_2 reverse_dual() const { return GMPExt4_2(e23_, -e13_, e12_, e03_, -e02_, e01_); }
+
+        //  Join
+
+        [[nodiscard]] GMPExt4_3 join(const GMPExt4_1 &rhs) const;
+
+        //  Meet
+
+        [[nodiscard]] GMPExt4_1 meet(const GMPExt4_3 &rhs) const;
+
+       private:
+        GMPExt4_2() = default;
+
+        GMPExt4_2(mpz_class e01, mpz_class e02, mpz_class e03, mpz_class e12, mpz_class e13, mpz_class e23)
+            : Ext4_2Base(e01, e02, e03, e12, e13, e23)
+        {
+        }
+
+        friend class GMPExt4_1;
     };
 
-    struct GmpExt4_3
+    class GMPExt4_3 : public Bases::Ext4_3Base<mpz_class>
     {
-        mpz_class e012;
-        mpz_class e013;
-        mpz_class e023;
-        mpz_class e123;
+       public:
+        GMPExt4_3() = default;
+
+        //  Negation
+
+        GMPExt4_3 &negate()
+        {
+            e012_ = -e012_;
+            e013_ = -e013_;
+            e023_ = -e023_;
+            e123_ = -e123_;
+            return *this;
+        }
+
+        [[nodiscard]] GMPExt4_3 negative() const { return GMPExt4_3(-e012_, -e013_, -e023_, -e123_); }
+
+        //  Dual and reverse dual
+
+        [[nodiscard]] GMPExt4_1 dual() const { return GMPExt4_1(e123_, -e023_, e013_, -e012_); };
+
+        [[nodiscard]] GMPExt4_1 reverse_dual() const { return GMPExt4_1(-e123_, e023_, -e013_, e012_); }
+
+        // A meet takes a j-vector and a k-vector and returns a (j+k-4)-vector
+
+        [[nodiscard]] GMPExt4_2 meet(const GMPExt4_3 &rhs) const { return dual().join(rhs.dual()).reverse_dual(); }
+
+        [[nodiscard]] GMPExt4_1 meet(const GMPExt4_2 &rhs) const { return dual().join(rhs.dual()).reverse_dual(); }
+
+       private:
+        GMPExt4_3(mpz_class e012, mpz_class e013, mpz_class e023, mpz_class e123) : Ext4_3Base(e012, e013, e023, e123)
+        {
+        }
+
+        friend class GMPExt4_1;
+        friend class GMPExt4_2;
     };
 
-    // ********************************
-    // Output Routines
-
-    inline std::ostream &operator<<(std::ostream &out, const GmpExt4_1 &ext)
-    {
-        return out << '[' << ext.e0 << ',' << ext.e1 << ',' << ext.e2 << ',' << ext.e3 << ']';
-    }
-
-    inline std::ostream &operator<<(std::ostream &out, const GmpExt4_2 &ext)
-    {
-        return out << '[' << ext.e01 << ',' << ext.e02 << ',' << ext.e03 << ',' << ext.e12 << ',' << ext.e13 << ','
-                   << ext.e23 << ']';
-    }
-
-    inline std::ostream &operator<<(std::ostream &out, const GmpExt4_3 &ext)
-    {
-        return out << '[' << ext.e012 << ',' << ext.e013 << ',' << ext.e023 << ',' << ext.e123 << ']';
-    }
-
-    // ********************************
-    // A neg takes a k-vector and returns its negation
-    // neg(X,Y) is safe for X=Y
-
-    inline void neg(GmpExt4_1 &out, const GmpExt4_1 &in)
-    {
-        out.e0 = -in.e0;
-        out.e1 = -in.e1;
-        out.e2 = -in.e2;
-        out.e3 = -in.e3;
-    }
-
-    inline void neg(GmpExt4_2 &out, const GmpExt4_2 &in)
-    {
-        out.e01 = -in.e01;
-        out.e02 = -in.e02;
-        out.e03 = -in.e03;
-        out.e12 = -in.e12;
-        out.e13 = -in.e13;
-        out.e23 = -in.e23;
-    }
-
-    inline void neg(GmpExt4_3 &out, const GmpExt4_3 &in)
-    {
-        out.e012 = -in.e012;
-        out.e013 = -in.e013;
-        out.e023 = -in.e023;
-        out.e123 = -in.e123;
-    }
-
-    // ********************************
     // A dual operation takes a k-vector and returns a (4-k)-vector
     // A reverse dual operation inverts the dual operation
     // dual(X,Y) is not safe for X=Y (same with revdual)
 
-    inline void dual(GmpExt4_1 &out, const GmpExt4_3 &in)
-    {
-        out.e0 = in.e123;
-        out.e1 = -in.e023;
-        out.e2 = in.e013;
-        out.e3 = -in.e012;
-    }
+    inline GMPExt4_3 GMPExt4_1::dual() const { return GMPExt4_3(e3_, -e2_, e1_, -e0_); }
 
-    inline void dual(GmpExt4_2 &out, const GmpExt4_2 &in)
-    {
-        out.e01 = in.e23;
-        out.e02 = -in.e13;
-        out.e03 = in.e12;
-        out.e12 = in.e03;
-        out.e13 = -in.e02;
-        out.e23 = in.e01;
-    }
+    inline GMPExt4_3 GMPExt4_1::reverse_dual() const { return GMPExt4_3(-e3_, e2_, -e1_, e0_); }
 
-    inline void dual(GmpExt4_3 &out, const GmpExt4_1 &in)
-    {
-        out.e012 = in.e3;
-        out.e013 = -in.e2;
-        out.e023 = in.e1;
-        out.e123 = -in.e0;
-    }
-
-    inline void revdual(GmpExt4_1 &out, const GmpExt4_3 &in)
-    {
-        out.e0 = -in.e123;
-        out.e1 = in.e023;
-        out.e2 = -in.e013;
-        out.e3 = in.e012;
-    }
-
-    inline void revdual(GmpExt4_2 &out, const GmpExt4_2 &in)
-    {
-        out.e01 = in.e23;
-        out.e02 = -in.e13;
-        out.e03 = in.e12;
-        out.e12 = in.e03;
-        out.e13 = -in.e02;
-        out.e23 = in.e01;
-    }
-
-    inline void revdual(GmpExt4_3 &out, const GmpExt4_1 &in)
-    {
-        out.e012 = -in.e3;
-        out.e013 = in.e2;
-        out.e023 = -in.e1;
-        out.e123 = in.e0;
-    }
-
-    // ********************************
     // A join takes a j-vector and a k-vector and returns a (j+k)-vector
 
-    inline void join(GmpExt4_2 &out, const GmpExt4_1 &lhs, const GmpExt4_1 &rhs)
+    inline GMPExt4_2 GMPExt4_1::join(const GMPExt4_1 &rhs) const
     {
-        out.e01 = (lhs.e0 * rhs.e1) - (rhs.e0 * lhs.e1);
-        out.e02 = (lhs.e0 * rhs.e2) - (rhs.e0 * lhs.e2);
-        out.e03 = (lhs.e0 * rhs.e3) - (rhs.e0 * lhs.e3);
-        out.e12 = (lhs.e1 * rhs.e2) - (rhs.e1 * lhs.e2);
-        out.e13 = (lhs.e1 * rhs.e3) - (rhs.e1 * lhs.e3);
-        out.e23 = (lhs.e2 * rhs.e3) - (rhs.e2 * lhs.e3);
+        GMPExt4_2 out;
+
+        out.e01_ = (e0_ * rhs.e1_) - (rhs.e0_ * e1_);
+        out.e02_ = (e0_ * rhs.e2_) - (rhs.e0_ * e2_);
+        out.e03_ = (e0_ * rhs.e3_) - (rhs.e0_ * e3_);
+        out.e12_ = (e1_ * rhs.e2_) - (rhs.e1_ * e2_);
+        out.e13_ = (e1_ * rhs.e3_) - (rhs.e1_ * e3_);
+        out.e23_ = (e2_ * rhs.e3_) - (rhs.e2_ * e3_);
+
+        return out;
     }
 
-    inline void join(GmpExt4_3 &out, const GmpExt4_2 &lhs, const GmpExt4_1 &rhs)
+    inline GMPExt4_3 GMPExt4_1::join(const GMPExt4_2 &rhs) const
     {
-        out.e012 = (lhs.e01 * rhs.e2) - (lhs.e02 * rhs.e1) + (lhs.e12 * rhs.e0);
-        out.e013 = (lhs.e01 * rhs.e3) - (lhs.e03 * rhs.e1) + (lhs.e13 * rhs.e0);
-        out.e023 = (lhs.e02 * rhs.e3) - (lhs.e03 * rhs.e2) + (lhs.e23 * rhs.e0);
-        out.e123 = (lhs.e12 * rhs.e3) - (lhs.e13 * rhs.e2) + (lhs.e23 * rhs.e1);
+        // no negation since swapping the arguments requires two swaps of 1-vectors
+
+        return rhs.join(*this);
     }
 
-    inline void join(GmpExt4_3 &out, const GmpExt4_1 &lhs, const GmpExt4_2 &rhs)
+    inline GMPExt4_3 GMPExt4_2::join(const GMPExt4_1 &rhs) const
     {
-        join(out, rhs, lhs);
-        // no negation since swapping the arguments requires two
-        // swaps of 1-vectors
+        GMPExt4_3 out;
+
+        out.e012_ = (e01_ * rhs.e2_) - (e02_ * rhs.e1_) + (e12_ * rhs.e0_);
+        out.e013_ = (e01_ * rhs.e3_) - (e03_ * rhs.e1_) + (e13_ * rhs.e0_);
+        out.e023_ = (e02_ * rhs.e3_) - (e03_ * rhs.e2_) + (e23_ * rhs.e0_);
+        out.e123_ = (e12_ * rhs.e3_) - (e13_ * rhs.e2_) + (e23_ * rhs.e1_);
+
+        return out;
     }
 
-    // ********************************
-    // A meet takes a j-vector and a k-vector and returns a (j+k-4)-vector
+    inline GMPExt4_1 GMPExt4_2::meet(const GMPExt4_3 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
 
-    inline void meet(GmpExt4_2 &out, const GmpExt4_3 &lhs, const GmpExt4_3 &rhs)
-    {
-        GmpExt4_2 out_dual;
-        GmpExt4_1 lhs_dual;
-        GmpExt4_1 rhs_dual;
-        dual(lhs_dual, lhs);
-        dual(rhs_dual, rhs);
-        join(out_dual, lhs_dual, rhs_dual);
-        revdual(out, out_dual);
-    }
-
-    inline void meet(GmpExt4_1 &out, const GmpExt4_2 &lhs, const GmpExt4_3 &rhs)
-    {
-        GmpExt4_3 out_dual;
-        GmpExt4_2 lhs_dual;
-        GmpExt4_1 rhs_dual;
-        dual(lhs_dual, lhs);
-        dual(rhs_dual, rhs);
-        join(out_dual, lhs_dual, rhs_dual);
-        revdual(out, out_dual);
-    }
-
-    inline void meet(GmpExt4_1 &out, const GmpExt4_3 &lhs, const GmpExt4_2 &rhs)
-    {
-        GmpExt4_3 out_dual;
-        GmpExt4_1 lhs_dual;
-        GmpExt4_2 rhs_dual;
-        dual(lhs_dual, lhs);
-        dual(rhs_dual, rhs);
-        join(out_dual, lhs_dual, rhs_dual);
-        revdual(out, out_dual);
-    }
-
-    // ********************************
-    // An inner product takes two k-vectors and produces a single number
-
-    inline mpz_class inner(const GmpExt4_1 &lhs, const GmpExt4_1 &rhs)
-    {
-        return lhs.e0 * rhs.e0 + lhs.e1 * rhs.e1 + lhs.e2 * rhs.e2 + lhs.e3 * rhs.e3;
-    }
-
-    inline mpz_class inner(const GmpExt4_2 &lhs, const GmpExt4_2 &rhs)
-    {
-        return lhs.e01 * rhs.e01 + lhs.e02 * rhs.e02 + lhs.e03 * rhs.e03 + lhs.e12 * rhs.e12 + lhs.e13 * rhs.e13 +
-               lhs.e23 * rhs.e23;
-    }
-
-    inline mpz_class inner(const GmpExt4_3 &lhs, const GmpExt4_3 &rhs)
-    {
-        return lhs.e012 * rhs.e012 + lhs.e013 * rhs.e013 + lhs.e023 * rhs.e023 + lhs.e123 * rhs.e123;
-    }
-
-}  // end namespace GMPExt4
+}  // namespace Cork::ExteriorCalculusR4

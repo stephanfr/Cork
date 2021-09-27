@@ -39,7 +39,7 @@
 #include "fixint.h"
 #include "intersection/quantization.h"
 
-namespace ExteriorCalculusR4
+namespace Cork::ExteriorCalculusR4
 {
     template <int Nbits>
     class FixExt4_2;
@@ -56,13 +56,13 @@ namespace ExteriorCalculusR4
 
         FixExt4_1(){};
 
-        FixExt4_1(double e0, double e1, double e2, double e3, const Cork::Quantization::Quantizer& quantizer)
+        FixExt4_1(double e0, double e1, double e2, double e3, const Quantization::Quantizer& quantizer)
             : FixExt4_1Base(IntegerType(quantizer.quantize2int(e0)), IntegerType(quantizer.quantize2int(e1)),
                             IntegerType(quantizer.quantize2int(e2)), IntegerType(quantizer.quantize2int(e3)))
         {
         }
 
-        FixExt4_1(const Ext4_1& ext, const Cork::Quantization::Quantizer& quantizer)
+        FixExt4_1(const Ext4_1& ext, const Quantization::Quantizer& quantizer)
             : FixExt4_1Base(
                   IntegerType(quantizer.quantize2int(ext.e0())), IntegerType(quantizer.quantize2int(ext.e1())),
                   IntegerType(quantizer.quantize2int(ext.e2())), IntegerType(quantizer.quantize2int(ext.e3())))

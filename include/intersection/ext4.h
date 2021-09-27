@@ -69,7 +69,7 @@
 
  */
 
-namespace ExteriorCalculusR4
+namespace Cork::ExteriorCalculusR4
 {
     // types for k-vectors in R4:
     //      Ext4_k
@@ -80,36 +80,33 @@ namespace ExteriorCalculusR4
     class AbsExt4_2;
     class AbsExt4_3;
 
-
-
-
     class Ext4_1 : public Ext4_1Base
     {
        public:
-        explicit Ext4_1(const Ext4_1 &ext_to_copy) : Ext4_1Base(ext_to_copy.v_) {}
+        explicit Ext4_1(const Ext4_1 &ext_to_copy) : Ext4_1Base(ext_to_copy) {}
 
 #if defined(NUMERIC_PRECISION) && NUMERIC_PRECISION == double
 
-        explicit Ext4_1(const Cork::Math::Vector3D &vector)
+        explicit Ext4_1(const Math::Vector3D &vector)
             : Ext4_1Base(reinterpret_cast<const std::array<double, 4> &>(vector))
         {
             e3_ = Constants::DOUBLE_ONE;
         }
 
-        const Ext4_1 &operator=(const Cork::Math::Vector3D &vector)
+        const Ext4_1 &operator=(const Math::Vector3D &vector)
         {
-            v_ = reinterpret_cast<const std::array<double, 4> &>(vector);
+            reinterpret_cast<std::array<double, 4> &>(e0_) = reinterpret_cast<const std::array<double, 4> &>(vector);
             e3_ = Constants::DOUBLE_ONE;
 
             return *this;
         }
 #else
-        explicit Ext4_1(const Cork::Math::Vector3D &vector)
+        explicit Ext4_1(const Math::Vector3D &vector)
             : e0(vector.x()), e1(vector.y()), e1(vector.z()), e3(Constants::DOUBLE_ONE)
         {
         }
 
-        const Ext4_1 &operator=(const Cork::Math::Vector3D &vector)
+        const Ext4_1 &operator=(const Math::Vector3D &vector)
         {
             e0 = vector.x();
             e1 = vector.y();
@@ -418,8 +415,7 @@ namespace ExteriorCalculusR4
 
         [[nodiscard]] AbsExt4_1 meet(const AbsExt4_2 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
 
-        private :
-        
+       private:
         AbsExt4_3(double e012, double e013, double e023, double e123) : AbsExt4_3Base(e012, e013, e023, e123) {}
 
         friend class AbsExt4_1;
@@ -466,4 +462,4 @@ namespace ExteriorCalculusR4
 
     inline AbsExt4_1 AbsExt4_2::meet(const AbsExt4_3 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
 
-}  // namespace ExteriorCalculusR4
+}  // namespace Cork::ExteriorCalculusR4

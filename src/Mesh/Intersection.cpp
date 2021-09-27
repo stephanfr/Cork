@@ -295,8 +295,8 @@ namespace Cork
 												   const TopoTri&				t,
 												   const Quantization::Quantizer& quantizer)
 		{
-			GMPExt4::GmpExt4_2		edgeCoordinates( e.edgeExactCoordinates( quantizer ) );
-			GMPExt4::GmpExt4_3		triangleCoordinates( t.triangleExactCoordinates( quantizer ) );
+			ExteriorCalculusR4::GMPExt4_2		edgeCoordinates( e.edgeExactCoordinates( quantizer ) );
+			ExteriorCalculusR4::GMPExt4_3		triangleCoordinates( t.triangleExactCoordinates( quantizer ) );
 
 			return( Empty3d::coordsExact( edgeCoordinates, triangleCoordinates, quantizer ) );
 		}

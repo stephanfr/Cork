@@ -28,17 +28,16 @@
 #include <tbb/spin_mutex.h>
 
 #include <array>
-#include <optional>
-
 #include <boost/container/small_vector.hpp>
 #include <boost/container/static_vector.hpp>
 #include <boost/dynamic_bitset.hpp>
+#include <optional>
 
+#include "MeshBase.h"
 #include "intersection/empty3d.h"
 #include "intersection/quantization.h"
 #include "util/ManagedIntrusiveList.h"
 #include "util/SparseVector.h"
-#include "MeshBase.h"
 
 namespace Cork
 {
@@ -151,20 +150,14 @@ namespace Cork
             return (Empty3d::EdgeIn(*(m_verts[0]->quantizedValue()), *(m_verts[1]->quantizedValue())));
         }
 
-        GMPExt4::GmpExt4_2 edgeExactCoordinates(const Quantization::Quantizer& quantizer) const
+        ExteriorCalculusR4::GMPExt4_2 edgeExactCoordinates(const Quantization::Quantizer& quantizer) const
         {
-            GMPExt4::GmpExt4_1 ep[2];
+            ExteriorCalculusR4::GMPExt4_1 ep[2];
 
-            Empty3d::toGmpExt(ep[0], *(m_verts[0]->quantizedValue()), quantizer);
-            Empty3d::toGmpExt(ep[1], *(m_verts[1]->quantizedValue()), quantizer);
+            ep[0] = ExteriorCalculusR4::GMPExt4_1(*(m_verts[0]->quantizedValue()), quantizer);
+            ep[1] = ExteriorCalculusR4::GMPExt4_1(*(m_verts[1]->quantizedValue()), quantizer);
 
-            // construct geometry
-
-            GMPExt4::GmpExt4_2 value;
-
-            join(value, ep[0], ep[1]);
-
-            return (value);
+            return ep[0].join(ep[1]);
         }
 
        private:
@@ -282,22 +275,17 @@ namespace Cork
             return (std::min(m_edges[0]->length(), std::min(m_edges[1]->length(), m_edges[2]->length())));
         }
 
-        const GMPExt4::GmpExt4_3 triangleExactCoordinates(const Quantization::Quantizer& quantizer) const
+        const ExteriorCalculusR4::GMPExt4_3 triangleExactCoordinates(const Quantization::Quantizer& quantizer) const
         {
-            GMPExt4::GmpExt4_3 value;
+            ExteriorCalculusR4::GMPExt4_3 value;
 
-            GMPExt4::GmpExt4_1 p[3];
+            ExteriorCalculusR4::GMPExt4_1 p[3];
 
-            Empty3d::toGmpExt(p[0], *(m_verts[0]->quantizedValue()), quantizer);
-            Empty3d::toGmpExt(p[1], *(m_verts[1]->quantizedValue()), quantizer);
-            Empty3d::toGmpExt(p[2], *(m_verts[2]->quantizedValue()), quantizer);
+            p[0] = ExteriorCalculusR4::GMPExt4_1(*(m_verts[0]->quantizedValue()), quantizer);
+            p[1] = ExteriorCalculusR4::GMPExt4_1(*(m_verts[1]->quantizedValue()), quantizer);
+            p[2] = ExteriorCalculusR4::GMPExt4_1(*(m_verts[2]->quantizedValue()), quantizer);
 
-            GMPExt4::GmpExt4_2 temp;
-
-            join(temp, p[0], p[1]);
-            join(value, temp, p[2]);
-
-            return (value);
+            return (p[0].join(p[1])).join(p[2]);
         }
 
         uint32_t boolAlgData() const { return (m_boolAlgData); }
@@ -447,7 +435,7 @@ namespace Cork
         IndexType m_ref;  // index to actual data
         void* m_data;     // algorithm specific handle
 
-        uint32_t    m_boolAlgData;
+        uint32_t m_boolAlgData;
 
         std::array<TopoVert*, 3> m_verts;  // vertices of this triangle
         std::array<TopoEdge*, 3> m_edges;  // edges of this triangle opposite to the given vertex

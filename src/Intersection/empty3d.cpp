@@ -32,11 +32,10 @@
 
 namespace Cork::Empty3d
 {
-    using namespace GMPExt4;
-
-    inline void toVec3d(Cork::Math::Vector3D& out, const GmpExt4_1& in, const Quantization::Quantizer& quantizer)
+    inline void toVec3d(Cork::Math::Vector3D& out, const ExteriorCalculusR4::GMPExt4_1& in,
+                        const Quantization::Quantizer& quantizer)
     {
-        std::array<double, 4> tmp{in.e0.get_d(), in.e1.get_d(), in.e2.get_d(), in.e3.get_d()};
+        std::array<double, 4> tmp{in.e0().get_d(), in.e1().get_d(), in.e2().get_d(), in.e3().get_d()};
 
         tmp[0] /= tmp[3];
         tmp[1] /= tmp[3];
@@ -235,7 +234,7 @@ namespace Cork::Empty3d
         //      large and unwieldly.  Type deduction here simply lets the compiler make sure everything
         //      matches up properly.
         //
-        //  Unit tests should check that the results of the operations are correct in size and value. 
+        //  Unit tests should check that the results of the operations are correct in size and value.
 
         // pull in points
 
@@ -286,15 +285,15 @@ namespace Cork::Empty3d
         auto temp0 = pisct.join(tp[1]);
         auto at0 = temp0.join(tp[2]);
 
-        auto temp1 = tp[0].join( pisct);
+        auto temp1 = tp[0].join(pisct);
         auto at1 = temp1.join(tp[2]);
 
-        auto temp2 = tp[0].join( tp[1]);
+        auto temp2 = tp[0].join(tp[1]);
         auto at2 = temp2.join(pisct);
 
-        auto test_t0 = t.inner( at0);
-        auto test_t1 = t.inner( at1);
-        auto test_t2 = t.inner( at2);
+        auto test_t0 = t.inner(at0);
+        auto test_t1 = t.inner(at1);
+        auto test_t2 = t.inner(at2);
 
         int sign_t0 = sign(test_t0);
         int sign_t1 = sign(test_t1);
@@ -334,35 +333,28 @@ namespace Cork::Empty3d
     {
         // pull in points
 
-        std::array<GmpExt4_1, 2> ep;
-        std::array<GmpExt4_1, 3> tp;
+        std::array<ExteriorCalculusR4::GMPExt4_1, 2> ep;
+        std::array<ExteriorCalculusR4::GMPExt4_1, 3> tp;
 
-        toGmpExt(ep[0], edge.p0(), quantizer);
-        toGmpExt(ep[1], edge.p1(), quantizer);
+        ep[0] = ExteriorCalculusR4::GMPExt4_1(edge.p0(), quantizer);
+        ep[1] = ExteriorCalculusR4::GMPExt4_1(edge.p1(), quantizer);
 
-        toGmpExt(tp[0], tri.p0(), quantizer);
-        toGmpExt(tp[1], tri.p1(), quantizer);
-        toGmpExt(tp[2], tri.p2(), quantizer);
+        tp[0] = ExteriorCalculusR4::GMPExt4_1(tri.p0(), quantizer);
+        tp[1] = ExteriorCalculusR4::GMPExt4_1(tri.p1(), quantizer);
+        tp[2] = ExteriorCalculusR4::GMPExt4_1(tri.p2(), quantizer);
 
-        // construct geometry
-        GmpExt4_2 e;
-        join(e, ep[0], ep[1]);
+        ExteriorCalculusR4::GMPExt4_2 e(ep[0].join(ep[1]));
 
-        GmpExt4_2 temp_up;
-        GmpExt4_3 t;
-        join(temp_up, tp[0], tp[1]);
-        join(t, temp_up, tp[2]);
+        ExteriorCalculusR4::GMPExt4_2 temp_up( tp[0].join( tp[1]) );
+        ExteriorCalculusR4::GMPExt4_3 t( temp_up.join( tp[2])  );
 
         // compute the point of intersection
-        GmpExt4_1 pisct;
-        meet(pisct, e, t);
+        ExteriorCalculusR4::GMPExt4_1 pisct( e.meet( t ) );
 
         // convert to double
 
         Cork::Math::Vector3D result;
         toVec3d(result, pisct, quantizer);
-
-        // std::cout << result << std::endl;
 
         return (result);
     }
@@ -535,9 +527,13 @@ namespace Cork::Empty3d
 
     bool TriTriTriIn::exactFallback(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const
     {
-        // How many bits do we need for various intermediary values?
-        // Here we label the amount with the relevant type (i.e. EXT2)
-        // and the relevant role
+        //  We use 'auto' for type deduction extensively in this method.  The lengths of the
+        //      FixExt? types change depending on the operations used.  For example, 64 bits would be
+        //      required to store the product of two 32 bit fixed integer types.  The types can get
+        //      large and unwieldly.  Type deduction here simply lets the compiler make sure everything
+        //      matches up properly.
+        //
+        //  Unit tests should check that the results of the operations are correct in size and value.
 
         constexpr int EXT2_UP_BITS = 2 * FIXED_INTEGER_BITS + 1;
         constexpr int EXT3_UP_BITS = EXT2_UP_BITS + FIXED_INTEGER_BITS + 2;
@@ -552,32 +548,16 @@ namespace Cork::Empty3d
 
         for (uint i = 0; i < 3; i++)
         {
-//            toFixExt(p[i][0], m_tri[i].p0(), quantizer);
-//            toFixExt(p[i][1], m_tri[i].p1(), quantizer);
-//            toFixExt(p[i][2], m_tri[i].p2(), quantizer);
+            p[i][0] = ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>(m_tri[i].p0(), quantizer);
+            p[i][1] = ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>(m_tri[i].p1(), quantizer);
+            p[i][2] = ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>(m_tri[i].p2(), quantizer);
 
-            p[i][0] = ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>( m_tri[i].p0(), quantizer);
-            p[i][1] = ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>( m_tri[i].p1(), quantizer);
-            p[i][2] = ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS>( m_tri[i].p2(), quantizer);
-
-
-//            ExteriorCalculusR4::FixExt4_2<EXT2_UP_BITS> temp;
-
-//            join(temp, p[i][0], p[i][1]);
-            auto temp = p[i][0].join( p[i][1]);
-//            join(t[i], temp, p[i][2]);
-            t[i] = temp.join( p[i][2]);
+            t[i] = (p[i][0].join(p[i][1])).join(p[i][2]);
         }
 
         // compute the point of intersection
 
-        ExteriorCalculusR4::FixExt4_1<ISCT_BITS> pisct;
-        {
-//            ExteriorCalculusR4::FixExt4_2<EXT2_DN_BITS> temp;
-            auto temp = t[0].meet(t[1]);
-//            meet(pisct, temp, t[2]);
-            pisct = temp.meet(t[2]);
-        }
+        auto pisct = (t[0].meet(t[1])).meet(t[2]);
 
         // need to adjust for negative w-coordinate
 
@@ -598,30 +578,13 @@ namespace Cork::Empty3d
         for (uint i = 0; i < 3; i++)
         {
             std::array<ExteriorCalculusR4::FixExt4_3<EXT3_TA_BITS>, 3> a;
-//            ExteriorCalculusR4::FixExt4_2<EXT2_TA_BITS> temp;
-//            ExteriorCalculusR4::FixExt4_2<EXT2_UP_BITS> tmp2;
 
-//            join(temp, pisct, p[i][1]);
-            auto temp = pisct.join(p[i][1]);
-
-//            join(a[0], temp, p[i][2]);
-            a[0] = temp.join(p[i][2]);
-
-//            join(temp, p[i][0], pisct);
-            temp = p[i][0].join(pisct);
-
-//            join(a[1], temp, p[i][2]);
-            a[1] = temp.join(p[i][2]);
-
-//            join(tmp2, p[i][0], p[i][1]);
-            auto tmp2 = p[i][0].join( p[i][1]);
-//            join(a[2], tmp2, pisct);
-            a[2] = tmp2.join(pisct);
-
+            a[0] = (pisct.join(p[i][1])).join(p[i][2]);
+            a[1] = (p[i][0].join(pisct)).join(p[i][2]);
+            a[2] = (p[i][0].join(p[i][1])).join(pisct);
 
             for (uint j = 0; j < 3; j++)
             {
-//                FixInt::BitInt<INNER_BITS>::Rep test;
                 auto test = a[j].inner(t[i]);
                 int testsign = sign(test);
 
@@ -663,30 +626,27 @@ namespace Cork::Empty3d
 
     Cork::Math::Vector3D TriTriTriIn::coordsExact(const Quantization::Quantizer& quantizer) const
     {
-        std::array<std::array<GmpExt4_1, 3>, 3> p;
-        std::array<GmpExt4_3, 3> t;
+        std::array<std::array<ExteriorCalculusR4::GMPExt4_1, 3>, 3> p;
+        std::array<ExteriorCalculusR4::GMPExt4_3, 3> t;
 
         for (uint i = 0; i < 3; i++)
         {
-            toGmpExt(p[i][0], m_tri[i].p0(), quantizer);
-            toGmpExt(p[i][1], m_tri[i].p1(), quantizer);
-            toGmpExt(p[i][2], m_tri[i].p2(), quantizer);
+            p[i][0] = ExteriorCalculusR4::GMPExt4_1( m_tri[i].p0(), quantizer);
+            p[i][1] = ExteriorCalculusR4::GMPExt4_1( m_tri[i].p1(), quantizer);
+            p[i][2] = ExteriorCalculusR4::GMPExt4_1( m_tri[i].p2(), quantizer);
 
-            GmpExt4_2 temp;
-
-            join(temp, p[i][0], p[i][1]);
-            join(t[i], temp, p[i][2]);
+            ExteriorCalculusR4::GMPExt4_2 temp( p[i][0].join( p[i][1] ) );
+            t[i] = temp.join( p[i][2] );
         }
 
         // compute the point of intersection
-        GmpExt4_1 pisct;
+        ExteriorCalculusR4::GMPExt4_1 pisct(( t[0].meet( t[1] ) ).meet( t[2] ));
 
-        {
-            GmpExt4_2 temp;
-
-            meet(temp, t[0], t[1]);
-            meet(pisct, temp, t[2]);
-        }
+//        {
+//            ExteriorCalculusR4::GMPExt4_2 temp( t[0].meet( t[1] ) );
+//
+//            pisct = ( t[0].meet( t[1] ) ).meet( t[2] );
+//        }
 
         // convert to double
 
@@ -696,13 +656,13 @@ namespace Cork::Empty3d
         return result;
     }
 
-    Cork::Math::Vector3D coordsExact(const GMPExt4::GmpExt4_2& edge, const GMPExt4::GmpExt4_3& triangle,
+    Cork::Math::Vector3D coordsExact(const ExteriorCalculusR4::GMPExt4_2& edge,
+                                     const ExteriorCalculusR4::GMPExt4_3& triangle,
                                      const Quantization::Quantizer& quantizer)
     {
         //	Compute the point of intersection
 
-        GmpExt4_1 pisct;
-        meet(pisct, edge, triangle);
+        ExteriorCalculusR4::GMPExt4_1 pisct( edge.meet( triangle ));
 
         //	Convert to double
 
@@ -712,19 +672,23 @@ namespace Cork::Empty3d
         return result;
     }
 
-    Cork::Math::Vector3D coordsExact(const GMPExt4::GmpExt4_3& triangle0, const GMPExt4::GmpExt4_3& triangle1,
-                                     const GMPExt4::GmpExt4_3& triangle2, const Quantization::Quantizer& quantizer)
+    Cork::Math::Vector3D coordsExact(const ExteriorCalculusR4::GMPExt4_3& triangle0,
+                                     const ExteriorCalculusR4::GMPExt4_3& triangle1,
+                                     const ExteriorCalculusR4::GMPExt4_3& triangle2,
+                                     const Quantization::Quantizer& quantizer)
     {
-
         // compute the point of intersection
-        GmpExt4_1 pisct;
+        ExteriorCalculusR4::GMPExt4_1 pisct( ( triangle0.meet( triangle1 ) ).meet( triangle2 ) );
 
-        {
-            GmpExt4_2 temp;
+//        {
+//            ExteriorCalculusR4::GMPExt4_2 temp;
 
-            meet(temp, triangle0, triangle1);
-            meet(pisct, temp, triangle2);
-        }
+//            meet(temp, triangle0, triangle1);
+//            meet(pisct, temp, triangle2);
+
+//            ExteriorCalculusR4::GMPExt4_2 temp( triangle0.meet( triangle1 ) );
+//            pisct = temp.meet( triangle2 );
+//        }
 
         // convert to double
 

@@ -49,10 +49,8 @@
 #include <iostream>
 #include <string>
 
-namespace FixInt
+namespace Cork::FixInt
 {
-    // static assertion using templates.  Usage:
-    //      ASSERT_STATIC< expr_to_assert >::test();
 
     template <bool test_val>
     struct ASSERT_STATIC
