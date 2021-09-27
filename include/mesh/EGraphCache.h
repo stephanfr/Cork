@@ -1,12 +1,12 @@
 // +-------------------------------------------------------------------------
 // | EGraphCache.h
-// | 
+// |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
 // | COPYRIGHT:
 // |    Copyright Gilbert Bernstein 2013
 // |    See the included COPYRIGHT file for further details.
-// |    
+// |
 // |    This file is part of the Cork library.
 // |
 // |    Cork is free software: you can redistribute it and/or modify
@@ -19,137 +19,77 @@
 // |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // |    GNU Lesser General Public License for more details.
 // |
-// |    You should have received a copy 
+// |    You should have received a copy
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
 #pragma once
 
-#include <vector>
-#include <deque>
-
 #include <boost/container/static_vector.hpp>
+#include <deque>
+#include <vector>
 
 #include "util/CachingFactory.h"
-#include "util/SparseVector.h"
 #include "util/ConstuctOnceResizeableVector.h"
-
-
+#include "util/SparseVector.h"
 
 namespace Cork
 {
+    //	The TIDs vector length never seems to go beyond 4 but I will double that just to be sure
+    //		as static vectors will return junk if they pass beyond their limit.
 
+#define EGRAPH_ENTRY_TIDS_VEC_LENGTH 8
 
-	//	The TIDs vector length never seems to go beyond 4 but I will double that just to be sure
-	//		as static vectors will return junk if they pass beyond their limit.
+    typedef boost::container::static_vector<IndexType, EGRAPH_ENTRY_TIDS_VEC_LENGTH> EGraphEntryTIDVector;
 
-	#define	EGRAPH_ENTRY_TIDS_VEC_LENGTH		8
+    class EGraphEntry : public SEFUtility::SparseVectorEntry
+    {
+       public:
+        EGraphEntry(IndexType index) : SEFUtility::SparseVectorEntry(index), m_vid(index) {}
 
-	typedef boost::container::static_vector<IndexType, EGRAPH_ENTRY_TIDS_VEC_LENGTH>		EGraphEntryTIDVector;
+        IndexType vid() const { return (m_vid); }
 
+        const EGraphEntryTIDVector& tids() const { return (m_tids); }
 
-	class EGraphEntry : public SEFUtility::SparseVectorEntry
-	{
-	public :
+        EGraphEntryTIDVector& tids() { return (m_tids); }
 
-		EGraphEntry( IndexType		index )
-			: SEFUtility::SparseVectorEntry( index ),
-			  m_vid( index )
-		{}
+        bool isIsct() const { return (m_isIsct); }
 
+        void setIsIsct(bool newValue) { m_isIsct = newValue; }
 
+       private:
+        IndexType m_vid;
+        EGraphEntryTIDVector m_tids;
+        bool m_isIsct;
+    };
 
-		IndexType						vid() const
-		{
-			return( m_vid );
-		}
+    class EGraphCache
+    {
+       public:
+        typedef SEFUtility::SparseVector<EGraphEntry, 10> EGraphSkeletonColumn;
+        typedef SEFUtility::ConstructOnceResizeableVector<EGraphSkeletonColumn> SkeletonColumnVector;
 
-		const EGraphEntryTIDVector&		tids() const
-		{
-			return( m_tids );
-		}
+        typedef SEFUtility::CachingFactory<SkeletonColumnVector> SkeletonColumnVectorFactory;
+        typedef SEFUtility::CachingFactory<SkeletonColumnVector>::UniquePtr SkeletonColumnVectorUniquePtr;
 
-		EGraphEntryTIDVector&			tids()
-		{
-			return( m_tids );
-		}
+        EGraphCache() : m_skeletonPtr(SkeletonColumnVectorFactory::GetInstance()), m_skeleton(*m_skeletonPtr) {}
 
-		bool							isIsct() const
-		{
-			return( m_isIsct );
-		}
+        ~EGraphCache() {}
 
-		void							setIsIsct( bool		newValue )
-		{
-			m_isIsct = newValue;
-		}
+        void resize(size_t newSize) { m_skeleton.resize(newSize); }
 
+        const SkeletonColumnVector& columns() const { return (m_skeleton); }
 
-	private :
+        SkeletonColumnVector& columns() { return (m_skeleton); }
 
-		IndexType					m_vid;
-		EGraphEntryTIDVector		m_tids;
-		bool						m_isIsct;			
-	};
+        EGraphSkeletonColumn& operator[](IndexType index) { return (m_skeleton[index]); }
 
+        const EGraphSkeletonColumn& operator[](IndexType index) const { return (m_skeleton[index]); }
 
+       private:
+        SkeletonColumnVectorUniquePtr m_skeletonPtr;
+        SkeletonColumnVector& m_skeleton;
+    };
 
-	class EGraphCache
-	{
-
-	public :
-
-		typedef SEFUtility::SparseVector<EGraphEntry, 10>							EGraphSkeletonColumn;
-		typedef SEFUtility::ConstructOnceResizeableVector<EGraphSkeletonColumn>		SkeletonColumnVector;
-
-		typedef SEFUtility::CachingFactory<SkeletonColumnVector>					SkeletonColumnVectorFactory;
-		typedef SEFUtility::CachingFactory<SkeletonColumnVector>::UniquePtr			SkeletonColumnVectorUniquePtr;
-
-
-		EGraphCache()
-			: m_skeletonPtr( SkeletonColumnVectorFactory::GetInstance() ),
-			  m_skeleton( *m_skeletonPtr )
-		{}
-
-		~EGraphCache()
-		{}
-
-
-
-		void							resize( size_t		newSize )
-		{
-			m_skeleton.resize( newSize );
-		}
-
-
-		const SkeletonColumnVector&		columns() const
-		{
-			return( m_skeleton );
-		}
-
-		SkeletonColumnVector&			columns()
-		{
-			return( m_skeleton );
-		}
-
-		EGraphSkeletonColumn&			operator[]( IndexType		index )
-		{
-			return( m_skeleton[index] );
-		}
-
-		const EGraphSkeletonColumn&		operator[]( IndexType		index ) const
-		{
-			return( m_skeleton[index] );
-		}
-
-
-	private :
-
-		SkeletonColumnVectorUniquePtr		m_skeletonPtr;
-		SkeletonColumnVector&				m_skeleton;
-	};
-
-}	//	namespace Cork
-
-
+}  // namespace Cork

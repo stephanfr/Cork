@@ -76,9 +76,9 @@ namespace Cork
 
         void setRef(IndexType newValue) { m_ref = newValue; }
 
-        const Cork::Math::Vector3D* quantizedValue() const { return (m_data); }
+        const Math::Vector3D* quantizedValue() const { return (m_data); }
 
-        void setQuantizedValue(Cork::Math::Vector3D* newValue) { m_data = newValue; }
+        void setQuantizedValue(Math::Vector3D* newValue) { m_data = newValue; }
 
         void addTriangle(TopoTri& triangle) { m_tris.insert(&triangle); }
 
@@ -92,7 +92,7 @@ namespace Cork
 
        private:
         IndexType m_ref;               // index to actual data
-        Cork::Math::Vector3D* m_data;  // algorithm specific handle
+        Math::Vector3D* m_data;  // algorithm specific handle
 
         TopoTrianglePointerList m_tris;  // triangles this vertex is incident on
         TopoEdgePointerList m_edges;     // edges this vertex is incident on
@@ -129,18 +129,18 @@ namespace Cork
 
         TopoTrianglePointerList& triangles() { return (m_tris); }
 
-        Cork::Math::BBox3D boundingBox() const
+        Math::BBox3D boundingBox() const
         {
-            const Cork::Math::Vector3D& p0 = *(m_verts[0]->quantizedValue());
-            const Cork::Math::Vector3D& p1 = *(m_verts[1]->quantizedValue());
+            const Math::Vector3D& p0 = *(m_verts[0]->quantizedValue());
+            const Math::Vector3D& p1 = *(m_verts[1]->quantizedValue());
 
-            return Cork::Math::BBox3D(p0.min(p1), p0.max(p1));
+            return Math::BBox3D(p0.min(p1), p0.max(p1));
         }
 
         NUMERIC_PRECISION length() const
         {
-            const Cork::Math::Vector3D& p0 = *(m_verts[0]->quantizedValue());
-            const Cork::Math::Vector3D& p1 = *(m_verts[1]->quantizedValue());
+            const Math::Vector3D& p0 = *(m_verts[0]->quantizedValue());
+            const Math::Vector3D& p1 = *(m_verts[1]->quantizedValue());
 
             return ((p0 - p1).len());
         }
@@ -241,18 +241,18 @@ namespace Cork
 #ifndef __AVX_AVAILABLE__
         //	Without SSE, the min/max computations as slow enough that caching the computed value is most efficient
 
-        const Cork::Math::BBox3D& boundingBox() const
+        const Math::BBox3D& boundingBox() const
         {
             if (m_boundingBox.has_value())
             {
                 return (m_boundingBox.value());
             }
 
-            const Cork::Math::Vector3D& p0 = *(m_verts[0]->quantizedValue());
-            const Cork::Math::Vector3D& p1 = *(m_verts[1]->quantizedValue());
-            const Cork::Math::Vector3D& p2 = *(m_verts[2]->quantizedValue());
+            const Math::Vector3D& p0 = *(m_verts[0]->quantizedValue());
+            const Math::Vector3D& p1 = *(m_verts[1]->quantizedValue());
+            const Math::Vector3D& p2 = *(m_verts[2]->quantizedValue());
 
-            const_cast<std::optional<Cork::Math::BBox3D>&>(m_boundingBox).emplace(p0.min(p1, p2), p0.max(p1, p2));
+            const_cast<std::optional<Math::BBox3D>&>(m_boundingBox).emplace(p0.min(p1, p2), p0.max(p1, p2));
 
             return (m_boundingBox.value());
         }
@@ -260,13 +260,13 @@ namespace Cork
         //	With SSE, the min/max functions and bounding box computation is quick enough that computing the
         //		value every time is actually most efficient.
 
-        const Cork::Math::BBox3D boundingBox() const
+        const Math::BBox3D boundingBox() const
         {
-            const Cork::Math::Vector3D& p0 = *(m_verts[0]->quantizedValue());
-            const Cork::Math::Vector3D& p1 = *(m_verts[1]->quantizedValue());
-            const Cork::Math::Vector3D& p2 = *(m_verts[2]->quantizedValue());
+            const Math::Vector3D& p0 = *(m_verts[0]->quantizedValue());
+            const Math::Vector3D& p1 = *(m_verts[1]->quantizedValue());
+            const Math::Vector3D& p2 = *(m_verts[2]->quantizedValue());
 
-            return (Cork::Math::BBox3D(p0.min(p1, p2), p0.max(p1, p2)));
+            return (Math::BBox3D(p0.min(p1, p2), p0.max(p1, p2)));
         }
 #endif
 
@@ -441,7 +441,7 @@ namespace Cork
         std::array<TopoEdge*, 3> m_edges;  // edges of this triangle opposite to the given vertex
 
 #ifndef __AVX_AVAILABLE__
-        std::optional<Cork::Math::BBox3D> m_boundingBox;
+        std::optional<Math::BBox3D> m_boundingBox;
 #endif
     };
 

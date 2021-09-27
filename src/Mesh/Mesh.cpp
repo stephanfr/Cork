@@ -32,9 +32,9 @@
 #include "cork.h"
 #include "intersection/gmpext4.h"
 #include "intersection/unsafe_ray_triangle_intersection.h"
-#include "mesh/TopoCache.h"
-#include "mesh/IntersectionProblem.h"
 #include "mesh/EGraphCache.h"
+#include "mesh/IntersectionProblem.h"
+#include "mesh/TopoCache.h"
 #include "tbb/tbb.h"
 #include "util/CachingFactory.h"
 #include "util/SystemStats.h"
@@ -45,13 +45,12 @@ namespace Cork
 {
     using namespace Intersection;
 
-    inline double triArea(const Cork::Math::Vector3D& a, const Cork::Math::Vector3D& b, const Cork::Math::Vector3D& c)
+    inline double triArea(const Math::Vector3D& a, const Math::Vector3D& b, const Math::Vector3D& c)
     {
         return ((b - a).cross(c - a).len());
     }
 
-    inline double triAreaSquared(const Cork::Math::Vector3D& a, const Cork::Math::Vector3D& b,
-                                 const Cork::Math::Vector3D& c)
+    inline double triAreaSquared(const Math::Vector3D& a, const Math::Vector3D& b, const Math::Vector3D& c)
     {
         return ((b - a).cross(c - a).len_squared());
     }
@@ -67,7 +66,7 @@ namespace Cork
 
         Mesh(const Mesh& src, const SolverControlBlock controlBlock) : MeshBase(src, controlBlock){};
 
-        explicit Mesh(const Cork::TriangleMesh& inputMesh);
+        explicit Mesh(const TriangleMesh& inputMesh);
 
         virtual ~Mesh();
 
@@ -149,7 +148,7 @@ namespace Cork
 
         bool isInside(IndexType tid, uint32_t operand);
 
-        void RayTriangleIntersection(const CorkTriangle& tri, Cork::Math::Ray3D& ray, long& winding);
+        void RayTriangleIntersection(const CorkTriangle& tri, Math::Ray3D& ray, long& winding);
     };
 
     inline void Mesh::for_ecache(EGraphCache& ecache, int numThreads,
@@ -197,7 +196,7 @@ namespace Cork
     {
         // find the point to trace outward from...
 
-        Cork::Math::Vector3D p(m_verts[m_tris[tid].a()]);
+        Math::Vector3D p(m_verts[m_tris[tid].a()]);
 
         p += m_verts[m_tris[tid].b()];
         p += m_verts[m_tris[tid].c()];
@@ -205,7 +204,7 @@ namespace Cork
 
         // ok, we've got the point, now let's pick a direction
 
-        Cork::Math::Ray3DWithInverseDirection directionRay(p, Cork::Math::Vector3D::randomVector(0.5, 1.5));
+        Math::Ray3DWithInverseDirection directionRay(p, Math::Vector3D::randomVector(0.5, 1.5));
 
         long winding = 0;
 
@@ -224,8 +223,8 @@ namespace Cork
 
             //	Check the bounding box intersection first
 
-            Cork::Math::BBox3D boundingBox(m_verts[tri.a()].min(m_verts[tri.b()], m_verts[tri.c()]),
-                                           m_verts[tri.a()].max(m_verts[tri.b()], m_verts[tri.c()]));
+            Math::BBox3D boundingBox(m_verts[tri.a()].min(m_verts[tri.b()], m_verts[tri.c()]),
+                                     m_verts[tri.a()].max(m_verts[tri.b()], m_verts[tri.c()]));
 
             if (!boundingBox.intersects(directionRay))
             {
@@ -241,7 +240,7 @@ namespace Cork
         return (winding > 0);
     }
 
-    inline void Mesh::RayTriangleIntersection(const CorkTriangle& tri, Cork::Math::Ray3D& r, long& winding)
+    inline void Mesh::RayTriangleIntersection(const CorkTriangle& tri, Math::Ray3D& r, long& winding)
     {
         NUMERIC_PRECISION flip = 1.0;
 
@@ -249,9 +248,9 @@ namespace Cork
         IndexType b = tri.b();
         IndexType c = tri.c();
 
-        Cork::Math::Vector3D va = m_verts[a];
-        Cork::Math::Vector3D vb = m_verts[b];
-        Cork::Math::Vector3D vc = m_verts[c];
+        Math::Vector3D va = m_verts[a];
+        Math::Vector3D vb = m_verts[b];
+        Math::Vector3D vc = m_verts[c];
 
         // normalize vertex order (to prevent leaks)
 
@@ -278,7 +277,7 @@ namespace Cork
 
         if (CheckForRayTriangleIntersection(r, va, vb, vc))
         {
-            Cork::Math::Vector3D normal = flip * (vb - va).cross(vc - va);
+            Math::Vector3D normal = flip * (vb - va).cross(vc - va);
 
             if (normal.dot(r.direction()) > 0.0)
             {
@@ -295,14 +294,14 @@ namespace Cork
     //	Constructors and assignment operators
     //
 
-    Mesh::Mesh(const Cork::TriangleMesh& inputMesh)
+    Mesh::Mesh(const TriangleMesh& inputMesh)
     {
         m_tris.reserve(inputMesh.numTriangles());
         m_verts.reserve(inputMesh.numVertices());
 
         //	Start by copying the vertices.
 
-        for (Cork::Vertex currentVertex : inputMesh.vertices())
+        for (Vertex currentVertex : inputMesh.vertices())
         {
             m_verts.emplace_back(currentVertex.x(), currentVertex.y(), currentVertex.z());
         }
@@ -414,13 +413,14 @@ namespace Cork
 
         Quantization::Quantizer::GetQuantizerResult get_quantizer_result = getQuantizer();
 
-        if (!get_quantizer_result.succeeded() )
+        if (!get_quantizer_result.succeeded())
         {
-            return (SetupBooleanProblemResult::failure( get_quantizer_result, SetupBooleanProblemResultCodes::QUANTIZER_CREATION_FAILED,
-                                                       "Failed to create quantizer" ));
+            return (SetupBooleanProblemResult::failure(get_quantizer_result,
+                                                       SetupBooleanProblemResultCodes::QUANTIZER_CREATION_FAILED,
+                                                       "Failed to create quantizer"));
         }
 
-        Quantization::Quantizer     quantizer( get_quantizer_result.return_value() );
+        Quantization::Quantizer quantizer(get_quantizer_result.return_value());
 
         //	Find intersections and then resolve them.  We might have to repurturb if finding and resolving fails.
         //		We can repurturb until we run out of perturbation resolution.
@@ -806,9 +806,9 @@ namespace Cork
         {
             currentTid = trisInComponent[i];
 
-            const Cork::Math::Vector3D& va = m_verts[m_tris[currentTid].a()];
-            const Cork::Math::Vector3D& vb = m_verts[m_tris[currentTid].b()];
-            const Cork::Math::Vector3D& vc = m_verts[m_tris[currentTid].c()];
+            const Math::Vector3D& va = m_verts[m_tris[currentTid].a()];
+            const Math::Vector3D& vb = m_verts[m_tris[currentTid].b()];
+            const Math::Vector3D& vc = m_verts[m_tris[currentTid].c()];
 
             double area =
                 triAreaSquared(va, vb, vc);  //	We don't need the square root, we just want the biggest surface area
@@ -879,7 +879,7 @@ namespace Cork
 
         //		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
 
-        SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Cork::Mesh&>(rhs));
+        SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Mesh&>(rhs));
 
         if (!result.succeeded())
         {
@@ -931,7 +931,7 @@ namespace Cork
 
         //		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
 
-        SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Cork::Mesh&>(rhs));
+        SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Mesh&>(rhs));
 
         if (!result.succeeded())
         {
@@ -987,7 +987,7 @@ namespace Cork
 
         //		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
 
-        SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Cork::Mesh&>(rhs));
+        SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Mesh&>(rhs));
 
         if (!result.succeeded())
         {
@@ -1041,7 +1041,7 @@ namespace Cork
 
         //		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
 
-        SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Cork::Mesh&>(rhs));
+        SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Mesh&>(rhs));
 
         if (!result.succeeded())
         {

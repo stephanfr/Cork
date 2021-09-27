@@ -36,14 +36,14 @@ namespace Cork::Statistics
     {
        public:
         GeometricStatistics(size_t numVertices, size_t numTriangles, double area, double volume, double minEdgeLength,
-                            double maxEdgeLength, const Cork::Math::BBox3D& boundingBox)
+                            double maxEdgeLength, const Math::BBox3D& boundingBox)
             : m_numVertices(numVertices),
               m_numTriangles(numTriangles),
               m_area(area),
               m_volume(volume),
               m_minEdgeLength(minEdgeLength),
               m_maxEdgeLength(maxEdgeLength),
-              m_boundingBox(std::make_unique<Cork::Math::BBox3D>(boundingBox))
+              m_boundingBox(std::make_unique<Math::BBox3D>(boundingBox))
         {
         }
 
@@ -51,7 +51,7 @@ namespace Cork::Statistics
 
         size_t numTriangles() const { return (m_numTriangles); }
 
-        Cork::Math::BBox3D boundingBox() const { return (*m_boundingBox); }
+        Math::BBox3D boundingBox() const { return (*m_boundingBox); }
 
         double area() const { return (m_area); }
 
@@ -68,13 +68,13 @@ namespace Cork::Statistics
         double m_volume;
         double m_minEdgeLength;
         double m_maxEdgeLength;
-        std::unique_ptr<Cork::Math::BBox3D> m_boundingBox;
+        std::unique_ptr<Math::BBox3D> m_boundingBox;
     };
 
     class TopologicalStatistics
     {
        public:
-        typedef std::vector<Cork::Math::EdgeBase> EdgeVector;
+        typedef std::vector<Math::EdgeBase> EdgeVector;
 
         TopologicalStatistics(size_t numEdges, size_t numBodies, size_t non2ManifoldEdges)
             : m_numEdges(numEdges), m_numBodies(numBodies), m_non2ManifoldEdges(non2ManifoldEdges)

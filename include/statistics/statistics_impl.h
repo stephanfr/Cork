@@ -36,8 +36,7 @@
 
 namespace Cork::Statistics
 {
-    static const Cork::Math::BBox3D gEmptyBoundingBox(Cork::Math::Vector3D(0.0, 0.0, 0.0),
-                                                      Cork::Math::Vector3D(0.0, 0.0, 0.0));
+    static const Math::BBox3D gEmptyBoundingBox(Math::Vector3D(0.0, 0.0, 0.0), Math::Vector3D(0.0, 0.0, 0.0));
 
     class GeometricStatisticsEngine
     {
@@ -60,22 +59,22 @@ namespace Cork::Statistics
         {
         }
 
-        void AddTriangle(const Cork::Math::TriangleByVerticesBase& nextTriangle)
+        void AddTriangle(const Math::TriangleByVerticesBase& nextTriangle)
         {
             //	Get the edges
 
             if ((m_propertiesToCompute & (PropertiesToCompute::AREA_AND_VOLUME | PropertiesToCompute::EDGE_LENGTHS)) !=
                 0)
             {
-                Cork::Math::Vector3D edgeAB = nextTriangle.edgeAB();
-                Cork::Math::Vector3D edgeAC = nextTriangle.edgeAC();
-                Cork::Math::Vector3D edgeBC = nextTriangle.edgeBC();
+                Math::Vector3D edgeAB = nextTriangle.edgeAB();
+                Math::Vector3D edgeAC = nextTriangle.edgeAC();
+                Math::Vector3D edgeBC = nextTriangle.edgeBC();
 
                 if ((m_propertiesToCompute & PropertiesToCompute::AREA_AND_VOLUME) != 0)
                 {
                     //	Add the incremental area of this triangle
 
-                    Cork::Math::Vector3D ABcrossAC = edgeAB.cross(edgeAC);
+                    Math::Vector3D ABcrossAC = edgeAB.cross(edgeAC);
 
                     m_area += ABcrossAC.len() / 2;
 
@@ -99,8 +98,8 @@ namespace Cork::Statistics
 
             if ((m_propertiesToCompute & PropertiesToCompute::BOUNDING_BOX) != 0)
             {
-                m_boundingBox.convex(Cork::Math::BBox3D(nextTriangle[0].min(nextTriangle[1], nextTriangle[2]),
-                                                        nextTriangle[0].max(nextTriangle[1], nextTriangle[2])));
+                m_boundingBox.convex(Math::BBox3D(nextTriangle[0].min(nextTriangle[1], nextTriangle[2]),
+                                                  nextTriangle[0].max(nextTriangle[1], nextTriangle[2])));
             }
 
             //	Increment the triangle count
@@ -110,7 +109,7 @@ namespace Cork::Statistics
 
         size_t numTriangles() const { return (m_numTriangles); }
 
-        const Cork::Math::BBox3D& boundingBox() const
+        const Math::BBox3D& boundingBox() const
         {
             //	Special case when there are no triangles
 
@@ -135,7 +134,7 @@ namespace Cork::Statistics
 
         size_t m_numTriangles;
 
-        Cork::Math::BBox3D m_boundingBox;
+        Math::BBox3D m_boundingBox;
 
         double m_area;
         double m_volume;
@@ -159,7 +158,7 @@ namespace Cork::Statistics
             vertex_associations_.clear();
         }
 
-        void AddTriangle(const Cork::Math::TriangleByIndicesBase& nextTriangle)
+        void AddTriangle(const Math::TriangleByIndicesBase& nextTriangle)
         {
             EdgeSet::iterator itrEdgeAB = edges_.emplace(nextTriangle.a(), nextTriangle.b()).first;
             EdgeSet::iterator itrEdgeAC = edges_.emplace(nextTriangle.a(), nextTriangle.c()).first;
@@ -189,24 +188,24 @@ namespace Cork::Statistics
 
                     if (edge.numIncidences() <= 1)
                     {
-                        hole_edges_.push_back(dynamic_cast<const Cork::Math::EdgeBase&>(edge));
+                        hole_edges_.push_back(dynamic_cast<const Math::EdgeBase&>(edge));
                     }
                     else
                     {
-                        self_intersecting_edges_.push_back(dynamic_cast<const Cork::Math::EdgeBase&>(edge));
+                        self_intersecting_edges_.push_back(dynamic_cast<const Math::EdgeBase&>(edge));
                     }
                 }
             }
 
-            return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_ ));
+            return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_));
         }
 
        private:
-        class EdgeAndIncidence : public Cork::Math::EdgeBase
+        class EdgeAndIncidence : public Math::EdgeBase
         {
            public:
-            EdgeAndIncidence(const Cork::Math::IndexType a, const Cork::Math::IndexType b)
-                : Cork::Math::EdgeBase(a, b), m_numIncidences(0)
+            EdgeAndIncidence(const Math::IndexType a, const Math::IndexType b)
+                : Math::EdgeBase(a, b), m_numIncidences(0)
             {
             }
 
@@ -218,28 +217,25 @@ namespace Cork::Statistics
 
             struct HashFunction
             {
-                std::size_t operator()(const Cork::Math::EdgeBase& k) const
-                {
-                    return (k.vertexA() * 10000019 ^ k.vertexB());
-                }
+                std::size_t operator()(const Math::EdgeBase& k) const { return (k.vertexA() * 10000019 ^ k.vertexB()); }
             };
 
            private:
             int m_numIncidences;
         };
 
-        using AssociatedVertexVector = boost::container::small_vector<Cork::Math::IndexType, 100>;
+        using AssociatedVertexVector = boost::container::small_vector<Math::IndexType, 100>;
 
         using EdgeSet = std::unordered_set<EdgeAndIncidence, EdgeAndIncidence::HashFunction>;
-        using VertexAssociations = std::unordered_map<Cork::Math::IndexType, AssociatedVertexVector>;
+        using VertexAssociations = std::unordered_map<Math::IndexType, AssociatedVertexVector>;
 
         int num_bodys_;
         int num_non_2_manifold_;
 
         EdgeSet edges_;
 
-        std::vector<Cork::Math::EdgeBase> hole_edges_;
-        std::vector<Cork::Math::EdgeBase> self_intersecting_edges_;
+        std::vector<Math::EdgeBase> hole_edges_;
+        std::vector<Math::EdgeBase> self_intersecting_edges_;
 
         VertexAssociations vertex_associations_;
     };

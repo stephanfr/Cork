@@ -32,7 +32,7 @@
 
 namespace Cork::Empty3d
 {
-    inline void toVec3d(Cork::Math::Vector3D& out, const ExteriorCalculusR4::GMPExt4_1& in,
+    inline void toVec3d(Math::Vector3D& out, const ExteriorCalculusR4::GMPExt4_1& in,
                         const Quantization::Quantizer& quantizer)
     {
         std::array<double, 4> tmp{in.e0().get_d(), in.e1().get_d(), in.e2().get_d(), in.e3().get_d()};
@@ -91,7 +91,7 @@ namespace Cork::Empty3d
                 (e_ext2.inner(a_e0) < 0.0) || (e_ext2.inner(a_e1) < 0.0));
     }
 
-    inline Cork::Math::Vector3D TriEdgeIn::coords() const
+    inline Math::Vector3D TriEdgeIn::coords() const
     {
         ExteriorCalculusR4::Ext4_2 temp_e2(tri.p0().join(tri.p1()));
         ExteriorCalculusR4::Ext4_3 t_ext3(temp_e2.join(tri.p2()));
@@ -107,7 +107,7 @@ namespace Cork::Empty3d
         // no need to adjust for negative w-coordinate.
         // will drop out in divide.
 
-        Cork::Math::Vector3D result(p_isct);
+        Math::Vector3D result(p_isct);
 
         return result;
     }
@@ -329,7 +329,7 @@ namespace Cork::Empty3d
         //        }
     }
 
-    Cork::Math::Vector3D TriEdgeIn::coordsExact(const Quantization::Quantizer& quantizer) const
+    Math::Vector3D TriEdgeIn::coordsExact(const Quantization::Quantizer& quantizer) const
     {
         // pull in points
 
@@ -345,15 +345,15 @@ namespace Cork::Empty3d
 
         ExteriorCalculusR4::GMPExt4_2 e(ep[0].join(ep[1]));
 
-        ExteriorCalculusR4::GMPExt4_2 temp_up( tp[0].join( tp[1]) );
-        ExteriorCalculusR4::GMPExt4_3 t( temp_up.join( tp[2])  );
+        ExteriorCalculusR4::GMPExt4_2 temp_up(tp[0].join(tp[1]));
+        ExteriorCalculusR4::GMPExt4_3 t(temp_up.join(tp[2]));
 
         // compute the point of intersection
-        ExteriorCalculusR4::GMPExt4_1 pisct( e.meet( t ) );
+        ExteriorCalculusR4::GMPExt4_1 pisct(e.meet(t));
 
         // convert to double
 
-        Cork::Math::Vector3D result;
+        Math::Vector3D result;
         toVec3d(result, pisct, quantizer);
 
         return (result);
@@ -413,7 +413,7 @@ namespace Cork::Empty3d
         return (false);
     }
 
-    Cork::Math::Vector3D TriTriTriIn::coords() const
+    Math::Vector3D TriTriTriIn::coords() const
     {
         // construct the triangles
         std::array<ExteriorCalculusR4::Ext4_3, 3> t_ext3s;
@@ -432,7 +432,7 @@ namespace Cork::Empty3d
         // no need to adjust for negative w-coordinate.
         // will come out in the divide.
 
-        Cork::Math::Vector3D result(p_isct);
+        Math::Vector3D result(p_isct);
         //        toVec3d(result, p_isct);
 
         return (result);
@@ -624,75 +624,73 @@ namespace Cork::Empty3d
         //        }
     }
 
-    Cork::Math::Vector3D TriTriTriIn::coordsExact(const Quantization::Quantizer& quantizer) const
+    Math::Vector3D TriTriTriIn::coordsExact(const Quantization::Quantizer& quantizer) const
     {
         std::array<std::array<ExteriorCalculusR4::GMPExt4_1, 3>, 3> p;
         std::array<ExteriorCalculusR4::GMPExt4_3, 3> t;
 
         for (uint i = 0; i < 3; i++)
         {
-            p[i][0] = ExteriorCalculusR4::GMPExt4_1( m_tri[i].p0(), quantizer);
-            p[i][1] = ExteriorCalculusR4::GMPExt4_1( m_tri[i].p1(), quantizer);
-            p[i][2] = ExteriorCalculusR4::GMPExt4_1( m_tri[i].p2(), quantizer);
+            p[i][0] = ExteriorCalculusR4::GMPExt4_1(m_tri[i].p0(), quantizer);
+            p[i][1] = ExteriorCalculusR4::GMPExt4_1(m_tri[i].p1(), quantizer);
+            p[i][2] = ExteriorCalculusR4::GMPExt4_1(m_tri[i].p2(), quantizer);
 
-            ExteriorCalculusR4::GMPExt4_2 temp( p[i][0].join( p[i][1] ) );
-            t[i] = temp.join( p[i][2] );
+            ExteriorCalculusR4::GMPExt4_2 temp(p[i][0].join(p[i][1]));
+            t[i] = temp.join(p[i][2]);
         }
 
         // compute the point of intersection
-        ExteriorCalculusR4::GMPExt4_1 pisct(( t[0].meet( t[1] ) ).meet( t[2] ));
+        ExteriorCalculusR4::GMPExt4_1 pisct((t[0].meet(t[1])).meet(t[2]));
 
-//        {
-//            ExteriorCalculusR4::GMPExt4_2 temp( t[0].meet( t[1] ) );
-//
-//            pisct = ( t[0].meet( t[1] ) ).meet( t[2] );
-//        }
+        //        {
+        //            ExteriorCalculusR4::GMPExt4_2 temp( t[0].meet( t[1] ) );
+        //
+        //            pisct = ( t[0].meet( t[1] ) ).meet( t[2] );
+        //        }
 
         // convert to double
 
-        Cork::Math::Vector3D result;
+        Math::Vector3D result;
         toVec3d(result, pisct, quantizer);
 
         return result;
     }
 
-    Cork::Math::Vector3D coordsExact(const ExteriorCalculusR4::GMPExt4_2& edge,
-                                     const ExteriorCalculusR4::GMPExt4_3& triangle,
-                                     const Quantization::Quantizer& quantizer)
+    Math::Vector3D coordsExact(const ExteriorCalculusR4::GMPExt4_2& edge, const ExteriorCalculusR4::GMPExt4_3& triangle,
+                               const Quantization::Quantizer& quantizer)
     {
         //	Compute the point of intersection
 
-        ExteriorCalculusR4::GMPExt4_1 pisct( edge.meet( triangle ));
+        ExteriorCalculusR4::GMPExt4_1 pisct(edge.meet(triangle));
 
         //	Convert to double
 
-        Cork::Math::Vector3D result;
+        Math::Vector3D result;
         toVec3d(result, pisct, quantizer);
 
         return result;
     }
 
-    Cork::Math::Vector3D coordsExact(const ExteriorCalculusR4::GMPExt4_3& triangle0,
-                                     const ExteriorCalculusR4::GMPExt4_3& triangle1,
-                                     const ExteriorCalculusR4::GMPExt4_3& triangle2,
-                                     const Quantization::Quantizer& quantizer)
+    Math::Vector3D coordsExact(const ExteriorCalculusR4::GMPExt4_3& triangle0,
+                               const ExteriorCalculusR4::GMPExt4_3& triangle1,
+                               const ExteriorCalculusR4::GMPExt4_3& triangle2, const Quantization::Quantizer& quantizer)
     {
         // compute the point of intersection
-        ExteriorCalculusR4::GMPExt4_1 pisct( ( triangle0.meet( triangle1 ) ).meet( triangle2 ) );
+        ExteriorCalculusR4::GMPExt4_1 pisct((triangle0.meet(triangle1)).meet(triangle2));
 
-//        {
-//            ExteriorCalculusR4::GMPExt4_2 temp;
+        //        {
+        //            ExteriorCalculusR4::GMPExt4_2 temp;
 
-//            meet(temp, triangle0, triangle1);
-//            meet(pisct, temp, triangle2);
+        //            meet(temp, triangle0, triangle1);
+        //            meet(pisct, temp, triangle2);
 
-//            ExteriorCalculusR4::GMPExt4_2 temp( triangle0.meet( triangle1 ) );
-//            pisct = temp.meet( triangle2 );
-//        }
+        //            ExteriorCalculusR4::GMPExt4_2 temp( triangle0.meet( triangle1 ) );
+        //            pisct = temp.meet( triangle2 );
+        //        }
 
         // convert to double
 
-        Cork::Math::Vector3D result;
+        Math::Vector3D result;
         toVec3d(result, pisct, quantizer);
 
         return result;

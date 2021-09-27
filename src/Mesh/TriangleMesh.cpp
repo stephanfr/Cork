@@ -42,10 +42,8 @@ namespace Cork
     {
        public:
         TriangleMeshImpl(std::shared_ptr<const std::vector<TriangleByIndices>>& triangles,
-                         std::shared_ptr<VertexVector>& vertices, const Cork::Math::BBox3D& boundingBox)
-            : m_triangles(triangles),
-              m_vertices(vertices),
-              m_boundingBox(std::make_unique<Cork::Math::BBox3D>(boundingBox))
+                         std::shared_ptr<VertexVector>& vertices, const Math::BBox3D& boundingBox)
+            : m_triangles(triangles), m_vertices(vertices), m_boundingBox(std::make_unique<Math::BBox3D>(boundingBox))
         {
         }
 
@@ -63,7 +61,7 @@ namespace Cork
                                        (*m_vertices)[triangleByIndices[2]]));
         }
 
-        [[nodiscard]] const Cork::Math::BBox3D& boundingBox() const final { return (*m_boundingBox); }
+        [[nodiscard]] const Math::BBox3D& boundingBox() const final { return (*m_boundingBox); }
 
         [[nodiscard]] Statistics::GeometricStatistics ComputeGeometricStatistics() const final
         {
@@ -96,7 +94,7 @@ namespace Cork
         std::shared_ptr<const std::vector<TriangleByIndices>> m_triangles;
         std::shared_ptr<VertexVector> m_vertices;
 
-        std::unique_ptr<Cork::Math::BBox3D> m_boundingBox;
+        std::unique_ptr<Math::BBox3D> m_boundingBox;
     };
 
     //
@@ -118,9 +116,9 @@ namespace Cork
         IncrementalVertexIndexTriangleMeshBuilderImpl(size_t numVertices, size_t numTriangles)
             : m_indexedVertices(new VertexVector()),
               m_triangles(new std::vector<TriangleByIndices>()),
-              m_boundingBox(std::make_unique<Cork::Math::BBox3D>(
-                  Cork::Math::Vector3D(NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX),
-                  Cork::Math::Vector3D(NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN)))
+              m_boundingBox(std::make_unique<Math::BBox3D>(
+                  Math::Vector3D(NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX),
+                  Math::Vector3D(NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN)))
         {
             if (numVertices > 0)
             {
@@ -134,7 +132,7 @@ namespace Cork
             }
         };
 
-        ~IncrementalVertexIndexTriangleMeshBuilderImpl() = default;		//	NOLINT
+        ~IncrementalVertexIndexTriangleMeshBuilderImpl() = default;  //	NOLINT
 
         IncrementalVertexIndexTriangleMeshBuilderImpl() = delete;
         IncrementalVertexIndexTriangleMeshBuilderImpl(const IncrementalVertexIndexTriangleMeshBuilderImpl&) = delete;
@@ -145,14 +143,14 @@ namespace Cork
         IncrementalVertexIndexTriangleMeshBuilderImpl& operator=(
             const IncrementalVertexIndexTriangleMeshBuilderImpl&&) = delete;
 
-        [[nodiscard]] const Cork::Math::BBox3D& boundingBox() const { return (*m_boundingBox); }
+        [[nodiscard]] const Math::BBox3D& boundingBox() const { return (*m_boundingBox); }
 
         [[nodiscard]] size_t num_vertices() const final { return m_indexedVertices->size(); }
 
         VertexIndexType AddVertex(const Vertex& vertexToAdd) final
         {
             //	Copy on write for the vertex structure.  We need to duplicate the vector if we no longer hold the
-            //pointer uniquely.
+            // pointer uniquely.
 
             if (!m_indexedVertices.unique())
             {
@@ -195,7 +193,7 @@ namespace Cork
             }
 
             //	Copy on write for the triangle and edge incidence structures.  We need to duplicate them if we no longer
-            //hold the pointers uniquely.
+            // hold the pointers uniquely.
 
             if (!m_triangles.unique())
             {
@@ -238,8 +236,8 @@ namespace Cork
                 std::max((NUMERIC_PRECISION)std::max(triByVerts[0].z(), std::max(triByVerts[1].z(), triByVerts[2].z())),
                          boundingBox().maxima().z());
 
-            m_boundingBox = std::make_unique<Cork::Math::BBox3D>(Cork::Math::Vector3D(minX, minY, minZ),
-                                                                 Cork::Math::Vector3D(maxX, maxY, maxZ));
+            m_boundingBox =
+                std::make_unique<Math::BBox3D>(Math::Vector3D(minX, minY, minZ), Math::Vector3D(maxX, maxY, maxZ));
 
             //	All is well if we made it here
 
@@ -254,8 +252,8 @@ namespace Cork
         }
 
        private:
-        typedef std::map<Cork::Math::Vertex3D, IndexType, Cork::Math::Vertex3DMapCompare,
-                         boost::alignment::aligned_allocator<Cork::Math::Vertex3D>>
+        typedef std::map<Math::Vertex3D, IndexType, Math::Vertex3DMapCompare,
+                         boost::alignment::aligned_allocator<Math::Vertex3D>>
             VertexIndexLookupMap;
 
         VertexIndexLookupMap m_vertexIndices;
@@ -264,7 +262,7 @@ namespace Cork
 
         std::shared_ptr<std::vector<TriangleByIndices>> m_triangles;
 
-        std::unique_ptr<Cork::Math::BBox3D> m_boundingBox;
+        std::unique_ptr<Math::BBox3D> m_boundingBox;
     };
 
     //

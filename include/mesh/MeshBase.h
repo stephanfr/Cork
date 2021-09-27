@@ -102,27 +102,26 @@ namespace Cork
         uint64_t m_endingVirtualMemorySizeInMB;
     };
 
-    class CorkTriangle : public Cork::Math::TriangleByIndicesBase
+    class CorkTriangle : public Math::TriangleByIndicesBase
     {
        public:
         CorkTriangle() {}
         /*
                 CorkTriangle( const CorkTriangle&		triangleToCopy )
-                    : Cork::Math::TriangleByIndicesBase( (const Cork::Math::TriangleByIndicesBase&)triangleToCopy ),
+                    : Math::TriangleByIndicesBase( (const Math::TriangleByIndicesBase&)triangleToCopy ),
                       m_boolAlgData( triangleToCopy.m_boolAlgData )
                 {
                     memcpy( &m_a, &triangleToCopy.m_a, sizeof( unsigned int ) * 3 );
                 }
         */
-        CorkTriangle(const Cork::TriangleByIndices& triangleToCopy, uint32_t boolAlgData)
-            : Cork::Math::TriangleByIndicesBase(triangleToCopy), m_boolAlgData(boolAlgData)
+        CorkTriangle(const TriangleByIndices& triangleToCopy, uint32_t boolAlgData)
+            : Math::TriangleByIndicesBase(triangleToCopy), m_boolAlgData(boolAlgData)
         {
         }
 
         const uint32_t boolAlgData() const { return (m_boolAlgData); }
 
         uint32_t& boolAlgData() { return (m_boolAlgData); }
-
 
         void flip() { std::swap(m_a, m_b); }
 
@@ -137,18 +136,18 @@ namespace Cork
         uint32_t m_boolAlgData;  // internal use by algorithm - value must be copied when the triangle is subdivided
     };
 
-    typedef Cork::Math::Vector3D CorkVertex;
+    typedef Math::Vector3D CorkVertex;
 
     class MeshBase
     {
        public:
         typedef std::vector<CorkTriangle> TriangleVector;
-        typedef Cork::Math::Vertex3DVector VertexVector;
+        typedef Math::Vertex3DVector VertexVector;
 
         MeshBase() {}
 
         MeshBase(const MeshBase& meshBaseToCopy, const SolverControlBlock& controlBlock)
-            : m_boundingBox( meshBaseToCopy.m_boundingBox ),
+            : m_boundingBox(meshBaseToCopy.m_boundingBox),
               m_tris(meshBaseToCopy.m_tris),
               m_verts(meshBaseToCopy.m_verts),
               m_controlBlock(controlBlock)
@@ -167,9 +166,9 @@ namespace Cork
 
         const VertexVector& vertices() const { return (m_verts); }
 
-        const Cork::Math::BBox3D& boundingBox() const { return  m_boundingBox; }
+        const Math::BBox3D& boundingBox() const { return m_boundingBox; }
 
-        const Cork::Quantization::Quantizer::GetQuantizerResult getQuantizer() const
+        const Quantization::Quantizer::GetQuantizerResult getQuantizer() const
         {
             //	Calibrate the quantization unit...
 
@@ -187,9 +186,9 @@ namespace Cork
 
             for (auto& currentTriangle : triangles())
             {
-                const Cork::Math::Vector3D& vert0(vertices()[currentTriangle.a()]);
-                const Cork::Math::Vector3D& vert1(vertices()[currentTriangle.b()]);
-                const Cork::Math::Vector3D& vert2(vertices()[currentTriangle.c()]);
+                const Math::Vector3D& vert0(vertices()[currentTriangle.a()]);
+                const Math::Vector3D& vert1(vertices()[currentTriangle.b()]);
+                const Math::Vector3D& vert2(vertices()[currentTriangle.c()]);
 
                 minEdgeLengthSquared =
                     std::min(minEdgeLengthSquared,
@@ -224,7 +223,7 @@ namespace Cork
         TriangleVector m_tris;
         VertexVector m_verts;
 
-        Cork::Math::BBox3D m_boundingBox;
+        Math::BBox3D m_boundingBox;
 
         std::optional<SolverControlBlock> m_controlBlock;
 

@@ -27,101 +27,103 @@
 
 #include "math/Ray3D.h"
 
-inline bool CheckForRayTriangleIntersection(Cork::Math::Ray3D& ray, Cork::Math::Vector3D& va, Cork::Math::Vector3D& vb,
-                                            Cork::Math::Vector3D& vc)
+namespace Cork
 {
-    // re-center the problem at the base point of the ray
-    va -= ray.origin();
-    vb -= ray.origin();
-    vc -= ray.origin();
-
-    // Then compute volumes of tetrahedra spanning
-    //  * the base point / ray direction line segment
-    //  * an edge of the triangle
-    // Keeping orientations in mind...
-
-    double volAB = determinant(va, vb, ray.direction());
-    double volBC = determinant(vb, vc, ray.direction());
-    double volCA = -determinant(va, vc, ray.direction());
-
-    // then also compute the volume of tet with the entire triangle as a face...
-
-    double volABC = determinant(va, vb, vc);
-
-    // if any of the signs of the edge tests
-    // disagree with the sign of the whole triangle, then
-    // the ray does not pass through the triangle
-
-    if ((volAB * volABC < 0) || (volBC * volABC < 0) || (volCA * volABC < 0))
+    inline bool CheckForRayTriangleIntersection(Math::Ray3D& ray, Math::Vector3D& va, Math::Vector3D& vb,
+                                                Math::Vector3D& vc)
     {
-        return (false);
+        // re-center the problem at the base point of the ray
+        va -= ray.origin();
+        vb -= ray.origin();
+        vc -= ray.origin();
+
+        // Then compute volumes of tetrahedra spanning
+        //  * the base point / ray direction line segment
+        //  * an edge of the triangle
+        // Keeping orientations in mind...
+
+        double volAB = determinant(va, vb, ray.direction());
+        double volBC = determinant(vb, vc, ray.direction());
+        double volCA = -determinant(va, vc, ray.direction());
+
+        // then also compute the volume of tet with the entire triangle as a face...
+
+        double volABC = determinant(va, vb, vc);
+
+        // if any of the signs of the edge tests
+        // disagree with the sign of the whole triangle, then
+        // the ray does not pass through the triangle
+
+        if ((volAB * volABC < 0) || (volBC * volABC < 0) || (volCA * volABC < 0))
+        {
+            return (false);
+        }
+
+        // otherwise, compute the t - value for the ray to intersect
+        // if this is negative, then the client can detect that the
+        // ray would have to travel backwards to hit the triangle in question.
+
+        double edgeSum = volAB + volBC + volCA;
+
+        if (edgeSum == 0)
+        {
+            return (false);
+        }
+
+        return ((NUMERIC_PRECISION)(volABC / edgeSum) > 0);
     }
 
-    // otherwise, compute the t - value for the ray to intersect
-    // if this is negative, then the client can detect that the
-    // ray would have to travel backwards to hit the triangle in question.
-
-    double edgeSum = volAB + volBC + volCA;
-
-    if (edgeSum == 0)
+    inline bool CheckForRayTriangleIntersectionWithPoint(Math::Ray3D& ray, Math::Vector3D& va, Math::Vector3D& vb,
+                                                         Math::Vector3D& vc, NUMERIC_PRECISION* t, Math::Vector3D* bary)
     {
-        return (false);
+        // re-center the problem at the base point of the ray
+        va -= ray.origin();
+        vb -= ray.origin();
+        vc -= ray.origin();
+
+        // Then compute volumes of tetrahedra spanning
+        //  * the base point / ray direction line segment
+        //  * an edge of the triangle
+        // Keeping orientations in mind...
+
+        double volAB = determinant(va, vb, ray.direction());
+        double volBC = determinant(vb, vc, ray.direction());
+        double volCA = -determinant(va, vc, ray.direction());
+
+        // then also compute the volume of tet with the entire triangle as a face...
+
+        double volABC = determinant(va, vb, vc);
+
+        // if any of the signs of the edge tests
+        // disagree with the sign of the whole triangle, then
+        // the ray does not pass through the triangle
+
+        if ((volAB * volABC < 0) || (volBC * volABC < 0) || (volCA * volABC < 0))
+        {
+            return (false);
+        }
+
+        // otherwise, compute the t - value for the ray to intersect
+        // if this is negative, then the client can detect that the
+        // ray would have to travel backwards to hit the triangle in question.
+
+        double edgeSum = volAB + volBC + volCA;
+
+        if (edgeSum == 0)
+        {
+            return (false);
+        }
+
+        *t = (NUMERIC_PRECISION)(volABC / (volAB + volBC + volCA));
+
+        if (*t <= 0)
+        {
+            return (false);
+        }
+
+        *bary = Math::Vector3D((NUMERIC_PRECISION)(volBC / edgeSum), (NUMERIC_PRECISION)(volCA / edgeSum),
+                               (NUMERIC_PRECISION)(volAB / edgeSum));
+
+        return (true);
     }
-
-    return ((NUMERIC_PRECISION)(volABC / edgeSum) > 0);
-}
-
-inline bool CheckForRayTriangleIntersectionWithPoint(Cork::Math::Ray3D& ray, Cork::Math::Vector3D& va,
-                                                     Cork::Math::Vector3D& vb, Cork::Math::Vector3D& vc,
-                                                     NUMERIC_PRECISION* t, Cork::Math::Vector3D* bary)
-{
-    // re-center the problem at the base point of the ray
-    va -= ray.origin();
-    vb -= ray.origin();
-    vc -= ray.origin();
-
-    // Then compute volumes of tetrahedra spanning
-    //  * the base point / ray direction line segment
-    //  * an edge of the triangle
-    // Keeping orientations in mind...
-
-    double volAB = determinant(va, vb, ray.direction());
-    double volBC = determinant(vb, vc, ray.direction());
-    double volCA = -determinant(va, vc, ray.direction());
-
-    // then also compute the volume of tet with the entire triangle as a face...
-
-    double volABC = determinant(va, vb, vc);
-
-    // if any of the signs of the edge tests
-    // disagree with the sign of the whole triangle, then
-    // the ray does not pass through the triangle
-
-    if ((volAB * volABC < 0) || (volBC * volABC < 0) || (volCA * volABC < 0))
-    {
-        return (false);
-    }
-
-    // otherwise, compute the t - value for the ray to intersect
-    // if this is negative, then the client can detect that the
-    // ray would have to travel backwards to hit the triangle in question.
-
-    double edgeSum = volAB + volBC + volCA;
-
-    if (edgeSum == 0)
-    {
-        return (false);
-    }
-
-    *t = (NUMERIC_PRECISION)(volABC / (volAB + volBC + volCA));
-
-    if (*t <= 0)
-    {
-        return (false);
-    }
-
-    *bary = Cork::Math::Vector3D((NUMERIC_PRECISION)(volBC / edgeSum), (NUMERIC_PRECISION)(volCA / edgeSum),
-                                 (NUMERIC_PRECISION)(volAB / edgeSum));
-
-    return (true);
-}
+}  // namespace Cork

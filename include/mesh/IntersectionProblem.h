@@ -1,12 +1,12 @@
 // +-------------------------------------------------------------------------
 // | IntersectionProblem.h
-// | 
+// |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
 // | COPYRIGHT:
 // |    Copyright Gilbert Bernstein 2013
 // |    See the included COPYRIGHT file for further details.
-// |    
+// |
 // |    This file is part of the Cork library.
 // |
 // |    Cork is free software: you can redistribute it and/or modify
@@ -19,74 +19,66 @@
 // |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // |    GNU Lesser General Public License for more details.
 // |
-// |    You should have received a copy 
+// |    You should have received a copy
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
 #pragma once
 
-
-
+#include "MeshBase.h"
 
 namespace Cork
 {
-	namespace Intersection
-	{
-		enum class AdjustPerturbationResultCodes { SUCCESS = 0, MAXIMUM_PERTURBATION_REACHED };
+    namespace Intersection
+    {
+        enum class AdjustPerturbationResultCodes
+        {
+            SUCCESS = 0,
+            MAXIMUM_PERTURBATION_REACHED
+        };
 
-		typedef SEFUtility::ResultWithReturnValue<AdjustPerturbationResultCodes, int>		AdjustPerturbationResult;
+        typedef SEFUtility::ResultWithReturnValue<AdjustPerturbationResultCodes, int> AdjustPerturbationResult;
 
+        class SelfIntersectionStats
+        {
+           public:
+            SelfIntersectionStats(long numSelfIntersections) : m_numSelfIntersections(numSelfIntersections) {}
 
-		class SelfIntersectionStats
-		{
-		public :
+            long numSelfIntersections() const { return (m_numSelfIntersections); }
 
-			SelfIntersectionStats( long		numSelfIntersections )
-				: m_numSelfIntersections( numSelfIntersections )
-			{}
+           private:
+            long m_numSelfIntersections;
+        };
 
+        class IntersectionProblemIfx
+        {
+           public:
+            enum class IntersectionProblemResultCodes
+            {
+                SUCCESS = 0,
+                OUT_OF_MEMORY,
+                SUBDIVIDE_FAILED,
+                EXHAUSTED_PURTURBATION_RETRIES,
+                SELF_INTERSECTING_MESH,
+                CONSOLIDATE_FAILED
+            };
 
-			long		numSelfIntersections() const
-			{
-				return( m_numSelfIntersections );
-			}
+            typedef SEFUtility::Result<IntersectionProblemResultCodes> IntersectionProblemResult;
 
-		private :
+            static std::unique_ptr<IntersectionProblemIfx> GetProblem(MeshBase& owner,
+                                                                      const Quantization::Quantizer& quantizer,
+                                                                      const Cork::Math::BBox3D& intersectionBBox);
 
-			long		m_numSelfIntersections;
-		};
+            virtual ~IntersectionProblemIfx() {}
 
+            virtual IntersectionProblemResult FindIntersections() = 0;
+            virtual IntersectionProblemResult ResolveAllIntersections() = 0;
 
+            virtual SelfIntersectionStats CheckSelfIntersection() = 0;
 
-		class IntersectionProblemIfx
-		{
-		public:
+            virtual void commit() = 0;
+        };
 
-			enum class IntersectionProblemResultCodes { SUCCESS = 0, OUT_OF_MEMORY, SUBDIVIDE_FAILED, EXHAUSTED_PURTURBATION_RETRIES, SELF_INTERSECTING_MESH, CONSOLIDATE_FAILED };
-
-			typedef SEFUtility::Result<IntersectionProblemResultCodes>		IntersectionProblemResult;
-
-
-
-
-			static std::unique_ptr<IntersectionProblemIfx>		GetProblem( MeshBase&							owner,
-																			const Quantization::Quantizer&		quantizer,
-																			const Cork::Math::BBox3D&			intersectionBBox );
-
-			virtual ~IntersectionProblemIfx()
-			{}
-
-			virtual IntersectionProblemResult			FindIntersections() = 0;
-			virtual IntersectionProblemResult			ResolveAllIntersections() = 0;
-
-			virtual SelfIntersectionStats				CheckSelfIntersection() = 0;
-
-			virtual void								commit() = 0;
-		};
-
-	}
-}
-
-
-
+    }  // namespace Intersection
+}  // namespace Cork

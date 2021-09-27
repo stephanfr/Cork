@@ -33,7 +33,6 @@
 #include <iterator>
 #include <sstream>
 
-
 #ifdef __HAS_PERFORMANCE_STRINGSTREAM__
 #include "util/performance_stringstream.h"
 #endif
@@ -45,34 +44,33 @@ namespace Cork::Files
 {
     constexpr uint32_t INITIAL_WRITE_BUFFER_SIZE = 131072;
 
-    inline std::istream& operator>>(std::istream& inStream, Cork::Math::TriangleByIndicesBase& triToRead)
+    inline std::istream& operator>>(std::istream& inStream, Math::TriangleByIndicesBase& triToRead)
     {
         return (inStream >> triToRead[0] >> triToRead[1] >> triToRead[2]);
     }
 
     inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
-                                                            const Cork::Math::TriangleByIndicesBase& triToWrite)
+                                                            const Math::TriangleByIndicesBase& triToWrite)
     {
-        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("3 {:d} {:d} {:d}"), triToWrite[0],
-                       triToWrite[1], triToWrite[2]);
+        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("3 {:d} {:d} {:d}"), triToWrite[0], triToWrite[1],
+                       triToWrite[2]);
 
         return (out_stream);
     }
 
     inline SEFUtility::PerformanceOStringStream& WriteVertex(SEFUtility::PerformanceOStringStream& out_stream,
-                                                             const Cork::Math::Vertex3D& vertex)
+                                                             const Math::Vertex3D& vertex)
     {
-        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("{:g} {:g} {:g}"), vertex.x(),
-                       vertex.y(), vertex.z());
+        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("{:g} {:g} {:g}"), vertex.x(), vertex.y(),
+                       vertex.z());
 
         return out_stream;
     }
 
     inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
-                                                            const Cork::Math::Vector3D& vec)
+                                                            const Math::Vector3D& vec)
     {
-        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("{:g} {:g} {:g}"), vec.x(), vec.y(),
-                       vec.z());
+        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("{:g} {:g} {:g}"), vec.x(), vec.y(), vec.z());
 
         return out_stream;
     }
@@ -98,7 +96,7 @@ namespace Cork::Files
 
         constexpr int STRING_BUFFER_LENGTH = 64;
 
-        std::array<char, STRING_BUFFER_LENGTH> string_buffer;           //  NOLINT
+        std::array<char, STRING_BUFFER_LENGTH> string_buffer;  //  NOLINT
 
         int items_processed(0);
         int chars_processed(0);
@@ -169,7 +167,7 @@ namespace Cork::Files
                     }
                 }
 
-                meshBuilder->AddVertex(Cork::Math::Vertex3D(x, y, z));
+                meshBuilder->AddVertex(Math::Vertex3D(x, y, z));
 
                 if (meshBuilder->num_vertices() != i + 1)
                 {
@@ -205,8 +203,8 @@ namespace Cork::Files
                 }
 
                 //  NOLINTNEXTLINE(cert-err34-c, cppcoreguidelines-pro-type-vararg, hicpp-vararg)
-                items_processed = std::sscanf(next_line.c_str(), "%u %u %u %u %n", &poly_sides, &x_index, &y_index, &z_index,
-                                         &chars_processed);
+                items_processed = std::sscanf(next_line.c_str(), "%u %u %u %u %n", &poly_sides, &x_index, &y_index,
+                                              &z_index, &chars_processed);
 
                 if ((items_processed >= 1) && (poly_sides != 3))
                 {
@@ -221,7 +219,7 @@ namespace Cork::Files
                                                    "Error reading faces.");
                 }
 
-                if ( meshBuilder->AddTriangle(TriangleByIndices(x_index, y_index, z_index)) !=
+                if (meshBuilder->AddTriangle(TriangleByIndices(x_index, y_index, z_index)) !=
                     TriangleMeshBuilderResultCodes::SUCCESS)
                 {
                     return ReadFileResult::failure(

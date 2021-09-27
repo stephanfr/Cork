@@ -35,17 +35,17 @@
 
 namespace Cork
 {
-    using IndexType = Cork::Math::IndexType;
+    using IndexType = Math::IndexType;
 
     using VertexIndexType = IndexType;
 
-    using Vertex = Cork::Math::Vertex3D;
-    using VertexVector = Cork::Math::Vertex3DVector;
+    using Vertex = Math::Vertex3D;
+    using VertexVector = Math::Vertex3DVector;
 
-    using Edge = Cork::Math::EdgeBase;
+    using Edge = Math::EdgeBase;
 
-    using TriangleByIndices = Cork::Math::TriangleByIndicesBase;
-    using TriangleByVertices = Cork::Math::TriangleByVerticesBase;
+    using TriangleByIndices = Math::TriangleByIndicesBase;
+    using TriangleByVertices = Math::TriangleByVerticesBase;
 
     class Hole
     {
@@ -70,10 +70,10 @@ namespace Cork
 
         virtual TriangleByVertices triangleByVertices(const TriangleByIndices& triangleByIndices) const = 0;
 
-        virtual const Cork::Math::BBox3D& boundingBox() const = 0;
+        virtual const Math::BBox3D& boundingBox() const = 0;
 
-        virtual Cork::Statistics::GeometricStatistics ComputeGeometricStatistics() const = 0;
-        virtual Cork::Statistics::TopologicalStatistics ComputeTopologicalStatistics() const = 0;
+        virtual Statistics::GeometricStatistics ComputeGeometricStatistics() const = 0;
+        virtual Statistics::TopologicalStatistics ComputeTopologicalStatistics() const = 0;
     };
 
     enum class TriangleMeshBuilderResultCodes
