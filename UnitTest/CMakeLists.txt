@@ -27,6 +27,7 @@ include_directories(
     ../src
     ../include
     ../thirdparty/tbb/${TBB_VERSION}/include
+    ../thirdparty/mpir/${MPIR_VERSION}
     ${xoshiro256plussimd_SOURCE_DIR}/include
 )
 

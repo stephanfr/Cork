@@ -48,6 +48,8 @@
 
 namespace Cork::ExteriorCalculusR4
 {
+    std::ostream&   operator<<(std::ostream& out, __mpz_struct const*   value);
+    
     class GMPExt4_2;
     class GMPExt4_3;
 

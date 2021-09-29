@@ -51,7 +51,6 @@
 
 namespace Cork::FixInt
 {
-
     template <bool test_val>
     struct ASSERT_STATIC
     {
@@ -143,7 +142,7 @@ namespace Cork::FixInt
     }
 
     template <int Nlhs>
-    bool operator==(const LimbInt<Nlhs> &lhs, long rhs )
+    bool operator==(const LimbInt<Nlhs> &lhs, long rhs)
     {
         return mpn_cmp(lhs.limbs, LimbInt<Nlhs>(rhs).limbs, Nlhs) == 0;
     }
@@ -157,9 +156,9 @@ namespace Cork::FixInt
     }
 
     template <int Nlhs>
-    bool operator!=(const LimbInt<Nlhs> &lhs, long rhs )
+    bool operator!=(const LimbInt<Nlhs> &lhs, long rhs)
     {
-        return mpn_cmp(lhs.limbs, LimbInt<Nlhs>( rhs ).limbs, Nlhs) != 0;
+        return mpn_cmp(lhs.limbs, LimbInt<Nlhs>(rhs).limbs, Nlhs) != 0;
     }
 
     template <int Nout, int Nlhs, int Nrhs>
@@ -209,83 +208,9 @@ namespace Cork::FixInt
     template <int Nout, int Nlhs, int Nrhs>
     inline void sub(LimbInt<Nout> &out, const LimbInt<Nlhs> &lhs, const LimbInt<Nrhs> &rhs)
     {
-        // for testing...
-
         LimbInt<Nrhs> tempright;
         mpn_neg(tempright.limbs, rhs.limbs, Nrhs);
         add(out, lhs, tempright);
-
-        /*ASSERT_STATIC<(Nout >= Nlhs && Nout >= Nrhs)>::test();
-
-        const mp_limb_t *left   = lhs.limbs;
-        const mp_limb_t *right  = rhs.limbs;
-        int Nleft               = Nlhs;
-        int Nright              = Nrhs;
-
-        if(Nrhs > Nlhs)
-        {
-            const mp_limb_t *temp = left;   left = right;       right = temp;
-            int tempi = Nleft;              Nleft = Nright;     Nright = tempi;
-        }
-
-        mpn_copyi(out.limbs, left, Nleft);
-
-        if(Nout != Nleft)
-        { // make sure higher order limbs are filled
-            mp_limb_t fill = SIGN_LIMB(left, Nleft);
-            for(int i=Nleft; i<Nout; i++)
-                out.limbs[i] = fill;
-        }
-
-        if(Nout == Nright)
-        {
-            mpn_sub_n(out.limbs, out.limbs, right, Nout);
-        }
-        else
-        {
-            mpn_sub(out.limbs, out.limbs, Nout, right, Nright);
-        }
-
-
-        ASSERT_STATIC<(Nout >= Nlhs && Nout >= Nrhs)>::test();
-        int Nmax = Nlhs;
-        if(Nrhs > Nlhs) Nmax = Nrhs;
-        mp_limb_t carry;
-
-        if(Nlhs == Nrhs)
-        {
-            carry = mpn_add_n(out.limbs, lhs.limbs, rhs.limbs, Nlhs);
-        }
-        else if(Nlhs > Nrhs)
-        {
-            mp_limb_t rhs_is_neg = SIGN_BOOL(rhs.limbs, Nrhs);
-            carry = mpn_add(out.limbs, lhs.limbs, Nlhs, rhs.limbs, Nrhs);
-            mp_limb_t borrow = mpn_sub_1(out.limbs+Nrhs,
-                                         out.limbs+Nrhs, Nlhs-Nrhs,
-                                         rhs_is_neg);
-            if(Nout > Nmax) carry = carry | (mp_limb_t(1) - borrow);
-        }
-        else
-        { // Nrhs > Nlhs
-            mp_limb_t lhs_is_neg = SIGN_BOOL(lhs.limbs, Nlhs);
-            carry = mpn_add(out.limbs, rhs.limbs, Nrhs, lhs.limbs, Nlhs);
-            mp_limb_t borrow = mpn_sub_1(out.limbs+Nlhs,
-                                         out.limbs+Nlhs, Nrhs-Nlhs,
-                                         lhs_is_neg);
-            if(Nout > Nmax) carry = carry | (mp_limb_t(1) - borrow);
-        }
-
-        // fill out any new higher order bits  (DOES THIS HAVE TO USE THE CARRY?)
-
-        if(Nout > Nmax)
-        {
-            mp_limb_t rhs_is_neg = SIGN_BOOL(rhs.limbs, Nrhs);
-            mp_limb_t lhs_is_neg = SIGN_BOOL(lhs.limbs, Nlhs);
-            mp_limb_t fill_bit = rhs_is_neg ^ lhs_is_neg ^ carry;
-            mp_limb_t fill = -fill_bit;
-            for(int i=Nmax; i<Nout; i++)
-                out.limbs[i] = fill;
-        }*/
     }
 
     // be careful of negating a value which becomes simply itself again...
@@ -381,31 +306,6 @@ namespace Cork::FixInt
         return (SIGN_INT(in.limbs, N) * int(nonzero));
     }
 
-    // template<int N>
-    // inline
-    // double approximate(const LimbInt<N> &in)
-    //{
-    //    std::cout << in << std::endl;
-    //    // not the most efficient implementation, but it should work
-    //    LimbInt<N>  tmp;
-    //    double      sign;
-    //    if(SIGN_BOOL(in.limbs, N-1)) {
-    //        neg(tmp, in);
-    //        sign = -1.0;
-    //    } else {
-    //        tmp = in;
-    //        sign = 1.0;
-    //    }
-    //    std::cout << tmp << std::endl;
-    //    std::cout << typeid(mp_limb_t).name() << std::endl;
-    //    std::cout << double(in.limbs[2]) << std::endl;
-    //    double result = 0.0;
-    //    for(int i=0; i<N; i++) {
-    //        result += ldexp(double(in.limbs[i]), i * LIMB_BIT_SIZE);
-    //    }
-    //    return sign * result;
-    //}
-
     template <int N>
     inline std::string toString(const LimbInt<N> &num)
     {
@@ -456,4 +356,4 @@ namespace Cork::FixInt
         BitInt();
     };
 
-}  // namespace FixInt
+}  // namespace Cork::FixInt

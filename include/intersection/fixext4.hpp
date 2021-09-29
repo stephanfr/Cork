@@ -56,16 +56,9 @@ namespace Cork::ExteriorCalculusR4
 
         FixExt4_1(){};
 
-        FixExt4_1(double e0, double e1, double e2, double e3, const Quantization::Quantizer& quantizer)
-            : FixExt4_1Base(IntegerType(quantizer.quantize2int(e0)), IntegerType(quantizer.quantize2int(e1)),
-                            IntegerType(quantizer.quantize2int(e2)), IntegerType(quantizer.quantize2int(e3)))
-        {
-        }
-
-        FixExt4_1(const Ext4_1& ext, const Quantization::Quantizer& quantizer)
-            : FixExt4_1Base(
-                  IntegerType(quantizer.quantize2int(ext.e0())), IntegerType(quantizer.quantize2int(ext.e1())),
-                  IntegerType(quantizer.quantize2int(ext.e2())), IntegerType(quantizer.quantize2int(ext.e3())))
+        explicit FixExt4_1(const Math::Vector3D& vec, const Quantization::Quantizer& quantizer)
+            : FixExt4_1Base(IntegerType(quantizer.quantize2int(vec.x())), IntegerType(quantizer.quantize2int(vec.y())),
+                            IntegerType(quantizer.quantize2int(vec.z())), IntegerType(1))
         {
         }
 
@@ -139,7 +132,7 @@ namespace Cork::ExteriorCalculusR4
        public:
         FixExt4_2(){};
 
-        FixExt4_2& negate() const
+        FixExt4_2& negate()
         {
             neg(this->e01_, this->e01_);
             neg(this->e02_, this->e02_);
@@ -240,6 +233,16 @@ namespace Cork::ExteriorCalculusR4
        public:
         FixExt4_3(){};
 
+        FixExt4_3& negate()
+        {
+            neg(this->e012_, this->e012_);
+            neg(this->e013_, this->e013_);
+            neg(this->e023_, this->e023_);
+            neg(this->e123_, this->e123_);
+
+            return *this;
+        }
+
         [[nodiscard]] FixExt4_3 negative() const
         {
             FixExt4_3 result;
@@ -318,20 +321,6 @@ namespace Cork::ExteriorCalculusR4
         template <int N>
         friend class FixExt4_2;
     };
-
-    template <int N>
-    std::ostream& operator<<(std::ostream& out, const FixExt4_2<N>& ext)
-    {
-        return out << '[' << toString(ext.e01) << ',' << toString(ext.e02) << ',' << toString(ext.e03) << ','
-                   << toString(ext.e12) << ',' << toString(ext.e13) << ',' << toString(ext.e23) << ']';
-    }
-
-    template <int N>
-    std::ostream& operator<<(std::ostream& out, const FixExt4_3<N>& ext)
-    {
-        return out << '[' << toString(ext.e012) << ',' << toString(ext.e013) << ',' << toString(ext.e023) << ','
-                   << toString(ext.e123) << ']';
-    }
 
     template <int Nbits>
     inline FixExt4_3<Nbits> FixExt4_1<Nbits>::dual() const
@@ -445,4 +434,4 @@ namespace Cork::ExteriorCalculusR4
         return (dual().join(rhs.dual())).reverse_dual();
     }
 
-}  // namespace ExteriorCalculusR4
+}  // namespace Cork::ExteriorCalculusR4

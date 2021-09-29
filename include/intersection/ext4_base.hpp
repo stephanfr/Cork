@@ -98,6 +98,9 @@ namespace Cork::ExteriorCalculusR4
             T e1_;
             T e2_;
             T e3_;
+
+            template <typename T1>
+            friend std::ostream &operator<<(std::ostream &out, const Ext4_1Base<T1> &ext);
         };
 
         template <typename T>
@@ -162,6 +165,9 @@ namespace Cork::ExteriorCalculusR4
             T e12_;
             T e13_;
             T e23_;
+
+            template <typename T1>
+            friend std::ostream &operator<<(std::ostream &out, const Ext4_2Base<T1> &ext);
         };
 
         template <typename T>
@@ -220,6 +226,19 @@ namespace Cork::ExteriorCalculusR4
             template <typename T1>
             friend std::ostream &operator<<(std::ostream &out, const Ext4_3Base<T1> &ext);
         };
+
+        template <typename T>
+        std::ostream &operator<<(std::ostream &out, const Ext4_1Base<T> &ext)
+        {
+            return out << '[' << ext.e0_ << ',' << ext.e1_ << ',' << ext.e2_ << ',' << ext.e3_ << ']';
+        }
+
+        template <typename T>
+        std::ostream &operator<<(std::ostream &out, const Ext4_2Base<T> &ext)
+        {
+            return out << '[' << ext.e01_ << ',' << ext.e02_ << ',' << ext.e03_ << ',' << ext.e12_ << ',' << ext.e13_
+                       << ',' << ext.e23_ << ']';
+        }
 
         template <typename T>
         std::ostream &operator<<(std::ostream &out, const Ext4_3Base<T> &ext)
