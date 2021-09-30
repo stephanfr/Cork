@@ -48,8 +48,8 @@
 
 namespace Cork::ExteriorCalculusR4
 {
-    std::ostream&   operator<<(std::ostream& out, __mpz_struct const*   value);
-    
+    std::ostream &operator<<(std::ostream &out, __mpz_struct const *value);
+
     class GMPExt4_2;
     class GMPExt4_3;
 
@@ -67,6 +67,15 @@ namespace Cork::ExteriorCalculusR4
         }
 
         ~GMPExt4_1() = default;
+
+        Math::Vector3D operator()(const Quantization::Quantizer &quantizer)
+        {
+            assert(e3_ != 0);  //  Trap any divisions by zero!
+
+            return Math::Vector3D(quantizer.reshrink(e0_.get_d() / e3_.get_d()),
+                                  quantizer.reshrink(e1_.get_d() / e3_.get_d()),
+                                  quantizer.reshrink(e2_.get_d() / e3_.get_d()));
+        }
 
         // Negation takes a k-vector and returns its negation neg(X,Y) and is safe for X=Y
 

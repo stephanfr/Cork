@@ -85,6 +85,14 @@ namespace Cork
             original = reverse_dual.dual();
 
             REQUIRE(original == test_R4_ext);
+
+            //  Print to stream
+
+            std::ostringstream test_stream;
+
+            test_stream << test_R4_ext << std::flush;
+
+            REQUIRE_THAT(test_stream.str(), Catch::Matchers::Equals("[7,4,3,1]"));
         }
 
         SECTION("Ext4_1 Join (Wedge Product)")
@@ -101,15 +109,15 @@ namespace Cork
                      (vec_1_wedge_vec_2.e03() == -3) && (vec_1_wedge_vec_2.e12() == -3) &&
                      (vec_1_wedge_vec_2.e13() == -3) && (vec_1_wedge_vec_2.e23() == -3)));
 
-            //  Now wedge of Ext4_1 vector and the Ext4_2 parallelogram.  This results in a
-            //      Ext4_3 parallelepiped.
+            //  Now wedge of Ext4_1 vector and the Ext4_2.  This results in a
+            //      Ext4_3.
 
-            ExteriorCalculusR4::Ext4_2 parallelogram = vec_1_wedge_vec_2;
+            ExteriorCalculusR4::Ext4_2 ext2_1 = vec_1_wedge_vec_2;
 
-            ExteriorCalculusR4::Ext4_3 vec_3_wedge_pgram = vec_3.join(parallelogram);
+            ExteriorCalculusR4::Ext4_3 vec_3_wedge_ext2_1 = vec_3.join(ext2_1);
 
-            REQUIRE(((vec_3_wedge_pgram.e012() == -117) && (vec_3_wedge_pgram.e013() == -75) &&
-                     (vec_3_wedge_pgram.e023() == -33) && (vec_3_wedge_pgram.e123() == 42)));
+            REQUIRE(((vec_3_wedge_ext2_1.e012() == -117) && (vec_3_wedge_ext2_1.e013() == -75) &&
+                     (vec_3_wedge_ext2_1.e023() == -33) && (vec_3_wedge_ext2_1.e123() == 42)));
         }
 
         SECTION("Ext4_1 Inner (Dot Product)")
@@ -129,36 +137,36 @@ namespace Cork
             ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(7, 4, 3));
             ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(11, 17, 13));
 
-            ExteriorCalculusR4::Ext4_2 pgram = vec_1.join(vec_2);
+            ExteriorCalculusR4::Ext4_2 ext2_1 = vec_1.join(vec_2);
 
-            REQUIRE(((pgram.e01() == 75) && (pgram.e02() == 58) && (pgram.e03() == -4) && (pgram.e12() == 1) &&
-                     (pgram.e13() == -13) && (pgram.e23() == -10)));
-            REQUIRE(((pgram[0] == 75) && (pgram[1] == 58) && (pgram[2] == -4) && (pgram[3] == 1) && (pgram[4] == -13) &&
-                     (pgram[5] == -10)));
+            REQUIRE(((ext2_1.e01() == 75) && (ext2_1.e02() == 58) && (ext2_1.e03() == -4) && (ext2_1.e12() == 1) &&
+                     (ext2_1.e13() == -13) && (ext2_1.e23() == -10)));
+            REQUIRE(((ext2_1[0] == 75) && (ext2_1[1] == 58) && (ext2_1[2] == -4) && (ext2_1[3] == 1) && (ext2_1[4] == -13) &&
+                     (ext2_1[5] == -10)));
 
-            //  Negation - leave the pgram back in its initial values
+            //  Negation - leave the ext2_1 back in its initial values
 
-            ExteriorCalculusR4::Ext4_2 pgram_negative = pgram.negative();
+            ExteriorCalculusR4::Ext4_2 ext2_1_negative = ext2_1.negative();
 
-            REQUIRE(((pgram_negative.e01() == -75) && (pgram_negative.e02() == -58) && (pgram_negative.e03() == 4) &&
-                     (pgram_negative.e12() == -1) && (pgram_negative.e13() == 13) && (pgram_negative.e23() == 10)));
+            REQUIRE(((ext2_1_negative.e01() == -75) && (ext2_1_negative.e02() == -58) && (ext2_1_negative.e03() == 4) &&
+                     (ext2_1_negative.e12() == -1) && (ext2_1_negative.e13() == 13) && (ext2_1_negative.e23() == 10)));
 
-            REQUIRE(pgram_negative != pgram);
+            REQUIRE(ext2_1_negative != ext2_1);
 
-            pgram.negate();
+            ext2_1.negate();
 
-            REQUIRE(pgram_negative == pgram);
+            REQUIRE(ext2_1_negative == ext2_1);
 
-            pgram.negate();
+            ext2_1.negate();
 
-            REQUIRE(((pgram.e01() == 75) && (pgram.e02() == 58) && (pgram.e03() == -4) && (pgram.e12() == 1) &&
-                     (pgram.e13() == -13) && (pgram.e23() == -10)));
+            REQUIRE(((ext2_1.e01() == 75) && (ext2_1.e02() == 58) && (ext2_1.e03() == -4) && (ext2_1.e12() == 1) &&
+                     (ext2_1.e13() == -13) && (ext2_1.e23() == -10)));
 
             //  Dual and Reverse Dual
             //
             //  Reverse dual of the dual is the original R4 2
 
-            ExteriorCalculusR4::Ext4_2 dual = pgram.dual();
+            ExteriorCalculusR4::Ext4_2 dual = ext2_1.dual();
 
             REQUIRE(((dual.e01() == -10) && (dual.e02() == 13) && (dual.e03() == 1) && (dual.e12() == -4) &&
                      (dual.e13() == -58) && (dual.e23() == 75)));
@@ -167,7 +175,15 @@ namespace Cork
 
             REQUIRE(((original.e01() == 75) && (original.e02() == 58) && (original.e03() == -4) &&
                      (original.e12() == 1) && (original.e13() == -13) && (original.e23() == -10)));
-            REQUIRE(original == pgram);
+            REQUIRE(original == ext2_1);
+
+            //  Print to stream
+
+            std::ostringstream test_stream;
+
+            test_stream << ext2_1 << std::flush;
+
+            REQUIRE_THAT(test_stream.str(), Catch::Matchers::Equals("[75,58,-4,1,-13,-10]"));
         }
 
         SECTION("Ext4_2 Join (Wedge Product)")
@@ -177,21 +193,21 @@ namespace Cork
             ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(7, 4, 3));
             ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(11, 17, 13));
 
-            ExteriorCalculusR4::Ext4_2 pgram = vec_1.join(vec_2);
+            ExteriorCalculusR4::Ext4_2 ext2_1 = vec_1.join(vec_2);
 
-            REQUIRE(((pgram.e01() == 75) && (pgram.e02() == 58) && (pgram.e03() == -4) && (pgram.e12() == 1) &&
-                     (pgram.e13() == -13) && (pgram.e23() == -10)));
-            REQUIRE(((pgram[0] == 75) && (pgram[1] == 58) && (pgram[2] == -4) && (pgram[3] == 1) && (pgram[4] == -13) &&
-                     (pgram[5] == -10)));
+            REQUIRE(((ext2_1.e01() == 75) && (ext2_1.e02() == 58) && (ext2_1.e03() == -4) && (ext2_1.e12() == 1) &&
+                     (ext2_1.e13() == -13) && (ext2_1.e23() == -10)));
+            REQUIRE(((ext2_1[0] == 75) && (ext2_1[1] == 58) && (ext2_1[2] == -4) && (ext2_1[3] == 1) && (ext2_1[4] == -13) &&
+                     (ext2_1[5] == -10)));
 
-            //  Compute the wedge product of the Parallelogram and the vector leaving an Ext4_4 parallelepiped
+            //  Compute the wedge product of the ext2_1 and the vector leaving an Ext4_3
 
             ExteriorCalculusR4::Ext4_1 vec_3(Cork::Math::Vector3D(14, -10, 5));
 
-            ExteriorCalculusR4::Ext4_3 ppiped = pgram.join(vec_3);
+            ExteriorCalculusR4::Ext4_3 ext3_1 = ext2_1.join(vec_3);
 
-            REQUIRE(((ppiped.e012() == 969) && (ppiped.e013() == -147) && (ppiped.e023() == -62) &&
-                     (ppiped.e123() == 166)));
+            REQUIRE(((ext3_1.e012() == 969) && (ext3_1.e013() == -147) && (ext3_1.e023() == -62) &&
+                     (ext3_1.e123() == 166)));
         }
 
         SECTION("Ext4_2 Inner (Dot Product)")
@@ -201,26 +217,26 @@ namespace Cork
             ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(7, 4, 3));
             ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(11, 17, 13));
 
-            ExteriorCalculusR4::Ext4_2 pgram_1 = vec_1.join(vec_2);
+            ExteriorCalculusR4::Ext4_2 ext2_1 = vec_1.join(vec_2);
 
-            REQUIRE(((pgram_1.e01() == 75) && (pgram_1.e02() == 58) && (pgram_1.e03() == -4) && (pgram_1.e12() == 1) &&
-                     (pgram_1.e13() == -13) && (pgram_1.e23() == -10)));
-            REQUIRE(((pgram_1[0] == 75) && (pgram_1[1] == 58) && (pgram_1[2] == -4) && (pgram_1[3] == 1) &&
-                     (pgram_1[4] == -13) && (pgram_1[5] == -10)));
+            REQUIRE(((ext2_1.e01() == 75) && (ext2_1.e02() == 58) && (ext2_1.e03() == -4) && (ext2_1.e12() == 1) &&
+                     (ext2_1.e13() == -13) && (ext2_1.e23() == -10)));
+            REQUIRE(((ext2_1[0] == 75) && (ext2_1[1] == 58) && (ext2_1[2] == -4) && (ext2_1[3] == 1) &&
+                     (ext2_1[4] == -13) && (ext2_1[5] == -10)));
 
             //  Second Ext4_2
 
             ExteriorCalculusR4::Ext4_1 vec_3(Cork::Math::Vector3D(-5, 6, 9));
             ExteriorCalculusR4::Ext4_1 vec_4(Cork::Math::Vector3D(13, -17, 4));
 
-            ExteriorCalculusR4::Ext4_2 pgram_2 = vec_3.join(vec_4);
+            ExteriorCalculusR4::Ext4_2 ext2_2 = vec_3.join(vec_4);
 
-            REQUIRE(((pgram_2.e01() == 7) && (pgram_2.e02() == -137) && (pgram_2.e03() == -18) &&
-                     (pgram_2.e12() == 177) && (pgram_2.e13() == 23) && (pgram_2.e23() == 5)));
+            REQUIRE(((ext2_2.e01() == 7) && (ext2_2.e02() == -137) && (ext2_2.e03() == -18) &&
+                     (ext2_2.e12() == 177) && (ext2_2.e13() == 23) && (ext2_2.e23() == 5)));
 
             //  Inner product
 
-            double dot_product = pgram_1.inner(pgram_2);
+            double dot_product = ext2_1.inner(ext2_2);
 
             REQUIRE(dot_product == -7521);
         }
@@ -411,6 +427,14 @@ namespace Cork
             original = reverse_dual.dual();
 
             REQUIRE(original == test_R4_ext);
+
+            //  Print to stream
+
+            std::ostringstream test_stream;
+
+            test_stream << test_R4_ext << std::flush;
+
+            REQUIRE_THAT(test_stream.str(), Catch::Matchers::Equals("[7,4,3,1]"));
         }
 
         SECTION("AbsExt4_1 Join (Wedge Product)")
@@ -497,6 +521,14 @@ namespace Cork
             REQUIRE(((original.e01() == 75) && (original.e02() == 58) && (original.e03() == 4) &&
                      (original.e12() == 1) && (original.e13() == 13) && (original.e23() == 10)));
             REQUIRE(original == absext2);
+
+            //  Print to stream
+
+            std::ostringstream test_stream;
+
+            test_stream << original << std::flush;
+
+            REQUIRE_THAT(test_stream.str(), Catch::Matchers::Equals("[75,58,4,1,13,10]"));
         }
 
         SECTION("AbsExt4_2 Join (Wedge Product)")
@@ -626,9 +658,17 @@ namespace Cork
             ExteriorCalculusR4::AbsExt4_1 t_ext3_reverse_dual(t_ext3.reverse_dual());
 
             REQUIRE(t_ext3_reverse_dual == t_ext3_dual);
+
+            //  Print to stream
+
+            std::ostringstream test_stream;
+
+            test_stream << t_ext3 << std::flush;
+
+            REQUIRE_THAT(test_stream.str(), Catch::Matchers::Equals("[197,127,50,53]"));
         }
 
-        SECTION("Triangle Triangle Triangle Intersection with Ext4_3 Meet")
+        SECTION("Triangle Triangle Triangle Intersection with AbsExt4_3 Meet")
         {
             ExteriorCalculusR4::AbsExt4_1 tri1_1(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(1, 3, 1)));
             ExteriorCalculusR4::AbsExt4_1 tri1_2(ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(4, 7, 4)));
@@ -741,6 +781,14 @@ namespace Cork
             original = reverse_dual.dual();
 
             REQUIRE(original == test_R4_ext);
+
+            //  Print to stream
+
+            std::ostringstream test_stream;
+
+            test_stream << test_R4_ext << std::flush;
+
+            REQUIRE_THAT(test_stream.str(), Catch::Matchers::Equals("[3670016,2097152,1572864,1]"));
         }
 
         SECTION("Ext4_1 Join (Wedge Product)")
@@ -767,14 +815,14 @@ namespace Cork
                      (vec_1_wedge_vec_2.e03() == -96) && (vec_1_wedge_vec_2.e12() == -3072) &&
                      (vec_1_wedge_vec_2.e13() == -96) && (vec_1_wedge_vec_2.e23() == -96)));
 
-            //  Now wedge of Ext4_1 vector and the Ext4_2 parallelogram.  This results in a Ext4_3.
+            //  Now wedge of Ext4_1 vector and the Ext4_2.  This results in a Ext4_3.
 
-            auto parallelogram = vec_1_wedge_vec_2;
+            auto ext2_1 = vec_1_wedge_vec_2;
 
-            auto vec_3_wedge_pgram = vec_1_wedge_vec_2.join(vec_3);
+            auto vec_3_wedge_ext2 = vec_1_wedge_vec_2.join(vec_3);
 
-            REQUIRE(((vec_3_wedge_pgram.e012() == -3833856) && (vec_3_wedge_pgram.e013() == -76800) &&
-                     (vec_3_wedge_pgram.e023() == -33792) && (vec_3_wedge_pgram.e123() == 43008)));
+            REQUIRE(((vec_3_wedge_ext2.e012() == -3833856) && (vec_3_wedge_ext2.e013() == -76800) &&
+                     (vec_3_wedge_ext2.e023() == -33792) && (vec_3_wedge_ext2.e123() == 43008)));
         }
 
         SECTION("FixExt4_1 Inner (Dot Product)")
@@ -861,6 +909,14 @@ namespace Cork
             original = reverse_dual.dual();
 
             REQUIRE(original == fixext2_1);
+
+            //  Print to stream
+
+            std::ostringstream test_stream;
+
+            test_stream << original << std::flush;
+
+            REQUIRE_THAT(test_stream.str(), Catch::Matchers::Equals("[20615843020800,15942918602752,-2097152,274877906944,-6815744,-5242880]"));
         }
 
         SECTION("FixExt4_2 Inner (Dot Product)")
@@ -949,9 +1005,17 @@ namespace Cork
             original = reverse_dual.dual();
 
             REQUIRE(original == fixext3_1);
+
+            //  Print to stream
+
+            std::ostringstream test_stream;
+
+            test_stream << original << std::flush;
+
+            REQUIRE_THAT(test_stream.str(), Catch::Matchers::Equals("[7929856,-72704,-43008,41984]"));
         }
 
-        SECTION("FixExt4_2 Inner (Dot Product)")
+        SECTION("FixExt4_3 Inner (Dot Product)")
         {
             //  Create from a vector, assignment and equality
 
@@ -1043,6 +1107,14 @@ namespace Cork
             original = reverse_dual.dual();
 
             REQUIRE(original == test_R4_ext);
+
+            //  Print to stream
+
+            std::ostringstream test_stream;
+
+            test_stream << test_R4_ext << std::flush;
+
+            REQUIRE_THAT(test_stream.str(), Catch::Matchers::Equals("[224,128,96,1]"));
         }
 
         SECTION("GMPExt4_1 Join (Wedge Product)")
@@ -1149,8 +1221,16 @@ namespace Cork
             REQUIRE(((original.e01() == 76800) && (original.e02() == 59392) && (original.e03() == -128) &&
                      (original.e12() == 1024) && (original.e13() == -416) && (original.e23() == -320)));
             REQUIRE(original == ext2_1);
+
+            //  Print to stream
+
+            std::ostringstream test_stream;
+
+            test_stream << ext2_1 << std::flush;
+
+            REQUIRE_THAT(test_stream.str(), Catch::Matchers::Equals("[76800,59392,-128,1024,-416,-320]"));
         }
-        
+
         SECTION("GMPExt4_2 Join (Wedge Product)")
         {
             Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
@@ -1170,7 +1250,7 @@ namespace Cork
             REQUIRE(((ext2_1.e01() == 76800) && (ext2_1.e02() == 59392) && (ext2_1.e03() == -128) &&
                      (ext2_1.e12() == 1024) && (ext2_1.e13() == -416) && (ext2_1.e23() == -320)));
 
-            //  Compute the wedge product of the Parallelogram and the vector leaving an Ext4_4 parallelepiped
+            //  Compute the wedge product of the ext2_1 and the vector leaving an Ext4_3
 
             ExteriorCalculusR4::GMPExt4_1 vec_3(Cork::Math::Vector3D(14, -10, 5), quantizer);
 
@@ -1178,6 +1258,193 @@ namespace Cork
 
             REQUIRE(((ext3_1.e012() == 31752192) && (ext3_1.e013() == -150528) && (ext3_1.e023() == -63488) &&
                      (ext3_1.e123() == 169984)));
+        }
+
+        SECTION("GMPExt4_2 Inner (Dot Product)")
+        {
+            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+
+            REQUIRE(get_quantizer_result.succeeded());
+
+            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+
+            //  First GMPExt4_2
+
+            ExteriorCalculusR4::GMPExt4_1 vec_1(Cork::Math::Vector3D(7, 4, 3), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 vec_2(Cork::Math::Vector3D(11, 17, 13), quantizer);
+
+            ExteriorCalculusR4::GMPExt4_2 ext2_1 = vec_1.join(vec_2);
+
+            REQUIRE(((ext2_1.e01() == 76800) && (ext2_1.e02() == 59392) && (ext2_1.e03() == -128) &&
+                     (ext2_1.e12() == 1024) && (ext2_1.e13() == -416) && (ext2_1.e23() == -320)));
+            REQUIRE(((ext2_1[0] == 76800) && (ext2_1[1] == 59392) && (ext2_1[2] == -128) && (ext2_1[3] == 1024) &&
+                     (ext2_1[4] == -416) && (ext2_1[5] == -320)));
+
+            //  Second GMPExt4_2
+
+            ExteriorCalculusR4::GMPExt4_1 vec_3(Cork::Math::Vector3D(-5, 6, 9), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 vec_4(Cork::Math::Vector3D(13, -17, 4), quantizer);
+
+            ExteriorCalculusR4::GMPExt4_2 ext2_2 = vec_3.join(vec_4);
+
+            REQUIRE(((ext2_2.e01() == 7168) && (ext2_2.e02() == -140288) && (ext2_2.e03() == -576) &&
+                     (ext2_2.e12() == 181248) && (ext2_2.e13() == 736) && (ext2_2.e23() == 160)));
+
+            //  Inner product
+
+            auto dot_product = ext2_1.inner(ext2_2);
+
+            REQUIRE(dot_product == mpz_class(-7596168192));
+        }
+
+        SECTION("Triangle Edge Intersection with GMPExt4_2 Meet")
+        {
+            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+
+            REQUIRE(get_quantizer_result.succeeded());
+
+            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+
+            ExteriorCalculusR4::GMPExt4_1 tri_1(Cork::Math::Vector3D(2, 2, 1), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 tri_2(Cork::Math::Vector3D(7, 4, 2), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 tri_3(Cork::Math::Vector3D(4, 9, 3), quantizer);
+
+            ExteriorCalculusR4::GMPExt4_1 edge_1(Cork::Math::Vector3D(2, 2, 3), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 edge_2(Cork::Math::Vector3D(6, 7, 0), quantizer);
+
+            //  Build the Ext4_3 for the triangle
+
+            ExteriorCalculusR4::GMPExt4_3 t_ext3((tri_1.join(tri_2)).join(tri_3));
+
+            //  Now the Ext4_2 for the edge
+
+            ExteriorCalculusR4::GMPExt4_2 e_ext2(edge_1.join(edge_2));
+
+            //  Compute the point of intersection.  Meet does some duals and a join.
+
+            ExteriorCalculusR4::GMPExt4_1 intersection(e_ext2.meet(t_ext3));
+
+            //  Convert back into a point, which is mostly just normalizing by e3.
+            //      Negative e3 values will be resolved by the division.
+
+            Cork::Math::Vector3D result(intersection(quantizer));
+
+            REQUIRE(((result.x() == Catch::Approx(538.0 / 145.0).epsilon(0.00001)) &&
+                     (result.y() == Catch::Approx(120.0 / 29.0).epsilon(0.00001)) &&
+                     (result.z() == Catch::Approx(249.0 / 145.0).epsilon(0.00001))));
+        }
+
+        SECTION("GMPExt4_3 Basic Tests")
+        {
+            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+
+            REQUIRE(get_quantizer_result.succeeded());
+
+            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+
+            ExteriorCalculusR4::GMPExt4_1 tri_1(Cork::Math::Vector3D(2, 2, 1), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 tri_2(Cork::Math::Vector3D(7, 4, 2), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 tri_3(Cork::Math::Vector3D(4, 9, 3), quantizer);
+
+            //  Build the Ext4_3 for the triangle
+
+            ExteriorCalculusR4::GMPExt4_3 t_ext3((tri_1.join(tri_2)).join(tri_3));
+            ExteriorCalculusR4::GMPExt4_3 t_ext3_copy(t_ext3);
+
+            REQUIRE(((t_ext3.e012() == 294912) && (t_ext3.e013() == 31744) && (t_ext3.e023() == 8192) &&
+                     (t_ext3.e123() == -3072)));
+            REQUIRE(((t_ext3_copy[0] == 294912) && (t_ext3_copy[1] == 31744) && (t_ext3_copy[2] == 8192) &&
+                     (t_ext3_copy[3] == -3072)));
+
+            //  Negation
+
+            ExteriorCalculusR4::GMPExt4_3 t_ext3_negative(t_ext3.negative());
+
+            REQUIRE(((t_ext3_negative.e012() == -294912) && (t_ext3_negative.e013() == -31744) && (t_ext3_negative.e023() == -8192) &&
+                     (t_ext3_negative.e123() == 3072)));
+
+            t_ext3.negate();
+
+            REQUIRE(t_ext3 == t_ext3_negative);
+
+            t_ext3.negate();
+
+            REQUIRE(t_ext3 != t_ext3_negative);
+
+            REQUIRE(((t_ext3.e012() == 294912) && (t_ext3.e013() == 31744) && (t_ext3.e023() == 8192) &&
+                     (t_ext3.e123() == -3072)));
+
+            //  Dual and Reverse Dual
+
+            ExteriorCalculusR4::GMPExt4_1 t_ext3_dual(t_ext3.dual());
+
+            REQUIRE(((t_ext3_dual.e0() == -3072) && (t_ext3_dual.e1() == -8192) && (t_ext3_dual.e2() == 31744) &&
+                     (t_ext3_dual.e3() == -294912)));
+
+            ExteriorCalculusR4::GMPExt4_1 t_ext3_reverse_dual(t_ext3.reverse_dual());
+
+            REQUIRE(((t_ext3_reverse_dual.e0() == 3072) && (t_ext3_reverse_dual.e1() == 8192) && (t_ext3_reverse_dual.e2() == -31744) &&
+                     (t_ext3_reverse_dual.e3() == 294912)));
+
+            //  Print to stream
+
+            std::ostringstream test_stream;
+
+            test_stream << t_ext3 << std::flush;
+
+            REQUIRE_THAT(test_stream.str(), Catch::Matchers::Equals("[294912,31744,8192,-3072]"));
+        }
+        
+        SECTION("Triangle Triangle Triangle Intersection with Ext4_3 Meet")
+        {
+            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+
+            REQUIRE(get_quantizer_result.succeeded());
+
+            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+
+            ExteriorCalculusR4::GMPExt4_1 tri1_1(Cork::Math::Vector3D(1, 3, 1), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 tri1_2(Cork::Math::Vector3D(4, 7, 4), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 tri1_3(Cork::Math::Vector3D(7, 9, 3), quantizer);
+
+            ExteriorCalculusR4::GMPExt4_1 tri2_1(Cork::Math::Vector3D(2, 2, 3), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 tri2_2(Cork::Math::Vector3D(6, 7, 3), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 tri2_3(Cork::Math::Vector3D(4, 8, 4), quantizer);
+
+            ExteriorCalculusR4::GMPExt4_1 tri3_1(Cork::Math::Vector3D(2, 2, 4), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 tri3_2(Cork::Math::Vector3D(6, 7, 1), quantizer);
+            ExteriorCalculusR4::GMPExt4_1 tri3_3(Cork::Math::Vector3D(4, 8, 5), quantizer);
+
+            //  Build the Ext4_3 for the triangle 1
+
+            ExteriorCalculusR4::GMPExt4_3 t1_ext3((tri1_1.join(tri1_2)).join(tri1_3));
+
+            //  Build the Ext4_3 for the triangle 2
+
+            ExteriorCalculusR4::GMPExt4_3 t2_ext3((tri2_1.join(tri2_2)).join(tri2_3));
+
+            //  Build the Ext4_3 for the triangle 3
+
+            ExteriorCalculusR4::GMPExt4_3 t3_ext3((tri3_1.join(tri3_2)).join(tri3_3));
+
+            //  Compute the point of intersection.  First we get an edge on the first two triangles and then
+            //      we find the intersection of that edge with the third triangle.
+
+            ExteriorCalculusR4::GMPExt4_2 intersect_edge_1_2(t1_ext3.meet(t2_ext3));
+            ExteriorCalculusR4::GMPExt4_1 intersection(intersect_edge_1_2.meet(t3_ext3));
+
+            //  Convert back into a point, which is mostly just normalizing by e3.
+            //      Negative e3 values will be resolved by the division.
+
+            Cork::Math::Vector3D result(intersection(quantizer));
+
+            REQUIRE(((result.x() == Catch::Approx(104.0 / 23.0).epsilon(0.00001)) &&
+                     (result.y() == Catch::Approx(499.0 / 69.0).epsilon(0.00001)) &&
+                     (result.z() == Catch::Approx(248.0 / 69.0).epsilon(0.00001))));
         }
     }
 

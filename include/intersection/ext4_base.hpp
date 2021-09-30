@@ -44,29 +44,6 @@ namespace Cork::ExteriorCalculusR4
                         (e3_ != r4_to_compare.e3_));
             }
 
-#if defined(NUMERIC_PRECISION) && NUMERIC_PRECISION == double
-
-            operator Math::Vector3D() const
-            {
-                assert(e3_ != 0);  //  Trap any divisions by zero!
-
-                Math::Vector3D vec(reinterpret_cast<const Math::Vector3D &>(e0_));
-                vec /= e3_;
-
-                return vec;
-            }
-#else
-
-            [[nodiscard]] Math::Vector3D operator() const
-            {
-                // Warning: beware of division by zero!
-
-                return Math::Vector3D((NUMERIC_PRECISION)(e0_ / e3_), (NUMERIC_PRECISION)(e1_ / e3_),
-                                      (NUMERIC_PRECISION)(e2_ / e3_));
-            }
-
-#endif
-
             //  The inner product is the familiar dot product.
 
             [[nodiscard]] T inner(const Ext4_1Base &rhs) const

@@ -115,12 +115,6 @@ namespace Cork::ExteriorCalculusR4
             return result;
         }
 
-        std::ostream& operator<<(std::ostream& out) const
-        {
-            return out << '[' << toString(this->e0_) << ',' << toString(this->e1_) << ',' << toString(this->e2_) << ','
-                       << toString(this->e3_) << ']';
-        }
-
        protected:
         template <int N>
         friend class FixExt4_3;

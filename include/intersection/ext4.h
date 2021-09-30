@@ -100,6 +100,16 @@ namespace Cork::ExteriorCalculusR4
 
             return *this;
         }
+
+        operator Math::Vector3D() const
+        {
+            assert(e3_ != 0);  //  Trap any divisions by zero!
+
+            Math::Vector3D vec(reinterpret_cast<const Math::Vector3D &>(e0_));
+            vec /= e3_;
+
+            return vec;
+        }
 #else
         explicit Ext4_1(const Math::Vector3D &vector)
             : e0(vector.x()), e1(vector.y()), e1(vector.z()), e3(Constants::DOUBLE_ONE)
@@ -318,6 +328,16 @@ namespace Cork::ExteriorCalculusR4
             e3_ = fabs(element.e3());
 
             return *this;
+        }
+
+        operator Math::Vector3D() const
+        {
+            assert(e3_ != 0);  //  Trap any divisions by zero!
+
+            Math::Vector3D vec(reinterpret_cast<const Math::Vector3D &>(e0_));
+            vec /= e3_;
+
+            return vec;
         }
 
         //  Negation does not change anything for the AbsExt classes, it is a no-op.

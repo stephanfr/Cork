@@ -100,17 +100,47 @@ namespace Cork::FixInt
         }
     };
 
+
+    template <int N>
+    inline std::string to_string(const LimbInt<N> &num)
+    {
+        char cbuf[(N * LIMB_BIT_SIZE * 3) / 10 + 3];
+        LimbInt<N> garbage = num;
+        bool neg = SIGN_BOOL(num.limbs, N);
+
+        if (neg)
+        {
+            mpn_neg(garbage.limbs, garbage.limbs, N);
+        }
+
+        int count = mpn_get_str(reinterpret_cast<unsigned char *>(cbuf), 10, garbage.limbs, N);
+
+        std::string result = "";
+
+        if (neg)
+        {
+            result += '-';
+        }
+
+        int i = 0;
+
+        for (; i < count - 1; i++)
+        {
+            if (cbuf[i] != char(0)) break;
+        }
+
+        for (; i < count; i++)
+        {
+            result += (cbuf[i] + '0');
+        }
+
+        return (result);
+    }
+
     template <int N>
     std::ostream &operator<<(std::ostream &out, const LimbInt<N> &num)
     {
-        out << "[" << std::hex << num.limbs[0];
-
-        for (int k = 0; k < N; k++)
-        {
-            out << ";" << std::hex << num.limbs[k];
-        }
-
-        out << "]";
+        out << to_string(num);
 
         return (out);
     }
@@ -304,42 +334,6 @@ namespace Cork::FixInt
         }
 
         return (SIGN_INT(in.limbs, N) * int(nonzero));
-    }
-
-    template <int N>
-    inline std::string toString(const LimbInt<N> &num)
-    {
-        char cbuf[(N * LIMB_BIT_SIZE * 3) / 10 + 3];
-        LimbInt<N> garbage = num;
-        bool neg = SIGN_BOOL(num.limbs, N);
-
-        if (neg)
-        {
-            mpn_neg(garbage.limbs, garbage.limbs, N);
-        }
-
-        int count = mpn_get_str(reinterpret_cast<unsigned char *>(cbuf), 10, garbage.limbs, N);
-
-        std::string result = "";
-
-        if (neg)
-        {
-            result += '-';
-        }
-
-        int i = 0;
-
-        for (; i < count - 1; i++)
-        {
-            if (cbuf[i] != char(0)) break;
-        }
-
-        for (; i < count; i++)
-        {
-            result += (cbuf[i] + '0');
-        }
-
-        return (result);
     }
 
     // In order to declare an integer in terms of # of bits,
