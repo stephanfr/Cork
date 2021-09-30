@@ -21,13 +21,16 @@
 
 std::ostream& operator<<(std::ostream& out, __mpz_struct const* value)
 {
-    char buffer[2048];
+    constexpr int DEFAULT_BUFFER_SIZE = 512;
+    constexpr int DECIMAL = 10;
 
-    assert(mpz_sizeinbase(value, 10) + 2 <= 2048);
+    char buffer[DEFAULT_BUFFER_SIZE];  //  NOLINT
 
-    mpz_get_str(buffer, 10, value);
+    assert(mpz_sizeinbase(value, 10) + 2 <= DEFAULT_BUFFER_SIZE);
 
-    out << buffer;
+    mpz_get_str(buffer, DECIMAL, value);    //  NOLINT
+
+    out << buffer;  //  NOLINT
 
     return out;
 }

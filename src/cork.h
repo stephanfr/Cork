@@ -42,7 +42,6 @@
 #define CORKLIB_API
 #endif
 
-
 #include "CPPResult.hpp"
 #include "mesh/triangle_mesh.h"
 
@@ -51,7 +50,8 @@ namespace Cork
     class SolverControlBlock
     {
        public:
-        explicit SolverControlBlock(bool useMultipleThreads, uint64_t minTrianglesForThreading, bool usePooledWorkspaces)
+        explicit SolverControlBlock(bool useMultipleThreads, uint64_t minTrianglesForThreading,
+                                    bool usePooledWorkspaces)
             : m_useMultipleThreads(useMultipleThreads),
               m_minTrianglesForThreading(minTrianglesForThreading),
               m_usePooledWorkspaces(usePooledWorkspaces),
@@ -61,18 +61,18 @@ namespace Cork
 
         void setNumTriangles(uint64_t numTriangles) { m_numTriangles = numTriangles; }
 
-        [[nodiscard]]	bool useMultipleThreads() const
+        [[nodiscard]] bool useMultipleThreads() const
         {
             return (m_useMultipleThreads && (m_numTriangles > m_minTrianglesForThreading));
         }
 
         void setUseMultipleThreads(bool newValue) { m_useMultipleThreads = newValue; }
 
-        [[nodiscard]]	uint64_t minTrianglesForThreading() const { return (m_minTrianglesForThreading); }
+        [[nodiscard]] uint64_t minTrianglesForThreading() const { return (m_minTrianglesForThreading); }
 
         void setMinTrianglesForThreading(uint64_t minTriangles) { m_minTrianglesForThreading = minTriangles; }
 
-        [[nodiscard]]	bool usePooledWorkspaces() const { return (m_usePooledWorkspaces); }
+        [[nodiscard]] bool usePooledWorkspaces() const { return (m_usePooledWorkspaces); }
 
        private:
         uint64_t m_numTriangles;
@@ -86,14 +86,22 @@ namespace Cork
     class SolverPerformanceStatisticsIfx
     {
        public:
+        SolverPerformanceStatisticsIfx() = default;
+
+        SolverPerformanceStatisticsIfx(const SolverPerformanceStatisticsIfx&) = delete;
+        SolverPerformanceStatisticsIfx(const SolverPerformanceStatisticsIfx&&) = delete;
+
         virtual ~SolverPerformanceStatisticsIfx() = default;
 
-        virtual uint64_t numberOfTrianglesInDisjointUnion() const = 0;
-        virtual uint64_t numberOfTrianglesInFinalMesh() const = 0;
-        virtual uint64_t elapsedCPUTimeInNanoSeconds() const = 0;
-        virtual uint64_t elapsedWallTimeInNanoSeconds() const = 0;
-        virtual uint64_t startingVirtualMemorySizeInMB() const = 0;
-        virtual uint64_t endingVirtualMemorySizeInMB() const = 0;
+        SolverPerformanceStatisticsIfx& operator=(const SolverPerformanceStatisticsIfx&) = delete;
+        SolverPerformanceStatisticsIfx& operator=(const SolverPerformanceStatisticsIfx&&) = delete;
+
+        [[nodiscard]] virtual uint64_t numberOfTrianglesInDisjointUnion() const = 0;
+        [[nodiscard]] virtual uint64_t numberOfTrianglesInFinalMesh() const = 0;
+        [[nodiscard]] virtual uint64_t elapsedCPUTimeInNanoSeconds() const = 0;
+        [[nodiscard]] virtual uint64_t elapsedWallTimeInNanoSeconds() const = 0;
+        [[nodiscard]] virtual uint64_t startingVirtualMemorySizeInMB() const = 0;
+        [[nodiscard]] virtual uint64_t endingVirtualMemorySizeInMB() const = 0;
     };
 
     enum class BooleanOperationResultCodes
@@ -114,25 +122,37 @@ namespace Cork
         CORKLIB_API
         static const SolverControlBlock& GetDefaultControlBlock();
 
+        CorkMesh() = default;
+
+        CorkMesh(const CorkMesh&) = delete;
+        CorkMesh(const CorkMesh&&) = delete;
+
         virtual ~CorkMesh() = default;
 
-        virtual BooleanOperationResult Union(
+        CorkMesh& operator=(const CorkMesh&) = delete;
+        CorkMesh& operator=(const CorkMesh&&) = delete;
+
+        // NOLINTBEGIN(google-default-arguments)
+
+        [[nodiscard]] virtual BooleanOperationResult Union(
             const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const = 0;
 
-        virtual BooleanOperationResult Difference(
+        [[nodiscard]] virtual BooleanOperationResult Difference(
             const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const = 0;
 
-        virtual BooleanOperationResult Intersection(
+        [[nodiscard]] virtual BooleanOperationResult Intersection(
             const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const = 0;
 
-        virtual BooleanOperationResult SymmetricDifference(
+        [[nodiscard]] virtual BooleanOperationResult SymmetricDifference(
             const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const = 0;
 
-        virtual std::unique_ptr<TriangleMesh> ToTriangleMesh() const = 0;
+        // NOLINTEND(google-default-arguments)
 
-        virtual const SolverPerformanceStatisticsIfx& GetPerformanceStats() const = 0;
+        [[nodiscard]] virtual std::unique_ptr<TriangleMesh> ToTriangleMesh() const = 0;
 
-        virtual size_t CountComponents() const = 0;
+        [[nodiscard]] virtual const SolverPerformanceStatisticsIfx& GetPerformanceStats() const = 0;
+
+        [[nodiscard]] virtual size_t CountComponents() const = 0;
     };
 
 }  // namespace Cork

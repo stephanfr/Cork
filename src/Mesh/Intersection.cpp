@@ -107,9 +107,9 @@ namespace Cork
             class PerturbationRandomizationMatrix
             {
                public:
-                PerturbationRandomizationMatrix() : m_mersenneTwister(time(0))
+                PerturbationRandomizationMatrix() : m_mersenneTwister(time(0))      //  NOLINT(cert-msc32-c, cert-msc51-cpp)
                 {
-                    for (int numPermutations = 4; numPermutations <= 32; numPermutations <<= 1)
+                    for (int numPermutations = 4; numPermutations <= 32; numPermutations <<= 1)     //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
                     {
                         m_randomizationMatrix.push_back(std::vector<std::tuple<long, long, long>>());
 
@@ -180,7 +180,7 @@ namespace Cork
                     //		the prior method of generating random values for each offset but with std::rand() there
                     //		were certainly problems.
 
-                    long arrayIndex = m_mersenneTwister() % m_numEntries[index];
+                    long arrayIndex( m_mersenneTwister() % m_numEntries[index] );
 
                     const std::tuple<long, long, long>& randEntry = m_randomizationMatrix[index][arrayIndex];
 
@@ -232,7 +232,7 @@ namespace Cork
 
         //	Define the static global so it is initialized
 
-        PerturbationEpsilon::PerturbationRandomizationMatrix PerturbationEpsilon::m_randMatrix;
+        PerturbationEpsilon::PerturbationRandomizationMatrix PerturbationEpsilon::m_randMatrix;     //  NOLINT(cert-err58-cpp)
 
         class TriTripleTemp
         {

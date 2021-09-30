@@ -84,20 +84,24 @@ namespace Cork
 
         //	Boolean operations
 
-        BooleanOperationResult Union(const CorkMesh& rhs,
-                                     const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const;
+        // NOLINTBEGIN(google-default-arguments)
+
+        BooleanOperationResult Union(
+            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const final;
         BooleanOperationResult Difference(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const;
+            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const final;
         BooleanOperationResult Intersection(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const;
+            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const final;
         BooleanOperationResult SymmetricDifference(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const;
+            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const final;
+
+        // NOLINTEND(google-default-arguments)
 
         std::unique_ptr<TriangleMesh> ToTriangleMesh() const;
 
-        const SolverPerformanceStatisticsIfx& GetPerformanceStats() const { return (m_performanceStats); }
+        const SolverPerformanceStatisticsIfx& GetPerformanceStats() const final { return (m_performanceStats); }
 
-        size_t CountComponents() const;
+        size_t CountComponents() const final;
 
        private:
         enum class TriCode
@@ -200,11 +204,12 @@ namespace Cork
 
         p += m_verts[m_tris[tid].b()];
         p += m_verts[m_tris[tid].c()];
-        p /= 3.0;
+        p /= 3.0;  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
         // ok, we've got the point, now let's pick a direction
 
-        Math::Ray3DWithInverseDirection directionRay(p, Math::Vector3D::randomVector(0.5, 1.5));
+        Math::Ray3DWithInverseDirection directionRay(
+            p, Math::Vector3D::randomVector(0.5, 1.5));  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
         long winding = 0;
 
@@ -409,7 +414,7 @@ namespace Cork
 
         //	Start by finding the intersections
 
-        int tries = 5;
+        int tries = 5;  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
         Quantization::Quantizer::GetQuantizerResult get_quantizer_result = getQuantizer();
 

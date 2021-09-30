@@ -93,7 +93,7 @@ namespace Cork::ExteriorCalculusR4
         [[nodiscard]] FixExt4_2<(Nbits + Nrhsbits + 1)> join(const FixExt4_1<Nrhsbits>& rhs);
 
         template <int Nrhsbits>
-        [[nodiscard]] FixInt::BitInt<(Nbits + Nrhsbits + 2)>::Rep inner(const FixExt4_1<Nrhsbits>& rhs)
+        [[nodiscard]] typename FixInt::BitInt<(Nbits + Nrhsbits + 2)>::Rep inner(const FixExt4_1<Nrhsbits>& rhs)
         {
             typename FixInt::BitInt<(Nbits + Nrhsbits + 2)>::Rep result;
 
@@ -181,7 +181,7 @@ namespace Cork::ExteriorCalculusR4
         }
 
         template <int Nrhsbits>
-        [[nodiscard]] FixInt::BitInt<(Nbits + Nrhsbits + 3)>::Rep inner(const FixExt4_2<Nrhsbits>& rhs)
+        [[nodiscard]] typename FixInt::BitInt<(Nbits + Nrhsbits + 3)>::Rep inner(const FixExt4_2<Nrhsbits>& rhs)
         {
             typename FixInt::BitInt<(Nbits + Nrhsbits)>::Rep p0;
             mul(p0, this->e01_, rhs.e01());
@@ -286,7 +286,7 @@ namespace Cork::ExteriorCalculusR4
         }
 
         template <int Nrhsbits>
-        [[nodiscard]] FixInt::BitInt<(Nbits + Nrhsbits + 2)>::Rep inner(const FixExt4_3<Nrhsbits>& rhs) const
+        [[nodiscard]] typename FixInt::BitInt<(Nbits + Nrhsbits + 2)>::Rep inner(const FixExt4_3<Nrhsbits>& rhs) const
         {
             typename FixInt::BitInt<(Nbits + Nrhsbits)>::Rep p0;
             mul(p0, this->e012_, rhs.e012());

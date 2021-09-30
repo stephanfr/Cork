@@ -55,18 +55,18 @@ namespace Cork
 				return;
 			}
 
-			const NUMERIC_PRECISION*		representativePoints = m_representativePoints[dim].data();
+			const NUMERIC_PRECISION*		representativePoints( m_representativePoints[dim].data() );					//	NOLINT(cppcoreguidelines-init-variables)
 			
-			size_t							pivotIndex = ( random_number_generator_.next() % (end - begin)) + begin;
-			NUMERIC_PRECISION				pivotValue = representativePoints[m_tmpids[pivotIndex]];
+			size_t							pivotIndex( ( random_number_generator_.next() % (end - begin)) + begin );	//	NOLINT(cppcoreguidelines-init-variables)
+			NUMERIC_PRECISION				pivotValue( representativePoints[m_tmpids[pivotIndex]] );					//	NOLINT(cppcoreguidelines-init-variables)
 			
 			//	I don't usually care for pointer arithmetic but it makes a substantive difference here.
 			//
 			//	When multi-threaded, the changes to the indices front and back are OK as the tasks are working on
 			//		separate parts of the tree so there is no risk of hitting the same tmpids at the same time.
 
-			IndexType*		front = &m_tmpids[begin];
-			IndexType*		back = &m_tmpids[end-1];
+			IndexType*		front( &m_tmpids[begin] );																	//	NOLINT(cppcoreguidelines-init-variables)
+			IndexType*		back( &m_tmpids[end-1] );																	//	NOLINT(cppcoreguidelines-init-variables)
 
 			while ( front < back)
 			{
@@ -91,7 +91,7 @@ namespace Cork
 				front++;
 			}
 
-			if (select < uint( front - &m_tmpids[0] ))
+			if (select < uint( front - &m_tmpids[0] ))		//	NOLINT
 			{
 				QuickSelect(select, begin, front - &m_tmpids[0], dim);
 			}
@@ -110,13 +110,15 @@ namespace Cork
 																		   size_t				end,
 																		   size_t				lastDim )
 		{
+			constexpr int INITIAL_NODE_LIST_SIZE = 8;
+			
 			assert(end - begin > 0);
 
 			// base case
 
 			if (end - begin <= LEAF_SIZE)
 			{
-				AABVHNodeList& nodeList = m_nodeCollections.getNodeList( 8 );
+				AABVHNodeList& nodeList = m_nodeCollections.getNodeList( INITIAL_NODE_LIST_SIZE );
 
 				nodeList.emplace_back();
 				AABVHNode*	node = &nodeList.back();
