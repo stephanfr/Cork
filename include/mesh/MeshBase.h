@@ -114,10 +114,13 @@ namespace Cork
                     memcpy( &m_a, &triangleToCopy.m_a, sizeof( unsigned int ) * 3 );
                 }
         */
-        CorkTriangle(const TriangleByIndices& triangleToCopy, uint32_t boolAlgData)
-            : Math::TriangleByIndicesBase(triangleToCopy), m_boolAlgData(boolAlgData)
+
+        CorkTriangle(const TriangleByIndices& triangleToCopy, uint32_t boolAlgData, uint32_t triangle_id)
+            : triangle_id_( triangle_id ), Math::TriangleByIndicesBase(triangleToCopy), m_boolAlgData(boolAlgData)
         {
         }
+
+        uint32_t        triangle_id() const { return triangle_id_; }
 
         const uint32_t boolAlgData() const { return (m_boolAlgData); }
 
@@ -134,6 +137,8 @@ namespace Cork
 
        private:
         uint32_t m_boolAlgData;  // internal use by algorithm - value must be copied when the triangle is subdivided
+
+        uint32_t        triangle_id_;
     };
 
     typedef Math::Vector3D CorkVertex;
@@ -148,6 +153,8 @@ namespace Cork
 
         MeshBase(const MeshBase& meshBaseToCopy, const SolverControlBlock& controlBlock)
             : m_boundingBox(meshBaseToCopy.m_boundingBox),
+              min_and_max_edge_lengths_(meshBaseToCopy.min_and_max_edge_lengths_),
+              max_vertex_magnitude_(meshBaseToCopy.max_vertex_magnitude_),
               m_tris(meshBaseToCopy.m_tris),
               m_verts(meshBaseToCopy.m_verts),
               m_controlBlock(controlBlock)
@@ -167,40 +174,12 @@ namespace Cork
         const VertexVector& vertices() const { return (m_verts); }
 
         const Math::BBox3D& boundingBox() const { return m_boundingBox; }
+        Math::MinAndMaxEdgeLengths min_and_max_edge_lengths() const { return min_and_max_edge_lengths_; }
+        double max_vertex_magnitude() const { return max_vertex_magnitude_; }
 
         const Quantization::Quantizer::GetQuantizerResult getQuantizer() const
         {
-            //	Calibrate the quantization unit...
-
-            NUMERIC_PRECISION maxMag = NUMERIC_PRECISION_MIN;
-
-            for (const CorkVertex& v : vertices())
-            {
-                maxMag = std::max(maxMag, v.abs().max());
-            }
-
-            //	Find the minimum edge length across all the triangles
-
-            NUMERIC_PRECISION minEdgeLengthSquared = NUMERIC_PRECISION_MAX;
-            NUMERIC_PRECISION maxEdgeLengthSquared = NUMERIC_PRECISION_MIN;
-
-            for (auto& currentTriangle : triangles())
-            {
-                const Math::Vector3D& vert0(vertices()[currentTriangle.a()]);
-                const Math::Vector3D& vert1(vertices()[currentTriangle.b()]);
-                const Math::Vector3D& vert2(vertices()[currentTriangle.c()]);
-
-                minEdgeLengthSquared =
-                    std::min(minEdgeLengthSquared,
-                             std::min((vert0 - vert1).len_squared(),
-                                      std::min((vert0 - vert2).len_squared(), (vert1 - vert2).len_squared())));
-                maxEdgeLengthSquared =
-                    std::max(maxEdgeLengthSquared,
-                             std::max((vert0 - vert1).len_squared(),
-                                      std::max((vert0 - vert2).len_squared(), (vert1 - vert2).len_squared())));
-            }
-
-            return (Quantization::Quantizer::get_quantizer(maxMag, sqrt(minEdgeLengthSquared)));
+            return Quantization::Quantizer::get_quantizer(max_vertex_magnitude_, min_and_max_edge_lengths_.min());
         }
 
         void for_raw_tris(std::function<void(IndexType, IndexType, IndexType)> func)
@@ -224,6 +203,9 @@ namespace Cork
         VertexVector m_verts;
 
         Math::BBox3D m_boundingBox;
+
+        Math::MinAndMaxEdgeLengths min_and_max_edge_lengths_;
+        double max_vertex_magnitude_;
 
         std::optional<SolverControlBlock> m_controlBlock;
 

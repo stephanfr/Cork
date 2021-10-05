@@ -25,21 +25,24 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include <boost/container/small_vector.hpp>
+//#include <boost/container/small_vector.hpp>
 #include <boost/timer/timer.hpp>
 #include <sstream>
 
-#include "cork.h"
-#include "intersection/gmpext4.h"
+//#include "cork.h"
+//#include "intersection/gmpext4.h"
+#include "math/Primitives.h"
 #include "intersection/unsafe_ray_triangle_intersection.h"
 #include "mesh/EGraphCache.h"
 #include "mesh/IntersectionProblem.h"
 #include "mesh/TopoCache.h"
-#include "tbb/tbb.h"
-#include "util/CachingFactory.h"
-#include "util/SystemStats.h"
+//#include "tbb/tbb.h"
+//#include "util/CachingFactory.h"
+//#include "util/SystemStats.h"
 #include "util/ThreadPool.h"
 #include "util/unionFind.h"
+
+#include "mesh/mesh.h"
 
 namespace Cork
 {
@@ -54,106 +57,6 @@ namespace Cork
     {
         return ((b - a).cross(c - a).len_squared());
     }
-
-    //
-    //	The Mesh class brings together the functionality needed for the boolean operations
-    //
-
-    class Mesh : public MeshBase, public CorkMesh
-    {
-       public:
-        Mesh() {}
-
-        Mesh(const Mesh& src, const SolverControlBlock controlBlock) : MeshBase(src, controlBlock){};
-
-        explicit Mesh(const TriangleMesh& inputMesh);
-
-        virtual ~Mesh();
-
-        void operator=(Mesh&& src);
-
-        //	Validity check:
-        //		- all numbers are well-defined and finite
-        //		- all triangle vertex indices are in the right range
-
-        bool valid() const;
-
-        // form the disjoint union of two meshes
-
-        void DisjointUnion(const Mesh& meshToMerge);
-
-        //	Boolean operations
-
-        // NOLINTBEGIN(google-default-arguments)
-
-        BooleanOperationResult Union(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const final;
-        BooleanOperationResult Difference(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const final;
-        BooleanOperationResult Intersection(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const final;
-        BooleanOperationResult SymmetricDifference(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const final;
-
-        // NOLINTEND(google-default-arguments)
-
-        std::unique_ptr<TriangleMesh> ToTriangleMesh() const;
-
-        const SolverPerformanceStatisticsIfx& GetPerformanceStats() const final { return (m_performanceStats); }
-
-        size_t CountComponents() const final;
-
-       private:
-        enum class TriCode
-        {
-            KEEP_TRI,
-            DELETE_TRI,
-            FLIP_TRI
-        };
-
-        enum class SetupBooleanProblemResultCodes
-        {
-            SUCCESS = 0,
-            TOO_MANY_TRIANGLES_IN_DISJOINT_UNION,
-            QUANTIZER_CREATION_FAILED,
-            FIND_INTERSECTIONS_FAILED,
-            RESOLVE_INTERSECTIONS_FAILED,
-            POPULATE_EDGE_GRAPH_CACHE_FAILED,
-            SELF_INTERSECTING_MESH
-        };
-
-        typedef SEFUtility::Result<SetupBooleanProblemResultCodes> SetupBooleanProblemResult;
-
-        enum class BuildEGraphCacheResultCodes
-        {
-            SUCCESS = 0,
-            OUT_OF_MEMORY
-        };
-
-        typedef SEFUtility::ResultWithReturnUniquePtr<BuildEGraphCacheResultCodes, EGraphCache> BuildEGraphCacheResult;
-
-        typedef tbb::concurrent_vector<size_t> ComponentType;
-        typedef tbb::concurrent_vector<ComponentType> ComponentList;
-
-        SetupBooleanProblemResult SetupBooleanProblem(const Mesh& rhs);
-
-        BuildEGraphCacheResult BuildEdgeGraphCache() const;
-
-        std::unique_ptr<ComponentList> FindComponents(EGraphCache& ecache) const;
-
-        void ProcessComponent(const EGraphCache& ecache, const ComponentType& trisInComponent);
-
-        size_t FindTriForInsideTest(const ComponentType& trisInComponent);
-
-        void doDeleteAndFlip(std::function<TriCode(uint32_t bool_alg_data)> classify);
-
-        void for_ecache(EGraphCache& ecache, int numThreads,
-                        std::function<void(const EGraphEntryTIDVector& tids)> action) const;
-
-        bool isInside(IndexType tid, uint32_t operand);
-
-        void RayTriangleIntersection(const CorkTriangle& tri, Math::Ray3D& ray, long& winding);
-    };
 
     inline void Mesh::for_ecache(EGraphCache& ecache, int numThreads,
                                  std::function<void(const EGraphEntryTIDVector& tids)> action) const
@@ -301,6 +204,9 @@ namespace Cork
 
     Mesh::Mesh(const TriangleMesh& inputMesh)
     {
+        min_and_max_edge_lengths_ = inputMesh.min_and_max_edge_lengths();
+        max_vertex_magnitude_ = inputMesh.max_vertex_magnitude();
+
         m_tris.reserve(inputMesh.numTriangles());
         m_verts.reserve(inputMesh.numVertices());
 
@@ -315,7 +221,7 @@ namespace Cork
 
         for (uint i = 0; i < inputMesh.triangles().size(); i++)
         {
-            m_tris.emplace_back(inputMesh.triangles()[i], 0);
+            m_tris.emplace_back(inputMesh.triangles()[i], 0, i);
         }
 
         m_boundingBox = inputMesh.boundingBox();
@@ -413,8 +319,6 @@ namespace Cork
         }
 
         //	Start by finding the intersections
-
-        int tries = 5;  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
         Quantization::Quantizer::GetQuantizerResult get_quantizer_result = getQuantizer();
 

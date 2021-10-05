@@ -29,7 +29,6 @@
 #include <vector>
 
 #include "CPPResult.hpp"
-#include "math/BoundingBox.h"
 #include "math/Primitives.h"
 #include "statistics/statistics.h"
 
@@ -71,6 +70,8 @@ namespace Cork
         virtual TriangleByVertices triangleByVertices(const TriangleByIndices& triangleByIndices) const = 0;
 
         virtual const Math::BBox3D& boundingBox() const = 0;
+        virtual Math::MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
+        virtual double max_vertex_magnitude() const = 0;
 
         virtual Statistics::GeometricStatistics ComputeGeometricStatistics() const = 0;
         virtual Statistics::TopologicalStatistics ComputeTopologicalStatistics() const = 0;

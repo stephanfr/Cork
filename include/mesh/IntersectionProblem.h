@@ -43,12 +43,17 @@ namespace Cork
         class SelfIntersectionStats
         {
            public:
-            SelfIntersectionStats(long numSelfIntersections) : m_numSelfIntersections(numSelfIntersections) {}
+            SelfIntersectionStats(Math::IndexVector self_intersecting_edges) : self_intersecting_edges_(self_intersecting_edges) {}
 
-            long numSelfIntersections() const { return (m_numSelfIntersections); }
+            long numSelfIntersections() const { return self_intersecting_edges_.size(); }
+
+            Math::IndexVector        self_intersecting_edges() const
+            {
+                return self_intersecting_edges_;
+            }
 
            private:
-            long m_numSelfIntersections;
+            Math::IndexVector self_intersecting_edges_;
         };
 
         class IntersectionProblemIfx

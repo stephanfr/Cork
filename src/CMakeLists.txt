@@ -33,6 +33,7 @@ add_library(Corklib SHARED
     Mesh/Mesh.cpp
     Mesh/TopoCache.cpp
     Mesh/TriangleMesh.cpp
+    statistics/statistics_engines.cpp
     util/ThreadPool.cpp
 )
 

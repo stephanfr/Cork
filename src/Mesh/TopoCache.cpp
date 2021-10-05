@@ -83,7 +83,7 @@ namespace Cork
             size_t vids2 = ref_tri[2];
 
             TopoTri* tri =
-                m_topoTriList.emplace_back(i, m_topoVertexList.getPool()[vids0], m_topoVertexList.getPool()[vids1],
+                m_topoTriList.emplace_back(ref_tri.triangle_id(), i, m_topoVertexList.getPool()[vids0], m_topoVertexList.getPool()[vids1],
                                            m_topoVertexList.getPool()[vids2]);
 
             // then, put these in arbitrary but globally consistent order
@@ -122,7 +122,7 @@ namespace Cork
 
                 if (edge01 == nullptr)
                 {
-                    edge01 = edge01Proto.setEdge(m_topoEdgeList.emplace_back(v0, v1));
+                    edge01 = edge01Proto.setEdge(m_topoEdgeList.emplace_back(i, v0, v1));
                 }
 
                 edge01->triangles().insert(tri);
@@ -133,7 +133,7 @@ namespace Cork
 
                 if (edge02 == nullptr)
                 {
-                    edge02 = edge02Proto.setEdge(m_topoEdgeList.emplace_back(v0, v2));
+                    edge02 = edge02Proto.setEdge(m_topoEdgeList.emplace_back(i, v0, v2));
                 }
 
                 edge02->triangles().insert(tri);
@@ -144,7 +144,7 @@ namespace Cork
 
                 if (edge12 == nullptr)
                 {
-                    edge12 = edge12Proto.setEdge(m_topoEdgeList.emplace_back(v1, v2));
+                    edge12 = edge12Proto.setEdge(m_topoEdgeList.emplace_back(i, v1, v2));
                 }
 
                 edge12->triangles().insert(tri);

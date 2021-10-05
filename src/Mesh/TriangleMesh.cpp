@@ -24,12 +24,11 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include <boost/align/aligned_allocator.hpp>
 #include <map>
 #include <unordered_map>
 
 #include "mesh/triangle_mesh.h"
-#include "statistics/statistics_impl.h"
+#include "statistics/statistics_engines.h"
 
 namespace Cork
 {
@@ -42,8 +41,14 @@ namespace Cork
     {
        public:
         TriangleMeshImpl(std::shared_ptr<const std::vector<TriangleByIndices>>& triangles,
-                         std::shared_ptr<VertexVector>& vertices, const Math::BBox3D& boundingBox)
-            : m_triangles(triangles), m_vertices(vertices), m_boundingBox(std::make_unique<Math::BBox3D>(boundingBox))
+                         std::shared_ptr<VertexVector>& vertices, const Math::BBox3D& boundingBox,
+                         const Math::MinAndMaxEdgeLengths min_and_max_edge_lengths,
+                         double max_vertex_magnitude)
+            : m_triangles(triangles),
+              m_vertices(vertices),
+              m_boundingBox(boundingBox),
+              min_and_max_edge_lengths_(min_and_max_edge_lengths),
+              max_vertex_magnitude_(max_vertex_magnitude)
         {
         }
 
@@ -61,16 +66,19 @@ namespace Cork
                                        (*m_vertices)[triangleByIndices[2]]));
         }
 
-        [[nodiscard]] const Math::BBox3D& boundingBox() const final { return (*m_boundingBox); }
+        [[nodiscard]] const Math::BBox3D& boundingBox() const final { return m_boundingBox; }
+        [[nodiscard]] Math::MinAndMaxEdgeLengths min_and_max_edge_lengths() const final
+        {
+            return min_and_max_edge_lengths_;
+        }
+        [[nodiscard]] double                              max_vertex_magnitude() const final
+        {
+            return max_vertex_magnitude_;
+        }
 
         [[nodiscard]] Statistics::GeometricStatistics ComputeGeometricStatistics() const final
         {
-            Statistics::GeometricStatisticsEngine geometricStatsEngine;
-
-            for (const auto& currentTriangle : *m_triangles)
-            {
-                geometricStatsEngine.AddTriangle(triangleByVertices(currentTriangle));
-            }
+            Statistics::GeometricStatisticsEngine geometricStatsEngine(*this);
 
             return (Statistics::GeometricStatistics(
                 m_vertices->size(), geometricStatsEngine.numTriangles(), geometricStatsEngine.area(),
@@ -80,12 +88,7 @@ namespace Cork
 
         [[nodiscard]] Statistics::TopologicalStatistics ComputeTopologicalStatistics() const final
         {
-            Statistics::TopologicalStatisticsEngine statsEngine(m_triangles->size());
-
-            for (const auto& currentTriangle : *m_triangles)
-            {
-                statsEngine.AddTriangle(currentTriangle);
-            }
+            Statistics::TopologicalStatisticsEngine statsEngine(*this);
 
             return (statsEngine.Analyze());
         }
@@ -94,7 +97,9 @@ namespace Cork
         std::shared_ptr<const std::vector<TriangleByIndices>> m_triangles;
         std::shared_ptr<VertexVector> m_vertices;
 
-        std::unique_ptr<Math::BBox3D> m_boundingBox;
+        const Math::BBox3D m_boundingBox;
+        const Math::MinAndMaxEdgeLengths min_and_max_edge_lengths_;
+        double max_vertex_magnitude_;
     };
 
     //
@@ -102,7 +107,7 @@ namespace Cork
     //		which can be used to construct a triangle mesh from a list of vertices and
     //		triangles assembled from those vertices.
     //
-    //	This class also uses copy-on-write semantics for the internal dtata structures that are eventually
+    //	This class also uses copy-on-write semantics for the internal data structures that are eventually
     //		shared with the TriangleMeshImpl class.  If additional vertices or triangles are added after
     //		generating a mesh, then the internal data structures are cloned such that the TriangleMeshImpl
     //		will then have a std::shared_ptr to the original data structures and this class will have new
@@ -116,9 +121,9 @@ namespace Cork
         IncrementalVertexIndexTriangleMeshBuilderImpl(size_t numVertices, size_t numTriangles)
             : m_indexedVertices(new VertexVector()),
               m_triangles(new std::vector<TriangleByIndices>()),
-              m_boundingBox(std::make_unique<Math::BBox3D>(
-                  Math::Vector3D(NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX),
-                  Math::Vector3D(NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN)))
+              m_boundingBox(Math::Vector3D(NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX),
+                            Math::Vector3D(NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN)),
+              max_vertex_magnitude_(NUMERIC_PRECISION_MIN)
         {
             if (numVertices > 0)
             {
@@ -143,9 +148,14 @@ namespace Cork
         IncrementalVertexIndexTriangleMeshBuilderImpl& operator=(
             const IncrementalVertexIndexTriangleMeshBuilderImpl&&) = delete;
 
-        [[nodiscard]] const Math::BBox3D& boundingBox() const { return (*m_boundingBox); }
 
         [[nodiscard]] size_t num_vertices() const final { return m_indexedVertices->size(); }
+
+        [[nodiscard]] const Math::BBox3D& boundingBox() const { return m_boundingBox; }
+
+        [[nodiscard]] double                            max_vertex_magnitude() const { return max_vertex_magnitude_; }
+        [[nodiscard]] Math::MinAndMaxEdgeLengths        min_and_max_edge_lengths() const { return min_and_max_edge_lengths_; }
+
 
         VertexIndexType AddVertex(const Vertex& vertexToAdd) final
         {
@@ -192,8 +202,8 @@ namespace Cork
                 return (TriangleMeshBuilderResultCodes::VERTEX_INDEX_OUT_OF_BOUNDS);
             }
 
-            //	Copy on write for the triangle and edge incidence structures.  We need to duplicate them if we no longer
-            // hold the pointers uniquely.
+            //	Copy on write for the triangle and edge incidence structures.
+            //      We need to duplicate them if we no longer hold the pointers uniquely.
 
             if (!m_triangles.unique())
             {
@@ -210,34 +220,17 @@ namespace Cork
 
             m_triangles->push_back(remappedTriangle);
 
-            //	Update the bounding box
+            //  Compute a few metrics
 
-            TriangleByVertices triByVerts((*m_indexedVertices)[remappedTriangle[0]],
-                                          (*m_indexedVertices)[remappedTriangle[1]],
-                                          (*m_indexedVertices)[remappedTriangle[2]]);
+            TriangleByVertices tri_by_verts((*m_indexedVertices)[remappedTriangle[0]],
+                                            (*m_indexedVertices)[remappedTriangle[1]],
+                                            (*m_indexedVertices)[remappedTriangle[2]]);
 
-            NUMERIC_PRECISION minX = std::min(static_cast<NUMERIC_PRECISION>(std::min(
-                                                  triByVerts[0].x(), std::min(triByVerts[1].x(), triByVerts[2].x()))),
-                                              boundingBox().minima().x());
-            NUMERIC_PRECISION minY =
-                std::min((NUMERIC_PRECISION)std::min(triByVerts[0].y(), std::min(triByVerts[1].y(), triByVerts[2].y())),
-                         boundingBox().minima().y());
-            NUMERIC_PRECISION minZ =
-                std::min((NUMERIC_PRECISION)std::min(triByVerts[0].z(), std::min(triByVerts[1].z(), triByVerts[2].z())),
-                         boundingBox().minima().z());
+            m_boundingBox.convex(tri_by_verts.bounding_box());
 
-            NUMERIC_PRECISION maxX =
-                std::max((NUMERIC_PRECISION)std::max(triByVerts[0].x(), std::max(triByVerts[1].x(), triByVerts[2].x())),
-                         boundingBox().maxima().x());
-            NUMERIC_PRECISION maxY =
-                std::max((NUMERIC_PRECISION)std::max(triByVerts[0].y(), std::max(triByVerts[1].y(), triByVerts[2].y())),
-                         boundingBox().maxima().y());
-            NUMERIC_PRECISION maxZ =
-                std::max((NUMERIC_PRECISION)std::max(triByVerts[0].z(), std::max(triByVerts[1].z(), triByVerts[2].z())),
-                         boundingBox().maxima().z());
+            max_vertex_magnitude_ = std::max(max_vertex_magnitude_, tri_by_verts.max_magnitude_vertex());
 
-            m_boundingBox =
-                std::make_unique<Math::BBox3D>(Math::Vector3D(minX, minY, minZ), Math::Vector3D(maxX, maxY, maxZ));
+            min_and_max_edge_lengths_.update(tri_by_verts.min_and_max_edge_lengths());
 
             //	All is well if we made it here
 
@@ -248,13 +241,11 @@ namespace Cork
         {
             std::shared_ptr<const std::vector<TriangleByIndices>> triangles = m_triangles;
 
-            return (std::unique_ptr<TriangleMesh>(new TriangleMeshImpl(triangles, m_indexedVertices, boundingBox())));
+            return (std::unique_ptr<TriangleMesh>(new TriangleMeshImpl(triangles, m_indexedVertices, boundingBox(), min_and_max_edge_lengths(), max_vertex_magnitude() )));
         }
 
        private:
-        typedef std::map<Math::Vertex3D, IndexType, Math::Vertex3DMapCompare,
-                         boost::alignment::aligned_allocator<Math::Vertex3D>>
-            VertexIndexLookupMap;
+        typedef std::map<Math::Vertex3D, IndexType, Math::Vertex3DMapCompare> VertexIndexLookupMap;
 
         VertexIndexLookupMap m_vertexIndices;
         std::shared_ptr<VertexVector> m_indexedVertices;
@@ -262,7 +253,9 @@ namespace Cork
 
         std::shared_ptr<std::vector<TriangleByIndices>> m_triangles;
 
-        std::unique_ptr<Math::BBox3D> m_boundingBox;
+        Math::BBox3D m_boundingBox;
+        Math::MinAndMaxEdgeLengths min_and_max_edge_lengths_;
+        double max_vertex_magnitude_;
     };
 
     //

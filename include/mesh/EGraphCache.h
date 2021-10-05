@@ -33,6 +33,7 @@
 #include "util/CachingFactory.h"
 #include "util/ConstuctOnceResizeableVector.h"
 #include "util/SparseVector.h"
+#include "math/Primitives.h"
 
 namespace Cork
 {
@@ -41,14 +42,14 @@ namespace Cork
 
 #define EGRAPH_ENTRY_TIDS_VEC_LENGTH 8
 
-    typedef boost::container::static_vector<IndexType, EGRAPH_ENTRY_TIDS_VEC_LENGTH> EGraphEntryTIDVector;
+    typedef boost::container::static_vector<Cork::Math::IndexType, EGRAPH_ENTRY_TIDS_VEC_LENGTH> EGraphEntryTIDVector;
 
     class EGraphEntry : public SEFUtility::SparseVectorEntry
     {
        public:
-        EGraphEntry(IndexType index) : SEFUtility::SparseVectorEntry(index), m_vid(index) {}
+        EGraphEntry(Cork::Math::IndexType index) : SEFUtility::SparseVectorEntry(index), m_vid(index) {}
 
-        IndexType vid() const { return (m_vid); }
+        Cork::Math::IndexType vid() const { return (m_vid); }
 
         const EGraphEntryTIDVector& tids() const { return (m_tids); }
 
@@ -59,7 +60,7 @@ namespace Cork
         void setIsIsct(bool newValue) { m_isIsct = newValue; }
 
        private:
-        IndexType m_vid;
+        Cork::Math::IndexType m_vid;
         EGraphEntryTIDVector m_tids;
         bool m_isIsct;
     };
@@ -83,9 +84,9 @@ namespace Cork
 
         SkeletonColumnVector& columns() { return (m_skeleton); }
 
-        EGraphSkeletonColumn& operator[](IndexType index) { return (m_skeleton[index]); }
+        EGraphSkeletonColumn& operator[](Cork::Math::IndexType index) { return (m_skeleton[index]); }
 
-        const EGraphSkeletonColumn& operator[](IndexType index) const { return (m_skeleton[index]); }
+        const EGraphSkeletonColumn& operator[](Cork::Math::IndexType index) const { return (m_skeleton[index]); }
 
        private:
         SkeletonColumnVectorUniquePtr m_skeletonPtr;

@@ -62,8 +62,8 @@ void WriteMeshStatistics(const Cork::TriangleMesh& mesh, const std::string& file
     Cork::Statistics::GeometricStatistics stats = mesh.ComputeGeometricStatistics();
     Cork::Statistics::TopologicalStatistics topo_stats = mesh.ComputeTopologicalStatistics();
 
-    geotopoResults << filename << "\t" << topo_stats.IsTwoManifold() << "\t";
-    geotopoResults << stats.numVertices() << "\t" << topo_stats.numEdges() << "\t" << stats.numTriangles() << "\t";
+    geotopoResults << filename << "\t" << topo_stats.is_two_manifold() << "\t";
+    geotopoResults << stats.numVertices() << "\t" << topo_stats.num_edges() << "\t" << stats.numTriangles() << "\t";
     geotopoResults << stats.area() << "\t" << stats.volume() << "\t";
     //	geotopoResults << stats.maxEdgeLength() << "\t" << stats.minEdgeLength() << "\t";
     geotopoResults << stats.boundingBox().minima().x() << "\t" << stats.boundingBox().minima().y() << "\t"
@@ -73,13 +73,13 @@ void WriteMeshStatistics(const Cork::TriangleMesh& mesh, const std::string& file
 
     num_successful_operations++;
 
-    if (topo_stats.IsTwoManifold())
+    if (topo_stats.is_two_manifold())
     {
         num_two_manifold_results++;
     }
 
     total_num_vertices += stats.numVertices();
-    total_num_edges += topo_stats.numEdges();
+    total_num_edges += topo_stats.num_edges();
     total_num_triangles += stats.numTriangles();
 }
 
@@ -220,6 +220,15 @@ int main(int argc, char* argv[])
             exit(-1);
         }
 
+        std::cout << "Read: " << current_model.filename().string() << std::endl;
+
+        Cork::Statistics::TopologicalStatistics    topo_stats( read_model_result.return_ptr()->ComputeTopologicalStatistics() );
+
+        if( !topo_stats.is_two_manifold() )
+        {
+            std::cout << "Num holes: " << topo_stats.hole_edges().size() << "    Num Self Intersections: " <<topo_stats.self_intersecting_edges().size() << std::endl;
+        }
+
         models.emplace_back(
             std::make_pair(current_model, std::shared_ptr<Cork::TriangleMesh>(read_model_result.return_ptr().release())));
     }
@@ -261,7 +270,7 @@ int main(int argc, char* argv[])
 
                 if (!boolean_op_result.succeeded())
                 {
-                    std::cout << "Union Failed: " << boolean_op_result.message() << std::endl;
+                    std::cout << "Union Failed: " << boolean_op_result.message() << " : " << boolean_op_result.inner_error()->message() << std::endl;
                     geotopo_results << filename << "    Failed" << std::endl;
                     timing_results << filename << "    Failed" << std::endl;
 

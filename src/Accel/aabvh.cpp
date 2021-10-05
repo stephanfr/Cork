@@ -1,12 +1,12 @@
 // +-------------------------------------------------------------------------
 // | aabvh.cpp
-// | 
+// |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
 // | COPYRIGHT:
 // |    Copyright Gilbert Bernstein 2013
 // |    See the included COPYRIGHT file for further details.
-// |    
+// |
 // |    This file is part of the Cork library.
 // |
 // |    Cork is free software: you can redistribute it and/or modify
@@ -19,219 +19,201 @@
 // |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // |    GNU Lesser General Public License for more details.
 // |
-// |    You should have received a copy 
+// |    You should have received a copy
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-
-
-#include "./intersection/gmpext4.h"
-
 #include "accel/aabvh.h"
 
+#include "./intersection/gmpext4.h"
 #include "tbb/task_group.h"
 
-
-
-
-namespace Cork
+namespace Cork::AABVH
 {
-	namespace AABVH
-	{
+    // precondition: begin <= select < end
 
-		// precondition: begin <= select < end
+    inline void AxisAlignedBoundingVolumeHierarchy::QuickSelect(size_t select, size_t begin, size_t end, size_t dim)
+    {
+        // NOTE: values equal to the pivot may appear on either side of the split
 
-		inline
-		void		AxisAlignedBoundingVolumeHierarchy::QuickSelect( size_t			select,
-																     size_t			begin,
-																	 size_t			end,
-																	 size_t			dim )  
-		{
-			// NOTE: values equal to the pivot may appear on either side of the split
+        if (end - 1 == select)
+        {
+            return;
+        }
 
-			if (end - 1 == select)
-			{
-				return;
-			}
+        const NUMERIC_PRECISION* representativePoints(
+            m_representativePoints[dim].data());  //	NOLINT(cppcoreguidelines-init-variables)
 
-			const NUMERIC_PRECISION*		representativePoints( m_representativePoints[dim].data() );					//	NOLINT(cppcoreguidelines-init-variables)
-			
-			size_t							pivotIndex( ( random_number_generator_.next() % (end - begin)) + begin );	//	NOLINT(cppcoreguidelines-init-variables)
-			NUMERIC_PRECISION				pivotValue( representativePoints[m_tmpids[pivotIndex]] );					//	NOLINT(cppcoreguidelines-init-variables)
-			
-			//	I don't usually care for pointer arithmetic but it makes a substantive difference here.
-			//
-			//	When multi-threaded, the changes to the indices front and back are OK as the tasks are working on
-			//		separate parts of the tree so there is no risk of hitting the same tmpids at the same time.
+        size_t pivotIndex((random_number_generator_.next() % (end - begin)) +
+                          begin);  //	NOLINT(cppcoreguidelines-init-variables)
+        NUMERIC_PRECISION pivotValue(
+            representativePoints[m_tmpids[pivotIndex]]);  //	NOLINT(cppcoreguidelines-init-variables)
 
-			IndexType*		front( &m_tmpids[begin] );																	//	NOLINT(cppcoreguidelines-init-variables)
-			IndexType*		back( &m_tmpids[end-1] );																	//	NOLINT(cppcoreguidelines-init-variables)
+        //	I don't usually care for pointer arithmetic but it makes a substantive difference here.
+        //
+        //	When multi-threaded, the changes to the indices front and back are OK as the tasks are working on
+        //		separate parts of the tree so there is no risk of hitting the same tmpids at the same time.
 
-			while ( front < back)
-			{
-				if( representativePoints[*front] < pivotValue )
-				{
-					front++;
-				}
-				else if( representativePoints[*back] > pivotValue )
-				{
-					back--;
-				}
-				else
-				{
-					std::swap(*front, *back);
-					front++;
-					back--;
-				}
-			}
+        IndexType* front(&m_tmpids[begin]);   //	NOLINT(cppcoreguidelines-init-variables)
+        IndexType* back(&m_tmpids[end - 1]);  //	NOLINT(cppcoreguidelines-init-variables)
 
-			if (( front == back ) && ( representativePoints[*front] <= pivotValue ))
-			{
-				front++;
-			}
+        while (front < back)
+        {
+            if (representativePoints[*front] < pivotValue)
+            {
+                front++;
+            }
+            else if (representativePoints[*back] > pivotValue)
+            {
+                back--;
+            }
+            else
+            {
+                std::swap(*front, *back);
+                front++;
+                back--;
+            }
+        }
 
-			if (select < uint( front - &m_tmpids[0] ))		//	NOLINT
-			{
-				QuickSelect(select, begin, front - &m_tmpids[0], dim);
-			}
-			else
-			{
-				QuickSelect(select, front - &m_tmpids[0], end, dim);
-			}
-		};
+        if ((front == back) && (representativePoints[*front] <= pivotValue))
+        {
+            front++;
+        }
 
+        if (select < uint(front - &m_tmpids[0]))  //	NOLINT
+        {
+            QuickSelect(select, begin, front - &m_tmpids[0], dim);
+        }
+        else
+        {
+            QuickSelect(select, front - &m_tmpids[0], end, dim);
+        }
+    };
 
-		// process range of tmpids including begin, excluding end
-		// last_dim provides a hint by saying which dimension a
-		// split was last made along
+    // process range of tmpids including begin, excluding end
+    // last_dim provides a hint by saying which dimension a
+    // split was last made along
 
-		AABVHNode*		AxisAlignedBoundingVolumeHierarchy::ConstructTree( size_t				begin,
-																		   size_t				end,
-																		   size_t				lastDim )
-		{
-			constexpr int INITIAL_NODE_LIST_SIZE = 8;
-			
-			assert(end - begin > 0);
+    AABVHNode* AxisAlignedBoundingVolumeHierarchy::ConstructTree(size_t begin, size_t end, size_t lastDim)
+    {
+        constexpr int INITIAL_NODE_LIST_SIZE = 8;
 
-			// base case
+        assert(end - begin > 0);
 
-			if (end - begin <= LEAF_SIZE)
-			{
-				AABVHNodeList& nodeList = m_nodeCollections.getNodeList( INITIAL_NODE_LIST_SIZE );
+        // base case
 
-				nodeList.emplace_back();
-				AABVHNode*	node = &nodeList.back();
+        if (end - begin <= LEAF_SIZE)
+        {
+            AABVHNodeList& nodeList = m_nodeCollections.getNodeList(INITIAL_NODE_LIST_SIZE);
 
-				for (uint k = 0; k < end - begin; k++)
-				{
-					IndexType	blobid = m_tmpids[begin + k];
+            nodeList.emplace_back();
+            AABVHNode* node(&nodeList.back());
 
-					node->AddBlobID( (*m_blobs)[blobid].index().boolAlgData(), blobid );
+            for (uint k = 0; k < end - begin; k++)
+            {
+                IndexType blobid(m_tmpids[begin + k]);
 
-					node->boundingBox().convex( (*m_blobs)[blobid].boundingBox() );
-				}
+                node->AddBlobID((*m_blobs)[blobid].index().boolAlgData(), blobid);
 
-				return(node);
-			}
+                node->boundingBox().convex((*m_blobs)[blobid].boundingBox());
+            }
 
-			// otherwise, let's try to split this geometry up
+            return (node);
+        }
 
-			size_t	dim = (lastDim + 1) % 3;
-			size_t	mid = (begin + end) / 2;
+        // otherwise, let's try to split this geometry up
 
-			QuickSelect(mid, begin, end, dim);
+        size_t dim = (lastDim + 1) % 3;
+        size_t mid = (begin + end) / 2;
 
+        QuickSelect(mid, begin, end, dim);
 
-			AABVHNode*		node1;
-			AABVHNode*		node2;
+        AABVHNode* node1 = nullptr;
+        AABVHNode* node2 = nullptr;
 
-			if( m_solverControlBlock.useMultipleThreads() )
-			{
-				tbb::task_group		taskGroup;
-				
-				//	Recurse - but by splitting into a pair of tasks
+        if (m_solverControlBlock.useMultipleThreads())
+        {
+            tbb::task_group taskGroup;
 
-				taskGroup.run([&]{ node1 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / ( LEAF_SIZE / 2 )), begin, mid, dim ); } );
-				node2 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / ( LEAF_SIZE / 2 )), mid, end, dim );
+            //	Recurse - but by splitting into a pair of tasks
 
-				//	Wait for the two tasks to complete
+            taskGroup.run([&] {
+                node1 = ConstructTreeRecursive(m_nodeCollections.getNodeList((end - begin) / (LEAF_SIZE / 2)), begin,
+                                               mid, dim);
+            });
+            node2 =
+                ConstructTreeRecursive(m_nodeCollections.getNodeList((end - begin) / (LEAF_SIZE / 2)), mid, end, dim);
 
-				taskGroup.wait();
-			}
-			else
-			{
-				//	Recurse directly
+            //	Wait for the two tasks to complete
 
-				node1 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / ( LEAF_SIZE / 2 )), begin, mid, dim );
-				node2 = ConstructTreeRecursive( m_nodeCollections.getNodeList( ( end - begin ) / ( LEAF_SIZE / 2 )), mid, end, dim );
-			}
-			
-			//	Create the final node and set the bounding box
-			
-			AABVHNodeList&		primaryNodeList = m_nodeCollections.getPrimaryNodeList();
+            taskGroup.wait();
+        }
+        else
+        {
+            //	Recurse directly
 
-			primaryNodeList.emplace_back( node1, node2 );
-			AABVHNode*	node = &primaryNodeList.back();
+            node1 =
+                ConstructTreeRecursive(m_nodeCollections.getNodeList((end - begin) / (LEAF_SIZE / 2)), begin, mid, dim);
+            node2 =
+                ConstructTreeRecursive(m_nodeCollections.getNodeList((end - begin) / (LEAF_SIZE / 2)), mid, end, dim);
+        }
 
-			node1->boundingBox().convex( node2->boundingBox(), node->boundingBox() );
+        //	Create the final node and set the bounding box
 
-			//	Return the node
+        AABVHNodeList& primaryNodeList = m_nodeCollections.getPrimaryNodeList();
 
-			return( node );
-		};
+        primaryNodeList.emplace_back(node1, node2);
+        AABVHNode* node = &primaryNodeList.back();
 
+        node1->boundingBox().convex(node2->boundingBox(), node->boundingBox());
 
+        //	Return the node
 
-		AABVHNode*		AxisAlignedBoundingVolumeHierarchy::ConstructTreeRecursive( AABVHNodeList&		nodeStorage,
-																					size_t				begin,
-																				    size_t				end,
-																				    size_t				lastDim )
-		{
-			assert(end - begin > 0);
+        return (node);
+    };
 
-			// base case
+    AABVHNode* AxisAlignedBoundingVolumeHierarchy::ConstructTreeRecursive(AABVHNodeList& nodeStorage, size_t begin,
+                                                                          size_t end, size_t lastDim)
+    {
+        assert(end - begin > 0);
 
-			if (end - begin <= LEAF_SIZE)
-			{
-				nodeStorage.emplace_back();
-				AABVHNode*	node = &nodeStorage.back();
+        // base case
 
-				for (uint k = 0; k < end - begin; k++)
-				{
-					IndexType	blobid = m_tmpids[begin + k];
+        if (end - begin <= LEAF_SIZE)
+        {
+            nodeStorage.emplace_back();
+            AABVHNode* node = &nodeStorage.back();
 
-					node->AddBlobID( (*m_blobs)[blobid].index().boolAlgData(), blobid );
+            for (uint k = 0; k < end - begin; k++)
+            {
+                IndexType blobid = m_tmpids[begin + k];
 
-					node->boundingBox().convex( (*m_blobs)[blobid].boundingBox() );
-				}
+                node->AddBlobID((*m_blobs)[blobid].index().boolAlgData(), blobid);
 
-				return(node);
-			}
+                node->boundingBox().convex((*m_blobs)[blobid].boundingBox());
+            }
 
-			// otherwise, let's try to split this geometry up
+            return (node);
+        }
 
-			size_t	dim = (lastDim + 1) % 3;
-			size_t	mid = (begin + end) / 2;
+        // otherwise, let's try to split this geometry up
 
-			QuickSelect(mid, begin, end, dim);
+        size_t dim = (lastDim + 1) % 3;
+        size_t mid = (begin + end) / 2;
 
-			// now recurse
+        QuickSelect(mid, begin, end, dim);
 
-			AABVHNode*	left = ConstructTreeRecursive( nodeStorage, begin, mid, dim);
-			AABVHNode*	right =  ConstructTreeRecursive( nodeStorage, mid, end, dim);
+        // now recurse
 
-			nodeStorage.emplace_back( left, right );
-			AABVHNode*	node = &nodeStorage.back();
+        AABVHNode* left = ConstructTreeRecursive(nodeStorage, begin, mid, dim);
+        AABVHNode* right = ConstructTreeRecursive(nodeStorage, mid, end, dim);
 
-			left->boundingBox().convex( right->boundingBox(), node->boundingBox() );
+        nodeStorage.emplace_back(left, right);
+        AABVHNode* node = &nodeStorage.back();
 
-			return( node );
-		};
+        left->boundingBox().convex(right->boundingBox(), node->boundingBox());
 
-	}	//	namespace AABVH
-}		//	namespace Cork
-
-
-
-
+        return (node);
+    };
+}  // namespace Cork::AABVH

@@ -44,8 +44,8 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto stats = mesh->ComputeTopologicalStatistics();
 //        REQUIRE(stats.numBodies() == 1);
-        REQUIRE( stats.IsTwoManifold() );
-        REQUIRE( stats.numEdges() == 72 );
+        REQUIRE( stats.is_two_manifold() );
+        REQUIRE( stats.num_edges() == 72 );
     }
     
     SECTION("Find Holes")
@@ -60,6 +60,29 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(mesh->numTriangles() == 47);
 
         auto stats = mesh->ComputeTopologicalStatistics();
+
+        REQUIRE( !stats.is_two_manifold() );
+        REQUIRE( stats.hole_edges().size() == 3 );
+        REQUIRE( stats.self_intersecting_edges().size() == 0 );
+//        REQUIRE(stats.numBodies() == 1);
+    }
+
+    SECTION("Find Self Intersections")
+    {
+        auto read_result = Cork::Files::readOFF("../../UnitTest/Test Files/JuliaVaseWithSelfIntersection.off");
+
+        REQUIRE(read_result.succeeded());
+
+        auto* mesh(read_result.return_ptr().release());
+
+//        REQUIRE(mesh->numVertices() == 26);
+//        REQUIRE(mesh->numTriangles() == 47);
+
+        auto stats = mesh->ComputeTopologicalStatistics();
+
+//        REQUIRE( !stats.is_two_manifold() );
+//        REQUIRE( stats.hole_edges().size() == 3 );
+//        REQUIRE( stats.self_intersecting_edges().size() == 0 );
 //        REQUIRE(stats.numBodies() == 1);
     }
 }

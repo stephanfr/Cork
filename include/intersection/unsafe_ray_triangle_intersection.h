@@ -25,7 +25,7 @@
 // +-------------------------------------------------------------------------
 #pragma once
 
-#include "math/Ray3D.h"
+#include "math/Primitives.h"
 
 namespace Cork
 {
