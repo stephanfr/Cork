@@ -2027,7 +2027,7 @@ namespace Cork::Intersection
     SelfIntersectionStats IntersectionProblem::CheckSelfIntersection()
     {
         Empty3d::ExactArithmeticContext localArithmeticContext;
-        Math::IndexVector self_intersecting_edges;
+        Intersection::SelfIntersectionStats self_intersecting_edges;
 
         if (m_edgeBVH.get() == nullptr)
         {
@@ -2044,14 +2044,14 @@ namespace Cork::Intersection
             {
                 if (t.intersectsEdge(*edge, m_quantizer, localArithmeticContext))
                 {
-                    self_intersecting_edges.emplace_back( t.source_triangle_id() );
+                    self_intersecting_edges.add_intersection( Intersection::IntersectionInfo( edge->source_triangle_id(), edge->edge_index(), t.source_triangle_id() ));
                 }
             }
 
             edges.clear();
         }
 
-        return (SelfIntersectionStats(self_intersecting_edges));
+        return self_intersecting_edges;
     }
 
     IntersectionProblem::IntersectionProblemResult IntersectionProblem::ResolveAllIntersections()

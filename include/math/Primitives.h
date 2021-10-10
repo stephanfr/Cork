@@ -48,7 +48,6 @@ namespace Cork::Math
     using Vector2D = Vector2DTemplate<NUMERIC_PRECISION>;
     using Vector3D = Vector3DTemplate<NUMERIC_PRECISION>;
 
-
     using IndexType = size_t;
     using IndexVector = std::vector<IndexType>;
 
@@ -59,8 +58,90 @@ namespace Cork::Math
     using Vector3DVector = std::vector<Vector3D>;
     using Vertex3DVector = std::vector<Vertex3D>;
 
+    //  Define some enums to track vertex and edge assignments
 
-//	The Ray and Bounding Box classes depend on the Vector3D and Vertex3D classes
+    enum class TriangleVertexId : size_t
+    {
+        A = 0,
+        B,
+        C
+    };
+
+    enum class TriangleEdgeId : size_t
+    {
+        AB = 0,
+        BC,
+        CA
+    };
+
+    inline TriangleEdgeId from_vertices(TriangleVertexId vert_one, TriangleVertexId vert_two)
+    {
+        TriangleEdgeId result;
+
+        switch (vert_one)
+        {
+            case TriangleVertexId::A:
+
+                switch (vert_two)
+                {
+                    case TriangleVertexId::B:
+                        result = TriangleEdgeId::AB;
+                        break;
+                    case TriangleVertexId::C:
+                        result = TriangleEdgeId::CA;
+                        break;
+                }
+                break;
+
+            case TriangleVertexId::B:
+
+                switch (vert_two)
+                {
+                    case TriangleVertexId::A:
+                        result = TriangleEdgeId::AB;
+                        break;
+                    case TriangleVertexId::C:
+                        result = TriangleEdgeId::BC;
+                        break;
+                }
+                break;
+
+            case TriangleVertexId::C:
+
+                switch (vert_two)
+                {
+                    case TriangleVertexId::A:
+                        result = TriangleEdgeId::CA;
+                        break;
+                    case TriangleVertexId::B:
+                        result = TriangleEdgeId::BC;
+                        break;
+                }
+                break;
+        }
+
+        return result;
+    }
+
+    inline std::ostream& operator<<(std::ostream& out, TriangleVertexId tri_vertex_id)
+    {
+        constexpr std::array<const char*, 3> labels{{"VertexA", "VertexB", "VertexC"}};
+
+        out << labels[static_cast<size_t>(tri_vertex_id)];
+
+        return out;
+    }
+
+    inline std::ostream& operator<<(std::ostream& out, TriangleEdgeId tri_edge_id)
+    {
+        constexpr std::array<const char*, 3> labels{{"EdgeAB", "EdgeBC", "EdgeCA"}};
+
+        out << labels[static_cast<size_t>(tri_edge_id)];
+
+        return out;
+    }
+
+    //	The Ray and Bounding Box classes depend on the Vector3D and Vertex3D classes
 
     class Ray3D
     {
@@ -238,7 +319,7 @@ namespace Cork::Math
             return (2 * (d[1] * d[2] + d[0] * d[2] + d[0] * d[1]));
         }
 
-        bool intersects( Ray3DWithInverseDirection& ray) const
+        bool intersects(Ray3DWithInverseDirection& ray) const
         {
             NUMERIC_PRECISION txmin, txmax, tymin, tymax, tzmin, tzmax, txymin, txymax;
 
@@ -287,13 +368,12 @@ namespace Cork::Math
 
     static const BBox3D gEmptyBoundingBox(Math::Vector3D(0.0, 0.0, 0.0), Vector3D(0.0, 0.0, 0.0));
 
-
     class MinAndMaxEdgeLengths
     {
        public:
         static MinAndMaxEdgeLengths from_squares(double min_squared, double max_squared)
         {
-            return MinAndMaxEdgeLengths(min_squared,max_squared);
+            return MinAndMaxEdgeLengths(min_squared, max_squared);
         }
 
         MinAndMaxEdgeLengths() : min_squared_(NUMERIC_PRECISION_MAX), max_squared_(NUMERIC_PRECISION_MIN) {}
@@ -421,32 +501,79 @@ namespace Cork::Math
         };
     };
 
-    class EdgeBase
+    inline std::ostream& operator<<(std::ostream& out, const TriangleByIndicesBase& tri_by_indices)
+    {
+        out << "(" << tri_by_indices.a() << ", " << tri_by_indices.b() << ", " << tri_by_indices.c() << ")";
+        return out;
+    }
+
+    class EdgeByIndicesBase
     {
        public:
-        EdgeBase(IndexType a, IndexType b) : m_vertexA(std::min(a, b)), m_vertexB(std::max(a, b)) {}
+        //  Edges are always smaller vertex index first, larger index second
 
-        virtual ~EdgeBase() {}
-
-        IndexType vertexA() const { return (m_vertexA); }
-
-        IndexType vertexB() const { return (m_vertexB); }
-
-        bool operator==(const EdgeBase& edgeToCompare) const
+        EdgeByIndicesBase(IndexType first_vertex, IndexType second_vertex)
+            : first_vertex_(std::min(first_vertex, second_vertex)),
+              second_vertex_(std::max(first_vertex, second_vertex))
         {
-            return ((vertexA() == edgeToCompare.vertexA()) && (vertexB() == edgeToCompare.vertexB()));
+        }
+
+        virtual ~EdgeByIndicesBase() {}
+
+        IndexType first() const { return (first_vertex_); }
+
+        IndexType second() const { return (second_vertex_); }
+
+        bool operator==(const EdgeByIndicesBase& edgeToCompare) const
+        {
+            return ((first() == edgeToCompare.first()) && (second() == edgeToCompare.second()));
         }
 
        private:
-        IndexType m_vertexA;
-        IndexType m_vertexB;
+        IndexType first_vertex_;
+        IndexType second_vertex_;
     };
+
+    class EdgeByVerticesBase
+    {
+       public:
+        EdgeByVerticesBase(const Vertex3D& first_vertex, const Vertex3D& second_vertex)
+            : first_vertex_(first_vertex), second_vertex_(second_vertex)
+        {
+        }
+
+        virtual ~EdgeByVerticesBase() {}
+
+        const Vertex3D& first() const { return (first_vertex_); }
+
+        const Vertex3D& second() const { return (second_vertex_); }
+
+        bool operator==(const EdgeByVerticesBase& edgeToCompare) const
+        {
+            return ((first() == edgeToCompare.first()) && (second() == edgeToCompare.second()));
+        }
+
+       private:
+        const Vertex3D first_vertex_;
+        const Vertex3D second_vertex_;
+    };
+
+    inline std::ostream& operator<<(std::ostream& out, const EdgeByVerticesBase& edge_by_vertices)
+    {
+        out << "(" << edge_by_vertices.first() << ", " << edge_by_vertices.second() << ")";
+        return out;
+    }
 
     class TriangleByVerticesBase
     {
        public:
         TriangleByVerticesBase(const Vertex3D& firstVertex, const Vertex3D& secondVertex, const Vertex3D& thirdVertex)
             : m_vertices({firstVertex, secondVertex, thirdVertex})
+        {
+        }
+
+        TriangleByVerticesBase(const TriangleByIndicesBase& triangle, const Vertex3DVector& vertices)
+            : m_vertices({vertices.at(triangle.a()), vertices.at(triangle.b()), vertices.at(triangle.c())})
         {
         }
 
@@ -458,11 +585,29 @@ namespace Cork::Math
 
         const Vertex3D& vertexC() const { return (m_vertices[2]); }
 
-        Vector3D edgeAB() const { return (m_vertices[0] - m_vertices[1]); }
+        Vector3D edgeAB_from_origin() const { return (m_vertices[0] - m_vertices[1]); }
 
-        Vector3D edgeAC() const { return (m_vertices[0] - m_vertices[2]); }
+        Vector3D edgeAC_from_origin() const { return (m_vertices[0] - m_vertices[2]); }
 
-        Vector3D edgeBC() const { return (m_vertices[1] - m_vertices[2]); }
+        Vector3D edgeBC_from_origin() const { return (m_vertices[1] - m_vertices[2]); }
+
+        EdgeByVerticesBase edge(TriangleEdgeId edge_id)
+        {
+            switch (edge_id)
+            {
+                case TriangleEdgeId::AB:
+                    return EdgeByVerticesBase(m_vertices[0], m_vertices[1]);
+                    break;
+
+                case TriangleEdgeId::BC:
+                    return EdgeByVerticesBase(m_vertices[1], m_vertices[2]);
+                    break;
+            }
+            
+            return EdgeByVerticesBase(m_vertices[2], m_vertices[0]);
+        }
+
+        //        TriangleEdgeId
 
         BBox3D bounding_box() const
         {
@@ -476,9 +621,9 @@ namespace Cork::Math
 
         MinAndMaxEdgeLengths min_and_max_edge_lengths()
         {
-            double edge_ab_len = edgeAB().len_squared();
-            double edge_ac_len = edgeAC().len_squared();
-            double edge_bc_len = edgeBC().len_squared();
+            double edge_ab_len = edgeAB_from_origin().len_squared();
+            double edge_ac_len = edgeAC_from_origin().len_squared();
+            double edge_bc_len = edgeBC_from_origin().len_squared();
 
             double min_squared = std::min(edge_ab_len, std::min(edge_ac_len, edge_bc_len));
             double max_squared = std::max(edge_ab_len, std::max(edge_ac_len, edge_bc_len));
@@ -495,10 +640,17 @@ namespace Cork::Math
         std::array<Vertex3D, 3> m_vertices;
     };
 
+    inline std::ostream& operator<<(std::ostream& out, const TriangleByVerticesBase& tri_by_vertices)
+    {
+        out << "(" << tri_by_vertices.vertexA() << ", " << tri_by_vertices.vertexB() << ", "
+            << tri_by_vertices.vertexC() << ")";
+        return out;
+    }
+
     //
     //  Setup some types
     //
 
-    using EdgeVector = std::vector<Math::EdgeBase>;
+    using EdgeByIndicesVector = std::vector<Math::EdgeByIndicesBase>;
 
 }  // namespace Cork::Math

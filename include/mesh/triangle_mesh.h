@@ -41,7 +41,8 @@ namespace Cork
     using Vertex = Math::Vertex3D;
     using VertexVector = Math::Vertex3DVector;
 
-    using Edge = Math::EdgeBase;
+    using EdgeByIndices = Math::EdgeByIndicesBase;
+    using EdgeByIndicesVector = Math::EdgeByIndicesVector;
 
     using TriangleByIndices = Math::TriangleByIndicesBase;
     using TriangleByVertices = Math::TriangleByVerticesBase;
@@ -50,7 +51,7 @@ namespace Cork
     {
        public:
        private:
-        std::vector<Edge> edges_;
+        EdgeByIndicesVector edges_;
         std::vector<Vertex> vertices_;
     };
 

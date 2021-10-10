@@ -58,9 +58,9 @@ namespace Cork::Statistics
 
         if ((m_propertiesToCompute & (PropertiesToCompute::AREA_AND_VOLUME | PropertiesToCompute::EDGE_LENGTHS)) != 0)
         {
-            Math::Vector3D edgeAB = nextTriangle.edgeAB();
-            Math::Vector3D edgeAC = nextTriangle.edgeAC();
-            Math::Vector3D edgeBC = nextTriangle.edgeBC();
+            Math::Vector3D edgeAB = nextTriangle.edgeAB_from_origin();
+            Math::Vector3D edgeAC = nextTriangle.edgeAC_from_origin();
+            Math::Vector3D edgeBC = nextTriangle.edgeBC_from_origin();
 
             if ((m_propertiesToCompute & PropertiesToCompute::AREA_AND_VOLUME) != 0)
             {
@@ -131,12 +131,12 @@ namespace Cork::Statistics
 
                 if (edge.numIncidences() <= 1)
                 {
-                    hole_edges_.push_back(dynamic_cast<const Math::EdgeBase&>(edge));
+                    hole_edges_.push_back(dynamic_cast<const Math::EdgeByIndicesBase&>(edge));
                     std::cout << "Found Hole" << std::endl;
                 }
                 else
                 {
-                    self_intersecting_edges_.push_back(dynamic_cast<const Math::EdgeBase&>(edge));
+                    self_intersecting_edges_.push_back(dynamic_cast<const Math::EdgeByIndicesBase&>(edge));
                     std::cout << "Found Self Intersection" << std::endl;
                 }
             }
@@ -154,7 +154,7 @@ namespace Cork::Statistics
         {
             std::cout << "Failed to get Quantizer: " << get_quantizer_result.message() << std::endl;
 
-            return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, hole_edges_, self_intersecting_edges_));
+            return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, hole_edges_, Intersection::SelfIntersectionStats() ));
         }
 
         Quantization::Quantizer quantizer(get_quantizer_result.return_value());
@@ -166,9 +166,9 @@ namespace Cork::Statistics
 
         Intersection::SelfIntersectionStats   stats = iproblem->CheckSelfIntersection();
 
-        std::cout << "Found: " << stats.numSelfIntersections() << " self intersections." << std::endl;
+        std::cout << "Found: " << stats.self_intersections().size() << " self intersections." << std::endl;
 
-        return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, hole_edges_, self_intersecting_edges_));
+        return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, hole_edges_, stats ));
     }
 
 };  // namespace Cork::Statistics

@@ -27,11 +27,10 @@
 #pragma once
 
 #include "MeshBase.h"
+#include "self_intersections.hpp"
 
-namespace Cork
+namespace Cork::Intersection
 {
-    namespace Intersection
-    {
         enum class AdjustPerturbationResultCodes
         {
             SUCCESS = 0,
@@ -39,22 +38,6 @@ namespace Cork
         };
 
         typedef SEFUtility::ResultWithReturnValue<AdjustPerturbationResultCodes, int> AdjustPerturbationResult;
-
-        class SelfIntersectionStats
-        {
-           public:
-            SelfIntersectionStats(Math::IndexVector self_intersecting_edges) : self_intersecting_edges_(self_intersecting_edges) {}
-
-            long numSelfIntersections() const { return self_intersecting_edges_.size(); }
-
-            Math::IndexVector        self_intersecting_edges() const
-            {
-                return self_intersecting_edges_;
-            }
-
-           private:
-            Math::IndexVector self_intersecting_edges_;
-        };
 
         class IntersectionProblemIfx
         {
@@ -85,5 +68,4 @@ namespace Cork
             virtual void commit() = 0;
         };
 
-    }  // namespace Intersection
-}  // namespace Cork
+}  // namespace Cork::Intersection

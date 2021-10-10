@@ -82,6 +82,10 @@ namespace Cork
             size_t vids1 = ref_tri[1];
             size_t vids2 = ref_tri[2];
 
+            Math::TriangleVertexId    vertex0_id = Math::TriangleVertexId::A;
+            Math::TriangleVertexId    vertex1_id = Math::TriangleVertexId::B;
+            Math::TriangleVertexId    vertex2_id = Math::TriangleVertexId::C;
+
             TopoTri* tri =
                 m_topoTriList.emplace_back(ref_tri.triangle_id(), i, m_topoVertexList.getPool()[vids0], m_topoVertexList.getPool()[vids1],
                                            m_topoVertexList.getPool()[vids2]);
@@ -91,16 +95,19 @@ namespace Cork
             if (vids0 > vids1)
             {
                 std::swap(vids0, vids1);
+                std::swap( vertex0_id, vertex1_id );
             }
 
             if (vids1 > vids2)
             {
                 std::swap(vids1, vids2);
+                std::swap( vertex1_id, vertex2_id );
             }
 
             if (vids0 > vids1)
             {
                 std::swap(vids0, vids1);
+                std::swap( vertex0_id, vertex1_id );
             }
 
             // and accrue in structure
@@ -122,7 +129,7 @@ namespace Cork
 
                 if (edge01 == nullptr)
                 {
-                    edge01 = edge01Proto.setEdge(m_topoEdgeList.emplace_back(i, v0, v1));
+                    edge01 = edge01Proto.setEdge(m_topoEdgeList.emplace_back(tri->source_triangle_id(), from_vertices(vertex0_id, vertex1_id), v0, v1));
                 }
 
                 edge01->triangles().insert(tri);
@@ -133,7 +140,7 @@ namespace Cork
 
                 if (edge02 == nullptr)
                 {
-                    edge02 = edge02Proto.setEdge(m_topoEdgeList.emplace_back(i, v0, v2));
+                    edge02 = edge02Proto.setEdge(m_topoEdgeList.emplace_back(tri->source_triangle_id(), from_vertices(vertex0_id, vertex2_id), v0, v2));
                 }
 
                 edge02->triangles().insert(tri);
@@ -144,7 +151,7 @@ namespace Cork
 
                 if (edge12 == nullptr)
                 {
-                    edge12 = edge12Proto.setEdge(m_topoEdgeList.emplace_back(i, v1, v2));
+                    edge12 = edge12Proto.setEdge(m_topoEdgeList.emplace_back(tri->source_triangle_id(), from_vertices(vertex1_id, vertex2_id), v1, v2));
                 }
 
                 edge12->triangles().insert(tri);

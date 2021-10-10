@@ -63,7 +63,7 @@ TEST_CASE("Topology Tests", "[file io]")
 
         REQUIRE( !stats.is_two_manifold() );
         REQUIRE( stats.hole_edges().size() == 3 );
-        REQUIRE( stats.self_intersecting_edges().size() == 0 );
+        REQUIRE( stats.self_intersections().self_intersections().size() == 0 );
 //        REQUIRE(stats.numBodies() == 1);
     }
 
@@ -80,6 +80,10 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto stats = mesh->ComputeTopologicalStatistics();
 
+        for( auto record : stats.self_intersections().self_intersections() )
+        {
+        std::cout << "Edge Index: " << record.edge_index_ << " Edge: " << Cork::TriangleByVertices( mesh->triangles().at( record.edge_triangle_id_), mesh->vertices() ).edge(record.edge_index_) << "    Triangle: " << Cork::TriangleByVertices( mesh->triangles().at( record.triangle_instersected_id_), mesh->vertices() ) << std::endl;
+    }
 //        REQUIRE( !stats.is_two_manifold() );
 //        REQUIRE( stats.hole_edges().size() == 3 );
 //        REQUIRE( stats.self_intersecting_edges().size() == 0 );

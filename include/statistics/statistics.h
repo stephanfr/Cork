@@ -29,6 +29,7 @@
 #include <memory>
 
 #include "math/Primitives.h"
+#include "mesh/self_intersections.hpp"
 
 namespace Cork::Statistics
 {
@@ -74,17 +75,17 @@ namespace Cork::Statistics
     class TopologicalStatistics
     {
        public:
-        using EdgeVector = std::vector<Math::EdgeBase>;
+        using EdgeByIndicesVector = Math::EdgeByIndicesVector;
 
         TopologicalStatistics() = delete;
 
-        TopologicalStatistics(size_t num_edges, size_t num_bodies, size_t non_2_manifold_edges, const EdgeVector& hole_edges,
-                              const EdgeVector& self_intersecting_edges)
+        TopologicalStatistics(size_t num_edges, size_t num_bodies, size_t non_2_manifold_edges, const EdgeByIndicesVector& hole_edges,
+                              const Cork::Intersection::SelfIntersectionStats& self_intersections)
             : num_edges_(num_edges),
               num_bodies_(num_bodies),
               non_2_manifold_edges_(non_2_manifold_edges),
               hole_edges_(hole_edges),
-              self_intersecting_edges_(self_intersecting_edges)
+              self_intersections_(self_intersections)
         {
         }
 
@@ -93,7 +94,7 @@ namespace Cork::Statistics
               num_bodies_(stats_to_copy.num_bodies_),
               non_2_manifold_edges_(stats_to_copy.non_2_manifold_edges_),
               hole_edges_(stats_to_copy.hole_edges_),
-              self_intersecting_edges_(stats_to_copy.self_intersecting_edges_)
+              self_intersections_(stats_to_copy.self_intersections_)
         {
         }
 
@@ -110,16 +111,16 @@ namespace Cork::Statistics
 
         bool is_two_manifold() const { return (non_2_manifold_edges_ == 0); }
 
-        const EdgeVector& hole_edges() { return hole_edges_; }
-        const EdgeVector& self_intersecting_edges() { return self_intersecting_edges_; }
+        const EdgeByIndicesVector& hole_edges() { return hole_edges_; }
+        const Intersection::SelfIntersectionStats& self_intersections() { return self_intersections_; }
 
        private:
         size_t num_edges_;
         size_t num_bodies_;
         size_t non_2_manifold_edges_;
 
-        const EdgeVector hole_edges_;
-        const EdgeVector self_intersecting_edges_;
+        const EdgeByIndicesVector hole_edges_;
+        const Intersection::SelfIntersectionStats self_intersections_;
     };
 
 }  // namespace Cork::Statistics

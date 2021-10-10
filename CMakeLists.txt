@@ -21,6 +21,13 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(guidelines_support_lib)
 
 FetchContent_Declare(
+  type_safe
+  GIT_REPOSITORY https://github.com/foonathan/type_safe.git
+  GIT_TAG        main)
+
+FetchContent_MakeAvailable(type_safe)
+
+FetchContent_Declare(
   fmtlib
   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
   GIT_TAG        8.0.1)
@@ -73,6 +80,7 @@ include_directories(
   ./thirdparty/boost/${BOOST_VERSION}
   ./include
   ${fmtlib_SOURCE_DIR}/include
+  ${type_safe_SOURCE_DIR}/include
   ${cppresult_SOURCE_DIR}/include
   ${guidelines_support_lib_SOURCE_DIR}/include
   )

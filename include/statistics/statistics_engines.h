@@ -86,11 +86,11 @@ namespace Cork::Statistics
         TopologicalStatistics Analyze();
 
        private:
-        class EdgeAndIncidence : public Math::EdgeBase
+        class EdgeAndIncidence : public Math::EdgeByIndicesBase
         {
            public:
             EdgeAndIncidence(const Math::IndexType a, const Math::IndexType b)
-                : Math::EdgeBase(a, b), m_numIncidences(0)
+                : Math::EdgeByIndicesBase(a, b), m_numIncidences(0)
             {
             }
 
@@ -102,7 +102,7 @@ namespace Cork::Statistics
 
             struct HashFunction
             {
-                std::size_t operator()(const Math::EdgeBase& k) const { return (k.vertexA() * 10000019 ^ k.vertexB()); }
+                std::size_t operator()(const Math::EdgeByIndicesBase& k) const { return (k.first() * 10000019 ^ k.second()); }
             };
 
            private:
@@ -124,8 +124,8 @@ namespace Cork::Statistics
 
         EdgeSet edges_;
 
-        std::vector<Math::EdgeBase> hole_edges_;
-        std::vector<Math::EdgeBase> self_intersecting_edges_;
+        std::vector<Math::EdgeByIndicesBase> hole_edges_;
+        std::vector<Math::EdgeByIndicesBase> self_intersecting_edges_;
 
         VertexAssociations vertex_associations_;
 

@@ -56,6 +56,8 @@ namespace Cork
 
 #define INVALID_ID uint(-1)
 
+    using TriangleEdgeId = Math::TriangleEdgeId;
+
     //	We need a couple forward declarations
 
     class TopoTri;
@@ -104,10 +106,10 @@ namespace Cork
     class TopoEdge final : public IntrusiveListHookNoDestructorOnElements
     {
        public:
-        TopoEdge() : original_edge_id_(std::numeric_limits<int>::max()) {}
+        TopoEdge() : source_triangle_id_(std::numeric_limits<int>::max()) {}
 
-        TopoEdge(uint32_t original_edge_id, TopoVert* vertex0, TopoVert* vertex1)
-            : original_edge_id_(original_edge_id), m_verts({{vertex0, vertex1}})
+        TopoEdge(uint32_t source_triangle_id, TriangleEdgeId tri_edge_id, TopoVert* vertex0, TopoVert* vertex1)
+            : source_triangle_id_(source_triangle_id), tri_edge_id_(tri_edge_id), m_verts({{vertex0, vertex1}})
         {
             vertex0->edges().insert(this);
             vertex1->edges().insert(this);
@@ -115,7 +117,8 @@ namespace Cork
 
         ~TopoEdge() {}
 
-        uint32_t original_edge_id() const { return original_edge_id_; }
+        uint32_t source_triangle_id() const { return source_triangle_id_; }
+        TriangleEdgeId edge_index() const { return tri_edge_id_; }
 
         void* data() const { return (m_data); }
 
@@ -167,7 +170,8 @@ namespace Cork
        private:
         void* m_data;  // algorithm specific handle
 
-        uint32_t original_edge_id_;
+        uint32_t source_triangle_id_;
+        TriangleEdgeId tri_edge_id_;
 
         uint32_t m_boolAlgData;
 
@@ -210,7 +214,8 @@ namespace Cork
 
         explicit TopoTri(IndexType ref) : m_ref(ref) {}
 
-        TopoTri(uint32_t source_triangle_id, IndexType ref, TopoVert& vertex0, TopoVert& vertex1, TopoVert& vertex2) : source_triangle_id_(source_triangle_id), m_ref(ref)
+        TopoTri(uint32_t source_triangle_id, IndexType ref, TopoVert& vertex0, TopoVert& vertex1, TopoVert& vertex2)
+            : source_triangle_id_(source_triangle_id), m_ref(ref)
         {
             m_verts[0] = &vertex0;
             m_verts[1] = &vertex1;
@@ -225,32 +230,15 @@ namespace Cork
 
         ~TopoTri() {}
 
-        IndexType ref() const {
-            return (m_ref); }
+        IndexType ref() const { return (m_ref); }
 
-            uint32_t source_triangle_id() const {
-                return( source_triangle_id_ );
-            }
+        uint32_t source_triangle_id() const { return (source_triangle_id_); }
 
-        void setRef(IndexType newValue) {
-            m_ref = newValue; }
+        void setRef(IndexType newValue) { m_ref = newValue; }
 
-        void* data() const {
-            return (m_data); }
+        void* data() const { return (m_data); }
 
-        void setData(void* newValue) {
-            m_data = newValue; }
-
-        //        void initVertices(TopoVert& vertex0, TopoVert& vertex1, TopoVert& vertex2)
-        //        {
-        //            m_verts[0] = &vertex0;
-        //            m_verts[1] = &vertex1;
-        //            m_verts[2] = &vertex2;
-        //
-        //            vertex0.triangles().insert(this);
-        //            vertex1.triangles().insert(this);
-        //            vertex2.triangles().insert(this);
-        //        }
+        void setData(void* newValue) { m_data = newValue; }
 
 #ifndef __AVX_AVAILABLE__
         //	Without SSE, the min/max computations as slow enough that caching the computed value is most efficient
@@ -302,11 +290,9 @@ namespace Cork
             return (p[0].join(p[1])).join(p[2]);
         }
 
-        uint32_t boolAlgData() const {
-            return (m_boolAlgData); }
+        uint32_t boolAlgData() const { return (m_boolAlgData); }
 
-        void setBoolAlgData(uint32_t newValue) {
-            m_boolAlgData = newValue; }
+        void setBoolAlgData(uint32_t newValue) { m_boolAlgData = newValue; }
 
         void setVertices(std::array<TopoVert*, 3>& vertices)
         {
@@ -321,8 +307,7 @@ namespace Cork
 #endif
         }
 
-        const std::array<TopoVert*, 3>& verts() const {
-            return (m_verts); }
+        const std::array<TopoVert*, 3>& verts() const { return (m_verts); }
 
         void setEdges(std::array<TopoEdge*, 3>& edges)
         {
@@ -333,8 +318,7 @@ namespace Cork
             edges[2]->triangles().insert(this);
         }
 
-        const std::array<TopoEdge*, 3>& edges() const {
-            return (m_edges); }
+        const std::array<TopoEdge*, 3>& edges() const { return (m_edges); }
 
         void flip()
         {
