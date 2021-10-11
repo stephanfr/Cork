@@ -20,6 +20,7 @@
  */
 
 #include <catch2/catch_all.hpp>
+#include <list>
 
 #include "file_formats/files.h"
 
@@ -43,11 +44,11 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(mesh->numTriangles() == 48);
 
         auto stats = mesh->ComputeTopologicalStatistics();
-//        REQUIRE(stats.numBodies() == 1);
-        REQUIRE( stats.is_two_manifold() );
-        REQUIRE( stats.num_edges() == 72 );
+        //        REQUIRE(stats.numBodies() == 1);
+        REQUIRE(stats.is_two_manifold());
+        REQUIRE(stats.num_edges() == 72);
     }
-    
+
     SECTION("Find Holes")
     {
         auto read_result = Cork::Files::readOFF("../../UnitTest/Test Files/Quadrilateral with Hole.off");
@@ -61,10 +62,10 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto stats = mesh->ComputeTopologicalStatistics();
 
-        REQUIRE( !stats.is_two_manifold() );
-        REQUIRE( stats.hole_edges().size() == 3 );
-        REQUIRE( stats.self_intersections().self_intersections().size() == 0 );
-//        REQUIRE(stats.numBodies() == 1);
+        REQUIRE(!stats.is_two_manifold());
+        REQUIRE(stats.hole_edges().size() == 3);
+        REQUIRE(stats.self_intersections().self_intersections().size() == 0);
+        //        REQUIRE(stats.numBodies() == 1);
     }
 
     SECTION("Find Self Intersections")
@@ -75,18 +76,51 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto* mesh(read_result.return_ptr().release());
 
-//        REQUIRE(mesh->numVertices() == 26);
-//        REQUIRE(mesh->numTriangles() == 47);
-
         auto stats = mesh->ComputeTopologicalStatistics();
 
-        for( auto record : stats.self_intersections().self_intersections() )
+        std::list<size_t> triangles_to_remove;
+
+        for (auto record : stats.self_intersections().self_intersections())
         {
-        std::cout << "Edge Index: " << record.edge_index_ << " Edge: " << Cork::TriangleByVertices( mesh->triangles().at( record.edge_triangle_id_), mesh->vertices() ).edge(record.edge_index_) << "    Triangle: " << Cork::TriangleByVertices( mesh->triangles().at( record.triangle_instersected_id_), mesh->vertices() ) << std::endl;
-    }
-//        REQUIRE( !stats.is_two_manifold() );
-//        REQUIRE( stats.hole_edges().size() == 3 );
-//        REQUIRE( stats.self_intersecting_edges().size() == 0 );
-//        REQUIRE(stats.numBodies() == 1);
+            Cork::Math::EdgeByVerticesBase edge_with_se(
+                Cork::TriangleByVertices(mesh->triangles().at(record.edge_triangle_id_), mesh->vertices())
+                    .edge(record.edge_index_));
+
+            std::cout << "Edge Index: " << record.edge_index_ << " Edge: " << edge_with_se << "    Triangle: "
+                      << Cork::TriangleByVertices(mesh->triangles().at(record.triangle_instersected_id_),
+                                                  mesh->vertices())
+                      << std::endl;
+
+            triangles_to_remove.push_back(record.edge_triangle_id_);
+        }
+
+        //        REQUIRE( !stats.is_two_manifold() );
+        //        REQUIRE( stats.hole_edges().size() == 3 );
+        //        REQUIRE( stats.self_intersecting_edges().size() == 0 );
+        //        REQUIRE(stats.numBodies() == 1);
+
+        auto read_result2 = Cork::Files::readOFF("../../UnitTest/Test Files/JuliaVaseWithSelfIntersection.off");
+
+        REQUIRE(read_result2.succeeded());
+
+        auto original_mesh(read_result2.return_ptr().release());
+
+        triangles_to_remove.sort(std::greater<size_t>());
+
+        for (auto tri_to_remove_index : triangles_to_remove)
+        {
+            original_mesh->remove_triangle(tri_to_remove_index);
+        }
+
+        auto write_result = Cork::Files::writeOFF(
+            "../../UnitTest/Test Results/JuliaVaseWithSelfIntersectionRemovedHoleLeft.off", *original_mesh);
+
+        auto* mesh2(original_mesh);
+
+        auto stats2 = mesh2->ComputeTopologicalStatistics();
+
+        REQUIRE(!stats2.is_two_manifold());
+        REQUIRE(stats2.hole_edges().size() == 7);
+        REQUIRE(stats2.self_intersections().self_intersections().size() == 0);
     }
 }

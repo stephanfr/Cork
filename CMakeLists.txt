@@ -81,6 +81,7 @@ include_directories(
   ./include
   ${fmtlib_SOURCE_DIR}/include
   ${type_safe_SOURCE_DIR}/include
+  ${type_safe_SOURCE_DIR}/external/debug_assert
   ${cppresult_SOURCE_DIR}/include
   ${guidelines_support_lib_SOURCE_DIR}/include
   )

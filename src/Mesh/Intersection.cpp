@@ -712,7 +712,7 @@ namespace Cork::Intersection
 
         void perturbPositions()
         {
-            for (int i = 0; i < m_quantizedCoords.size(); i++)
+            for (VertexIndex i = 0ul; i < m_quantizedCoords.size(); i++)
             {
                 Math::Vector3D perturbation = m_perturbation.getPerturbation();
 
@@ -973,8 +973,8 @@ namespace Cork::Intersection
 
         TopoEdge* operator()(TopoVert& v0, TopoVert& v1)
         {
-            IndexType i = v0.ref();
-            IndexType j = v1.ref();
+            size_t i = VertexIndex::integer_type(v0.ref());
+            size_t j = VertexIndex::integer_type(v1.ref());
 
             if (i > j)
             {
@@ -985,7 +985,7 @@ namespace Cork::Intersection
 
             for (size_t k = 0; k < N; k++)
             {
-                if (m_edges[i][k].vid == j)
+                if (m_edges[i][k].vid == VertexIndex(j))
                 {
                     return (m_edges[i][k].e);
                 }
@@ -1046,8 +1046,8 @@ namespace Cork::Intersection
 
         TopoEdge* maybeEdge(GenericEdgeType* ge)
         {
-            IndexType i = ge->ends()[0]->concreteVertex()->ref();
-            IndexType j = ge->ends()[1]->concreteVertex()->ref();
+            size_t i = VertexIndex::integer_type(ge->ends()[0]->concreteVertex()->ref());
+            size_t j = VertexIndex::integer_type(ge->ends()[1]->concreteVertex()->ref());
 
             if (i > j)
             {
@@ -1071,11 +1071,11 @@ namespace Cork::Intersection
        private:
         struct EdgeEntry
         {
-            EdgeEntry() {}
+            EdgeEntry() = delete;
 
             explicit EdgeEntry(IndexType id) : vid(id) {}
 
-            IndexType vid;
+            VertexIndex vid;
             TopoEdge* e;
         };
 

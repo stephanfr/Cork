@@ -36,7 +36,7 @@ namespace Cork
 {
     using IndexType = Math::IndexType;
 
-    using VertexIndexType = IndexType;
+    using VertexIndex = Math::VertexIndex;
 
     using Vertex = Math::Vertex3D;
     using VertexVector = Math::Vertex3DVector;
@@ -52,7 +52,7 @@ namespace Cork
        public:
        private:
         EdgeByIndicesVector edges_;
-        std::vector<Vertex> vertices_;
+        VertexVector vertices_;
     };
 
     class TriangleMesh
@@ -69,6 +69,8 @@ namespace Cork
         virtual const std::vector<TriangleByIndices>& triangles() const = 0;
 
         virtual TriangleByVertices triangleByVertices(const TriangleByIndices& triangleByIndices) const = 0;
+
+        virtual void remove_triangle( size_t        triangle_index ) = 0;
 
         virtual const Math::BBox3D& boundingBox() const = 0;
         virtual Math::MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
@@ -100,7 +102,7 @@ namespace Cork
 
         virtual size_t num_vertices() const = 0;
 
-        virtual VertexIndexType AddVertex(const Vertex& vertexToAdd) = 0;
+        virtual VertexIndex AddVertex(const Vertex& vertexToAdd) = 0;
         virtual TriangleMeshBuilderResultCodes AddTriangle(const TriangleByIndices& triangleToAdd) = 0;
 
         virtual std::unique_ptr<TriangleMesh> Mesh() = 0;

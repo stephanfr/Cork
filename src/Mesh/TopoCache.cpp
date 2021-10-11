@@ -78,17 +78,17 @@ namespace Cork
 
             // triangles <--> verts
 
-            size_t vids0 = ref_tri[0];
-            size_t vids1 = ref_tri[1];
-            size_t vids2 = ref_tri[2];
+            VertexIndex vids0 = ref_tri[0];
+            VertexIndex vids1 = ref_tri[1];
+            VertexIndex vids2 = ref_tri[2];
 
             Math::TriangleVertexId    vertex0_id = Math::TriangleVertexId::A;
             Math::TriangleVertexId    vertex1_id = Math::TriangleVertexId::B;
             Math::TriangleVertexId    vertex2_id = Math::TriangleVertexId::C;
 
             TopoTri* tri =
-                m_topoTriList.emplace_back(ref_tri.triangle_id(), i, m_topoVertexList.getPool()[vids0], m_topoVertexList.getPool()[vids1],
-                                           m_topoVertexList.getPool()[vids2]);
+                m_topoTriList.emplace_back(ref_tri.triangle_id(), i, m_topoVertexList.getPool()[VertexIndex::integer_type(vids0)], m_topoVertexList.getPool()[VertexIndex::integer_type(vids1)],
+                                           m_topoVertexList.getPool()[VertexIndex::integer_type(vids2)]);
 
             // then, put these in arbitrary but globally consistent order
 
@@ -112,9 +112,9 @@ namespace Cork
 
             // and accrue in structure
 
-            TopoVert* v0 = &(m_topoVertexList.getPool()[vids0]);
-            TopoVert* v1 = &(m_topoVertexList.getPool()[vids1]);
-            TopoVert* v2 = &(m_topoVertexList.getPool()[vids2]);
+            TopoVert* v0 = &(m_topoVertexList.getPool()[VertexIndex::integer_type(vids0)]);
+            TopoVert* v1 = &(m_topoVertexList.getPool()[VertexIndex::integer_type(vids1)]);
+            TopoVert* v2 = &(m_topoVertexList.getPool()[VertexIndex::integer_type(vids2)]);
 
             //	Create edges and link them to the triangle
 
@@ -123,7 +123,7 @@ namespace Cork
             TopoEdge* edge12;
 
             {
-                TopoEdgePrototype& edge01Proto = edgeacc[vids0].find_or_add(vids1);
+                TopoEdgePrototype& edge01Proto = edgeacc[VertexIndex::integer_type(vids0)].find_or_add(VertexIndex::integer_type(vids1));
 
                 edge01 = edge01Proto.edge();
 
@@ -134,7 +134,7 @@ namespace Cork
 
                 edge01->triangles().insert(tri);
 
-                TopoEdgePrototype& edge02Proto = edgeacc[vids0].find_or_add(vids2);
+                TopoEdgePrototype& edge02Proto = edgeacc[VertexIndex::integer_type(vids0)].find_or_add(VertexIndex::integer_type(vids2));
 
                 edge02 = edge02Proto.edge();
 
@@ -145,7 +145,7 @@ namespace Cork
 
                 edge02->triangles().insert(tri);
 
-                TopoEdgePrototype& edge12Proto = edgeacc[vids1].find_or_add(vids2);
+                TopoEdgePrototype& edge12Proto = edgeacc[VertexIndex::integer_type(vids1)].find_or_add(VertexIndex::integer_type(vids2));
 
                 edge12 = edge12Proto.edge();
 
@@ -170,7 +170,7 @@ namespace Cork
 
         for (auto& vert : m_topoVertexList)
         {
-            live_verts[vert.ref()] = true;
+            live_verts[VertexIndex::integer_type(vert.ref())] = true;
         }
 
         // record which triangles are live, and record connectivity
@@ -189,53 +189,53 @@ namespace Cork
 
         // compact the vertices and build a remapping function
 
-        std::vector<size_t> vmap;
+        std::vector<VertexIndex> vertex_map;
 
-        vmap.reserve(m_meshVertices.size());
+        vertex_map.reserve(m_meshVertices.size());
 
-        uint write = 0;
+        VertexIndex vert_write( 0ul );
 
         for (size_t read = 0; read < m_meshVertices.size(); read++)
         {
             if (live_verts[read])
             {
-                vmap.emplace_back(write);
-                m_meshVertices[write] = m_meshVertices[read];
-                write++;
+                vertex_map.emplace_back(vert_write);
+                m_meshVertices[vert_write] = m_meshVertices[VertexIndex(read)];
+                vert_write++;
             }
             else
             {
-                vmap.emplace_back(INVALID_ID);
+                vertex_map.emplace_back(INVALID_ID);
             }
         }
 
-        m_meshVertices.resize(write);
+        m_meshVertices.resize(VertexIndex::integer_type(vert_write));
 
         // rewrite the vertex reference ids
 
         for (auto& vert : m_topoVertexList)
         {
-            vert.setRef(vmap[vert.ref()]);
+            vert.setRef(vertex_map[VertexIndex::integer_type(vert.ref())]);
         }
 
         std::vector<size_t> tmap;
         tmap.reserve(m_meshTriangles.size());
 
-        write = 0;
+        size_t  tri_write = 0;
 
         for (size_t read = 0; read < m_meshTriangles.size(); read++)
         {
             if (live_tris[read])
             {
-                tmap.emplace_back(write);
-                m_meshTriangles[write] = m_meshTriangles[read];
+                tmap.emplace_back(tri_write);
+                m_meshTriangles[tri_write] = m_meshTriangles[read];
 
                 for (uint k = 0; k < 3; k++)
                 {
-                    m_meshTriangles[write][k] = vmap[m_meshTriangles[write][k]];
+                    m_meshTriangles[tri_write][k] = vertex_map[VertexIndex::integer_type(m_meshTriangles[tri_write][k])];
                 }
 
-                write++;
+                tri_write++;
             }
             else
             {
@@ -243,7 +243,7 @@ namespace Cork
             }
         }
 
-        m_meshTriangles.resize(write);
+        m_meshTriangles.resize(tri_write);
 
         // rewrite the triangle reference ids
 

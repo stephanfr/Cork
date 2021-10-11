@@ -71,13 +71,13 @@ namespace Cork
        public:
         TopoVert() : m_ref(INVALID_ID), m_data(nullptr) {}
 
-        explicit TopoVert(IndexType ref) : m_ref(ref), m_data(nullptr) {}
+        explicit TopoVert(VertexIndex ref) : m_ref(ref), m_data(nullptr) {}
 
         ~TopoVert() {}
 
-        IndexType ref() const { return (m_ref); }
+        VertexIndex ref() const { return (m_ref); }
 
-        void setRef(IndexType newValue) { m_ref = newValue; }
+        void setRef(VertexIndex newValue) { m_ref = newValue; }
 
         const Math::Vector3D* quantizedValue() const { return (m_data); }
 
@@ -94,7 +94,7 @@ namespace Cork
         TopoEdgePointerList& edges() { return (m_edges); }
 
        private:
-        IndexType m_ref;         // index to actual data
+        VertexIndex m_ref;         // index to actual data
         Math::Vector3D* m_data;  // algorithm specific handle
 
         TopoTrianglePointerList m_tris;  // triangles this vertex is incident on

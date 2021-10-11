@@ -89,7 +89,7 @@ namespace Cork::Statistics
         class EdgeAndIncidence : public Math::EdgeByIndicesBase
         {
            public:
-            EdgeAndIncidence(const Math::IndexType a, const Math::IndexType b)
+            EdgeAndIncidence(const VertexIndex a, const VertexIndex b)
                 : Math::EdgeByIndicesBase(a, b), m_numIncidences(0)
             {
             }
@@ -102,17 +102,17 @@ namespace Cork::Statistics
 
             struct HashFunction
             {
-                std::size_t operator()(const Math::EdgeByIndicesBase& k) const { return (k.first() * 10000019 ^ k.second()); }
+                std::size_t operator()(const Math::EdgeByIndicesBase& k) const { return (VertexIndex::integer_type(k.first()) * 10000019 ^ VertexIndex::integer_type(k.second())); }
             };
 
            private:
             int m_numIncidences;
         };
 
-        using AssociatedVertexVector = boost::container::small_vector<Math::IndexType, 100>;
+        using AssociatedVertexVector = boost::container::small_vector<Math::VertexIndex, 100>;
 
         using EdgeSet = std::unordered_set<EdgeAndIncidence, EdgeAndIncidence::HashFunction>;
-        using VertexAssociations = std::unordered_map<Math::IndexType, AssociatedVertexVector>;
+        using VertexAssociations = std::unordered_map<Math::VertexIndex, AssociatedVertexVector>;
 
         const Cork::TriangleMesh& triangle_mesh_;
 

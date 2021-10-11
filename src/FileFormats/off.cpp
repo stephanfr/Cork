@@ -52,8 +52,8 @@ namespace Cork::Files
     inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
                                                             const Math::TriangleByIndicesBase& triToWrite)
     {
-        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("3 {:d} {:d} {:d}"), triToWrite[0], triToWrite[1],
-                       triToWrite[2]);
+        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("3 {:d} {:d} {:d}"), Math::VertexIndex::integer_type(triToWrite[0]), Math::VertexIndex::integer_type(triToWrite[1]),
+                       Math::VertexIndex::integer_type(triToWrite[2]));
 
         return (out_stream);
     }

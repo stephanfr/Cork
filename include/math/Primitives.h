@@ -35,6 +35,7 @@
 #include <vector>
 
 #include "CorkDefs.h"
+#include "type_safe/integer.hpp"
 
 //
 //	Setup the numeric precision and the vector implementation for the build.
@@ -45,6 +46,8 @@
 
 namespace Cork::Math
 {
+    constexpr double DOUBLE_TWO = 2.0;
+
     using Vector2D = Vector2DTemplate<NUMERIC_PRECISION>;
     using Vector3D = Vector3DTemplate<NUMERIC_PRECISION>;
 
@@ -56,12 +59,24 @@ namespace Cork::Math
     using Vertex3D = Vector3D;
 
     using Vector3DVector = std::vector<Vector3D>;
-    using Vertex3DVector = std::vector<Vertex3D>;
+    //    using Vertex3DVector = std::vector<Vertex3D>;
+
+    using VertexIndex = type_safe::integer<size_t>;
+    constexpr size_t UNINTIALIZED_INDEX = -1;
+
+    class Vertex3DVector : public std::vector<Vertex3D>
+    {
+       public:
+        const Vertex3D& operator[](size_t) const = delete;
+        Vertex3D& operator[](size_t) = delete;
+
+        const Vertex3D& operator[](VertexIndex idx) const { return data()[VertexIndex::integer_type(idx)]; }
+        Vertex3D& operator[](VertexIndex idx) { return data()[VertexIndex::integer_type(idx)]; }
+    };
 
     //  Define some enums to track vertex and edge assignments
 
-    enum class TriangleVertexId : size_t
-    {
+    enum class TriangleVertexId : size_t {
         A = 0,
         B,
         C
@@ -199,16 +214,14 @@ namespace Cork::Math
     // *  BBox3 stores 3-dimensional axis aligned bounding boxes
     // **************************************************************************
 
-    constexpr double two = 2.0;
-
     static inline constexpr __m256d cnstexpr_mm256_set1_pd(double value)
     {
         return (__m256d){value, value, value, value};
     };
 
 #ifdef __AVX_AVAILABLE__
-    //    constexpr  __m256d AVXtwo = _mm256_load_pd(&two);
-    static constexpr __m256d AVXtwo = cnstexpr_mm256_set1_pd(two);
+    //    constexpr  __m256d AVXtwo = _mm256_load_pd(&DOUBLE_TWO);
+    static constexpr __m256d AVXtwo = cnstexpr_mm256_set1_pd(DOUBLE_TWO);
 #endif
 
     class BBox3D final
@@ -465,40 +478,48 @@ namespace Cork::Math
     class TriangleByIndicesBase
     {
        public:
-        TriangleByIndicesBase() : m_a(-1), m_b(-1), m_c(-1) {}
+        TriangleByIndicesBase() : m_a(UNINTIALIZED_INDEX), m_b(UNINTIALIZED_INDEX), m_c(UNINTIALIZED_INDEX) {}
 
-        TriangleByIndicesBase(IndexType a, IndexType b, IndexType c) : m_a(a), m_b(b), m_c(c) {}
+        TriangleByIndicesBase(VertexIndex a, VertexIndex b, VertexIndex c) : m_a(a), m_b(b), m_c(c) {}
 
         virtual ~TriangleByIndicesBase() {}
 
-        const IndexType operator[](size_t index) const { return (m_indices[index]); }
+        const VertexIndex operator[](size_t index) const
+        {
+            assert(index < 3);
+            return (reinterpret_cast<const VertexIndex*>(&m_a))[index];
+        }
 
-        IndexType& operator[](size_t index) { return (m_indices[index]); }
+        VertexIndex& operator[](size_t index)
+        {
+            assert(index < 3);
+            return (reinterpret_cast<VertexIndex*>(&m_a))[index];
+        }
 
-        const IndexType a() const { return (m_a); }
+        const VertexIndex a() const { return (m_a); }
 
-        IndexType& a() { return (m_a); }
+        VertexIndex& a() { return (m_a); }
 
-        const IndexType b() const { return (m_b); }
+        const VertexIndex b() const { return (m_b); }
 
-        IndexType& b() { return (m_b); }
+        VertexIndex& b() { return (m_b); }
 
-        const IndexType c() const { return (m_c); }
+        const VertexIndex c() const { return (m_c); }
 
-        IndexType& c() { return (m_c); }
+        VertexIndex& c() { return (m_c); }
 
        protected:
-        union
-        {
-            struct
-            {
-                IndexType m_a;
-                IndexType m_b;
-                IndexType m_c;
-            };
+        //        union
+        //        {
+        //            struct
+        //            {
+        VertexIndex m_a;
+        VertexIndex m_b;
+        VertexIndex m_c;
+        //            };
 
-            std::array<IndexType, 3> m_indices;
-        };
+        //            std::array<VertexIndex, 3> m_indices;
+        //        };
     };
 
     inline std::ostream& operator<<(std::ostream& out, const TriangleByIndicesBase& tri_by_indices)
@@ -512,7 +533,7 @@ namespace Cork::Math
        public:
         //  Edges are always smaller vertex index first, larger index second
 
-        EdgeByIndicesBase(IndexType first_vertex, IndexType second_vertex)
+        EdgeByIndicesBase(VertexIndex first_vertex, VertexIndex second_vertex)
             : first_vertex_(std::min(first_vertex, second_vertex)),
               second_vertex_(std::max(first_vertex, second_vertex))
         {
@@ -520,9 +541,9 @@ namespace Cork::Math
 
         virtual ~EdgeByIndicesBase() {}
 
-        IndexType first() const { return (first_vertex_); }
+        VertexIndex first() const { return (first_vertex_); }
 
-        IndexType second() const { return (second_vertex_); }
+        VertexIndex second() const { return (second_vertex_); }
 
         bool operator==(const EdgeByIndicesBase& edgeToCompare) const
         {
@@ -530,8 +551,8 @@ namespace Cork::Math
         }
 
        private:
-        IndexType first_vertex_;
-        IndexType second_vertex_;
+        VertexIndex first_vertex_;
+        VertexIndex second_vertex_;
     };
 
     class EdgeByVerticesBase
@@ -573,7 +594,9 @@ namespace Cork::Math
         }
 
         TriangleByVerticesBase(const TriangleByIndicesBase& triangle, const Vertex3DVector& vertices)
-            : m_vertices({vertices.at(triangle.a()), vertices.at(triangle.b()), vertices.at(triangle.c())})
+            : m_vertices({vertices.at(VertexIndex::integer_type(triangle.a())),
+                          vertices.at(VertexIndex::integer_type(triangle.b())),
+                          vertices.at(VertexIndex::integer_type(triangle.c()))})
         {
         }
 
@@ -603,7 +626,7 @@ namespace Cork::Math
                     return EdgeByVerticesBase(m_vertices[1], m_vertices[2]);
                     break;
             }
-            
+
             return EdgeByVerticesBase(m_vertices[2], m_vertices[0]);
         }
 

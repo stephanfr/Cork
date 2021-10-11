@@ -152,9 +152,9 @@ namespace Cork
     {
         NUMERIC_PRECISION flip = 1.0;
 
-        IndexType a = tri.a();
-        IndexType b = tri.b();
-        IndexType c = tri.c();
+        VertexIndex a = tri.a();
+        VertexIndex b = tri.b();
+        VertexIndex c = tri.c();
 
         Math::Vector3D va = m_verts[a];
         Math::Vector3D vb = m_verts[b];
@@ -237,7 +237,7 @@ namespace Cork
 
     bool Mesh::valid() const
     {
-        for (unsigned int i = 0; i < m_verts.size(); i++)
+        for (VertexIndex i = 0ul; i < m_verts.size(); i++)
         {
             if (!std::isfinite(m_verts[i].x()) || !std::isfinite(m_verts[i].y()) || !std::isfinite(m_verts[i].z()))
             {
@@ -284,7 +284,7 @@ namespace Cork
         m_verts.resize(newVsize);
         m_tris.resize(newTsize);
 
-        for (unsigned int i = 0; i < cpVsize; i++)
+        for (VertexIndex i = 0ul; i < cpVsize; i++)
         {
             m_verts[oldVsize + i] = meshToMerge.m_verts[i];
         }
@@ -453,14 +453,14 @@ namespace Cork
         {
             const CorkTriangle& tri = m_tris[tid];
 
-            ecache[tri.a()].find_or_add(tri.b()).tids().push_back(tid);
-            ecache[tri.a()].find_or_add(tri.c()).tids().push_back(tid);
+            ecache[VertexIndex::integer_type(tri.a())].find_or_add(VertexIndex::integer_type(tri.b())).tids().push_back(tid);
+            ecache[VertexIndex::integer_type(tri.a())].find_or_add(VertexIndex::integer_type(tri.c())).tids().push_back(tid);
 
-            ecache[tri.b()].find_or_add(tri.a()).tids().push_back(tid);
-            ecache[tri.b()].find_or_add(tri.c()).tids().push_back(tid);
+            ecache[VertexIndex::integer_type(tri.b())].find_or_add(VertexIndex::integer_type(tri.a())).tids().push_back(tid);
+            ecache[VertexIndex::integer_type(tri.b())].find_or_add(VertexIndex::integer_type(tri.c())).tids().push_back(tid);
 
-            ecache[tri.c()].find_or_add(tri.a()).tids().push_back(tid);
-            ecache[tri.c()].find_or_add(tri.b()).tids().push_back(tid);
+            ecache[VertexIndex::integer_type(tri.c())].find_or_add(VertexIndex::integer_type(tri.a())).tids().push_back(tid);
+            ecache[VertexIndex::integer_type(tri.c())].find_or_add(VertexIndex::integer_type(tri.b())).tids().push_back(tid);
         }
 
         //	Label some of the edges as intersection edges and others as not
@@ -559,7 +559,7 @@ namespace Cork
         SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr topoCacheWorkspace(
             SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance());
 
-        std::vector<std::set<size_t>> bodies;
+        std::vector<std::set<VertexIndex>> bodies;
 
         bodies.reserve(components->size());
 
@@ -569,7 +569,7 @@ namespace Cork
 
             bodies.emplace_back();
 
-            std::set<size_t>& bodyByVerts = bodies.back();
+            std::set<VertexIndex>& bodyByVerts = bodies.back();
 
             for (auto triIndex : component)
             {
@@ -585,8 +585,8 @@ namespace Cork
             {
                 bool merged = false;
 
-                std::set<size_t>& body1 = bodies[i];
-                std::set<size_t>& body2 = bodies[j];
+                std::set<VertexIndex>& body1 = bodies[i];
+                std::set<VertexIndex>& body2 = bodies[j];
 
                 for (auto element2 : body2)
                 {
@@ -644,12 +644,12 @@ namespace Cork
             size_t curr_tid = work.back();
             work.pop_back();
 
-            for (uint k = 0; k < 3; k++)
+            for (size_t k = 0; k < 3; k++)
             {
-                size_t a = m_tris[curr_tid][k];
-                size_t b = m_tris[curr_tid][(k + 1) % 3];
+                VertexIndex a = m_tris[curr_tid][k];
+                VertexIndex b = m_tris[curr_tid][(k + 1) % 3];
 
-                auto& entry = ecache[a][b];
+                auto& entry = ecache[VertexIndex::integer_type(a)][VertexIndex::integer_type(b)];
 
                 uint32_t inside_sig = m_tris[curr_tid].boolAlgData() & 2;
 
@@ -1003,7 +1003,7 @@ namespace Cork
                                                   (NUMERIC_PRECISION)currentVertex.z()));
         }
 
-        for_raw_tris([&](IndexType a, IndexType b, IndexType c) {
+        for_raw_tris([&](VertexIndex a, VertexIndex b, VertexIndex c) {
             triangleMeshBuilder->AddTriangle(TriangleByIndices(a, b, c));
         });
 

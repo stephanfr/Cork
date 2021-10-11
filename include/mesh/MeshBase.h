@@ -116,11 +116,11 @@ namespace Cork
         */
 
         CorkTriangle(const TriangleByIndices& triangleToCopy, uint32_t boolAlgData, uint32_t triangle_id)
-            : triangle_id_( triangle_id ), Math::TriangleByIndicesBase(triangleToCopy), m_boolAlgData(boolAlgData)
+            : triangle_id_(triangle_id), Math::TriangleByIndicesBase(triangleToCopy), m_boolAlgData(boolAlgData)
         {
         }
 
-        uint32_t        triangle_id() const { return triangle_id_; }
+        uint32_t triangle_id() const { return triangle_id_; }
 
         const uint32_t boolAlgData() const { return (m_boolAlgData); }
 
@@ -138,7 +138,7 @@ namespace Cork
        private:
         uint32_t m_boolAlgData;  // internal use by algorithm - value must be copied when the triangle is subdivided
 
-        uint32_t        triangle_id_;
+        uint32_t triangle_id_;
     };
 
     typedef Math::Vector3D CorkVertex;
@@ -146,8 +146,8 @@ namespace Cork
     class MeshBase
     {
        public:
-        typedef std::vector<CorkTriangle> TriangleVector;
-        typedef Math::Vertex3DVector VertexVector;
+        using TriangleVector = std::vector<CorkTriangle>;
+        using VertexVector = Math::Vertex3DVector;
 
         MeshBase() {}
 
@@ -182,7 +182,7 @@ namespace Cork
             return Quantization::Quantizer::get_quantizer(max_vertex_magnitude_, min_and_max_edge_lengths_.min());
         }
 
-        void for_raw_tris(std::function<void(IndexType, IndexType, IndexType)> func)
+        void for_raw_tris(std::function<void(VertexIndex, VertexIndex, VertexIndex)> func)
         {
             for (auto& tri : m_tris)
             {
@@ -190,7 +190,7 @@ namespace Cork
             }
         }
 
-        void for_raw_tris(std::function<void(IndexType, IndexType, IndexType)> func) const
+        void for_raw_tris(std::function<void(VertexIndex, VertexIndex, VertexIndex)> func) const
         {
             for (auto& tri : m_tris)
             {
