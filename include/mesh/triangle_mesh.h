@@ -47,6 +47,9 @@ namespace Cork
     using TriangleByIndices = Math::TriangleByIndicesBase;
     using TriangleByVertices = Math::TriangleByVerticesBase;
 
+    using TriangleByIndicesVector = Math::TriangleByIndicesVector;
+    using TriangleByIndicesIndex = Math::TriangleByIndicesIndex;
+
     class Hole
     {
        public:
@@ -66,11 +69,11 @@ namespace Cork
         virtual size_t numVertices() const = 0;
 
         virtual const VertexVector& vertices() const = 0;
-        virtual const std::vector<TriangleByIndices>& triangles() const = 0;
+        virtual const TriangleByIndicesVector& triangles() const = 0;
 
         virtual TriangleByVertices triangleByVertices(const TriangleByIndices& triangleByIndices) const = 0;
 
-        virtual void remove_triangle( size_t        triangle_index ) = 0;
+        virtual void remove_triangle(TriangleByIndicesIndex triangle_index) = 0;
 
         virtual const Math::BBox3D& boundingBox() const = 0;
         virtual Math::MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;

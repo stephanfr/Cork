@@ -29,16 +29,11 @@
 #include <boost/timer/timer.hpp>
 #include <sstream>
 
-//#include "cork.h"
-//#include "intersection/gmpext4.h"
 #include "math/Primitives.h"
 #include "intersection/unsafe_ray_triangle_intersection.h"
 #include "mesh/EGraphCache.h"
 #include "mesh/IntersectionProblem.h"
 #include "mesh/TopoCache.h"
-//#include "tbb/tbb.h"
-//#include "util/CachingFactory.h"
-//#include "util/SystemStats.h"
 #include "util/ThreadPool.h"
 #include "util/unionFind.h"
 
@@ -47,6 +42,8 @@
 namespace Cork
 {
     using namespace Intersection;
+
+    using TriangleByIndicesIndex = Math::TriangleByIndicesIndex;
 
     inline double triArea(const Math::Vector3D& a, const Math::Vector3D& b, const Math::Vector3D& c)
     {
@@ -219,9 +216,9 @@ namespace Cork
 
         //	Fill the triangles
 
-        for (uint i = 0; i < inputMesh.triangles().size(); i++)
+        for (TriangleByIndicesIndex i = 0ul; i < inputMesh.triangles().size(); i++)
         {
-            m_tris.emplace_back(inputMesh.triangles()[i], 0, i);
+            m_tris.emplace_back(inputMesh.triangles()[i], 0, TriangleByIndicesIndex::integer_type(i));
         }
 
         m_boundingBox = inputMesh.boundingBox();

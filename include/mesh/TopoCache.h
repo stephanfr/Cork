@@ -57,6 +57,7 @@ namespace Cork
 #define INVALID_ID uint(-1)
 
     using TriangleEdgeId = Math::TriangleEdgeId;
+    using TriangleByIndicesIndex = Math::TriangleByIndicesIndex;
 
     //	We need a couple forward declarations
 
@@ -106,9 +107,9 @@ namespace Cork
     class TopoEdge final : public IntrusiveListHookNoDestructorOnElements
     {
        public:
-        TopoEdge() : source_triangle_id_(std::numeric_limits<int>::max()) {}
+        TopoEdge() : source_triangle_id_(Math::UNINTIALIZED_INDEX) {}
 
-        TopoEdge(uint32_t source_triangle_id, TriangleEdgeId tri_edge_id, TopoVert* vertex0, TopoVert* vertex1)
+        TopoEdge(TriangleByIndicesIndex source_triangle_id, TriangleEdgeId tri_edge_id, TopoVert* vertex0, TopoVert* vertex1)
             : source_triangle_id_(source_triangle_id), tri_edge_id_(tri_edge_id), m_verts({{vertex0, vertex1}})
         {
             vertex0->edges().insert(this);
@@ -117,7 +118,7 @@ namespace Cork
 
         ~TopoEdge() {}
 
-        uint32_t source_triangle_id() const { return source_triangle_id_; }
+        TriangleByIndicesIndex source_triangle_id() const { return source_triangle_id_; }
         TriangleEdgeId edge_index() const { return tri_edge_id_; }
 
         void* data() const { return (m_data); }
@@ -170,7 +171,7 @@ namespace Cork
        private:
         void* m_data;  // algorithm specific handle
 
-        uint32_t source_triangle_id_;
+        TriangleByIndicesIndex source_triangle_id_;
         TriangleEdgeId tri_edge_id_;
 
         uint32_t m_boolAlgData;

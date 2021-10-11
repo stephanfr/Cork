@@ -1644,7 +1644,7 @@ namespace Cork::Intersection
         IntersectionProblemResult FindIntersections() final;
         IntersectionProblemResult ResolveAllIntersections() final;
 
-        SelfIntersectionStats CheckSelfIntersection() final;  // test for self intersections in the mesh
+        const std::vector<IntersectionInfo> CheckSelfIntersection() final;  // test for self intersections in the mesh
 
         void commit() { TopoCache::commit(); }
 
@@ -2024,10 +2024,10 @@ namespace Cork::Intersection
         return (IntersectionProblemResult::success());
     }
 
-    SelfIntersectionStats IntersectionProblem::CheckSelfIntersection()
+    const std::vector<IntersectionInfo> IntersectionProblem::CheckSelfIntersection()
     {
         Empty3d::ExactArithmeticContext localArithmeticContext;
-        Intersection::SelfIntersectionStats self_intersecting_edges;
+        std::vector<IntersectionInfo> self_intersecting_edges;
 
         if (m_edgeBVH.get() == nullptr)
         {
@@ -2044,7 +2044,14 @@ namespace Cork::Intersection
             {
                 if (t.intersectsEdge(*edge, m_quantizer, localArithmeticContext))
                 {
-                    self_intersecting_edges.add_intersection( Intersection::IntersectionInfo( edge->source_triangle_id(), edge->edge_index(), t.source_triangle_id() ));
+                    std::vector<TriangleByIndicesIndex> triangles_sharing_edge;
+
+                    for( auto triangle_sharing_edge : edge->triangles() )
+                    {
+                        triangles_sharing_edge.push_back( triangle_sharing_edge->source_triangle_id() );
+                    }
+
+                    self_intersecting_edges.emplace_back( Intersection::IntersectionInfo( edge->source_triangle_id(), edge->edge_index(), t.source_triangle_id(), triangles_sharing_edge ));
                 }
             }
 

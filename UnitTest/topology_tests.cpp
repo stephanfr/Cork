@@ -64,7 +64,7 @@ TEST_CASE("Topology Tests", "[file io]")
 
         REQUIRE(!stats.is_two_manifold());
         REQUIRE(stats.hole_edges().size() == 3);
-        REQUIRE(stats.self_intersections().self_intersections().size() == 0);
+        REQUIRE(stats.self_intersections().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
     }
 
@@ -78,25 +78,28 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto stats = mesh->ComputeTopologicalStatistics();
 
-        std::list<size_t> triangles_to_remove;
+        std::set<Cork::Math::TriangleByIndicesIndex,std::greater<Cork::Math::TriangleByIndicesIndex>> triangles_to_remove;
 
-        for (auto record : stats.self_intersections().self_intersections())
+        for (auto record : stats.self_intersections())
         {
             Cork::Math::EdgeByVerticesBase edge_with_se(
-                Cork::TriangleByVertices(mesh->triangles().at(record.edge_triangle_id_), mesh->vertices())
+                Cork::TriangleByVertices(mesh->triangles()[record.edge_triangle_id_], mesh->vertices())
                     .edge(record.edge_index_));
 
             std::cout << "Edge Index: " << record.edge_index_ << " Edge: " << edge_with_se << "    Triangle: "
-                      << Cork::TriangleByVertices(mesh->triangles().at(record.triangle_instersected_id_),
+                      << Cork::TriangleByVertices(mesh->triangles()[record.triangle_instersected_id_],
                                                   mesh->vertices())
                       << std::endl;
 
-            triangles_to_remove.push_back(record.edge_triangle_id_);
+            for( auto triangle_id : record.triangles_sharing_edge_ )
+            {
+                triangles_to_remove.insert(triangle_id);
+            }
         }
 
-        //        REQUIRE( !stats.is_two_manifold() );
-        //        REQUIRE( stats.hole_edges().size() == 3 );
-        //        REQUIRE( stats.self_intersecting_edges().size() == 0 );
+        REQUIRE( !stats.is_two_manifold() );
+        REQUIRE( stats.hole_edges().size() == 0 );
+        REQUIRE( stats.self_intersections().size() == 0 );
         //        REQUIRE(stats.numBodies() == 1);
 
         auto read_result2 = Cork::Files::readOFF("../../UnitTest/Test Files/JuliaVaseWithSelfIntersection.off");
@@ -104,8 +107,6 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(read_result2.succeeded());
 
         auto original_mesh(read_result2.return_ptr().release());
-
-        triangles_to_remove.sort(std::greater<size_t>());
 
         for (auto tri_to_remove_index : triangles_to_remove)
         {
@@ -119,8 +120,8 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto stats2 = mesh2->ComputeTopologicalStatistics();
 
-        REQUIRE(!stats2.is_two_manifold());
-        REQUIRE(stats2.hole_edges().size() == 7);
-        REQUIRE(stats2.self_intersections().self_intersections().size() == 0);
+        REQUIRE(stats2.is_two_manifold());
+        REQUIRE(stats2.hole_edges().size() == 6);
+        REQUIRE(stats2.self_intersections().size() == 0);
     }
 }

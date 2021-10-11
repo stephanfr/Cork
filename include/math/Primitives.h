@@ -59,9 +59,11 @@ namespace Cork::Math
     using Vertex3D = Vector3D;
 
     using Vector3DVector = std::vector<Vector3D>;
-    //    using Vertex3DVector = std::vector<Vertex3D>;
 
     using VertexIndex = type_safe::integer<size_t>;
+    using TriangleByIndicesIndex = type_safe::integer<size_t>;
+
+
     constexpr size_t UNINTIALIZED_INDEX = -1;
 
     class Vertex3DVector : public std::vector<Vertex3D>
@@ -76,7 +78,8 @@ namespace Cork::Math
 
     //  Define some enums to track vertex and edge assignments
 
-    enum class TriangleVertexId : size_t {
+    enum class TriangleVertexId : size_t
+    {
         A = 0,
         B,
         C
@@ -509,17 +512,9 @@ namespace Cork::Math
         VertexIndex& c() { return (m_c); }
 
        protected:
-        //        union
-        //        {
-        //            struct
-        //            {
         VertexIndex m_a;
         VertexIndex m_b;
         VertexIndex m_c;
-        //            };
-
-        //            std::array<VertexIndex, 3> m_indices;
-        //        };
     };
 
     inline std::ostream& operator<<(std::ostream& out, const TriangleByIndicesBase& tri_by_indices)
@@ -527,6 +522,22 @@ namespace Cork::Math
         out << "(" << tri_by_indices.a() << ", " << tri_by_indices.b() << ", " << tri_by_indices.c() << ")";
         return out;
     }
+
+    class TriangleByIndicesVector : public std::vector<TriangleByIndicesBase>
+    {
+       public:
+        const TriangleByIndicesBase& operator[](size_t) const = delete;
+        TriangleByIndicesBase& operator[](size_t) = delete;
+
+        const TriangleByIndicesBase& operator[](TriangleByIndicesIndex idx) const
+        {
+            return data()[TriangleByIndicesIndex::integer_type(idx)];
+        }
+        TriangleByIndicesBase& operator[](TriangleByIndicesIndex idx)
+        {
+            return data()[TriangleByIndicesIndex::integer_type(idx)];
+        }
+    };
 
     class EdgeByIndicesBase
     {
@@ -589,57 +600,52 @@ namespace Cork::Math
     {
        public:
         TriangleByVerticesBase(const Vertex3D& firstVertex, const Vertex3D& secondVertex, const Vertex3D& thirdVertex)
-            : m_vertices({firstVertex, secondVertex, thirdVertex})
+            : a_(firstVertex), b_(secondVertex), c_(thirdVertex)
         {
         }
 
         TriangleByVerticesBase(const TriangleByIndicesBase& triangle, const Vertex3DVector& vertices)
-            : m_vertices({vertices.at(VertexIndex::integer_type(triangle.a())),
-                          vertices.at(VertexIndex::integer_type(triangle.b())),
-                          vertices.at(VertexIndex::integer_type(triangle.c()))})
+            : a_(vertices[triangle.a()]), b_(vertices[triangle.b()]), c_(vertices[triangle.c()])
         {
         }
 
-        const Vertex3D& operator[](unsigned int index) const { return (m_vertices[index]); }
+        const Vertex3D& vertexA() const { return a_; }
 
-        const Vertex3D& vertexA() const { return (m_vertices[0]); }
+        const Vertex3D& vertexB() const { return b_; }
 
-        const Vertex3D& vertexB() const { return (m_vertices[1]); }
+        const Vertex3D& vertexC() const { return c_; }
 
-        const Vertex3D& vertexC() const { return (m_vertices[2]); }
+        Vector3D edgeAB_from_origin() const { return (a_ - b_); }
 
-        Vector3D edgeAB_from_origin() const { return (m_vertices[0] - m_vertices[1]); }
+        Vector3D edgeAC_from_origin() const { return (a_ - c_); }
 
-        Vector3D edgeAC_from_origin() const { return (m_vertices[0] - m_vertices[2]); }
-
-        Vector3D edgeBC_from_origin() const { return (m_vertices[1] - m_vertices[2]); }
+        Vector3D edgeBC_from_origin() const { return (b_ - c_); }
 
         EdgeByVerticesBase edge(TriangleEdgeId edge_id)
         {
             switch (edge_id)
             {
                 case TriangleEdgeId::AB:
-                    return EdgeByVerticesBase(m_vertices[0], m_vertices[1]);
+                    return EdgeByVerticesBase(a_, b_);
                     break;
 
                 case TriangleEdgeId::BC:
-                    return EdgeByVerticesBase(m_vertices[1], m_vertices[2]);
+                    return EdgeByVerticesBase(b_, c_);
                     break;
             }
 
-            return EdgeByVerticesBase(m_vertices[2], m_vertices[0]);
+            return EdgeByVerticesBase(c_, a_);
         }
 
         //        TriangleEdgeId
 
         BBox3D bounding_box() const
         {
-            return BBox3D(Vector3D(std::min(m_vertices[0].x(), std::min(m_vertices[1].x(), m_vertices[2].x())),
-                                   std::min(m_vertices[0].y(), std::min(m_vertices[1].y(), m_vertices[2].y())),
-                                   std::min(m_vertices[0].z(), std::min(m_vertices[1].z(), m_vertices[2].z()))),
-                          Vector3D(std::max(m_vertices[0].x(), std::max(m_vertices[1].x(), m_vertices[2].x())),
-                                   std::max(m_vertices[0].y(), std::max(m_vertices[1].y(), m_vertices[2].y())),
-                                   std::max(m_vertices[0].z(), std::max(m_vertices[1].z(), m_vertices[2].z()))));
+            return BBox3D(
+                Vector3D(std::min(a_.x(), std::min(b_.x(), c_.x())), std::min(a_.y(), std::min(b_.y(), c_.y())),
+                         std::min(a_.z(), std::min(b_.z(), c_.z()))),
+                Vector3D(std::max(a_.x(), std::max(b_.x(), c_.x())), std::max(a_.y(), std::max(b_.y(), c_.y())),
+                         std::max(a_.z(), std::max(b_.z(), c_.z()))));
         }
 
         MinAndMaxEdgeLengths min_and_max_edge_lengths()
@@ -656,11 +662,13 @@ namespace Cork::Math
 
         double max_magnitude_vertex() const
         {
-            return std::max(m_vertices[2].abs().max(), std::max(m_vertices[0].abs().max(), m_vertices[1].abs().max()));
+            return std::max(c_.abs().max(), std::max(a_.abs().max(), b_.abs().max()));
         }
 
        private:
-        std::array<Vertex3D, 3> m_vertices;
+        Vertex3D a_;
+        Vertex3D b_;
+        Vertex3D c_;
     };
 
     inline std::ostream& operator<<(std::ostream& out, const TriangleByVerticesBase& tri_by_vertices)

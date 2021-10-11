@@ -154,7 +154,7 @@ namespace Cork::Statistics
         {
             std::cout << "Failed to get Quantizer: " << get_quantizer_result.message() << std::endl;
 
-            return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, hole_edges_, Intersection::SelfIntersectionStats() ));
+            return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, hole_edges_, std::vector<IntersectionInfo>() ));
         }
 
         Quantization::Quantizer quantizer(get_quantizer_result.return_value());
@@ -164,11 +164,11 @@ namespace Cork::Statistics
 
         Intersection::IntersectionProblemIfx::IntersectionProblemResult findResult = iproblem->FindIntersections();
 
-        Intersection::SelfIntersectionStats   stats = iproblem->CheckSelfIntersection();
+        const std::vector<IntersectionInfo>   si_stats = iproblem->CheckSelfIntersection();
 
-        std::cout << "Found: " << stats.self_intersections().size() << " self intersections." << std::endl;
+        std::cout << "Found: " << si_stats.size() << " self intersections." << std::endl;
 
-        return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, hole_edges_, stats ));
+        return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, hole_edges_, si_stats ));
     }
 
 };  // namespace Cork::Statistics

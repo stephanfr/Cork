@@ -40,7 +40,7 @@ namespace Cork
     class TriangleMeshImpl : public TriangleMesh
     {
        public:
-        TriangleMeshImpl(std::shared_ptr<std::vector<TriangleByIndices>>& triangles,
+        TriangleMeshImpl(std::shared_ptr<TriangleByIndicesVector>& triangles,
                          std::shared_ptr<VertexVector>& vertices, const Math::BBox3D& boundingBox,
                          const Math::MinAndMaxEdgeLengths min_and_max_edge_lengths, double max_vertex_magnitude)
             : m_triangles(triangles),
@@ -57,7 +57,7 @@ namespace Cork
 
         [[nodiscard]] const VertexVector& vertices() const final { return (*m_vertices); }
 
-        [[nodiscard]] const std::vector<TriangleByIndices>& triangles() const final { return (*m_triangles); }
+        [[nodiscard]] const TriangleByIndicesVector& triangles() const final { return (*m_triangles); }
 
         [[nodiscard]] TriangleByVertices triangleByVertices(const TriangleByIndices& triangleByIndices) const final
         {
@@ -66,7 +66,7 @@ namespace Cork
                                        (*m_vertices)[triangleByIndices.c()]));
         }
 
-        void remove_triangle(size_t triangle_index) { m_triangles->erase(m_triangles->begin() + triangle_index); }
+        void remove_triangle(TriangleByIndicesIndex triangle_index) { m_triangles->erase(m_triangles->begin() + TriangleByIndicesIndex::integer_type( triangle_index)); }
 
         [[nodiscard]] const Math::BBox3D& boundingBox() const final { return m_boundingBox; }
         [[nodiscard]] Math::MinAndMaxEdgeLengths min_and_max_edge_lengths() const final
@@ -93,7 +93,7 @@ namespace Cork
         }
 
        private:
-        std::shared_ptr<std::vector<TriangleByIndices>> m_triangles;
+        std::shared_ptr<TriangleByIndicesVector> m_triangles;
         std::shared_ptr<VertexVector> m_vertices;
 
         const Math::BBox3D m_boundingBox;
@@ -119,7 +119,7 @@ namespace Cork
        public:
         IncrementalVertexIndexTriangleMeshBuilderImpl(size_t numVertices, size_t numTriangles)
             : m_indexedVertices(new VertexVector()),
-              m_triangles(new std::vector<TriangleByIndices>()),
+              m_triangles(new TriangleByIndicesVector()),
               m_boundingBox(Math::Vector3D(NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX),
                             Math::Vector3D(NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN)),
               max_vertex_magnitude_(NUMERIC_PRECISION_MIN)
@@ -204,7 +204,7 @@ namespace Cork
 
             if (!m_triangles.unique())
             {
-                m_triangles = std::make_shared<std::vector<TriangleByIndices>>(*m_triangles);
+                m_triangles = std::make_shared<TriangleByIndicesVector>(*m_triangles);
             }
 
             //	Remap the triangle indices
@@ -236,7 +236,7 @@ namespace Cork
 
         std::unique_ptr<TriangleMesh> Mesh() final
         {
-            std::shared_ptr<std::vector<TriangleByIndices>> triangles = m_triangles;
+            std::shared_ptr<TriangleByIndicesVector> triangles = m_triangles;
 
             return (std::unique_ptr<TriangleMesh>(new TriangleMeshImpl(
                 triangles, m_indexedVertices, boundingBox(), min_and_max_edge_lengths(), max_vertex_magnitude())));
@@ -249,7 +249,7 @@ namespace Cork
         std::shared_ptr<VertexVector> m_indexedVertices;
         std::vector<VertexIndex> m_vertexIndexRemapper;
 
-        std::shared_ptr<std::vector<TriangleByIndices>> m_triangles;
+        std::shared_ptr<TriangleByIndicesVector> m_triangles;
 
         Math::BBox3D m_boundingBox;
         Math::MinAndMaxEdgeLengths min_and_max_edge_lengths_;

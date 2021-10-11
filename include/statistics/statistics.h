@@ -33,6 +33,8 @@
 
 namespace Cork::Statistics
 {
+  using IntersectionInfo = Intersection::IntersectionInfo;
+
     class GeometricStatistics
     {
        public:
@@ -80,7 +82,7 @@ namespace Cork::Statistics
         TopologicalStatistics() = delete;
 
         TopologicalStatistics(size_t num_edges, size_t num_bodies, size_t non_2_manifold_edges, const EdgeByIndicesVector& hole_edges,
-                              const Cork::Intersection::SelfIntersectionStats& self_intersections)
+                              const std::vector<IntersectionInfo>& self_intersections)
             : num_edges_(num_edges),
               num_bodies_(num_bodies),
               non_2_manifold_edges_(non_2_manifold_edges),
@@ -112,7 +114,7 @@ namespace Cork::Statistics
         bool is_two_manifold() const { return (non_2_manifold_edges_ == 0); }
 
         const EdgeByIndicesVector& hole_edges() { return hole_edges_; }
-        const Intersection::SelfIntersectionStats& self_intersections() { return self_intersections_; }
+        const std::vector<IntersectionInfo>& self_intersections() { return self_intersections_; }
 
        private:
         size_t num_edges_;
@@ -120,7 +122,7 @@ namespace Cork::Statistics
         size_t non_2_manifold_edges_;
 
         const EdgeByIndicesVector hole_edges_;
-        const Intersection::SelfIntersectionStats self_intersections_;
+        const std::vector<IntersectionInfo> self_intersections_;
     };
 
 }  // namespace Cork::Statistics

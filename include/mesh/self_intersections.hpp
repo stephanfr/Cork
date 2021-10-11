@@ -25,31 +25,20 @@ namespace Cork::Intersection
 {
     struct IntersectionInfo
     {
-        IntersectionInfo(uint32_t edge_triangle_id, Math::TriangleEdgeId edge_index, uint32_t triangle_instersected_id)
+        IntersectionInfo(Math::TriangleByIndicesIndex edge_triangle_id, Math::TriangleEdgeId edge_index,
+                         Math::TriangleByIndicesIndex triangle_instersected_id,
+                         const std::vector<Math::TriangleByIndicesIndex>& triangles_sharing_edge)
             : edge_triangle_id_(edge_triangle_id),
               edge_index_(edge_index),
-              triangle_instersected_id_(triangle_instersected_id)
+              triangle_instersected_id_(triangle_instersected_id),
+              triangles_sharing_edge_(triangles_sharing_edge)
         {
         }
 
-        uint32_t edge_triangle_id_;
+        Math::TriangleByIndicesIndex edge_triangle_id_;
         Math::TriangleEdgeId edge_index_;
-        uint32_t triangle_instersected_id_;
+        Math::TriangleByIndicesIndex triangle_instersected_id_;
+        std::vector<Math::TriangleByIndicesIndex> triangles_sharing_edge_;
     };
 
-    class SelfIntersectionStats
-    {
-       public:
-        SelfIntersectionStats() {}
-
-        void add_intersection(const IntersectionInfo& intersection_info)
-        {
-            self_intersections_.emplace_back(intersection_info);
-        }
-
-        const std::vector<IntersectionInfo>& self_intersections() const { return self_intersections_; }
-
-       private:
-        std::vector<IntersectionInfo> self_intersections_;
-    };
 }  // namespace Cork::Intersection

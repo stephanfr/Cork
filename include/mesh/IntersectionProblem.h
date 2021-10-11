@@ -63,7 +63,7 @@ namespace Cork::Intersection
             virtual IntersectionProblemResult FindIntersections() = 0;
             virtual IntersectionProblemResult ResolveAllIntersections() = 0;
 
-            virtual SelfIntersectionStats CheckSelfIntersection() = 0;
+            virtual const std::vector<IntersectionInfo> CheckSelfIntersection() = 0;
 
             virtual void commit() = 0;
         };
