@@ -67,9 +67,8 @@ namespace Cork::Intersection
 
         ~PerturbationEpsilon() = default;
 
-        PerturbationEpsilon&    operator=(const PerturbationEpsilon&) = delete;
-        PerturbationEpsilon&    operator=(PerturbationEpsilon&&) = delete;
-
+        PerturbationEpsilon& operator=(const PerturbationEpsilon&) = delete;
+        PerturbationEpsilon& operator=(PerturbationEpsilon&&) = delete;
 
         bool sufficientRange() const
         {
@@ -277,8 +276,8 @@ namespace Cork::Intersection
         typedef std::vector<IsctVertType*> IntersectionVertexCollection;
 
         GluePointMarker() = delete;
-        GluePointMarker( const GluePointMarker& ) = delete;
-        GluePointMarker( GluePointMarker&& ) = delete;
+        GluePointMarker(const GluePointMarker&) = delete;
+        GluePointMarker(GluePointMarker&&) = delete;
 
         GluePointMarker(bool splitType, bool edgeTriType, const TopoEdge& eisct, const TopoTri& tisct)
             : m_splitType(splitType), m_edgeTriType(edgeTriType), m_e(eisct), m_t({{&tisct, nullptr, nullptr}})
@@ -295,8 +294,8 @@ namespace Cork::Intersection
 
         ~GluePointMarker() = default;
 
-        GluePointMarker&    operator=(const GluePointMarker&) = delete;
-        GluePointMarker&    operator=(GluePointMarker&&) = delete;
+        GluePointMarker& operator=(const GluePointMarker&) = delete;
+        GluePointMarker& operator=(GluePointMarker&&) = delete;
 
         bool splitType() const { return (m_splitType); }
 
@@ -2046,12 +2045,14 @@ namespace Cork::Intersection
                 {
                     std::vector<TriangleByIndicesIndex> triangles_sharing_edge;
 
-                    for( auto triangle_sharing_edge : edge->triangles() )
+                    for (auto triangle_sharing_edge : edge->triangles())
                     {
-                        triangles_sharing_edge.push_back( triangle_sharing_edge->source_triangle_id() );
+                        triangles_sharing_edge.push_back(triangle_sharing_edge->source_triangle_id());
                     }
 
-                    self_intersecting_edges.emplace_back( Intersection::IntersectionInfo( edge->source_triangle_id(), edge->edge_index(), t.source_triangle_id(), triangles_sharing_edge ));
+                    self_intersecting_edges.emplace_back(
+                        Intersection::IntersectionInfo(edge->source_triangle_id(), edge->edge_index(),
+                                                       t.source_triangle_id(), triangles_sharing_edge));
                 }
             }
 

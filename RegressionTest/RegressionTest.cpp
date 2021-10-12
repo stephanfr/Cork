@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
 
         if( !topo_stats.is_two_manifold() )
         {
-            std::cout << "Num holes: " << topo_stats.hole_edges().size() << "    Num Self Intersections: " << topo_stats.self_intersections().self_intersections().size() << std::endl;
+            std::cout << "Num holes: " << topo_stats.holes().size() << "    Num Self Intersections: " << topo_stats.self_intersections().size() << std::endl;
         }
 
         models.emplace_back(

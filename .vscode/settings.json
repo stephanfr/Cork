@@ -80,7 +80,8 @@
         "source_location": "cpp",
         "variant": "cpp",
         "format": "cpp",
-        "gsl_assert": "cpp"
+        "gsl_assert": "cpp",
+        "span": "cpp"
     },
     "C_Cpp.default.browse.path": ["${workspaceRoot}"]
 }

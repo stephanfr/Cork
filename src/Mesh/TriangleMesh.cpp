@@ -30,8 +30,13 @@
 #include "mesh/triangle_mesh.h"
 #include "statistics/statistics_engines.h"
 
-namespace Cork
+namespace Cork::Meshes
 {
+    using IndexType = Math::IndexType;
+    
+    using TriangleByIndicesVector = Math::TriangleByIndicesVector;
+    using VertexVector = Math::Vertex3DVector;
+
     //
     //	TriangleMeshImpl is a straightforward implementation of a triangularized solid expressed as a set
     //		of vertices and triangles defined as 3-tuples of indices into the vertex set.

@@ -42,14 +42,16 @@ namespace Cork
 
 #define EGRAPH_ENTRY_TIDS_VEC_LENGTH 8
 
-    typedef boost::container::static_vector<Cork::Math::IndexType, EGRAPH_ENTRY_TIDS_VEC_LENGTH> EGraphEntryTIDVector;
+    using IndexType = Math::IndexType;
+
+    typedef boost::container::static_vector<IndexType, EGRAPH_ENTRY_TIDS_VEC_LENGTH> EGraphEntryTIDVector;
 
     class EGraphEntry : public SEFUtility::SparseVectorEntry
     {
        public:
-        EGraphEntry(Cork::Math::IndexType index) : SEFUtility::SparseVectorEntry(index), m_vid(index) {}
+        EGraphEntry(IndexType index) : SEFUtility::SparseVectorEntry( index), m_vid(index) {}
 
-        Cork::Math::IndexType vid() const { return (m_vid); }
+        IndexType vid() const { return (m_vid); }
 
         const EGraphEntryTIDVector& tids() const { return (m_tids); }
 
@@ -84,9 +86,9 @@ namespace Cork
 
         SkeletonColumnVector& columns() { return (m_skeleton); }
 
-        EGraphSkeletonColumn& operator[](Cork::Math::IndexType index) { return (m_skeleton[index]); }
+        EGraphSkeletonColumn& operator[](IndexType index) { return (m_skeleton[index]); }
 
-        const EGraphSkeletonColumn& operator[](Cork::Math::IndexType index) const { return (m_skeleton[index]); }
+        const EGraphSkeletonColumn& operator[](IndexType index) const { return (m_skeleton[index]); }
 
        private:
         SkeletonColumnVectorUniquePtr m_skeletonPtr;

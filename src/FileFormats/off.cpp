@@ -42,15 +42,21 @@
 
 namespace Cork::Files
 {
+    //  Define some local symbols to cur through some of the namespacing
+    
+    using TriangleByIndices = Math::TriangleByIndices;
+    using IncrementalVertexIndexTriangleMeshBuilder = Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilder;
+    using TriangleMeshBuilderResultCodes = Cork::Meshes::TriangleMeshBuilderResultCodes;
+
     constexpr uint32_t INITIAL_WRITE_BUFFER_SIZE = 131072;
 
-    inline std::istream& operator>>(std::istream& inStream, Math::TriangleByIndicesBase& triToRead)
+    inline std::istream& operator>>(std::istream& inStream, Math::TriangleByIndices& triToRead)
     {
         return (inStream >> triToRead[0] >> triToRead[1] >> triToRead[2]);
     }
 
     inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
-                                                            const Math::TriangleByIndicesBase& triToWrite)
+                                                            const Math::TriangleByIndices& triToWrite)
     {
         fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("3 {:d} {:d} {:d}"), Math::VertexIndex::integer_type(triToWrite[0]), Math::VertexIndex::integer_type(triToWrite[1]),
                        Math::VertexIndex::integer_type(triToWrite[2]));

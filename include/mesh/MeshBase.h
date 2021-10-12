@@ -36,6 +36,9 @@
 
 namespace Cork
 {
+    using VertexIndex = Math::VertexIndex;
+    using TriangleByIndices = Math::TriangleByIndices;
+
     class SolverPerfStats : public SolverPerformanceStatisticsIfx
     {
        public:
@@ -102,21 +105,13 @@ namespace Cork
         uint64_t m_endingVirtualMemorySizeInMB;
     };
 
-    class CorkTriangle : public Math::TriangleByIndicesBase
+    class CorkTriangle : public Math::TriangleByIndices
     {
        public:
         CorkTriangle() {}
-        /*
-                CorkTriangle( const CorkTriangle&		triangleToCopy )
-                    : Math::TriangleByIndicesBase( (const Math::TriangleByIndicesBase&)triangleToCopy ),
-                      m_boolAlgData( triangleToCopy.m_boolAlgData )
-                {
-                    memcpy( &m_a, &triangleToCopy.m_a, sizeof( unsigned int ) * 3 );
-                }
-        */
 
         CorkTriangle(const TriangleByIndices& triangleToCopy, uint32_t boolAlgData, uint32_t triangle_id)
-            : triangle_id_(triangle_id), Math::TriangleByIndicesBase(triangleToCopy), m_boolAlgData(boolAlgData)
+            : triangle_id_(triangle_id), Math::TriangleByIndices(triangleToCopy), m_boolAlgData(boolAlgData)
         {
         }
 

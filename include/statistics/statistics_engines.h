@@ -33,6 +33,8 @@
 
 namespace Cork::Statistics
 {
+    using VertexIndex = Math::VertexIndex;
+
     class GeometricStatisticsEngine
     {
        public:
@@ -69,7 +71,7 @@ namespace Cork::Statistics
         double m_minEdgeLength;
         double m_maxEdgeLength;
 
-        void AddTriangle(const Math::TriangleByVerticesBase& nextTriangle);
+        void AddTriangle(const Math::TriangleByVertices& nextTriangle);
     };
 
     class TopologicalStatisticsEngine
@@ -86,11 +88,11 @@ namespace Cork::Statistics
         TopologicalStatistics Analyze();
 
        private:
-        class EdgeAndIncidence : public Math::EdgeByIndicesBase
+        class EdgeAndIncidence : public Math::EdgeByIndices
         {
            public:
             EdgeAndIncidence(const VertexIndex a, const VertexIndex b)
-                : Math::EdgeByIndicesBase(a, b), m_numIncidences(0)
+                : Math::EdgeByIndices(a, b), m_numIncidences(0)
             {
             }
 
@@ -102,7 +104,7 @@ namespace Cork::Statistics
 
             struct HashFunction
             {
-                std::size_t operator()(const Math::EdgeByIndicesBase& k) const { return (VertexIndex::integer_type(k.first()) * 10000019 ^ VertexIndex::integer_type(k.second())); }
+                std::size_t operator()(const Math::EdgeByIndices& k) const { return (VertexIndex::integer_type(k.first()) * 10000019 ^ VertexIndex::integer_type(k.second())); }
             };
 
            private:
@@ -124,12 +126,12 @@ namespace Cork::Statistics
 
         EdgeSet edges_;
 
-        std::vector<Math::EdgeByIndicesBase> hole_edges_;
-        std::vector<Math::EdgeByIndicesBase> self_intersecting_edges_;
+        std::vector<Math::EdgeByIndices> hole_edges_;
+        std::vector<Math::EdgeByIndices> self_intersecting_edges_;
 
         VertexAssociations vertex_associations_;
 
-        void AddTriangle(const Math::TriangleByIndicesBase& nextTriangle);
+        void AddTriangle(const Math::TriangleByIndices& nextTriangle);
     };
 
 }  // namespace Cork::Statistics

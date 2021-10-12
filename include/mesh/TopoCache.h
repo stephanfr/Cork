@@ -56,6 +56,7 @@ namespace Cork
 
 #define INVALID_ID uint(-1)
 
+    using IndexType = Math::IndexType;
     using TriangleEdgeId = Math::TriangleEdgeId;
     using TriangleByIndicesIndex = Math::TriangleByIndicesIndex;
 
@@ -211,7 +212,7 @@ namespace Cork
     class TopoTri final : public boost::noncopyable, public IntrusiveListHookNoDestructorOnElements
     {
        public:
-        TopoTri() {}
+        TopoTri() : m_ref(0ul) {}
 
         explicit TopoTri(IndexType ref) : m_ref(ref) {}
 

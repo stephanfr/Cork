@@ -55,6 +55,8 @@
 
 namespace Cork::Files
 {
+    using TriangleMesh = Meshes::TriangleMesh;
+    
     enum class ReadFileResultCodes
     {
         SUCCESS = 0,

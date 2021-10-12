@@ -37,6 +37,8 @@
 
 namespace Cork::Statistics
 {
+    using HoleBuilder = Meshes::HoleBuilder;
+
     GeometricStatisticsEngine::GeometricStatisticsEngine(const TriangleMesh& triangle_mesh,
                                                          PropertiesToCompute propertiesToCompute)
         : triangle_mesh_(triangle_mesh),
@@ -52,7 +54,7 @@ namespace Cork::Statistics
         }
     }
 
-    void GeometricStatisticsEngine::AddTriangle(const Math::TriangleByVerticesBase& nextTriangle)
+    void GeometricStatisticsEngine::AddTriangle(const Math::TriangleByVertices& nextTriangle)
     {
         //	Get the edges
 
@@ -101,7 +103,7 @@ namespace Cork::Statistics
         }
     }
 
-    inline void TopologicalStatisticsEngine::AddTriangle(const Math::TriangleByIndicesBase& nextTriangle)
+    inline void TopologicalStatisticsEngine::AddTriangle(const Math::TriangleByIndices& nextTriangle)
     {
         EdgeSet::iterator itrEdgeAB = edges_.emplace(nextTriangle.a(), nextTriangle.b()).first;
         EdgeSet::iterator itrEdgeAC = edges_.emplace(nextTriangle.a(), nextTriangle.c()).first;
@@ -121,6 +123,8 @@ namespace Cork::Statistics
 
     TopologicalStatistics TopologicalStatisticsEngine::Analyze()
     {
+        //  First, look for non 2 manifold edges - which means holes
+
         num_non_2_manifold_ = 0;
 
         for (auto& edge : edges_)
@@ -131,21 +135,63 @@ namespace Cork::Statistics
 
                 if (edge.numIncidences() <= 1)
                 {
-                    hole_edges_.push_back(dynamic_cast<const Math::EdgeByIndicesBase&>(edge));
-                    std::cout << "Found Hole" << std::endl;
-                }
-                else
-                {
-                    self_intersecting_edges_.push_back(dynamic_cast<const Math::EdgeByIndicesBase&>(edge));
-                    std::cout << "Found Self Intersection" << std::endl;
+                    hole_edges_.push_back(dynamic_cast<const Math::EdgeByIndices&>(edge));
                 }
             }
         }
 
-        std::unique_ptr<Mesh> single_mesh(new Mesh(triangle_mesh_));
+        std::vector<Hole> holes;
 
-        std::cout << "Get Quantizer: " << triangle_mesh_.max_vertex_magnitude() << "    "
-                  << triangle_mesh_.min_and_max_edge_lengths().min() << std::endl;
+        if (!hole_edges_.empty())
+        {
+            //  We have a list of hole edges, link them up to form the outline of a hole
+
+            //  Prime the hole with one edge from the hole edges vector.  We will grow this
+            //      hole perimeter until it links up on itself at which point we will add it to the list of
+            //      holes and start over with a new initial edge.
+
+            HoleBuilder hole_builder(hole_edges_.back());
+
+            hole_edges_.pop_back();
+
+            bool fell_through = true;
+
+            do
+            {
+                fell_through = true;
+
+                for (size_t i = 0; i < hole_edges_.size(); i++)
+                {
+                    if (hole_builder.add_edge(hole_edges_[i]))
+                    {
+                        hole_edges_.erase(hole_edges_.begin() + i);
+
+                        if (hole_builder.is_closed())
+                        {
+                            holes.emplace_back(hole_builder.as_hole());
+
+                            if (!hole_edges_.empty())
+                            {
+                                hole_builder.reset(hole_edges_.back());
+                                hole_edges_.pop_back();
+                            }
+                        }
+
+                        fell_through = false;
+                        break;
+                    }
+                }
+            } while (!fell_through);
+        }
+
+        std::cout << "Holes Found: " << holes.size() << "   remaining edges: " << hole_edges_.size() << std::endl;
+
+        for (size_t i = 0; i < holes.size(); i++)
+        {
+            std::cout << "Hole " << i << ": " << holes[i] << std::endl;
+        }
+
+        std::unique_ptr<Mesh> single_mesh(new Mesh(triangle_mesh_));
 
         Quantization::Quantizer::GetQuantizerResult get_quantizer_result = Quantization::Quantizer::get_quantizer(
             triangle_mesh_.max_vertex_magnitude(), triangle_mesh_.min_and_max_edge_lengths().min());
@@ -154,7 +200,8 @@ namespace Cork::Statistics
         {
             std::cout << "Failed to get Quantizer: " << get_quantizer_result.message() << std::endl;
 
-            return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, hole_edges_, std::vector<IntersectionInfo>() ));
+            return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, holes,
+                                          std::vector<IntersectionInfo>()));
         }
 
         Quantization::Quantizer quantizer(get_quantizer_result.return_value());
@@ -164,11 +211,9 @@ namespace Cork::Statistics
 
         Intersection::IntersectionProblemIfx::IntersectionProblemResult findResult = iproblem->FindIntersections();
 
-        const std::vector<IntersectionInfo>   si_stats = iproblem->CheckSelfIntersection();
+        const std::vector<IntersectionInfo> si_stats = iproblem->CheckSelfIntersection();
 
-        std::cout << "Found: " << si_stats.size() << " self intersections." << std::endl;
-
-        return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, hole_edges_, si_stats ));
+        return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, holes, si_stats));
     }
 
 };  // namespace Cork::Statistics

@@ -63,7 +63,6 @@ namespace Cork::Math
     using VertexIndex = type_safe::integer<size_t>;
     using TriangleByIndicesIndex = type_safe::integer<size_t>;
 
-
     constexpr size_t UNINTIALIZED_INDEX = -1;
 
     class Vertex3DVector : public std::vector<Vertex3D>
@@ -478,14 +477,14 @@ namespace Cork::Math
     // vertex points
     //
 
-    class TriangleByIndicesBase
+    class TriangleByIndices
     {
        public:
-        TriangleByIndicesBase() : m_a(UNINTIALIZED_INDEX), m_b(UNINTIALIZED_INDEX), m_c(UNINTIALIZED_INDEX) {}
+        TriangleByIndices() : m_a(UNINTIALIZED_INDEX), m_b(UNINTIALIZED_INDEX), m_c(UNINTIALIZED_INDEX) {}
 
-        TriangleByIndicesBase(VertexIndex a, VertexIndex b, VertexIndex c) : m_a(a), m_b(b), m_c(c) {}
+        TriangleByIndices(VertexIndex a, VertexIndex b, VertexIndex c) : m_a(a), m_b(b), m_c(c) {}
 
-        virtual ~TriangleByIndicesBase() {}
+        virtual ~TriangleByIndices() {}
 
         const VertexIndex operator[](size_t index) const
         {
@@ -517,70 +516,94 @@ namespace Cork::Math
         VertexIndex m_c;
     };
 
-    inline std::ostream& operator<<(std::ostream& out, const TriangleByIndicesBase& tri_by_indices)
+    inline std::ostream& operator<<(std::ostream& out, const TriangleByIndices& tri_by_indices)
     {
         out << "(" << tri_by_indices.a() << ", " << tri_by_indices.b() << ", " << tri_by_indices.c() << ")";
         return out;
     }
 
-    class TriangleByIndicesVector : public std::vector<TriangleByIndicesBase>
+    class TriangleByIndicesVector : public std::vector<TriangleByIndices>
     {
        public:
-        const TriangleByIndicesBase& operator[](size_t) const = delete;
-        TriangleByIndicesBase& operator[](size_t) = delete;
+        const TriangleByIndices& operator[](size_t) const = delete;
+        TriangleByIndices& operator[](size_t) = delete;
 
-        const TriangleByIndicesBase& operator[](TriangleByIndicesIndex idx) const
+        const TriangleByIndices& operator[](TriangleByIndicesIndex idx) const
         {
             return data()[TriangleByIndicesIndex::integer_type(idx)];
         }
-        TriangleByIndicesBase& operator[](TriangleByIndicesIndex idx)
+        TriangleByIndices& operator[](TriangleByIndicesIndex idx)
         {
             return data()[TriangleByIndicesIndex::integer_type(idx)];
         }
     };
 
-    class EdgeByIndicesBase
+    class EdgeByIndices
     {
        public:
         //  Edges are always smaller vertex index first, larger index second
 
-        EdgeByIndicesBase(VertexIndex first_vertex, VertexIndex second_vertex)
+        EdgeByIndices(VertexIndex first_vertex, VertexIndex second_vertex)
             : first_vertex_(std::min(first_vertex, second_vertex)),
               second_vertex_(std::max(first_vertex, second_vertex))
         {
         }
 
-        virtual ~EdgeByIndicesBase() {}
+        virtual ~EdgeByIndices() {}
 
         VertexIndex first() const { return (first_vertex_); }
 
         VertexIndex second() const { return (second_vertex_); }
 
-        bool operator==(const EdgeByIndicesBase& edgeToCompare) const
+        bool operator==(const EdgeByIndices& edgeToCompare) const
         {
             return ((first() == edgeToCompare.first()) && (second() == edgeToCompare.second()));
         }
+
+        bool contains_vertex(VertexIndex vert_index) const
+        {
+            return (first_vertex_ == vert_index) || (second_vertex_ == vert_index);
+        }
+
+        bool same_segment(const EdgeByIndices& edgeToCompare) const
+        {
+            return ((first() == edgeToCompare.first()) && (second() == edgeToCompare.second())) ||
+                   ((first() == edgeToCompare.second()) && (second() == edgeToCompare.first()));
+        }
+
+        bool shares_vertex(const EdgeByIndices& edgeToCompare) const
+        {
+            if (same_segment(edgeToCompare))
+            {
+                return false;
+            }
+
+            return (first() == edgeToCompare.first()) || (first() == edgeToCompare.second()) ||
+                   (second() == edgeToCompare.first()) || (second() == edgeToCompare.second());
+        }
+
+        EdgeByIndices flip_segment() const { return EdgeByIndices(second_vertex_, first_vertex_); }
 
        private:
         VertexIndex first_vertex_;
         VertexIndex second_vertex_;
     };
 
-    class EdgeByVerticesBase
+    class EdgeByVertices
     {
        public:
-        EdgeByVerticesBase(const Vertex3D& first_vertex, const Vertex3D& second_vertex)
+        EdgeByVertices(const Vertex3D& first_vertex, const Vertex3D& second_vertex)
             : first_vertex_(first_vertex), second_vertex_(second_vertex)
         {
         }
 
-        virtual ~EdgeByVerticesBase() {}
+        virtual ~EdgeByVertices() {}
 
         const Vertex3D& first() const { return (first_vertex_); }
 
         const Vertex3D& second() const { return (second_vertex_); }
 
-        bool operator==(const EdgeByVerticesBase& edgeToCompare) const
+        bool operator==(const EdgeByVertices& edgeToCompare) const
         {
             return ((first() == edgeToCompare.first()) && (second() == edgeToCompare.second()));
         }
@@ -590,21 +613,21 @@ namespace Cork::Math
         const Vertex3D second_vertex_;
     };
 
-    inline std::ostream& operator<<(std::ostream& out, const EdgeByVerticesBase& edge_by_vertices)
+    inline std::ostream& operator<<(std::ostream& out, const EdgeByVertices& edge_by_vertices)
     {
         out << "(" << edge_by_vertices.first() << ", " << edge_by_vertices.second() << ")";
         return out;
     }
 
-    class TriangleByVerticesBase
+    class TriangleByVertices
     {
        public:
-        TriangleByVerticesBase(const Vertex3D& firstVertex, const Vertex3D& secondVertex, const Vertex3D& thirdVertex)
+        TriangleByVertices(const Vertex3D& firstVertex, const Vertex3D& secondVertex, const Vertex3D& thirdVertex)
             : a_(firstVertex), b_(secondVertex), c_(thirdVertex)
         {
         }
 
-        TriangleByVerticesBase(const TriangleByIndicesBase& triangle, const Vertex3DVector& vertices)
+        TriangleByVertices(const TriangleByIndices& triangle, const Vertex3DVector& vertices)
             : a_(vertices[triangle.a()]), b_(vertices[triangle.b()]), c_(vertices[triangle.c()])
         {
         }
@@ -621,20 +644,20 @@ namespace Cork::Math
 
         Vector3D edgeBC_from_origin() const { return (b_ - c_); }
 
-        EdgeByVerticesBase edge(TriangleEdgeId edge_id)
+        EdgeByVertices edge(TriangleEdgeId edge_id)
         {
             switch (edge_id)
             {
                 case TriangleEdgeId::AB:
-                    return EdgeByVerticesBase(a_, b_);
+                    return EdgeByVertices(a_, b_);
                     break;
 
                 case TriangleEdgeId::BC:
-                    return EdgeByVerticesBase(b_, c_);
+                    return EdgeByVertices(b_, c_);
                     break;
             }
 
-            return EdgeByVerticesBase(c_, a_);
+            return EdgeByVertices(c_, a_);
         }
 
         //        TriangleEdgeId
@@ -671,7 +694,7 @@ namespace Cork::Math
         Vertex3D c_;
     };
 
-    inline std::ostream& operator<<(std::ostream& out, const TriangleByVerticesBase& tri_by_vertices)
+    inline std::ostream& operator<<(std::ostream& out, const TriangleByVertices& tri_by_vertices)
     {
         out << "(" << tri_by_vertices.vertexA() << ", " << tri_by_vertices.vertexB() << ", "
             << tri_by_vertices.vertexC() << ")";
@@ -682,6 +705,6 @@ namespace Cork::Math
     //  Setup some types
     //
 
-    using EdgeByIndicesVector = std::vector<Math::EdgeByIndicesBase>;
+    using EdgeByIndicesVector = std::vector<Math::EdgeByIndices>;
 
 }  // namespace Cork::Math

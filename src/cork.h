@@ -47,6 +47,8 @@
 
 namespace Cork
 {
+    using TriangleMesh = Cork::Meshes::TriangleMesh;
+
     class SolverControlBlock
     {
        public:
@@ -117,7 +119,7 @@ namespace Cork
         typedef SEFUtility::ResultWithReturnUniquePtr<BooleanOperationResultCodes, CorkMesh> BooleanOperationResult;
 
         CORKLIB_API
-        static std::unique_ptr<CorkMesh> FromTriangleMesh(const Cork::TriangleMesh& triangleMesh);
+        static std::unique_ptr<CorkMesh> FromTriangleMesh(const TriangleMesh& triangleMesh);
 
         CORKLIB_API
         static const SolverControlBlock& GetDefaultControlBlock();

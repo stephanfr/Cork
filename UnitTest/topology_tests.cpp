@@ -63,7 +63,7 @@ TEST_CASE("Topology Tests", "[file io]")
         auto stats = mesh->ComputeTopologicalStatistics();
 
         REQUIRE(!stats.is_two_manifold());
-        REQUIRE(stats.hole_edges().size() == 3);
+        REQUIRE(stats.holes().size() == 1);
         REQUIRE(stats.self_intersections().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
     }
@@ -82,12 +82,12 @@ TEST_CASE("Topology Tests", "[file io]")
 
         for (auto record : stats.self_intersections())
         {
-            Cork::Math::EdgeByVerticesBase edge_with_se(
-                Cork::TriangleByVertices(mesh->triangles()[record.edge_triangle_id_], mesh->vertices())
+            Cork::Math::EdgeByVertices edge_with_se(
+                Cork::Math::TriangleByVertices(mesh->triangles()[record.edge_triangle_id_], mesh->vertices())
                     .edge(record.edge_index_));
 
             std::cout << "Edge Index: " << record.edge_index_ << " Edge: " << edge_with_se << "    Triangle: "
-                      << Cork::TriangleByVertices(mesh->triangles()[record.triangle_instersected_id_],
+                      << Cork::Math::TriangleByVertices(mesh->triangles()[record.triangle_instersected_id_],
                                                   mesh->vertices())
                       << std::endl;
 
@@ -97,9 +97,9 @@ TEST_CASE("Topology Tests", "[file io]")
             }
         }
 
-        REQUIRE( !stats.is_two_manifold() );
-        REQUIRE( stats.hole_edges().size() == 0 );
-        REQUIRE( stats.self_intersections().size() == 0 );
+        REQUIRE( stats.is_two_manifold() );
+        REQUIRE( stats.holes().size() == 0 );
+        REQUIRE( stats.self_intersections().size() == 2 );
         //        REQUIRE(stats.numBodies() == 1);
 
         auto read_result2 = Cork::Files::readOFF("../../UnitTest/Test Files/JuliaVaseWithSelfIntersection.off");
@@ -120,8 +120,8 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto stats2 = mesh2->ComputeTopologicalStatistics();
 
-        REQUIRE(stats2.is_two_manifold());
-        REQUIRE(stats2.hole_edges().size() == 6);
+        REQUIRE(!stats2.is_two_manifold());
+        REQUIRE(stats2.holes().size() == 1);
         REQUIRE(stats2.self_intersections().size() == 0);
     }
 }

@@ -30,6 +30,9 @@
 
 namespace Cork
 {
+    using IndexType = Math::IndexType;
+    using TriangleMesh = Meshes::TriangleMesh;
+
     //
     //	The Mesh class brings together the functionality needed for the boolean operations
     //

@@ -26,24 +26,26 @@
 // +-------------------------------------------------------------------------
 
 //#include <boost/container/small_vector.hpp>
+#include "mesh/mesh.h"
+
 #include <boost/timer/timer.hpp>
 #include <sstream>
 
-#include "math/Primitives.h"
 #include "intersection/unsafe_ray_triangle_intersection.h"
+#include "math/Primitives.h"
 #include "mesh/EGraphCache.h"
 #include "mesh/IntersectionProblem.h"
 #include "mesh/TopoCache.h"
 #include "util/ThreadPool.h"
 #include "util/unionFind.h"
 
-#include "mesh/mesh.h"
-
 namespace Cork
 {
     using namespace Intersection;
 
+    using Vertex = Math::Vertex3D;
     using TriangleByIndicesIndex = Math::TriangleByIndicesIndex;
+    using IncrementalVertexIndexTriangleMeshBuilder = Meshes::IncrementalVertexIndexTriangleMeshBuilder;
 
     inline double triArea(const Math::Vector3D& a, const Math::Vector3D& b, const Math::Vector3D& c)
     {
@@ -450,14 +452,32 @@ namespace Cork
         {
             const CorkTriangle& tri = m_tris[tid];
 
-            ecache[VertexIndex::integer_type(tri.a())].find_or_add(VertexIndex::integer_type(tri.b())).tids().push_back(tid);
-            ecache[VertexIndex::integer_type(tri.a())].find_or_add(VertexIndex::integer_type(tri.c())).tids().push_back(tid);
+            ecache[VertexIndex::integer_type(tri.a())]
+                .find_or_add(VertexIndex::integer_type(tri.b()))
+                .tids()
+                .push_back(tid);
+            ecache[VertexIndex::integer_type(tri.a())]
+                .find_or_add(VertexIndex::integer_type(tri.c()))
+                .tids()
+                .push_back(tid);
 
-            ecache[VertexIndex::integer_type(tri.b())].find_or_add(VertexIndex::integer_type(tri.a())).tids().push_back(tid);
-            ecache[VertexIndex::integer_type(tri.b())].find_or_add(VertexIndex::integer_type(tri.c())).tids().push_back(tid);
+            ecache[VertexIndex::integer_type(tri.b())]
+                .find_or_add(VertexIndex::integer_type(tri.a()))
+                .tids()
+                .push_back(tid);
+            ecache[VertexIndex::integer_type(tri.b())]
+                .find_or_add(VertexIndex::integer_type(tri.c()))
+                .tids()
+                .push_back(tid);
 
-            ecache[VertexIndex::integer_type(tri.c())].find_or_add(VertexIndex::integer_type(tri.a())).tids().push_back(tid);
-            ecache[VertexIndex::integer_type(tri.c())].find_or_add(VertexIndex::integer_type(tri.b())).tids().push_back(tid);
+            ecache[VertexIndex::integer_type(tri.c())]
+                .find_or_add(VertexIndex::integer_type(tri.a()))
+                .tids()
+                .push_back(tid);
+            ecache[VertexIndex::integer_type(tri.c())]
+                .find_or_add(VertexIndex::integer_type(tri.b()))
+                .tids()
+                .push_back(tid);
         }
 
         //	Label some of the edges as intersection edges and others as not
@@ -655,7 +675,7 @@ namespace Cork
                     inside_sig ^= 2;
                 }
 
-                for (size_t tid : entry.tids())
+                for (IndexType tid : entry.tids())
                 {
                     if (visited[tid])
                     {
