@@ -26,37 +26,28 @@
 
 #pragma once
 
+#include <cassert>
+#include <deque>
 #include <vector>
 
 #include "CPPResult.hpp"
 #include "math/Primitives.h"
 #include "statistics/statistics.h"
 
-namespace Cork
+namespace Cork::Meshes
 {
-    using IndexType = Math::IndexType;
-
-    using VertexIndex = Math::VertexIndex;
-
     using Vertex = Math::Vertex3D;
     using VertexVector = Math::Vertex3DVector;
 
-    using EdgeByIndices = Math::EdgeByIndicesBase;
+    using EdgeByIndices = Math::EdgeByIndices;
     using EdgeByIndicesVector = Math::EdgeByIndicesVector;
 
-    using TriangleByIndices = Math::TriangleByIndicesBase;
-    using TriangleByVertices = Math::TriangleByVerticesBase;
+    using TriangleByIndices = Math::TriangleByIndices;
+    using TriangleByVertices = Math::TriangleByVertices;
 
     using TriangleByIndicesVector = Math::TriangleByIndicesVector;
     using TriangleByIndicesIndex = Math::TriangleByIndicesIndex;
 
-    class Hole
-    {
-       public:
-       private:
-        EdgeByIndicesVector edges_;
-        VertexVector vertices_;
-    };
 
     class TriangleMesh
     {
