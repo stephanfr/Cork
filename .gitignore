@@ -3,5 +3,7 @@ build/
 thirdparty/
 RegressionTest/Results
 RegressionTest/TestSet
+RegressionTest/PerfResults
+RegressionTest/PerfTestSet
 UnitTest/Test Results
 

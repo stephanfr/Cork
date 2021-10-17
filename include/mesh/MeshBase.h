@@ -123,7 +123,7 @@ namespace Cork
 
         void flip() { std::swap(m_a, m_b); }
 
-        void offsetIndices(size_t offsetValue)
+        void offsetIndices(uint32_t offsetValue)
         {
             m_a += offsetValue;
             m_b += offsetValue;

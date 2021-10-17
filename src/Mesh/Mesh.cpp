@@ -218,7 +218,7 @@ namespace Cork
 
         //	Fill the triangles
 
-        for (TriangleByIndicesIndex i = 0ul; i < inputMesh.triangles().size(); i++)
+        for (TriangleByIndicesIndex i = 0u; i < inputMesh.triangles().size(); i++)
         {
             m_tris.emplace_back(inputMesh.triangles()[i], 0, TriangleByIndicesIndex::integer_type(i));
         }
@@ -236,7 +236,7 @@ namespace Cork
 
     bool Mesh::valid() const
     {
-        for (VertexIndex i = 0ul; i < m_verts.size(); i++)
+        for (VertexIndex i = 0u; i < m_verts.size(); i++)
         {
             if (!std::isfinite(m_verts[i].x()) || !std::isfinite(m_verts[i].y()) || !std::isfinite(m_verts[i].z()))
             {
@@ -273,17 +273,17 @@ namespace Cork
             t.boolAlgData() = 0;
         }
 
-        size_t oldVsize = m_verts.size();
-        size_t oldTsize = m_tris.size();
-        size_t cpVsize = meshToMerge.m_verts.size();
-        size_t cpTsize = meshToMerge.m_tris.size();
-        size_t newVsize = oldVsize + cpVsize;
-        size_t newTsize = oldTsize + cpTsize;
+        uint32_t oldVsize = m_verts.size();
+        uint32_t oldTsize = m_tris.size();
+        uint32_t cpVsize = meshToMerge.m_verts.size();
+        uint32_t cpTsize = meshToMerge.m_tris.size();
+        uint32_t newVsize = oldVsize + cpVsize;
+        uint32_t newTsize = oldTsize + cpTsize;
 
         m_verts.resize(newVsize);
         m_tris.resize(newTsize);
 
-        for (VertexIndex i = 0ul; i < cpVsize; i++)
+        for (VertexIndex i = 0u; i < cpVsize; i++)
         {
             m_verts[oldVsize + i] = meshToMerge.m_verts[i];
         }
@@ -573,8 +573,8 @@ namespace Cork
 
         std::unique_ptr<ComponentList> components(std::move(FindComponents(*ecache)));
 
-        SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr topoCacheWorkspace(
-            SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance());
+//        SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr topoCacheWorkspace(
+//            SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance());
 
         std::vector<std::set<VertexIndex>> bodies;
 

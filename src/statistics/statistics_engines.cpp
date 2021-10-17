@@ -140,57 +140,8 @@ namespace Cork::Statistics
             }
         }
 
-        std::vector<Hole> holes;
-
-        if (!hole_edges_.empty())
-        {
-            //  We have a list of hole edges, link them up to form the outline of a hole
-
-            //  Prime the hole with one edge from the hole edges vector.  We will grow this
-            //      hole perimeter until it links up on itself at which point we will add it to the list of
-            //      holes and start over with a new initial edge.
-
-            HoleBuilder hole_builder(hole_edges_.back());
-
-            hole_edges_.pop_back();
-
-            bool fell_through = true;
-
-            do
-            {
-                fell_through = true;
-
-                for (size_t i = 0; i < hole_edges_.size(); i++)
-                {
-                    if (hole_builder.add_edge(hole_edges_[i]))
-                    {
-                        hole_edges_.erase(hole_edges_.begin() + i);
-
-                        if (hole_builder.is_closed())
-                        {
-                            holes.emplace_back(hole_builder.as_hole());
-
-                            if (!hole_edges_.empty())
-                            {
-                                hole_builder.reset(hole_edges_.back());
-                                hole_edges_.pop_back();
-                            }
-                        }
-
-                        fell_through = false;
-                        break;
-                    }
-                }
-            } while (!fell_through);
-        }
-
-        std::cout << "Holes Found: " << holes.size() << "   remaining edges: " << hole_edges_.size() << std::endl;
-
-        for (size_t i = 0; i < holes.size(); i++)
-        {
-            std::cout << "Hole " << i << ": " << holes[i] << std::endl;
-        }
-
+        std::vector<Hole> holes = HoleBuilder::extract_holes( hole_edges_ );
+/*
         std::unique_ptr<Mesh> single_mesh(new Mesh(triangle_mesh_));
 
         Quantization::Quantizer::GetQuantizerResult get_quantizer_result = Quantization::Quantizer::get_quantizer(
@@ -214,6 +165,9 @@ namespace Cork::Statistics
         const std::vector<IntersectionInfo> si_stats = iproblem->CheckSelfIntersection();
 
         return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, holes, si_stats));
+*/
+
+        return TopologicalStatistics( edges_.size(), 0, num_non_2_manifold_, holes, std::vector<IntersectionInfo>()  );
     }
 
 };  // namespace Cork::Statistics

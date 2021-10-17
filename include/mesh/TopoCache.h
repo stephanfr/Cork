@@ -54,7 +54,7 @@ namespace Cork
      *      commitTopoCache()
      */
 
-#define INVALID_ID uint(-1)
+    constexpr uint32_t INVALID_ID = -1;
 
     using IndexType = Math::IndexType;
     using TriangleEdgeId = Math::TriangleEdgeId;
@@ -96,21 +96,22 @@ namespace Cork
         TopoEdgePointerList& edges() { return (m_edges); }
 
        private:
-        VertexIndex m_ref;         // index to actual data
+        VertexIndex m_ref;       // index to actual data
         Math::Vector3D* m_data;  // algorithm specific handle
 
         TopoTrianglePointerList m_tris;  // triangles this vertex is incident on
         TopoEdgePointerList m_edges;     // edges this vertex is incident on
     };
 
-    typedef ManagedIntrusiveValueList<TopoVert> TopoVertexList;
+    typedef ManagedIntrusiveValueList<TopoVert, ContiguousStorage<TopoVert,VertexIndex> > TopoVertexList;
 
     class TopoEdge final : public IntrusiveListHookNoDestructorOnElements
     {
        public:
         TopoEdge() : source_triangle_id_(Math::UNINTIALIZED_INDEX) {}
 
-        TopoEdge(TriangleByIndicesIndex source_triangle_id, TriangleEdgeId tri_edge_id, TopoVert* vertex0, TopoVert* vertex1)
+        TopoEdge(TriangleByIndicesIndex source_triangle_id, TriangleEdgeId tri_edge_id, TopoVert* vertex0,
+                 TopoVert* vertex1)
             : source_triangle_id_(source_triangle_id), tri_edge_id_(tri_edge_id), m_verts({{vertex0, vertex1}})
         {
             vertex0->edges().insert(this);
@@ -181,7 +182,7 @@ namespace Cork
         TopoTrianglePointerList m_tris;    // incident triangles
     };
 
-    typedef ManagedIntrusiveValueList<TopoEdge> TopoEdgeList;
+    typedef ManagedIntrusiveValueList<TopoEdge /*, ContiguousStorage<TopoEdge> */> TopoEdgeList;
 
     typedef boost::container::small_vector<const TopoEdge*, 24> TopoEdgePointerVector;
 
@@ -450,7 +451,7 @@ namespace Cork
 #endif
     };
 
-    typedef ManagedIntrusiveValueList<TopoTri> TopoTriList;
+    typedef ManagedIntrusiveValueList<TopoTri /*, ContiguousStorage<TopoTri>*/> TopoTriList;
 
     class TopoCacheWorkspace
     {
@@ -460,9 +461,18 @@ namespace Cork
             m_vertexListPool.reserve(1000000);
             m_edgeListPool.reserve(1000000);
             m_triListPool.reserve(1000000);
+
+            std::cout << "Creating TopoCacheWorkspace" << std::endl;
         }
 
         virtual ~TopoCacheWorkspace() {}
+
+        void reserve(size_t num_vertices, size_t num_edges, size_t num_triangles)
+        {
+            m_vertexListPool.reserve(num_vertices);
+//            m_edgeListPool.reserve(num_edges);
+//            m_triListPool.reserve(num_triangles);
+        }
 
         void reset()
         {
@@ -518,7 +528,7 @@ namespace Cork
 
         TopoVert* newVert()
         {
-            size_t ref = m_meshVertices.size();
+            VertexIndex::integer_type ref = m_meshVertices.size();
 
             m_meshVertices.emplace_back();
 

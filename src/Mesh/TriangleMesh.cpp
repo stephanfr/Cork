@@ -178,7 +178,7 @@ namespace Cork::Meshes
                 //	Vertex is new, update all data structures
 
                 m_vertexIndices[vertexToAdd] = m_indexedVertices->size();
-                m_vertexIndexRemapper.push_back(m_indexedVertices->size());
+                m_vertexIndexRemapper.push_back(VertexIndex::integer_type(m_indexedVertices->size()));
                 m_indexedVertices->push_back(vertexToAdd);
             }
             else
@@ -190,7 +190,7 @@ namespace Cork::Meshes
 
             //	The index we return should always be the remapper size minus 1
 
-            return (m_vertexIndexRemapper.size() - 1);
+            return (VertexIndex::integer_type( m_vertexIndexRemapper.size() ) - 1u);
         }
 
         TriangleMeshBuilderResultCodes AddTriangle(const TriangleByIndices& triangleToAdd) final

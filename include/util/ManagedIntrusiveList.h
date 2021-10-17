@@ -1,12 +1,12 @@
 // +-------------------------------------------------------------------------
 // | ManagedIntrusiveList.h
-// | 
+// |
 // | Author: Stephan Friedl
 // +-------------------------------------------------------------------------
 // | COPYRIGHT:
 // |    Copyright Stephan Friedl 2013
 // |    See the included COPYRIGHT file for further details.
-// |    
+// |
 // |    This file is part of the Cork library.
 // |
 // |    Cork is free software: you can redistribute it and/or modify
@@ -19,211 +19,220 @@
 // |    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // |    GNU Lesser General Public License for more details.
 // |
-// |    You should have received a copy 
+// |    You should have received a copy
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 #pragma once
 
-
-#include "boost/noncopyable.hpp"
 #include "boost/intrusive/list.hpp"
 #include "boost/intrusive/unordered_set.hpp"
+#include "boost/noncopyable.hpp"
 #include "tbb/concurrent_vector.h"
 #include "tbb/spin_mutex.h"
 
-
-
-
 namespace hidden
 {
-	template <typename T>
-	class PointerOnlyListElement : public boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::normal_link>>
-	{
-	public:
-		
-		explicit
-		PointerOnlyListElement( T*		pointer )
-			: m_pointer(pointer)
-		{}
+    template <typename T>
+    class PointerOnlyListElement
+        : public boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::normal_link>>
+    {
+       public:
+        explicit PointerOnlyListElement(T* pointer) : m_pointer(pointer) {}
 
-		operator		T*()
-		{
-			return(m_pointer);
-		}
+        operator T*() { return (m_pointer); }
 
-		operator		const T*( ) const
-		{
-			return( m_pointer );
-		}
+        operator const T*() const { return (m_pointer); }
 
-		T* operator ->( )
-		{
-			return( m_pointer );
-		}
+        T* operator->() { return (m_pointer); }
 
-		const T* operator ->( ) const
-		{
-			return( m_pointer );
-		}
+        const T* operator->() const { return (m_pointer); }
 
-		T*				pointer()
-		{
-			return(m_pointer);
-		}
+        T* pointer() { return (m_pointer); }
 
+        T* m_pointer;
+    };
 
-		T*			m_pointer;
-	};
+}  // namespace hidden
 
-}
-
-
-
-template <typename T>
-class ManagedIntrusivePointerList : public boost::noncopyable, protected boost::intrusive::list<hidden::PointerOnlyListElement<T>>
+template <typename T, typename TI = size_t>
+class ContiguousStorage : public boost::noncopyable
 {
-private:
+   public:
+    ContiguousStorage(size_t starting_size = 10000)
+        : current_size_(starting_size), end_(0), block_(static_cast<T*>(malloc(sizeof(T) * (starting_size + 1))))
+    {
+    }
 
-	typedef boost::intrusive::list<hidden::PointerOnlyListElement<T>>		BaseType;
+    ~ContiguousStorage() { free(block_); }
 
-public:
+    void reserve(size_t new_minimum_size)
+    {
+        if (new_minimum_size > current_size_)
+        {
+			std::cout << "Growing ContiguousStorage from: " << current_size_ << " to " << new_minimum_size << std::endl;
 
-	typedef tbb::concurrent_vector<hidden::PointerOnlyListElement<T>>		PoolType;
+            current_size_ = new_minimum_size;
+			free(block_);
+            block_ = static_cast<T*>(malloc(sizeof(T) * (current_size_ + 1)));
 
+        }
 
-	explicit
-	ManagedIntrusivePointerList(PoolType&		pool)
-		: m_pool( pool )
-	{}
+        end_ = 0;
+    }
 
-	ManagedIntrusivePointerList( const ManagedIntrusivePointerList& ) = delete;
+    void clear() { end_ = 0; }
 
+    T& operator[](TI index)
+    {
+        assert(index < end_);
 
+        return *(block_ + static_cast<uint32_t>(index));
+    }
 
-	using BaseType::iterator;
+    const T& operator[](TI index) const
+    {
+        assert(index < end_);
 
-	using BaseType::front;
-	using BaseType::begin;
-	using BaseType::end;
+        return *(block_ + static_cast<uint32_t>(index));
+    }
 
-	using BaseType::clear;
-	using BaseType::empty;
-	using BaseType::erase;
-	using BaseType::size;
+    T& back()
+    {
+        assert(end_ > 0);
 
+        return *(block_ + (end_ - 1));
+    }
 
+    const T& back() const
+    {
+        assert(end_ > 0);
 
-	void		push_back(T*		pointerToAdd)
-	{
-		BaseType::push_back(*(m_pool.emplace_back(pointerToAdd)));
-	}
+        return *(block_ + (end_ - 1));
+    }
 
-protected :
+    template <class... _Valty>
+    T* emplace_back(_Valty&&... _Val)
+    {
+        assert(end_ < current_size_);
+        return new (block_ + end_++) T(std::forward<_Valty>(_Val)...);
+    }
 
-	PoolType&				m_pool;
+   private:
+    size_t current_size_;
+    size_t end_;
+    T* block_;
 };
 
-
-
-
-
-typedef boost::intrusive::list_base_hook<>																	IntrusiveListHook;
-typedef boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::normal_link>>		IntrusiveListHookNoDestructorOnElements;
-
-
-
 template <typename T>
-class ManagedIntrusiveValueList : public boost::noncopyable, protected boost::intrusive::list<T,boost::intrusive::constant_time_size<true>>
+class ManagedIntrusivePointerList : public boost::noncopyable,
+                                    protected boost::intrusive::list<hidden::PointerOnlyListElement<T>>
 {
-private:
+   private:
+    typedef boost::intrusive::list<hidden::PointerOnlyListElement<T>> BaseType;
 
-	typedef boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>		BaseType;
+   public:
+    typedef tbb::concurrent_vector<hidden::PointerOnlyListElement<T>> PoolType;
 
-public:
+    explicit ManagedIntrusivePointerList(PoolType& pool) : m_pool(pool) {}
 
-	typedef tbb::concurrent_vector<T>													PoolType;
+    ManagedIntrusivePointerList(const ManagedIntrusivePointerList&) = delete;
 
-	explicit
-	ManagedIntrusiveValueList(PoolType&		pool)
-		: m_pool(pool)
-	{}
+    using BaseType::iterator;
 
-	using BaseType::begin;
-	using BaseType::end;
-	using BaseType::size;
-	using BaseType::clear;
+    using BaseType::begin;
+    using BaseType::end;
+    using BaseType::front;
 
+    using BaseType::clear;
+    using BaseType::empty;
+    using BaseType::erase;
+    using BaseType::size;
 
-	template<class... _Valty>
-	T*		emplace_back(_Valty&&... _Val)
-	{
-		T&		newValue = *(m_pool.emplace_back(std::forward<_Valty>(_Val)...));
-		
-		BaseType::push_back(newValue);
+    void push_back(T* pointerToAdd) { BaseType::push_back(*(m_pool.emplace_back(pointerToAdd))); }
 
-		return( &newValue );
-	}
-
-
-	template<class... _Valty>
-	T*		emplace_back_unindexed( _Valty&&... _Val )
-	{
-		T&		newValue = *( m_pool.emplace_back( std::forward<_Valty>( _Val )... ) );
-
-		return( &newValue );
-	}
-
-
-
-	bool		isCompact() const
-	{
-		return( m_pool.size() == size() );
-	}
-
-	PoolType&	getPool()
-	{
-		return( m_pool );
-	}
-
-	void		FixupList()
-	{
-		BaseType::clear();
-
-		for( auto itrElement = m_pool.begin(); itrElement != m_pool.end(); itrElement++ )
-		{
-			BaseType::push_back( *itrElement );
-		}
-	}
-
-
-	void		free(T&	valueToFree)
-	{
-		BaseType::erase(boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>::iterator_to(valueToFree));
-	}
-
-	void		free( const T&		valueToFree )
-	{
-		BaseType::erase( boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>::iterator_to( valueToFree ) );
-	}
-
-	void		free(T*	valueToFree)
-	{
-		BaseType::erase(boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>::iterator_to(*valueToFree));
-	}
-
-	void		free( const T*		valueToFree )
-	{
-		BaseType::erase( boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>::iterator_to( *valueToFree ) );
-	}
-
-
-private:
-
-	PoolType&				m_pool;
+   protected:
+    PoolType& m_pool;
 };
 
+typedef boost::intrusive::list_base_hook<> IntrusiveListHook;
+typedef boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::normal_link>>
+    IntrusiveListHookNoDestructorOnElements;
 
+template <typename T, typename TP = tbb::concurrent_vector<T>>
+class ManagedIntrusiveValueList : public boost::noncopyable,
+                                  protected boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>
+{
+   private:
+    typedef boost::intrusive::list<T, boost::intrusive::constant_time_size<true>> BaseType;
 
+   public:
+    //    typedef tbb::concurrent_vector<T> PoolType;
+    using PoolType = TP;
 
+    explicit ManagedIntrusiveValueList(PoolType& pool) : m_pool(pool) {}
 
+    using BaseType::begin;
+    using BaseType::clear;
+    using BaseType::end;
+    using BaseType::size;
+
+    template <class... _Valty>
+    T* emplace_back(_Valty&&... _Val)
+    {
+        T& newValue = *(m_pool.emplace_back(std::forward<_Valty>(_Val)...));
+
+        BaseType::push_back(newValue);
+
+        return (&newValue);
+    }
+
+    template <class... _Valty>
+    T* emplace_back_unindexed(_Valty&&... _Val)
+    {
+        T& newValue = *(m_pool.emplace_back(std::forward<_Valty>(_Val)...));
+
+        return (&newValue);
+    }
+
+    bool isCompact() const { return (m_pool.size() == size()); }
+
+    PoolType& getPool() { return (m_pool); }
+
+    void FixupList()
+    {
+        BaseType::clear();
+
+        for (auto itrElement = m_pool.begin(); itrElement != m_pool.end(); itrElement++)
+        {
+            BaseType::push_back(*itrElement);
+        }
+    }
+
+    void free(T& valueToFree)
+    {
+        BaseType::erase(
+            boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>::iterator_to(valueToFree));
+    }
+
+    void free(const T& valueToFree)
+    {
+        BaseType::erase(
+            boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>::iterator_to(valueToFree));
+    }
+
+    void free(T* valueToFree)
+    {
+        BaseType::erase(
+            boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>::iterator_to(*valueToFree));
+    }
+
+    void free(const T* valueToFree)
+    {
+        BaseType::erase(
+            boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>::iterator_to(*valueToFree));
+    }
+
+   private:
+    PoolType& m_pool;
+};

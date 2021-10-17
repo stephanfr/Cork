@@ -47,11 +47,12 @@
 namespace Cork::Math
 {
     constexpr double DOUBLE_TWO = 2.0;
+    constexpr uint32_t UNINTIALIZED_INDEX = -1;
 
     using Vector2D = Vector2DTemplate<NUMERIC_PRECISION>;
     using Vector3D = Vector3DTemplate<NUMERIC_PRECISION>;
 
-    using IndexType = size_t;
+    using IndexType = uint32_t;
     using IndexVector = std::vector<IndexType>;
 
     //	Vertices and vectors share the same implementation of a numeric 3-tuple
@@ -60,10 +61,9 @@ namespace Cork::Math
 
     using Vector3DVector = std::vector<Vector3D>;
 
-    using VertexIndex = type_safe::integer<size_t>;
-    using TriangleByIndicesIndex = type_safe::integer<size_t>;
+    using VertexIndex = type_safe::integer<uint32_t>;
+    using TriangleByIndicesIndex = type_safe::integer<uint32_t>;
 
-    constexpr size_t UNINTIALIZED_INDEX = -1;
 
     class Vertex3DVector : public std::vector<Vertex3D>
     {
@@ -77,14 +77,14 @@ namespace Cork::Math
 
     //  Define some enums to track vertex and edge assignments
 
-    enum class TriangleVertexId : size_t
+    enum class TriangleVertexId : uint8_t
     {
         A = 0,
         B,
         C
     };
 
-    enum class TriangleEdgeId : size_t
+    enum class TriangleEdgeId : uint8_t
     {
         AB = 0,
         BC,

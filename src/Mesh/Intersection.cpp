@@ -711,7 +711,7 @@ namespace Cork::Intersection
 
         void perturbPositions()
         {
-            for (VertexIndex i = 0ul; i < m_quantizedCoords.size(); i++)
+            for (VertexIndex i = 0u; i < m_quantizedCoords.size(); i++)
             {
                 Math::Vector3D perturbation = m_perturbation.getPerturbation();
 
@@ -972,8 +972,8 @@ namespace Cork::Intersection
 
         TopoEdge* operator()(TopoVert& v0, TopoVert& v1)
         {
-            size_t i = VertexIndex::integer_type(v0.ref());
-            size_t j = VertexIndex::integer_type(v1.ref());
+            auto i = VertexIndex::integer_type(v0.ref());
+            auto j = VertexIndex::integer_type(v1.ref());
 
             if (i > j)
             {

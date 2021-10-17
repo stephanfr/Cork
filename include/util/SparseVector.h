@@ -177,8 +177,8 @@ namespace SEFUtility
 
         SparseVector()
             : m_cutover(false),
-              m_inserter(&SparseVector<T, 10>::insertIntoArray),
-              m_findOrAdd(&SparseVector<T, 10>::findOrAddArray),
+              m_inserter(&SparseVector<T, CUTOVER_SIZE>::insertIntoArray),
+              m_findOrAdd(&SparseVector<T, CUTOVER_SIZE>::findOrAddArray),
               m_map(NULL)
         {
         }
@@ -210,8 +210,8 @@ namespace SEFUtility
 
             m_cutover = false;
             m_array.clear();
-            m_inserter = &SparseVector<T, 10>::insertIntoArray;
-            m_findOrAdd = &SparseVector<T, 10>::findOrAddArray;
+            m_inserter = &SparseVector<T, CUTOVER_SIZE>::insertIntoArray;
+            m_findOrAdd = &SparseVector<T, CUTOVER_SIZE>::findOrAddArray;
             m_map = NULL;
         }
 
@@ -399,8 +399,8 @@ namespace SEFUtility
         }
 
        private:
-        typedef T& (SparseVector<T, 10>::*InsertFunctionPointer)(size_t);
-        typedef T& (SparseVector<T, 10>::*FindOrAddFunctionPointer)(size_t);
+        typedef T& (SparseVector<T, CUTOVER_SIZE>::*InsertFunctionPointer)(size_t);
+        typedef T& (SparseVector<T, CUTOVER_SIZE>::*FindOrAddFunctionPointer)(size_t);
 
         bool m_cutover;
 
@@ -430,7 +430,7 @@ namespace SEFUtility
             m_cutover = true;
 
             m_inserter = &SparseVector<T, CUTOVER_SIZE>::insertIntoMap;
-            m_findOrAdd = &SparseVector<T, 10>::findOrAddMap;
+            m_findOrAdd = &SparseVector<T, CUTOVER_SIZE>::findOrAddMap;
 
             return (m_map->emplace(index, index).first->second);
         }
@@ -609,7 +609,7 @@ namespace SEFUtility
         };
 
         SearchablePointerList()
-            : m_cutover(false), m_inserter(&SearchablePointerList<T, 10>::insertIntoArray), m_map(NULL)
+            : m_cutover(false), m_inserter(&SearchablePointerList<T, CUTOVER_SIZE>::insertIntoArray), m_map(NULL)
         {
         }
 
@@ -768,7 +768,7 @@ namespace SEFUtility
         }
 
        protected:
-        typedef void (SearchablePointerList<T, 10>::*InsertFunctionPointer)(T*);
+        typedef void (SearchablePointerList<T, CUTOVER_SIZE>::*InsertFunctionPointer)(T*);
 
         bool m_cutover;
 
