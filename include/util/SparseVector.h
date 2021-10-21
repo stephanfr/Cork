@@ -51,6 +51,25 @@ namespace SEFUtility
         size_t m_index;
     };
 
+    template <class T>
+    class UnorderedMapPool
+    {
+       public:
+        virtual std::unordered_map<size_t, T>* new_map(size_t initial_size) = 0;
+        virtual void release_map(std::unordered_map<size_t, T>* map) = 0;
+    };
+
+    template <class T>
+    class DefaultMapPool : public UnorderedMapPool<T>
+    {
+        std::unordered_map<size_t, T>* new_map(size_t initial_size)
+        {
+            return new std::unordered_map<size_t, T>(initial_size);
+        }
+
+        void release_map(std::unordered_map<size_t, T>* map) { delete map; }
+    };
+
     template <class T, long CUTOVER_SIZE>
     class SparseVector : public Resettable
     {
@@ -63,6 +82,8 @@ namespace SEFUtility
         typedef typename EntryMap::iterator EntryMapIterator;
 
        public:
+        using MapPoolType = UnorderedMapPool<T>;
+
         class iterator : public boost::iterator_facade<iterator, T*, boost::forward_traversal_tag, T*>
         {
            protected:
@@ -179,6 +200,16 @@ namespace SEFUtility
             : m_cutover(false),
               m_inserter(&SparseVector<T, CUTOVER_SIZE>::insertIntoArray),
               m_findOrAdd(&SparseVector<T, CUTOVER_SIZE>::findOrAddArray),
+              map_pool_(*(default_pool_.get())),
+              m_map(NULL)
+        {
+        }
+
+        SparseVector(MapPoolType& map_pool)
+            : m_cutover(false),
+              m_inserter(&SparseVector<T, CUTOVER_SIZE>::insertIntoArray),
+              m_findOrAdd(&SparseVector<T, CUTOVER_SIZE>::findOrAddArray),
+              map_pool_(map_pool),
               m_map(NULL)
         {
         }
@@ -192,7 +223,7 @@ namespace SEFUtility
         {
             if (m_map != NULL)
             {
-                delete m_map;
+                map_pool_.release_map(m_map);
             }
         }
 
@@ -205,7 +236,7 @@ namespace SEFUtility
         {
             if (m_map != NULL)
             {
-                delete m_map;
+                map_pool_.release_map(m_map);
             }
 
             m_cutover = false;
@@ -339,29 +370,6 @@ namespace SEFUtility
 
         T& find_or_add(size_t index) { return ((this->*m_findOrAdd)(index)); }
 
-        /*
-                void			erase( unsigned int		index )
-                {
-                    if (!m_cutover)
-                    {
-                        for ( unsigned int i = 0; i < m_array.size(); i++ )
-                        {
-                            if ( m_array[i].index() == index)
-                            {
-                                if( i < m_arraySize - 1 )
-                                {
-                                    m_array[i] = m_array[m_arraySize--];
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        itrEntry = m_map->erase( index );
-                    }
-                }
-        */
-
         inline void for_each(std::function<void(T& entry)> action)
         {
             if (!m_cutover)
@@ -399,6 +407,8 @@ namespace SEFUtility
         }
 
        private:
+        static std::unique_ptr<DefaultMapPool<T>> default_pool_;
+
         typedef T& (SparseVector<T, CUTOVER_SIZE>::*InsertFunctionPointer)(size_t);
         typedef T& (SparseVector<T, CUTOVER_SIZE>::*FindOrAddFunctionPointer)(size_t);
 
@@ -411,6 +421,8 @@ namespace SEFUtility
 
         EntryMap* m_map;
 
+        MapPoolType& map_pool_;
+
         T& insertIntoArray(size_t index)
         {
             if (m_array.size() < CUTOVER_SIZE)
@@ -420,7 +432,8 @@ namespace SEFUtility
                 return (m_array.back());
             }
 
-            m_map = new EntryMap(CUTOVER_SIZE * 4);
+            //            m_map = new EntryMap(CUTOVER_SIZE * 4);
+            m_map = map_pool_.new_map(CUTOVER_SIZE * 4);
 
             for (unsigned int i = 0; i < m_array.size(); i++)
             {
@@ -466,6 +479,25 @@ namespace SEFUtility
     };
 
     template <class T, long CUTOVER_SIZE>
+    std::unique_ptr<DefaultMapPool<T>> SparseVector<T, CUTOVER_SIZE>::default_pool_(new DefaultMapPool<T>());
+
+    template <class T>
+    class PointerSetPool
+    {
+       public:
+        virtual std::set<T*>* new_set() = 0;
+        virtual void release_set(std::set<T*>* set) = 0;
+    };
+
+    template <class T>
+    class DefaultPointerSetPool : public PointerSetPool<T>
+    {
+        std::set<T*>* new_set() { return new std::set<T*>(); }
+
+        void release_set(std::set<T*>* set) { delete set; }
+    };
+
+    template <class T, long CUTOVER_SIZE>
     class SearchablePointerList
     {
        private:
@@ -478,6 +510,8 @@ namespace SEFUtility
         typedef typename EntrySet::const_iterator EntrySetConstIterator;
 
        public:
+        using SetPoolType = PointerSetPool<T>;
+
         class iterator : public boost::iterator_facade<iterator, T*, boost::forward_traversal_tag, T*>
         {
            protected:
@@ -609,7 +643,18 @@ namespace SEFUtility
         };
 
         SearchablePointerList()
-            : m_cutover(false), m_inserter(&SearchablePointerList<T, CUTOVER_SIZE>::insertIntoArray), m_map(NULL)
+            : m_cutover(false),
+              m_inserter(&SearchablePointerList<T, CUTOVER_SIZE>::insertIntoArray),
+              m_map(NULL),
+              set_pool_(*(default_pool_.get()))
+        {
+        }
+
+        SearchablePointerList( SetPoolType&      set_pool )
+            : m_cutover(false),
+              m_inserter(&SearchablePointerList<T, CUTOVER_SIZE>::insertIntoArray),
+              m_map(NULL),
+              set_pool_(set_pool)
         {
         }
 
@@ -622,7 +667,7 @@ namespace SEFUtility
         {
             if (m_map != NULL)
             {
-                delete m_map;
+                set_pool_.release_set( m_map );
             }
         }
 
@@ -770,6 +815,8 @@ namespace SEFUtility
        protected:
         typedef void (SearchablePointerList<T, CUTOVER_SIZE>::*InsertFunctionPointer)(T*);
 
+        static std::unique_ptr<DefaultPointerSetPool<T>> default_pool_;
+
         bool m_cutover;
 
         InsertFunctionPointer m_inserter;
@@ -777,6 +824,8 @@ namespace SEFUtility
         EntryVector m_array;
 
         EntrySet* m_map;
+
+        SetPoolType& set_pool_;
 
         void insertIntoArray(T* newValue)
         {
@@ -786,7 +835,7 @@ namespace SEFUtility
             }
             else
             {
-                m_map = new EntrySet();
+                m_map = set_pool_.new_set();
 
                 for (T* value : m_array)
                 {
@@ -805,5 +854,9 @@ namespace SEFUtility
 
         friend class iterator;
     };
+
+    template <class T, long CUTOVER_SIZE>
+    std::unique_ptr<DefaultPointerSetPool<T>> SearchablePointerList<T, CUTOVER_SIZE>::default_pool_(
+        new DefaultPointerSetPool<T>());
 
 }  // namespace SEFUtility

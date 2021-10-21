@@ -33,6 +33,7 @@
 #include <boost/dynamic_bitset.hpp>
 #include <limits>
 #include <optional>
+#include <unordered_set>
 
 #include "MeshBase.h"
 #include "intersection/empty3d.h"
@@ -73,7 +74,11 @@ namespace Cork
        public:
         TopoVert() : m_ref(INVALID_ID), m_data(nullptr) {}
 
-        explicit TopoVert(VertexIndex ref) : m_ref(ref), m_data(nullptr) {}
+        explicit TopoVert(VertexIndex ref, TopoTrianglePointerList::SetPoolType& tri_ptr_set_pool,
+                          TopoEdgePointerList::SetPoolType& edge_ptr_set_pool)
+            : m_ref(ref), m_data(nullptr), m_tris(tri_ptr_set_pool), m_edges(edge_ptr_set_pool)
+        {
+        }
 
         ~TopoVert() {}
 
@@ -103,7 +108,7 @@ namespace Cork
         TopoEdgePointerList m_edges;     // edges this vertex is incident on
     };
 
-    typedef ManagedIntrusiveValueList<TopoVert, ContiguousStorage<TopoVert,VertexIndex> > TopoVertexList;
+    typedef ManagedIntrusiveValueList<TopoVert /*, ContiguousStorage<TopoVert, VertexIndex>*/> TopoVertexList;
 
     class TopoEdge final : public IntrusiveListHookNoDestructorOnElements
     {
@@ -111,8 +116,11 @@ namespace Cork
         TopoEdge() : source_triangle_id_(Math::UNINTIALIZED_INDEX) {}
 
         TopoEdge(TriangleByIndicesIndex source_triangle_id, TriangleEdgeId tri_edge_id, TopoVert* vertex0,
-                 TopoVert* vertex1)
-            : source_triangle_id_(source_triangle_id), tri_edge_id_(tri_edge_id), m_verts({{vertex0, vertex1}})
+                 TopoVert* vertex1, TopoTrianglePointerList::SetPoolType& tri_ptr_set_pool)
+            : source_triangle_id_(source_triangle_id),
+              tri_edge_id_(tri_edge_id),
+              m_verts({{vertex0, vertex1}}),
+              m_tris(tri_ptr_set_pool)
         {
             vertex0->edges().insert(this);
             vertex1->edges().insert(this);
@@ -458,36 +466,177 @@ namespace Cork
        public:
         TopoCacheWorkspace()
         {
-            m_vertexListPool.reserve(1000000);
-            m_edgeListPool.reserve(1000000);
-            m_triListPool.reserve(1000000);
+            m_vertexListPool.reserve(100000);
+            m_edgeListPool.reserve(100000);
+            m_triListPool.reserve(100000);
 
             std::cout << "Creating TopoCacheWorkspace" << std::endl;
         }
 
         virtual ~TopoCacheWorkspace() {}
 
-        void reserve(size_t num_vertices, size_t num_edges, size_t num_triangles)
+        void reset(size_t num_vertices, size_t num_edges, size_t num_triangles)
         {
+            clear();
+
             m_vertexListPool.reserve(num_vertices);
-//            m_edgeListPool.reserve(num_edges);
-//            m_triListPool.reserve(num_triangles);
+            m_edgeListPool.reserve(num_edges);
+            m_triListPool.reserve(num_triangles);
         }
 
-        void reset()
+        void clear()
         {
             m_vertexListPool.clear();
             m_edgeListPool.clear();
             m_triListPool.clear();
+
+            topo_triangle_pointer_set_pool_.clear();
+            topo_edge_pointer_set_pool_.clear();
         }
 
-        operator TopoVertexList::PoolType &() { return (m_vertexListPool); }
+        operator TopoVertexList::PoolType &() { return m_vertexListPool; }
 
-        operator TopoEdgeList::PoolType &() { return (m_edgeListPool); }
+        operator TopoEdgeList::PoolType &() { return m_edgeListPool; }
 
-        operator TopoTriList::PoolType &() { return (m_triListPool); }
+        operator TopoTriList::PoolType &() { return m_triListPool; }
+
+        operator TopoTrianglePointerList::SetPoolType &() { return topo_triangle_pointer_set_pool_; }
+        operator TopoEdgePointerList::SetPoolType &() { return topo_edge_pointer_set_pool_; }
 
        private:
+        template <typename T>
+        class UnorderedMapPool : public SEFUtility::UnorderedMapPool<T>
+        {
+           public:
+            UnorderedMapPool() {}
+
+            ~UnorderedMapPool()
+            {
+                std::cout << "In Unordered Map Pool destructor" << std::endl;
+                
+                for (auto map : distributed_maps_)
+                {
+                    delete map;
+                }
+
+                for (auto map : available_maps_)
+                {
+                    delete map;
+                }
+            }
+
+            std::unordered_map<size_t, T>* new_map(size_t initial_size)
+            {
+                std::unordered_map<size_t, T>* map;
+
+                if (available_maps_.empty())
+                {
+                    map = new std::unordered_map<size_t, T>(initial_size);
+                }
+                else
+                {
+                    map = available_maps_.back();
+                    available_maps_.pop_back();
+                }
+
+                distributed_maps_.insert(map);
+
+                return map;
+            }
+
+            void release_map(std::unordered_map<size_t, T>* map)
+            {
+                map->clear();
+
+                distributed_maps_.erase(map);
+
+                available_maps_.push_back(map);
+            }
+
+            void clear()
+            {
+                for (auto map : distributed_maps_)
+                {
+                    available_maps_.push_back(map);
+                }
+
+                distributed_maps_.clear();
+            }
+
+           private:
+            std::deque<std::unordered_map<size_t, T>*> available_maps_;
+            std::unordered_set<std::unordered_map<size_t, T>*> distributed_maps_;
+        };
+
+        template <typename T>
+        class PointerSetPool : public SEFUtility::PointerSetPool<T>
+        {
+           public:
+            PointerSetPool() {}
+
+            ~PointerSetPool()
+            {
+                for (auto set : distributed_sets_)
+                {
+                    delete set;
+                }
+
+                for (auto set : available_sets_)
+                {
+                    delete set;
+                }
+            }
+
+            std::set<T*>* new_set()
+            {
+                std::set<T*>* set;
+
+                if (available_sets_.empty())
+                {
+                    set = new std::set<T*>();
+                }
+                else
+                {
+                    set = available_sets_.back();
+                    available_sets_.pop_back();
+                }
+
+                distributed_sets_.insert(set);
+
+                return set;
+            }
+
+            void release_set(std::set<T*>* set)
+            {
+                set->clear();
+
+                distributed_sets_.erase(set);
+
+                available_sets_.push_back(set);
+            }
+
+            void clear()
+            {
+                for (auto set : distributed_sets_)
+                {
+                    available_sets_.push_back(set);
+                }
+
+                distributed_sets_.clear();
+            }
+
+           private:
+            std::deque<std::set<T*>*> available_sets_;
+            std::unordered_set<std::set<T*>*> distributed_sets_;
+        };
+
+        //  Beware of changing the order of members below. The PointerSetPools need to be destroyed
+        //      after the other pools - so they need appear above so that they are constructed first
+        //      and deleted last.
+
+        PointerSetPool<TopoTri> topo_triangle_pointer_set_pool_;
+        PointerSetPool<TopoEdge> topo_edge_pointer_set_pool_;
+
         TopoVertexList::PoolType m_vertexListPool;
         TopoEdgeList::PoolType m_edgeListPool;
         TopoTriList::PoolType m_triListPool;
@@ -498,7 +647,7 @@ namespace Cork
        public:
         TopoCache(MeshBase& owner, TopoCacheWorkspace& workspace);
 
-        virtual ~TopoCache() {}
+        virtual ~TopoCache();
 
         // until commit() is called, the Mesh::verts and Mesh::tris
         // arrays will still contain garbage entries
@@ -532,7 +681,7 @@ namespace Cork
 
             m_meshVertices.emplace_back();
 
-            return (m_topoVertexList.emplace_back(ref));
+            return (m_topoVertexList.emplace_back(ref, m_workspace, m_workspace));
         }
 
         TopoEdge* newEdge() { return (m_topoEdgeList.emplace_back()); }
@@ -624,8 +773,6 @@ namespace Cork
         //	Methods
 
         void init();
-
-        void initInternalSerial();
     };
 
     std::ostream& operator<<(std::ostream& out, const TopoVert& vertex);

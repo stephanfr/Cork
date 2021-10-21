@@ -32,6 +32,7 @@
 
 TEST_CASE("Topology Tests", "[file io]")
 {
+
     SECTION("2 Manifold Single Body")
     {
         auto read_result = Cork::Files::readOFF("../../UnitTest/Test Files/Quadrilateral1.off");
@@ -57,42 +58,42 @@ TEST_CASE("Topology Tests", "[file io]")
 
         std::vector<Cork::Math::EdgeByIndices>    hole_edges;
         
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 31ul, 50ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 2ul, 3ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 1ul, 2ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 0ul, 1ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 3ul, 4ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 11ul, 12ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 4ul, 5ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 5ul, 6ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 21ul, 22ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 7ul, 0ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 1ul, 10ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 30ul, 31ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 10ul, 11ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 12ul, 13ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 40ul, 50ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 13ul, 1ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 4ul, 20ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 20ul, 21ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 22ul, 4ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 6ul, 7ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 21ul, 30ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 31ul, 21ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 22ul, 40ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 40ul, 41ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 31ul, 40ul ) );
-        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 41ul, 22ul ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 31u, 50u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 2u, 3u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 1u, 2u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 0u, 1u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 3u, 4u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 11u, 12u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 4u, 5u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 5u, 6u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 21u, 22u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 7u, 0u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 1u, 10u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 30u, 31u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 10u, 11u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 12u, 13u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 40u, 50u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 13u, 1u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 4u, 20u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 20u, 21u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 22u, 4u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 6u, 7u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 21u, 30u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 31u, 21u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 22u, 40u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 40u, 41u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 31u, 40u ) );
+        hole_edges.emplace_back( Cork::Math::EdgeByIndices( 41u, 22u ) );
 
         std::vector<Cork::Meshes::Hole> holes = Cork::Meshes::HoleBuilder::extract_holes( hole_edges );
 
         REQUIRE( holes.size() == 6 );
-        REQUIRE((( holes[0].vertices()[0] == 13ul ) && ( holes[0].vertices()[1] == 12ul ) && ( holes[0].vertices()[2] == 11ul ) && ( holes[0].vertices()[3] == 10ul ) && ( holes[0].vertices()[4] == 1ul )));
-        REQUIRE((( holes[1].vertices()[0] == 31ul ) && ( holes[1].vertices()[1] == 21ul ) && ( holes[1].vertices()[2] == 30ul )));
-        REQUIRE((( holes[2].vertices()[0] == 40ul ) && ( holes[2].vertices()[1] == 31ul ) && ( holes[2].vertices()[2] == 50ul )));
-        REQUIRE((( holes[3].vertices()[0] == 4ul ) && ( holes[3].vertices()[1] == 5ul ) && ( holes[3].vertices()[2] == 6ul ) && ( holes[3].vertices()[3] == 7ul ) && ( holes[3].vertices()[4] == 0ul ) && ( holes[3].vertices()[5] == 1ul ) && ( holes[3].vertices()[6] == 2ul ) && ( holes[3].vertices()[7] == 3ul )));
-        REQUIRE((( holes[4].vertices()[0] == 22ul ) && ( holes[4].vertices()[1] == 4ul ) && ( holes[4].vertices()[2] == 20ul ) && ( holes[4].vertices()[3] == 21ul )));
-        REQUIRE((( holes[5].vertices()[0] == 40ul ) && ( holes[5].vertices()[1] == 22ul ) && ( holes[5].vertices()[2] == 41ul )));
+        REQUIRE((( holes[0].vertices()[0] == 13u ) && ( holes[0].vertices()[1] == 12u ) && ( holes[0].vertices()[2] == 11u ) && ( holes[0].vertices()[3] == 10ul ) && ( holes[0].vertices()[4] == 1ul )));
+        REQUIRE((( holes[1].vertices()[0] == 31u ) && ( holes[1].vertices()[1] == 21u ) && ( holes[1].vertices()[2] == 30u )));
+        REQUIRE((( holes[2].vertices()[0] == 40u ) && ( holes[2].vertices()[1] == 31u ) && ( holes[2].vertices()[2] == 50u )));
+        REQUIRE((( holes[3].vertices()[0] == 4u ) && ( holes[3].vertices()[1] == 5u ) && ( holes[3].vertices()[2] == 6u ) && ( holes[3].vertices()[3] == 7ul ) && ( holes[3].vertices()[4] == 0ul ) && ( holes[3].vertices()[5] == 1ul ) && ( holes[3].vertices()[6] == 2ul ) && ( holes[3].vertices()[7] == 3ul )));
+        REQUIRE((( holes[4].vertices()[0] == 22u ) && ( holes[4].vertices()[1] == 4u ) && ( holes[4].vertices()[2] == 20u ) && ( holes[4].vertices()[3] == 21ul )));
+        REQUIRE((( holes[5].vertices()[0] == 40u ) && ( holes[5].vertices()[1] == 22u ) && ( holes[5].vertices()[2] == 41u )));
     }
 
     SECTION("Find Holes - One Hole")
@@ -110,8 +111,8 @@ TEST_CASE("Topology Tests", "[file io]")
 
         REQUIRE(!stats.is_two_manifold());
         REQUIRE(stats.holes().size() == 1);
-        REQUIRE(((stats.holes()[0].vertices()[0] == 21ul) && (stats.holes()[0].vertices()[1] == 5ul) &&
-                 (stats.holes()[0].vertices()[2] == 11ul)));
+        REQUIRE(((stats.holes()[0].vertices()[0] == 21u) && (stats.holes()[0].vertices()[1] == 5u) &&
+                 (stats.holes()[0].vertices()[2] == 11u)));
         REQUIRE(stats.self_intersections().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
     }
@@ -131,12 +132,12 @@ TEST_CASE("Topology Tests", "[file io]")
 
         REQUIRE(!stats.is_two_manifold());
         REQUIRE(stats.holes().size() == 3);
-        REQUIRE(((stats.holes()[0].vertices()[0] == 21ul) && (stats.holes()[0].vertices()[1] == 11ul) &&
-                 (stats.holes()[0].vertices()[2] == 5ul) && (stats.holes()[0].vertices()[3] == 13ul)));
-        REQUIRE(((stats.holes()[1].vertices()[0] == 16ul) && (stats.holes()[1].vertices()[1] == 24ul) &&
-                 (stats.holes()[1].vertices()[2] == 8ul) ));
-        REQUIRE(((stats.holes()[2].vertices()[0] == 16ul) && (stats.holes()[2].vertices()[1] == 18ul) &&
-                 (stats.holes()[2].vertices()[2] == 12ul) ));
+        REQUIRE(((stats.holes()[0].vertices()[0] == 21u) && (stats.holes()[0].vertices()[1] == 11u) &&
+                 (stats.holes()[0].vertices()[2] == 5u) && (stats.holes()[0].vertices()[3] == 13u)));
+        REQUIRE(((stats.holes()[1].vertices()[0] == 16u) && (stats.holes()[1].vertices()[1] == 24u) &&
+                 (stats.holes()[1].vertices()[2] == 8u) ));
+        REQUIRE(((stats.holes()[2].vertices()[0] == 16u) && (stats.holes()[2].vertices()[1] == 18u) &&
+                 (stats.holes()[2].vertices()[2] == 12u) ));
         REQUIRE(stats.self_intersections().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
     }

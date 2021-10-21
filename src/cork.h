@@ -49,9 +49,14 @@ namespace Cork
 {
     using TriangleMesh = Cork::Meshes::TriangleMesh;
 
+    void Shutdown( void );
+
     class SolverControlBlock
     {
        public:
+
+       SolverControlBlock() = delete;
+
         explicit SolverControlBlock(bool useMultipleThreads, uint64_t minTrianglesForThreading,
                                     bool usePooledWorkspaces)
             : m_useMultipleThreads(useMultipleThreads),
@@ -60,6 +65,11 @@ namespace Cork
               m_numTriangles(0)
         {
         }
+
+        SolverControlBlock( const SolverControlBlock&       block_to_copy ) = default;
+
+        SolverControlBlock& operator=( const SolverControlBlock&       block_to_copy ) = default;
+
 
         void setNumTriangles(uint64_t numTriangles) { m_numTriangles = numTriangles; }
 

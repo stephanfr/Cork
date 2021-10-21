@@ -43,10 +43,14 @@ namespace Cork
           m_topoEdgeList(m_workspace),
           m_topoTriList(m_workspace)
     {
-        workspace.reset();
-        workspace.reserve(m_mesh.vertices().size(), m_mesh.triangles().size() * 3, m_mesh.triangles().size());
+        workspace.reset(m_mesh.vertices().size(), m_mesh.triangles().size() * 3, m_mesh.triangles().size());
 
         init();
+    }
+
+    TopoCache::~TopoCache()
+    {
+        
     }
 
     void TopoCache::init()
@@ -55,7 +59,7 @@ namespace Cork
 
         for (uint i = 0; i < m_meshVertices.size(); i++)
         {
-            m_topoVertexList.emplace_back(i);
+            m_topoVertexList.emplace_back(i, m_workspace, m_workspace);
         }
 
         // We need to still do the following
@@ -88,8 +92,8 @@ namespace Cork
             Math::TriangleVertexId vertex2_id = Math::TriangleVertexId::C;
 
             TopoTri* tri = m_topoTriList.emplace_back(
-                ref_tri.triangle_id(), i, m_topoVertexList.getPool()[vertex0_index],
-                m_topoVertexList.getPool()[vertex1_index], m_topoVertexList.getPool()[vertex2_index]);
+                ref_tri.triangle_id(), i, m_topoVertexList.getPool()[VertexIndex::integer_type( vertex0_index )],
+                m_topoVertexList.getPool()[VertexIndex::integer_type( vertex1_index )], m_topoVertexList.getPool()[VertexIndex::integer_type( vertex2_index )]);
 
             // then, put these in arbitrary but globally consistent order
 
@@ -113,9 +117,9 @@ namespace Cork
 
             // and accrue in structure
 
-            TopoVert* v0 = &(m_topoVertexList.getPool()[vertex0_index]);
-            TopoVert* v1 = &(m_topoVertexList.getPool()[vertex1_index]);
-            TopoVert* v2 = &(m_topoVertexList.getPool()[vertex2_index]);
+            TopoVert* v0 = &(m_topoVertexList.getPool()[VertexIndex::integer_type( vertex0_index )]);
+            TopoVert* v1 = &(m_topoVertexList.getPool()[VertexIndex::integer_type( vertex1_index )]);
+            TopoVert* v2 = &(m_topoVertexList.getPool()[VertexIndex::integer_type( vertex2_index )]);
 
             //	Create edges and link them to the triangle
 
@@ -131,7 +135,7 @@ namespace Cork
                 if (edge01 == nullptr)
                 {
                     edge01 = edge01Proto.setEdge(m_topoEdgeList.emplace_back(
-                        tri->source_triangle_id(), from_vertices(vertex0_id, vertex1_id), v0, v1));
+                        tri->source_triangle_id(), from_vertices(vertex0_id, vertex1_id), v0, v1, m_workspace));
                 }
 
                 edge01->triangles().insert(tri);
@@ -143,7 +147,7 @@ namespace Cork
                 if (edge02 == nullptr)
                 {
                     edge02 = edge02Proto.setEdge(m_topoEdgeList.emplace_back(
-                        tri->source_triangle_id(), from_vertices(vertex0_id, vertex2_id), v0, v2));
+                        tri->source_triangle_id(), from_vertices(vertex0_id, vertex2_id), v0, v2, m_workspace));
                 }
 
                 edge02->triangles().insert(tri);
@@ -155,7 +159,7 @@ namespace Cork
                 if (edge12 == nullptr)
                 {
                     edge12 = edge12Proto.setEdge(m_topoEdgeList.emplace_back(
-                        tri->source_triangle_id(), from_vertices(vertex1_id, vertex2_id), v1, v2));
+                        tri->source_triangle_id(), from_vertices(vertex1_id, vertex2_id), v1, v2, m_workspace));
                 }
 
                 edge12->triangles().insert(tri);

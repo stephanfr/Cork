@@ -141,11 +141,10 @@ namespace Cork::Statistics
         }
 
         std::vector<Hole> holes = HoleBuilder::extract_holes( hole_edges_ );
-/*
-        std::unique_ptr<Mesh> single_mesh(new Mesh(triangle_mesh_));
 
-        Quantization::Quantizer::GetQuantizerResult get_quantizer_result = Quantization::Quantizer::get_quantizer(
-            triangle_mesh_.max_vertex_magnitude(), triangle_mesh_.min_and_max_edge_lengths().min());
+        std::unique_ptr<Mesh> single_mesh(new Mesh(triangle_mesh_, CorkMesh::GetDefaultControlBlock()));
+
+        Quantization::Quantizer::GetQuantizerResult get_quantizer_result = single_mesh->getQuantizer();
 
         if (!get_quantizer_result.succeeded())
         {
@@ -164,10 +163,7 @@ namespace Cork::Statistics
 
         const std::vector<IntersectionInfo> si_stats = iproblem->CheckSelfIntersection();
 
-        return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, holes, si_stats));
-*/
-
-        return TopologicalStatistics( edges_.size(), 0, num_non_2_manifold_, holes, std::vector<IntersectionInfo>()  );
+        return TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, holes, si_stats);
     }
 
 };  // namespace Cork::Statistics

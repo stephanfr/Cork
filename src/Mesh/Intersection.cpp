@@ -51,6 +51,18 @@ extern "C"
 
 namespace Cork::Intersection
 {
+    template <typename T>
+    struct TriangulateDeleter
+    {
+        void operator()(T* pointer) { trifree(pointer); }
+    };
+
+    template <typename T>
+    struct FreeDeleter
+    {
+        void operator()(T* pointer) { free(pointer); }
+    };
+
     class PerturbationEpsilon
     {
        public:
@@ -616,6 +628,8 @@ namespace Cork::Intersection
                 END_OF_MESSAGES
             };
 
+            virtual ~TriAndEdgeQueueMessage() = default;
+
             virtual MessageType type() const = 0;
         };
 
@@ -628,10 +642,19 @@ namespace Cork::Intersection
         class TriangleAndIntersectingEdgesMessage : public TriAndEdgeQueueMessage
         {
            public:
+            TriangleAndIntersectingEdgesMessage() = delete;
+
+            TriangleAndIntersectingEdgesMessage(const TriangleAndIntersectingEdgesMessage&) = delete;
+
             TriangleAndIntersectingEdgesMessage(TopoTri& tri, TopoEdgePointerVector& edges)
                 : m_triangle(tri), m_edges(edges)
             {
             }
+
+            ~TriangleAndIntersectingEdgesMessage() = default;
+
+            TriangleAndIntersectingEdgesMessage&    operator=(const TriangleAndIntersectingEdgesMessage&) = delete;
+
 
             MessageType type() const final { return (MessageType::TRI_AND_INTERSECTING_EDGES); }
 
@@ -1338,8 +1361,8 @@ namespace Cork::Intersection
             in.numberofpoints = (int)points.size();
             in.numberofpointattributes = 0;
 
-            std::unique_ptr<REAL> pointList((REAL*)(malloc(sizeof(REAL) * in.numberofpoints * 2)));
-            std::unique_ptr<int> pointMarkerList((int*)(malloc(sizeof(int) * in.numberofpoints)));
+            std::unique_ptr<REAL,FreeDeleter<REAL>> pointList((REAL*)(malloc(sizeof(REAL) * in.numberofpoints * 2)));
+            std::unique_ptr<int, FreeDeleter<int>> pointMarkerList((int*)(malloc(sizeof(int) * in.numberofpoints)));
 
             in.pointlist = pointList.get();
             in.pointmarkerlist = pointMarkerList.get();
@@ -1357,8 +1380,10 @@ namespace Cork::Intersection
             in.numberofholes = 0;    // yes, zero
             in.numberofregions = 0;  // not using regions
 
-            std::unique_ptr<int> segmentList((int*)(malloc(sizeof(int) * in.numberofsegments * 2)));
-            std::unique_ptr<int> segmentMarkerList((int*)(malloc(sizeof(int) * in.numberofsegments)));
+            std::unique_ptr<int, TriangulateDeleter<int>> segmentList(
+                (int*)(malloc(sizeof(int) * in.numberofsegments * 2)));
+            std::unique_ptr<int, TriangulateDeleter<int>> segmentMarkerList(
+                (int*)(malloc(sizeof(int) * in.numberofsegments)));
 
             in.segmentlist = segmentList.get();
             in.segmentmarkerlist = segmentMarkerList.get();
@@ -1395,12 +1420,12 @@ namespace Cork::Intersection
 
             triangulate(params, &in, &out, nullptr);
 
-            std::unique_ptr<REAL> outPointList(out.pointlist);
-            std::unique_ptr<REAL> outPointAttributeList(out.pointattributelist);
-            std::unique_ptr<int> outPointMarkerList(out.pointmarkerlist);
-            std::unique_ptr<int> outTriangleList(out.trianglelist);
-            std::unique_ptr<int> outSegmentList(out.segmentlist);
-            std::unique_ptr<int> outSegmentMarkerList(out.segmentmarkerlist);
+            std::unique_ptr<REAL, TriangulateDeleter<REAL>> outPointList(out.pointlist);
+            std::unique_ptr<REAL, TriangulateDeleter<REAL>> outPointAttributeList(out.pointattributelist);
+            std::unique_ptr<int, TriangulateDeleter<int>> outPointMarkerList(out.pointmarkerlist);
+            std::unique_ptr<int, TriangulateDeleter<int>> outTriangleList(out.trianglelist);
+            std::unique_ptr<int, TriangulateDeleter<int>> outSegmentList(out.segmentlist);
+            std::unique_ptr<int, TriangulateDeleter<int>> outSegmentMarkerList(out.segmentmarkerlist);
 
             if (out.numberofpoints != in.numberofpoints)
             {

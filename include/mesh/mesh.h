@@ -40,11 +40,11 @@ namespace Cork
     class Mesh : public MeshBase, public CorkMesh
     {
        public:
-        Mesh() {}
+        Mesh() = delete;
 
-        Mesh(const Mesh& src, const SolverControlBlock controlBlock) : MeshBase(src, controlBlock){};
+        Mesh(const Mesh& src, const SolverControlBlock& controlBlock) : MeshBase(src, controlBlock){};
 
-        explicit Mesh(const TriangleMesh& inputMesh);
+        explicit Mesh(const TriangleMesh& inputMesh, const SolverControlBlock& controlBlock);
 
         virtual ~Mesh();
 

@@ -1,9 +1,9 @@
 #pragma once
 
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
-#include <cstdio>
 
 #include "compile_time_utilities.hpp"
 
@@ -55,6 +55,12 @@ namespace Cork::Files
         }
 
        private:
+        template <typename T>
+        struct FreeDeleter
+        {
+            void operator()(T* pointer) { free(pointer); }
+        };
+
         const std::filesystem::path file_path_;
         size_t buffer_size_;
 
@@ -62,7 +68,7 @@ namespace Cork::Files
 
         std::string comment_delimiter_;
 
-        std::unique_ptr<char> char_buffer_;
+        std::unique_ptr<char, FreeDeleter<char>> char_buffer_;
         std::string string_buffer_;
 
         void next_line_into_string_buffer()

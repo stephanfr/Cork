@@ -144,7 +144,11 @@ namespace Cork
         using TriangleVector = std::vector<CorkTriangle>;
         using VertexVector = Math::Vertex3DVector;
 
-        MeshBase() {}
+        MeshBase() = delete;
+
+        MeshBase(const SolverControlBlock& controlBlock)
+            : m_controlBlock(controlBlock)
+        {}
 
         MeshBase(const MeshBase& meshBaseToCopy, const SolverControlBlock& controlBlock)
             : m_boundingBox(meshBaseToCopy.m_boundingBox),
@@ -157,6 +161,10 @@ namespace Cork
         }
 
         virtual ~MeshBase() {}
+
+
+        MeshBase&   operator=( const MeshBase& ) = delete;
+
 
         const SolverControlBlock& solverControlBlock() const { return (*m_controlBlock); }
 

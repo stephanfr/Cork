@@ -201,7 +201,8 @@ namespace Cork
     //	Constructors and assignment operators
     //
 
-    Mesh::Mesh(const TriangleMesh& inputMesh)
+    Mesh::Mesh(const TriangleMesh& inputMesh, const SolverControlBlock& controlBlock)
+        : MeshBase( controlBlock )
     {
         min_and_max_edge_lengths_ = inputMesh.min_and_max_edge_lengths();
         max_vertex_magnitude_ = inputMesh.max_vertex_magnitude();
@@ -1029,7 +1030,7 @@ namespace Cork
 
     std::unique_ptr<CorkMesh> CorkMesh::FromTriangleMesh(const TriangleMesh& triangleMesh)
     {
-        return (std::unique_ptr<CorkMesh>(new Mesh(triangleMesh)));
+        return (std::unique_ptr<CorkMesh>(new Mesh(triangleMesh,CorkMesh::GetDefaultControlBlock())));
     }
 
     const SolverControlBlock& CorkMesh::GetDefaultControlBlock()

@@ -35,6 +35,7 @@ add_library(Corklib SHARED
     Mesh/TriangleMesh.cpp
     statistics/statistics_engines.cpp
     util/ThreadPool.cpp
+    cork.cpp
 )
 
 target_link_libraries(Corklib 

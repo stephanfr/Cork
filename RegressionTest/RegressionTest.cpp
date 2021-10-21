@@ -550,5 +550,7 @@ int main(int argc, char* argv[])
     timing_results.flush();
     timing_results.close();
 
+    Cork::Shutdown();
+
     return (0);
 }
