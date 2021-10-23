@@ -34,6 +34,7 @@
 #include "intersection/empty3d.h"
 #include "intersection/gmpext4.h"
 #include "intersection/quantization.h"
+#include "intersection/triangulator.hpp"
 #include "mesh/IntersectionProblem.h"
 #include "mesh/MeshBase.h"
 #include "mesh/TopoCache.h"
@@ -1308,7 +1309,7 @@ namespace Cork::Intersection
         {
             SUCCESS = 0,
             SELF_INTERSECTING_MESH,
-            TRIANGULATE_OUT_POINT_COUNT_UNEQUAL_TO_IN_POINT_COUNT
+            FAILED_TRIANGULATION
         };
 
         typedef SEFUtility::Result<SubdivideResultCodes> SubdivideResult;
@@ -1355,102 +1356,53 @@ namespace Cork::Intersection
 
             // find 2 dimensions to project onto get normal
 
-            Math::Vector3D normal = (overts[1]->coordinate() - overts[0]->coordinate())
-                                        .cross(overts[2]->coordinate() - overts[0]->coordinate());
-            uint normdim = normal.abs().maxDim();
-            uint dim0 = (normdim + 1) % 3;
-            uint dim1 = (normdim + 2) % 3;
-            double sign_flip = (normal[normdim] < 0.0) ? -1.0 : 1.0;
+            //            Math::Vector3D normal = (overts[1]->coordinate() - overts[0]->coordinate())
+            //                                        .cross(overts[2]->coordinate() - overts[0]->coordinate());
+            //            uint normdim = normal.abs().maxDim();
+            //            uint dim0 = (normdim + 1) % 3;
+            //            uint dim1 = (normdim + 2) % 3;
+            //            double sign_flip = (normal[normdim] < 0.0) ? -1.0 : 1.0;
 
-            struct triangulateio in, out;
+            Triangulator::Triangulator triangulator;
 
-            /* Define input points. */
-            in.numberofpoints = (int)points.size();
-            in.numberofpointattributes = 0;
-
-            std::unique_ptr<REAL, FreeDeleter<REAL>> pointList((REAL*)(malloc(sizeof(REAL) * in.numberofpoints * 2)));
-            std::unique_ptr<int, FreeDeleter<int>> pointMarkerList((int*)(malloc(sizeof(int) * in.numberofpoints)));
-
-            in.pointlist = pointList.get();
-            in.pointmarkerlist = pointMarkerList.get();
-            in.pointattributelist = nullptr;
-
-            for (int k = 0; k < in.numberofpoints; k++)
+            if (auto result = triangulator.will_problem_fit(points.size(), edges.size());
+                result != Triangulator::TriangulationResultCodes::SUCCESS)
             {
-                in.pointlist[k * 2 + 0] = points[k]->coordinate()[dim0];
-                in.pointlist[k * 2 + 1] = points[k]->coordinate()[dim1] * sign_flip;
-                in.pointmarkerlist[k] = (points[k]->isBoundary()) ? 1 : 0;
+                return (SubdivideResult::failure(
+                    Triangulator::TriangulateResult::failure(result, "Too many points or segments for triangulation"),
+                    SubdivideResultCodes::FAILED_TRIANGULATION, "Failed Triangulation"));
             }
 
-            /* Define the input segments */
-            in.numberofsegments = (int)edges.size();
-            in.numberofholes = 0;    // yes, zero
-            in.numberofregions = 0;  // not using regions
+            Triangulator::NormalProjector normal_projector(overts[0]->coordinate(), overts[1]->coordinate(),
+                                                           overts[2]->coordinate());
 
-            std::unique_ptr<int, FreeDeleter<int>> segmentList(
-                (int*)(malloc(sizeof(int) * in.numberofsegments * 2)));
-            std::unique_ptr<int, FreeDeleter<int>> segmentMarkerList(
-                (int*)(malloc(sizeof(int) * in.numberofsegments)));
-
-            in.segmentlist = segmentList.get();
-            in.segmentmarkerlist = segmentMarkerList.get();
-
-            for (int k = 0; k < in.numberofsegments; k++)
+            for (auto& point : points)
             {
-                in.segmentlist[k * 2 + 0] = edges[k]->ends()[0]->index();
-                in.segmentlist[k * 2 + 1] = edges[k]->ends()[1]->index();
-
-                in.segmentmarkerlist[k] = (edges[k]->boundary()) ? 1 : 0;
+                triangulator.add_point(point->coordinate(), point->isBoundary(), normal_projector);
             }
 
-            // to be safe... declare 0 triangle attributes on input
-            in.numberoftriangles = 0;
-            in.numberoftriangleattributes = 0;
+            for (auto& edge : edges)
+            {
+                triangulator.add_segment(edge->ends()[0]->index(), edge->ends()[1]->index(), edge->boundary());
+            }
 
-            /* set for flags.... */
-            out.pointlist = nullptr;
-            out.pointattributelist = nullptr;  // not necessary if using -N or 0 attr
-            out.pointmarkerlist = nullptr;
-            out.trianglelist = nullptr;       // not necessary if using -E
-            out.segmentlist = nullptr;        // NEED THIS; output segments go here
-            out.segmentmarkerlist = nullptr;  // NEED THIS for OUTPUT SEGMENTS
+            auto result = triangulator.compute_triangulation();
 
-            //	Solve the triangulation problem to get the orientation of the triangles correct.
-            //
-            //		The number of output points should always equal the number of input points.  I added the
-            //		'j' option to cause triangle to jettison verticies not present in the final triangulation,
-            //		which is usually the result of duplicated input vertices for our specific case in Cork.
-            //		Alternatively, extra points may appear, I have found those can mostly be resolved by
-            //		trying again with a different purturbation.
-
-            char* params = (char*)("jpzQYY");
-
-            triangulate(params, &in, &out, nullptr);
-
-            std::unique_ptr<REAL, TriangulateDeleter<REAL>> outPointList(out.pointlist);
-            std::unique_ptr<REAL, TriangulateDeleter<REAL>> outPointAttributeList(out.pointattributelist);
-            std::unique_ptr<int, TriangulateDeleter<int>> outPointMarkerList(out.pointmarkerlist);
-            std::unique_ptr<int, TriangulateDeleter<int>> outTriangleList(out.trianglelist);
-            std::unique_ptr<int, TriangulateDeleter<int>> outSegmentList(out.segmentlist);
-            std::unique_ptr<int, TriangulateDeleter<int>> outSegmentMarkerList(out.segmentmarkerlist);
-
-            if (out.numberofpoints != in.numberofpoints)
+            if (result.failed())
             {
                 //	When we end up here, it is usually because we have hit some self-intersections.
 
-                return (SubdivideResult::failure(
-                    SubdivideResultCodes::TRIANGULATE_OUT_POINT_COUNT_UNEQUAL_TO_IN_POINT_COUNT,
-                    "Unequal number of points before and after triangulation - check input meshes for self "
-                    "intersections."));
+                return (SubdivideResult::failure(result, SubdivideResultCodes::FAILED_TRIANGULATION,
+                                                 "Failed Triangulation"));
             }
 
             m_gtris.clear();
 
-            for (int k = 0; k < out.numberoftriangles; k++)
+            for (auto triangle : *(result.return_ptr()))
             {
-                GenericVertType* gv0 = points[out.trianglelist[(k * 3) + 0]];
-                GenericVertType* gv1 = points[out.trianglelist[(k * 3) + 1]];
-                GenericVertType* gv2 = points[out.trianglelist[(k * 3) + 2]];
+                GenericVertType* gv0 = points[triangle.v0()];
+                GenericVertType* gv1 = points[triangle.v1()];
+                GenericVertType* gv2 = points[triangle.v2()];
 
                 m_gtris.push_back(m_iprob.newGenericTri(gv0, gv1, gv2));
             }

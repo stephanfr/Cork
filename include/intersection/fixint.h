@@ -83,6 +83,11 @@ namespace Cork::FixInt
         mp_limb_t limbs[Nlimbs];
 
         LimbInt() = default;
+        LimbInt(const LimbInt &) = default;
+        LimbInt(LimbInt &&) = default;
+
+        LimbInt &operator=(const LimbInt &) = default;
+        LimbInt &operator=(LimbInt &&) = default;
 
         explicit inline LimbInt(long init)
         {
@@ -99,7 +104,6 @@ namespace Cork::FixInt
             }
         }
     };
-
 
     template <int N>
     inline std::string to_string(const LimbInt<N> &num)

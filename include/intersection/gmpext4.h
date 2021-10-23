@@ -53,10 +53,21 @@ namespace Cork::ExteriorCalculusR4
     class GMPExt4_2;
     class GMPExt4_3;
 
-    class GMPExt4_1 : public Bases::Ext4_1Base<mpz_class>
+    using GMPExt4_1Base = Bases::Ext4_1Base<mpz_class>;
+    using GMPExt4_2Base = Bases::Ext4_2Base<mpz_class>;
+    using GMPExt4_3Base = Bases::Ext4_3Base<mpz_class>;
+
+    class GMPExt4_1 : public GMPExt4_1Base
     {
        public:
+
         GMPExt4_1() = default;
+
+        GMPExt4_1(const GMPExt4_1& ext_to_copy) : GMPExt4_1Base(ext_to_copy) {}
+        GMPExt4_1(GMPExt4_1&& ext_to_move) : GMPExt4_1Base(ext_to_move) {}
+
+        GMPExt4_1& operator=(const GMPExt4_1& ext_to_copy) = default;
+        GMPExt4_1& operator=(GMPExt4_1&& ext_to_move) = default;
 
         explicit GMPExt4_1(const Math::Vector3D &in, const Quantization::Quantizer &quantizer)
         {
@@ -112,9 +123,16 @@ namespace Cork::ExteriorCalculusR4
         friend class GMPExt4_3;
     };
 
-    class GMPExt4_2 : public Bases::Ext4_2Base<mpz_class>
+    class GMPExt4_2 : public GMPExt4_2Base
     {
        public:
+
+        GMPExt4_2(const GMPExt4_2& ext_to_copy) : GMPExt4_2Base(ext_to_copy) {}
+        GMPExt4_2(GMPExt4_2&& ext_to_move) : GMPExt4_2Base(ext_to_move) {}
+
+        GMPExt4_2& operator=(const GMPExt4_2& ext_to_copy) = default;
+        GMPExt4_2& operator=(GMPExt4_2&& ext_to_move) = default;
+
         //  Negation
 
         GMPExt4_2 &negate()
@@ -155,10 +173,16 @@ namespace Cork::ExteriorCalculusR4
         friend class GMPExt4_1;
     };
 
-    class GMPExt4_3 : public Bases::Ext4_3Base<mpz_class>
+    class GMPExt4_3 : public GMPExt4_3Base
     {
        public:
         GMPExt4_3() = default;
+
+        GMPExt4_3(const GMPExt4_3& ext_to_copy) : GMPExt4_3Base(ext_to_copy) {}
+        GMPExt4_3(GMPExt4_3&& ext_to_move) : GMPExt4_3Base(ext_to_move) {}
+
+        GMPExt4_3& operator=(const GMPExt4_3& ext_to_copy) = default;
+        GMPExt4_3& operator=(GMPExt4_3&& ext_to_move) = default;
 
         //  Negation
 

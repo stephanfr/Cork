@@ -23,65 +23,7 @@ namespace Cork::Triangulator
         void operator()(T* pointer) { trifree(pointer); }
     };
 
-    template <typename T>
-    struct FreeDeleter
-    {
-        void operator()(T* pointer) { free(pointer); }
-    };
-
-    class TriangulatorImpl : public TriangulatorIfx
-    {
-       public:
-        static constexpr size_t MAX_EDGE_POINTS = 4096;
-
-        TriangulatorImpl() : number_of_points_(0), number_of_segments_(0){};
-        TriangulatorImpl(const TriangulatorImpl&) = delete;
-        TriangulatorImpl(TriangulatorImpl&&) = delete;
-
-        ~TriangulatorImpl() = default;
-
-        TriangulatorImpl& operator=(const TriangulatorImpl&) = delete;
-        TriangulatorImpl& operator=(TriangulatorImpl&&) = delete;
-
-        void add_point(Point point)
-        {
-            points_[number_of_points_] = point.pair();
-            point_markers_[number_of_points_++] = point.boundary() ? 1 : 0;
-        }
-
-        void add_point(double x, double y, bool boundary)
-        {
-            points_[number_of_points_] = std::pair<double,double>(x, y );
-            point_markers_[number_of_points_++] = boundary;
-        }
-
-
-        void add_segment(Segment segment)
-        {
-            segments_[number_of_segments_] = segment.pair();
-            segment_markers_[number_of_segments_++] = segment.boundary() ? 1 : 0;
-        }
-
-        void add_segment(uint32_t start, uint32_t end, bool boundary)
-        {
-            segments_[number_of_segments_] = std::pair<int,int>(start,end);
-            segment_markers_[number_of_segments_++] = boundary ? 1 : 0;
-        }
-
-
-        TriangulateResult compute_triangulation();
-
-       private:
-        uint32_t number_of_points_;
-        uint32_t number_of_segments_;
-
-        std::array<std::pair<double, double>, MAX_EDGE_POINTS> points_;
-        std::array<int, MAX_EDGE_POINTS> point_markers_;
-        std::array<std::pair<int, int>, MAX_EDGE_POINTS> segments_;
-        std::array<int, MAX_EDGE_POINTS> segment_markers_;
-    };
-
-    TriangulateResult TriangulatorImpl::compute_triangulation()
+    TriangulateResult Triangulator::compute_triangulation()
     {
         struct triangulateio in, out;
 
@@ -149,15 +91,11 @@ namespace Cork::Triangulator
 
         for (int k = 0; k < out.numberoftriangles; k++)
         {
-            result->emplace_back( out.trianglelist[(k * 3) + 0], out.trianglelist[(k * 3) + 1],  out.trianglelist[(k * 3) + 2] );
+            result->emplace_back(out.trianglelist[(k * 3) + 0], out.trianglelist[(k * 3) + 1],
+                                 out.trianglelist[(k * 3) + 2]);
         }
 
         return TriangulateResult::success(std::move(result));
-    }
-
-    std::unique_ptr<TriangulatorIfx> TriangulatorIfx::get_triangulator()
-    {
-        return std::unique_ptr<TriangulatorIfx>(new TriangulatorImpl());
     }
 
 }  // namespace Cork::Triangulator

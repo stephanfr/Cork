@@ -66,10 +66,11 @@ namespace Cork::ExteriorCalculusR4
             {
             }
 
-            explicit Ext4_1Base(const Ext4_1Base &ext_to_copy)
-                : e0_(ext_to_copy.e0_), e1_(ext_to_copy.e1_), e2_(ext_to_copy.e2_), e3_(ext_to_copy.e3_)
-            {
-            }
+            explicit Ext4_1Base(const Ext4_1Base &ext_to_copy) = default;
+            explicit Ext4_1Base(Ext4_1Base &&ext_to_copy) = default;
+
+            Ext4_1Base &operator=(const Ext4_1Base &ext_to_copy) = default;
+            Ext4_1Base &operator=(Ext4_1Base &&ext_to_move) = default;
 
             alignas(SIMD_MEMORY_ALIGNMENT) T e0_;
             T e1_;
@@ -136,6 +137,12 @@ namespace Cork::ExteriorCalculusR4
             {
             }
 
+            Ext4_2Base(const Ext4_2Base &ext_to_copy) = default;
+            Ext4_2Base(Ext4_2Base &&ext_to_copy) = default;
+
+            Ext4_2Base &operator=(const Ext4_2Base &ext_to_copy) = default;
+            Ext4_2Base &operator=(Ext4_2Base &&ext_to_move) = default;
+
             alignas(SIMD_MEMORY_ALIGNMENT) T e01_;
             T e02_;
             T e03_;
@@ -194,6 +201,12 @@ namespace Cork::ExteriorCalculusR4
            protected:
             Ext4_3Base() = default;
             Ext4_3Base(T e012, T e013, T e023, T e123) : e012_(e012), e013_(e013), e023_(e023), e123_(e123) {}
+
+            Ext4_3Base(const Ext4_3Base &ext_to_copy) = default;
+            Ext4_3Base(Ext4_3Base &&ext_to_copy) = default;
+
+            Ext4_3Base &operator=(const Ext4_3Base &ext_to_copy) = default;
+            Ext4_3Base &operator=(Ext4_3Base &&ext_to_move) = default;
 
             alignas(SIMD_MEMORY_ALIGNMENT) T e012_;
             T e013_;

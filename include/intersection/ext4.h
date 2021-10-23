@@ -83,7 +83,8 @@ namespace Cork::ExteriorCalculusR4
     class Ext4_1 : public Ext4_1Base
     {
        public:
-        explicit Ext4_1(const Ext4_1 &ext_to_copy) : Ext4_1Base(ext_to_copy) {}
+        Ext4_1(const Ext4_1 &ext_to_copy) : Ext4_1Base(ext_to_copy) {}
+        Ext4_1(Ext4_1 &&ext_to_move) : Ext4_1Base(ext_to_move) {}
 
 #if defined(NUMERIC_PRECISION) && NUMERIC_PRECISION == double
 
@@ -127,6 +128,10 @@ namespace Cork::ExteriorCalculusR4
         }
 #endif
 
+        Ext4_1 &operator=(const Ext4_1 &ext_to_copy ) = default;
+        Ext4_1 &operator=(Ext4_1 &&ext_to_move ) = default;
+
+
         // Negation takes a k-vector and returns its negation neg(X,Y) and is safe for X=Y
 
         const Ext4_1 &negate()
@@ -166,6 +171,13 @@ namespace Cork::ExteriorCalculusR4
     class Ext4_2 : public Ext4_2Base
     {
        public:
+
+        Ext4_2(const Ext4_2 &ext_to_copy) : Ext4_2Base(ext_to_copy) {}
+        Ext4_2(Ext4_2 &&ext_to_move) : Ext4_2Base(ext_to_move) {}
+
+        Ext4_2 &operator=(const Ext4_2 &ext_to_copy ) = default;
+        Ext4_2 &operator=(Ext4_2 &&ext_to_move ) = default;
+
         //  Negation
 
         Ext4_2 &negate()
@@ -211,6 +223,12 @@ namespace Cork::ExteriorCalculusR4
     {
        public:
         Ext4_3() = default;
+
+        Ext4_3(const Ext4_3 &ext_to_copy) : Ext4_3Base(ext_to_copy) {}
+        Ext4_3(Ext4_3 &&ext_to_move) : Ext4_3Base(ext_to_move) {}
+
+        Ext4_3 &operator=(const Ext4_3 &ext_to_copy ) = default;
+        Ext4_3 &operator=(Ext4_3 &&ext_to_move ) = default;
 
         //  Negation
 
@@ -300,6 +318,9 @@ namespace Cork::ExteriorCalculusR4
        public:
         AbsExt4_1() = default;
 
+        AbsExt4_1(const AbsExt4_1 &ext_to_copy) : AbsExt4_1Base(ext_to_copy) {}
+        AbsExt4_1(AbsExt4_1 &&ext_to_move) : AbsExt4_1Base(ext_to_move) {}
+
         explicit AbsExt4_1(const Ext4_1 &element)
             : AbsExt4_1Base(fabs(element.e0()), fabs(element.e1()), fabs(element.e2()), fabs(element.e3()))
         {
@@ -310,7 +331,11 @@ namespace Cork::ExteriorCalculusR4
         {
         }
 
-        const AbsExt4_1 &operator=(const Ext4_1 &element)
+
+        AbsExt4_1 &operator=(const AbsExt4_1 &ext_to_copy ) = default;
+        AbsExt4_1 &operator=(AbsExt4_1 &&ext_to_move ) = default;
+
+        AbsExt4_1 &operator=(const Ext4_1 &element)
         {
             e0_ = fabs(element.e0());
             e1_ = fabs(element.e1());
@@ -320,7 +345,7 @@ namespace Cork::ExteriorCalculusR4
             return *this;
         }
 
-        const AbsExt4_1 &operator=(Ext4_1 &&element)
+        AbsExt4_1 &operator=(Ext4_1 &&element)
         {
             e0_ = fabs(element.e0());
             e1_ = fabs(element.e1());
@@ -369,11 +394,17 @@ namespace Cork::ExteriorCalculusR4
        public:
         AbsExt4_2() = default;
 
+        AbsExt4_2(const AbsExt4_2 &ext_to_copy) : AbsExt4_2Base(ext_to_copy) {}
+        AbsExt4_2(AbsExt4_2 &&ext_to_move) : AbsExt4_2Base(ext_to_move) {}
+
         explicit AbsExt4_2(Ext4_2 &ext_to_abs)
             : AbsExt4_2Base(fabs(ext_to_abs.e01()), fabs(ext_to_abs.e02()), fabs(ext_to_abs.e03()),
                             fabs(ext_to_abs.e12()), fabs(ext_to_abs.e13()), fabs(ext_to_abs.e23()))
         {
         }
+
+        AbsExt4_2 &operator=(const AbsExt4_2 &ext_to_copy ) = default;
+        AbsExt4_2 &operator=(AbsExt4_2 &&ext_to_move ) = default;
 
         //  Negation does not change anything for the AbsExt classes
 
@@ -407,11 +438,17 @@ namespace Cork::ExteriorCalculusR4
        public:
         AbsExt4_3() = default;
 
+        AbsExt4_3(const AbsExt4_3 &ext_to_copy) : AbsExt4_3Base(ext_to_copy) {}
+        AbsExt4_3(AbsExt4_3 &&ext_to_move) : AbsExt4_3Base(ext_to_move) {}
+
         explicit AbsExt4_3(const Ext4_3 &ext_to_abs)
             : AbsExt4_3Base(fabs(ext_to_abs.e012()), fabs(ext_to_abs.e013()), fabs(ext_to_abs.e023()),
                             fabs(ext_to_abs.e123()))
         {
         }
+
+        AbsExt4_3 &operator=(const AbsExt4_3 &ext_to_copy ) = default;
+        AbsExt4_3 &operator=(AbsExt4_3 &&ext_to_move ) = default;
 
         //  Negation does not change anything for the AbsExt classes
 

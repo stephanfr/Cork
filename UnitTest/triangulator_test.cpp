@@ -35,20 +35,19 @@ TEST_CASE("Triangulator Tests", "[cork basic]")
 {
     SECTION("Simple Test")
     {
-        std::unique_ptr<Cork::Triangulator::TriangulatorIfx> triangulator(
-            Cork::Triangulator::TriangulatorIfx::get_triangulator());
+        Cork::Triangulator::Triangulator triangulator;
 
-        triangulator->add_point(Cork::Triangulator::Point(0.0, 0.0, false));
-        triangulator->add_point(Cork::Triangulator::Point(10.0, 0.0, false));
-        triangulator->add_point(Cork::Triangulator::Point(10.0, 10.0, false));
-        triangulator->add_point(Cork::Triangulator::Point(0.0, 10.0, false));
+        triangulator.add_point(Cork::Triangulator::Point(0.0, 0.0, false));
+        triangulator.add_point(Cork::Triangulator::Point(10.0, 0.0, false));
+        triangulator.add_point(Cork::Triangulator::Point(10.0, 10.0, false));
+        triangulator.add_point(Cork::Triangulator::Point(0.0, 10.0, false));
 
-        triangulator->add_segment(Cork::Triangulator::Segment(0, 1, false));
-        triangulator->add_segment(Cork::Triangulator::Segment(1, 2, false));
-        triangulator->add_segment(Cork::Triangulator::Segment(2, 3, false));
-        triangulator->add_segment(Cork::Triangulator::Segment(3, 0, false));
+        triangulator.add_segment(Cork::Triangulator::Segment(0, 1, false));
+        triangulator.add_segment(Cork::Triangulator::Segment(1, 2, false));
+        triangulator.add_segment(Cork::Triangulator::Segment(2, 3, false));
+        triangulator.add_segment(Cork::Triangulator::Segment(3, 0, false));
 
-        auto result = triangulator->compute_triangulation();
+        auto result = triangulator.compute_triangulation();
 
         REQUIRE(result.succeeded());
 
@@ -61,32 +60,31 @@ TEST_CASE("Triangulator Tests", "[cork basic]")
 
     SECTION("10 Sided Polygon")
     {
-        std::unique_ptr<Cork::Triangulator::TriangulatorIfx> triangulator(
-            Cork::Triangulator::TriangulatorIfx::get_triangulator());
+        Cork::Triangulator::Triangulator triangulator;
 
-        triangulator->add_point(Cork::Triangulator::Point(3.1, -1.0, true));
-        triangulator->add_point(Cork::Triangulator::Point(6.5, -1.0, true));
-        triangulator->add_point(Cork::Triangulator::Point(9.2, 1, true));
-        triangulator->add_point(Cork::Triangulator::Point(10.2, 4.2, true));
-        triangulator->add_point(9.2, 7.3, true);
-        triangulator->add_point(6.5, 9.3, true);
-        triangulator->add_point(3.1, 9.3, true);
-        triangulator->add_point(Cork::Triangulator::Point(0.4, 7.3, true));
-        triangulator->add_point(Cork::Triangulator::Point(-0.6, 4.2, true));
-        triangulator->add_point(0.4, 1.0, true);
+        triangulator.add_point(Cork::Triangulator::Point(3.1, -1.0, true));
+        triangulator.add_point(Cork::Triangulator::Point(6.5, -1.0, true));
+        triangulator.add_point(Cork::Triangulator::Point(9.2, 1, true));
+        triangulator.add_point(Cork::Triangulator::Point(10.2, 4.2, true));
+        triangulator.add_point(9.2, 7.3, true);
+        triangulator.add_point(6.5, 9.3, true);
+        triangulator.add_point(3.1, 9.3, true);
+        triangulator.add_point(Cork::Triangulator::Point(0.4, 7.3, true));
+        triangulator.add_point(Cork::Triangulator::Point(-0.6, 4.2, true));
+        triangulator.add_point(0.4, 1.0, true);
 
-        triangulator->add_segment(0, 1, true);
-        triangulator->add_segment(Cork::Triangulator::Segment(1, 2, true));
-        triangulator->add_segment(2, 3, true);
-        triangulator->add_segment(Cork::Triangulator::Segment(3, 4, true));
-        triangulator->add_segment(4, 5, true);
-        triangulator->add_segment(Cork::Triangulator::Segment(5, 6, true));
-        triangulator->add_segment(6, 7, true);
-        triangulator->add_segment(Cork::Triangulator::Segment(7, 8, true));
-        triangulator->add_segment(Cork::Triangulator::Segment(8, 9, true));
-        triangulator->add_segment(Cork::Triangulator::Segment(9, 0, true));
+        triangulator.add_segment(0, 1, true);
+        triangulator.add_segment(Cork::Triangulator::Segment(1, 2, true));
+        triangulator.add_segment(2, 3, true);
+        triangulator.add_segment(Cork::Triangulator::Segment(3, 4, true));
+        triangulator.add_segment(4, 5, true);
+        triangulator.add_segment(Cork::Triangulator::Segment(5, 6, true));
+        triangulator.add_segment(6, 7, true);
+        triangulator.add_segment(Cork::Triangulator::Segment(7, 8, true));
+        triangulator.add_segment(Cork::Triangulator::Segment(8, 9, true));
+        triangulator.add_segment(Cork::Triangulator::Segment(9, 0, true));
 
-        auto result = triangulator->compute_triangulation();
+        auto result = triangulator.compute_triangulation();
 
         REQUIRE(result.succeeded());
 
@@ -102,5 +100,25 @@ TEST_CASE("Triangulator Tests", "[cork basic]")
         REQUIRE((*triangles)[5] == Cork::Triangulator::Triangle(6, 4, 5));
         REQUIRE((*triangles)[6] == Cork::Triangulator::Triangle(7, 3, 4));
         REQUIRE((*triangles)[7] == Cork::Triangulator::Triangle(0, 1, 2));
+    }
+
+    
+    SECTION("Too Many Points")
+    {
+        Cork::Triangulator::Triangulator triangulator;
+
+        auto result = triangulator.will_problem_fit( Cork::Triangulator::Triangulator::MAX_POINTS + 1, 1 );
+
+        REQUIRE( result == Cork::Triangulator::TriangulationResultCodes::TOO_MANY_POINTS );
+    }
+
+        
+    SECTION("Too Many Segments")
+    {
+        Cork::Triangulator::Triangulator triangulator;
+
+        auto result = triangulator.will_problem_fit( 1, Cork::Triangulator::Triangulator::MAX_POINTS + 1 );
+
+        REQUIRE( result == Cork::Triangulator::TriangulationResultCodes::TOO_MANY_SEGMENTS );
     }
 }

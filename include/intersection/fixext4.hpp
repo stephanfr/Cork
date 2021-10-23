@@ -51,16 +51,22 @@ namespace Cork::ExteriorCalculusR4
     class FixExt4_1 : public Bases::Ext4_1Base<FixInt::LimbInt<BITS_TO_LIMBS(Nbits)>>
     {
        public:
-        typedef FixInt::LimbInt<BITS_TO_LIMBS(Nbits)> IntegerType;
-        typedef Bases::Ext4_1Base<FixInt::LimbInt<BITS_TO_LIMBS(Nbits)>> FixExt4_1Base;
+        using IntegerType = FixInt::LimbInt<BITS_TO_LIMBS(Nbits)>;
+        using FixExt4_1Base = Bases::Ext4_1Base<FixInt::LimbInt<BITS_TO_LIMBS(Nbits)>>;
 
-        FixExt4_1(){};
+        FixExt4_1() = default;
+
+        FixExt4_1(const FixExt4_1& ext_to_copy) : FixExt4_1Base(ext_to_copy) {}
+        FixExt4_1(FixExt4_1&& ext_to_move) : FixExt4_1Base(ext_to_move) {}
 
         explicit FixExt4_1(const Math::Vector3D& vec, const Quantization::Quantizer& quantizer)
             : FixExt4_1Base(IntegerType(quantizer.quantize2int(vec.x())), IntegerType(quantizer.quantize2int(vec.y())),
                             IntegerType(quantizer.quantize2int(vec.z())), IntegerType(1))
         {
         }
+
+        FixExt4_1& operator=(const FixExt4_1& ext_to_copy) = default;
+        FixExt4_1& operator=(FixExt4_1&& ext_to_move) = default;
 
         // Negation takes a k-vector and returns its negation neg(X,Y) and is safe for X=Y
 
@@ -124,7 +130,15 @@ namespace Cork::ExteriorCalculusR4
     class FixExt4_2 : public Bases::Ext4_2Base<FixInt::LimbInt<BITS_TO_LIMBS(Nbits)>>
     {
        public:
-        FixExt4_2(){};
+        using FixExt4_2Base = Bases::Ext4_2Base<FixInt::LimbInt<BITS_TO_LIMBS(Nbits)>>;
+
+        FixExt4_2() = default;
+
+        FixExt4_2(const FixExt4_2& ext_to_copy) : FixExt4_2Base(ext_to_copy) {}
+        FixExt4_2(FixExt4_2&& ext_to_move) : FixExt4_2Base(ext_to_move) {}
+
+        FixExt4_2& operator=(const FixExt4_2& ext_to_copy) = default;
+        FixExt4_2& operator=(FixExt4_2&& ext_to_move) = default;
 
         FixExt4_2& negate()
         {
@@ -225,7 +239,15 @@ namespace Cork::ExteriorCalculusR4
     class FixExt4_3 : public Bases::Ext4_3Base<FixInt::LimbInt<BITS_TO_LIMBS(Nbits)>>
     {
        public:
+        using FixExt4_3Base = Bases::Ext4_3Base<FixInt::LimbInt<BITS_TO_LIMBS(Nbits)>>;
+
         FixExt4_3(){};
+
+        FixExt4_3(const FixExt4_3& ext_to_copy) : FixExt4_3Base(ext_to_copy) {}
+        FixExt4_3(FixExt4_3&& ext_to_move) : FixExt4_3Base(ext_to_move) {}
+
+        FixExt4_3& operator=(const FixExt4_3& ext_to_copy) = default;
+        FixExt4_3& operator=(FixExt4_3&& ext_to_move) = default;
 
         FixExt4_3& negate()
         {
