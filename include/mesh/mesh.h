@@ -65,13 +65,13 @@ namespace Cork
         // NOLINTBEGIN(google-default-arguments)
 
         BooleanOperationResult Union(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const final;
+            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock ) const final;
         BooleanOperationResult Difference(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const final;
+            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock ) const final;
         BooleanOperationResult Intersection(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const final;
+            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock ) const final;
         BooleanOperationResult SymmetricDifference(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = GetDefaultControlBlock()) const final;
+            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock ) const final;
 
         // NOLINTEND(google-default-arguments)
 

@@ -1,5 +1,5 @@
 // +-------------------------------------------------------------------------
-// | mesh.isct.th
+// | intersection.cpp
 // |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
@@ -51,6 +51,9 @@ extern "C"
 
 namespace Cork::Intersection
 {
+    //  The following template classes are needed to insure the correct delete function is associated
+    //      with the allocation function used for elements passed to the Triangle library.
+
     template <typename T>
     struct TriangulateDeleter
     {
@@ -278,7 +281,7 @@ namespace Cork::Intersection
     // less transparent.
 
     class GenericVertType;
-    typedef GenericVertType IsctVertType;
+    using IsctVertType = GenericVertType;
 
     class GenericEdgeType;
 
@@ -429,13 +432,18 @@ namespace Cork::Intersection
         boost::optional<GluePointMarker&> m_glueMarker;
     };
 
-    typedef GenericVertType IsctVertType;
-    typedef GenericVertType OrigVertType;
+    //    typedef GenericVertType IsctVertType;
+    //    typedef GenericVertType OrigVertType;
 
-    typedef ManagedIntrusiveValueList<IsctVertType> IsctVertTypeList;
-    typedef ManagedIntrusivePointerList<IsctVertType> IntersectionVertexPointerList;
+    using OrigVertType = GenericVertType;
 
-    typedef ManagedIntrusiveValueList<OrigVertType> OrigVertTypeList;
+    //    typedef ManagedIntrusiveValueList<IsctVertType> IsctVertTypeList;
+    //    typedef ManagedIntrusivePointerList<IsctVertType> IntersectionVertexPointerList;
+    //    typedef ManagedIntrusiveValueList<OrigVertType> OrigVertTypeList;
+
+    using IsctVertTypeList = ManagedIntrusiveValueList<IsctVertType>;
+    using IntersectionVertexPointerList = ManagedIntrusivePointerList<IsctVertType>;
+    using OrigVertTypeList = ManagedIntrusiveValueList<OrigVertType>;
 
     class GenericEdgeType : public boost::noncopyable, public IntrusiveListHook
     {
@@ -653,8 +661,7 @@ namespace Cork::Intersection
 
             ~TriangleAndIntersectingEdgesMessage() = default;
 
-            TriangleAndIntersectingEdgesMessage&    operator=(const TriangleAndIntersectingEdgesMessage&) = delete;
-
+            TriangleAndIntersectingEdgesMessage& operator=(const TriangleAndIntersectingEdgesMessage&) = delete;
 
             MessageType type() const final { return (MessageType::TRI_AND_INTERSECTING_EDGES); }
 
@@ -1361,7 +1368,7 @@ namespace Cork::Intersection
             in.numberofpoints = (int)points.size();
             in.numberofpointattributes = 0;
 
-            std::unique_ptr<REAL,FreeDeleter<REAL>> pointList((REAL*)(malloc(sizeof(REAL) * in.numberofpoints * 2)));
+            std::unique_ptr<REAL, FreeDeleter<REAL>> pointList((REAL*)(malloc(sizeof(REAL) * in.numberofpoints * 2)));
             std::unique_ptr<int, FreeDeleter<int>> pointMarkerList((int*)(malloc(sizeof(int) * in.numberofpoints)));
 
             in.pointlist = pointList.get();
@@ -1380,9 +1387,9 @@ namespace Cork::Intersection
             in.numberofholes = 0;    // yes, zero
             in.numberofregions = 0;  // not using regions
 
-            std::unique_ptr<int, TriangulateDeleter<int>> segmentList(
+            std::unique_ptr<int, FreeDeleter<int>> segmentList(
                 (int*)(malloc(sizeof(int) * in.numberofsegments * 2)));
-            std::unique_ptr<int, TriangulateDeleter<int>> segmentMarkerList(
+            std::unique_ptr<int, FreeDeleter<int>> segmentMarkerList(
                 (int*)(malloc(sizeof(int) * in.numberofsegments)));
 
             in.segmentlist = segmentList.get();

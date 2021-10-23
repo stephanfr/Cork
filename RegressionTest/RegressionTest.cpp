@@ -86,6 +86,8 @@ void WriteMeshStatistics(const Cork::TriangleMesh& mesh, const std::string& file
 //  NOLINTNEXTLINE
 int main(int argc, char* argv[])
 {
+    Cork::CorkService     cork_service;
+
     boost::program_options::options_description desc("Allowed options");
 
     desc.add_options()
@@ -126,9 +128,9 @@ int main(int argc, char* argv[])
     bool write_results = vm.count("write-results") > 0;
     bool write_stats = vm.count("write-statistics") > 0;
 
-    Cork::SolverControlBlock control_block = Cork::CorkMesh::GetDefaultControlBlock();
+    Cork::SolverControlBlock control_block = Cork::CorkService::GetDefaultControlBlock();
 
-    control_block.setUseMultipleThreads(true);
+    control_block.set_use_multiple_threads(true);
 
     std::filesystem::directory_iterator model_repository(
         std::filesystem::path(vm["input-directory"].as<std::string>()));
@@ -258,8 +260,8 @@ int main(int argc, char* argv[])
 
             std::cout << first_model.first.filename() << "    " << second_model.first.filename() << std::endl;
 
-            std::unique_ptr<Cork::CorkMesh> first_mesh = Cork::CorkMesh::FromTriangleMesh(*first_model.second);
-            std::unique_ptr<Cork::CorkMesh> second_mesh = Cork::CorkMesh::FromTriangleMesh(*second_model.second);
+            std::unique_ptr<Cork::CorkMesh> first_mesh = Cork::CorkService::FromTriangleMesh(*first_model.second);
+            std::unique_ptr<Cork::CorkMesh> second_mesh = Cork::CorkService::FromTriangleMesh(*second_model.second);
 
             if (compute_union)
             {
@@ -283,8 +285,8 @@ int main(int argc, char* argv[])
                     //					std::cout << "Components in finished Mesh: " << unionedMesh->CountComponents()
                     //<< std::endl;
 
-                    cumulative_CPU_time += unioned_mesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
-                    cumulative_wall_time += unioned_mesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();
+                    cumulative_CPU_time += unioned_mesh->GetPerformanceStats().elapsed_cpu_time_in_nanoseconds();
+                    cumulative_wall_time += unioned_mesh->GetPerformanceStats().elapsed_wall_time_in_nanoseconds();
 
                     std::unique_ptr<Cork::TriangleMesh> unioned_triangle_mesh(unioned_mesh->ToTriangleMesh());
 
@@ -302,13 +304,13 @@ int main(int argc, char* argv[])
                     if (write_stats)
                     {
                         timing_results << filename << "\t"
-                                      << static_cast<double>(unioned_mesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds()) / NUM_NANOSECONDS_PER_SECOND
+                                      << static_cast<double>(unioned_mesh->GetPerformanceStats().elapsed_cpu_time_in_nanoseconds()) / NUM_NANOSECONDS_PER_SECOND
                                       << "\t"
-                                      << static_cast<double>(unioned_mesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds()) / NUM_NANOSECONDS_PER_SECOND
-                                      << "\t" << unioned_mesh->GetPerformanceStats().numberOfTrianglesInDisjointUnion()
-                                      << "\t" << unioned_mesh->GetPerformanceStats().numberOfTrianglesInFinalMesh()
-                                      << "\t" << unioned_mesh->GetPerformanceStats().startingVirtualMemorySizeInMB()
-                                      << "\t" << unioned_mesh->GetPerformanceStats().endingVirtualMemorySizeInMB()
+                                      << static_cast<double>(unioned_mesh->GetPerformanceStats().elapsed_wall_time_in_nanoseconds()) / NUM_NANOSECONDS_PER_SECOND
+                                      << "\t" << unioned_mesh->GetPerformanceStats().number_of_triangles_in_disjoint_union()
+                                      << "\t" << unioned_mesh->GetPerformanceStats().number_of_triangles_in_final_mesh()
+                                      << "\t" << unioned_mesh->GetPerformanceStats().starting_virtual_memory_size_in_MB()
+                                      << "\t" << unioned_mesh->GetPerformanceStats().ending_virtual_memory_size_in_MB()
                                       << std::endl;
 
                         WriteMeshStatistics(*unioned_triangle_mesh, filename, geotopo_results);
@@ -336,8 +338,8 @@ int main(int argc, char* argv[])
                 {
                     std::unique_ptr<Cork::CorkMesh> difference_mesh(boolean_op_result.return_ptr().release());
 
-                    cumulative_CPU_time += difference_mesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
-                    cumulative_wall_time += difference_mesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();
+                    cumulative_CPU_time += difference_mesh->GetPerformanceStats().elapsed_cpu_time_in_nanoseconds();
+                    cumulative_wall_time += difference_mesh->GetPerformanceStats().elapsed_wall_time_in_nanoseconds();
 
                     std::unique_ptr<Cork::TriangleMesh> difference_triangle_mesh(difference_mesh->ToTriangleMesh());
 
@@ -355,14 +357,14 @@ int main(int argc, char* argv[])
                     if (write_stats)
                     {
                         timing_results << filename << "\t"
-                                      << static_cast<double>(difference_mesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds()) / NUM_NANOSECONDS_PER_SECOND
+                                      << static_cast<double>(difference_mesh->GetPerformanceStats().elapsed_cpu_time_in_nanoseconds()) / NUM_NANOSECONDS_PER_SECOND
                                       << "\t"
-                                      << static_cast<double>(difference_mesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds()) / NUM_NANOSECONDS_PER_SECOND
+                                      << static_cast<double>(difference_mesh->GetPerformanceStats().elapsed_wall_time_in_nanoseconds()) / NUM_NANOSECONDS_PER_SECOND
                                       << "\t"
-                                      << difference_mesh->GetPerformanceStats().numberOfTrianglesInDisjointUnion()
-                                      << "\t" << difference_mesh->GetPerformanceStats().numberOfTrianglesInFinalMesh()
-                                      << "\t" << difference_mesh->GetPerformanceStats().startingVirtualMemorySizeInMB()
-                                      << "\t" << difference_mesh->GetPerformanceStats().endingVirtualMemorySizeInMB()
+                                      << difference_mesh->GetPerformanceStats().number_of_triangles_in_disjoint_union()
+                                      << "\t" << difference_mesh->GetPerformanceStats().number_of_triangles_in_final_mesh()
+                                      << "\t" << difference_mesh->GetPerformanceStats().starting_virtual_memory_size_in_MB()
+                                      << "\t" << difference_mesh->GetPerformanceStats().ending_virtual_memory_size_in_MB()
                                       << std::endl;
 
                         WriteMeshStatistics(*difference_triangle_mesh, filename, geotopo_results);
@@ -394,8 +396,8 @@ int main(int argc, char* argv[])
                     //intersectionMesh->CountComponents()
                     //<< std::endl;
 
-                    cumulative_CPU_time += intersection_mesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
-                    cumulative_wall_time += intersection_mesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();
+                    cumulative_CPU_time += intersection_mesh->GetPerformanceStats().elapsed_cpu_time_in_nanoseconds();
+                    cumulative_wall_time += intersection_mesh->GetPerformanceStats().elapsed_wall_time_in_nanoseconds();
 
                     std::unique_ptr<Cork::TriangleMesh> intersection_triangle_mesh(intersection_mesh->ToTriangleMesh());
 
@@ -413,14 +415,14 @@ int main(int argc, char* argv[])
                     if (write_stats)
                     {
                         timing_results << filename << "\t"
-                                      << static_cast<double>(intersection_mesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds()) / NUM_NANOSECONDS_PER_SECOND
+                                      << static_cast<double>(intersection_mesh->GetPerformanceStats().elapsed_cpu_time_in_nanoseconds()) / NUM_NANOSECONDS_PER_SECOND
                                       << "\t"
-                                      << static_cast<double>(intersection_mesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds()) / NUM_NANOSECONDS_PER_SECOND
+                                      << static_cast<double>(intersection_mesh->GetPerformanceStats().elapsed_wall_time_in_nanoseconds()) / NUM_NANOSECONDS_PER_SECOND
                                       << "\t"
-                                      << intersection_mesh->GetPerformanceStats().numberOfTrianglesInDisjointUnion()
-                                      << "\t" << intersection_mesh->GetPerformanceStats().numberOfTrianglesInFinalMesh()
-                                      << "\t" << intersection_mesh->GetPerformanceStats().startingVirtualMemorySizeInMB()
-                                      << "\t" << intersection_mesh->GetPerformanceStats().endingVirtualMemorySizeInMB()
+                                      << intersection_mesh->GetPerformanceStats().number_of_triangles_in_disjoint_union()
+                                      << "\t" << intersection_mesh->GetPerformanceStats().number_of_triangles_in_final_mesh()
+                                      << "\t" << intersection_mesh->GetPerformanceStats().starting_virtual_memory_size_in_MB()
+                                      << "\t" << intersection_mesh->GetPerformanceStats().ending_virtual_memory_size_in_MB()
                                       << std::endl;
 
                         WriteMeshStatistics(*intersection_triangle_mesh, filename, geotopo_results);
@@ -448,8 +450,8 @@ int main(int argc, char* argv[])
                 {
                     std::unique_ptr<Cork::CorkMesh> XOR_mesh(boolean_op_result.return_ptr().release());
 
-                    cumulative_CPU_time += XOR_mesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds();
-                    cumulative_wall_time += XOR_mesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds();
+                    cumulative_CPU_time += XOR_mesh->GetPerformanceStats().elapsed_cpu_time_in_nanoseconds();
+                    cumulative_wall_time += XOR_mesh->GetPerformanceStats().elapsed_wall_time_in_nanoseconds();
 
                     std::unique_ptr<Cork::TriangleMesh> XOR_triangle_mesh(XOR_mesh->ToTriangleMesh());
 
@@ -467,12 +469,12 @@ int main(int argc, char* argv[])
                     if (write_stats)
                     {
                         timing_results << filename << "\t"
-                                      << static_cast<double>(XOR_mesh->GetPerformanceStats().elapsedCPUTimeInNanoSeconds()) / NUM_NANOSECONDS_PER_SECOND << "\t"
-                                      << static_cast<double>(XOR_mesh->GetPerformanceStats().elapsedWallTimeInNanoSeconds()) / NUM_NANOSECONDS_PER_SECOND << "\t"
-                                      << XOR_mesh->GetPerformanceStats().numberOfTrianglesInDisjointUnion() << "\t"
-                                      << XOR_mesh->GetPerformanceStats().numberOfTrianglesInFinalMesh() << "\t"
-                                      << XOR_mesh->GetPerformanceStats().startingVirtualMemorySizeInMB() << "\t"
-                                      << XOR_mesh->GetPerformanceStats().endingVirtualMemorySizeInMB() << std::endl;
+                                      << static_cast<double>(XOR_mesh->GetPerformanceStats().elapsed_cpu_time_in_nanoseconds()) / NUM_NANOSECONDS_PER_SECOND << "\t"
+                                      << static_cast<double>(XOR_mesh->GetPerformanceStats().elapsed_wall_time_in_nanoseconds()) / NUM_NANOSECONDS_PER_SECOND << "\t"
+                                      << XOR_mesh->GetPerformanceStats().number_of_triangles_in_disjoint_union() << "\t"
+                                      << XOR_mesh->GetPerformanceStats().number_of_triangles_in_final_mesh() << "\t"
+                                      << XOR_mesh->GetPerformanceStats().starting_virtual_memory_size_in_MB() << "\t"
+                                      << XOR_mesh->GetPerformanceStats().ending_virtual_memory_size_in_MB() << std::endl;
 
                         WriteMeshStatistics(*XOR_triangle_mesh, filename, geotopo_results);
                     }
@@ -549,8 +551,6 @@ int main(int argc, char* argv[])
 
     timing_results.flush();
     timing_results.close();
-
-    Cork::Shutdown();
 
     return (0);
 }

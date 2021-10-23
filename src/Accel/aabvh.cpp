@@ -132,7 +132,7 @@ namespace Cork::AABVH
         AABVHNode* node1 = nullptr;
         AABVHNode* node2 = nullptr;
 
-        if (m_solverControlBlock.useMultipleThreads())
+        if (m_solverControlBlock.use_multiple_threads())
         {
             tbb::task_group taskGroup;
 

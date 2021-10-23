@@ -142,7 +142,7 @@ namespace Cork::Statistics
 
         std::vector<Hole> holes = HoleBuilder::extract_holes( hole_edges_ );
 
-        std::unique_ptr<Mesh> single_mesh(new Mesh(triangle_mesh_, CorkMesh::GetDefaultControlBlock()));
+        std::unique_ptr<Mesh> single_mesh(new Mesh(triangle_mesh_, CorkService::GetDefaultControlBlock()));
 
         Quantization::Quantizer::GetQuantizerResult get_quantizer_result = single_mesh->getQuantizer();
 

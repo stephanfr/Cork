@@ -29,6 +29,7 @@ add_library(Corklib SHARED
     Intersection/empty3d.cpp
     Intersection/streaming_operators.cpp
     Intersection/triangle.c
+    Intersection/triangulator.cpp
     Mesh/Intersection.cpp
     Mesh/Mesh.cpp
     Mesh/TopoCache.cpp

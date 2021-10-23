@@ -308,7 +308,7 @@ namespace Cork
         DisjointUnion(rhs);
 
         m_performanceStats.setNumberOfTrianglesInDisjointUnion((unsigned long)this->m_tris.size());
-        m_controlBlock->setNumTriangles((unsigned long)this->m_tris.size());
+        m_controlBlock->set_num_triangles((unsigned long)this->m_tris.size());
 
         if (this->m_tris.size() >= MAX_TRIANGLES_IN_DISJOINT_UNION)
         {
@@ -401,7 +401,7 @@ namespace Cork
 
         std::unique_ptr<ComponentList> components(std::move(FindComponents(*ecache)));
 
-        if (solverControlBlock().useMultipleThreads() && (components->size() > 1))
+        if (solverControlBlock().use_multiple_threads() && (components->size() > 1))
         {
             size_t partitionSize = 1;
 
@@ -1026,18 +1026,6 @@ namespace Cork
         });
 
         return (triangleMeshBuilder->Mesh());
-    }
-
-    std::unique_ptr<CorkMesh> CorkMesh::FromTriangleMesh(const TriangleMesh& triangleMesh)
-    {
-        return (std::unique_ptr<CorkMesh>(new Mesh(triangleMesh,CorkMesh::GetDefaultControlBlock())));
-    }
-
-    const SolverControlBlock& CorkMesh::GetDefaultControlBlock()
-    {
-        static SolverControlBlock defaultBlock(true, (long)50000, true);
-
-        return (defaultBlock);
     }
 
 }  // namespace Cork

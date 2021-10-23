@@ -43,66 +43,66 @@ namespace Cork
     {
        public:
         SolverPerfStats()
-            : m_numberOfTrianglesInDisjointUnion(0),
-              m_numberOfTrianglesInFinalMesh(0),
-              m_elapsedCPUTimeInNanoSeconds(0),
-              m_elapsedWallTimeInNanoSeconds(0),
-              m_startingVirtualMemorySizeInMB(0),
-              m_endingVirtualMemorySizeInMB(0)
+            : number_of_triangles_in_disjoint_union_(0),
+              number_of_triangles_in_final_mesh_(0),
+              elapsed_cpu_time_in_nanoseconds_(0),
+              elapsed_wall_time_in_nanoseconds_(0),
+              starting_virtual_memory_size_in_MB_(0),
+              ending_virtual_memory_size_in_MB_(0)
         {
         }
 
-        uint64_t numberOfTrianglesInDisjointUnion() const { return (m_numberOfTrianglesInDisjointUnion); }
+        uint64_t number_of_triangles_in_disjoint_union() const { return (number_of_triangles_in_disjoint_union_); }
 
-        uint64_t numberOfTrianglesInFinalMesh() const { return (m_numberOfTrianglesInFinalMesh); }
+        uint64_t number_of_triangles_in_final_mesh() const { return (number_of_triangles_in_final_mesh_); }
 
-        uint64_t elapsedCPUTimeInNanoSeconds() const { return (m_elapsedCPUTimeInNanoSeconds); }
+        uint64_t elapsed_cpu_time_in_nanoseconds() const { return (elapsed_cpu_time_in_nanoseconds_); }
 
-        uint64_t elapsedWallTimeInNanoSeconds() const { return (m_elapsedWallTimeInNanoSeconds); }
+        uint64_t elapsed_wall_time_in_nanoseconds() const { return (elapsed_wall_time_in_nanoseconds_); }
 
-        uint64_t startingVirtualMemorySizeInMB() const { return (m_startingVirtualMemorySizeInMB); }
+        uint64_t starting_virtual_memory_size_in_MB() const { return (starting_virtual_memory_size_in_MB_); }
 
-        uint64_t endingVirtualMemorySizeInMB() const { return (m_endingVirtualMemorySizeInMB); }
+        uint64_t ending_virtual_memory_size_in_MB() const { return (ending_virtual_memory_size_in_MB_); }
 
         void setNumberOfTrianglesInDisjointUnion(uint64_t numberOfTrianglesInDisjointUnion)
         {
-            m_numberOfTrianglesInDisjointUnion = numberOfTrianglesInDisjointUnion;
+            number_of_triangles_in_disjoint_union_ = numberOfTrianglesInDisjointUnion;
         }
 
         void setNumberOfTrianglesInFinalMesh(uint64_t numberOfTrianglesInFinalMesh)
         {
-            m_numberOfTrianglesInFinalMesh = numberOfTrianglesInFinalMesh;
+            number_of_triangles_in_final_mesh_ = numberOfTrianglesInFinalMesh;
         }
 
         void setElapsedCPUTimeInNanoSeconds(uint64_t elapsedCPUTimeInNanoSeconds)
         {
-            m_elapsedCPUTimeInNanoSeconds = elapsedCPUTimeInNanoSeconds;
+            elapsed_cpu_time_in_nanoseconds_ = elapsedCPUTimeInNanoSeconds;
         }
 
         void setElapsedWallTimeInNanoSeconds(uint64_t elapsedWallTimeInNanoSeconds)
         {
-            m_elapsedWallTimeInNanoSeconds = elapsedWallTimeInNanoSeconds;
+            elapsed_wall_time_in_nanoseconds_ = elapsedWallTimeInNanoSeconds;
         }
 
         void setStartingVirtualMemorySizeInMB(uint64_t startingVirtualMemorySizeInMB)
         {
-            m_startingVirtualMemorySizeInMB = startingVirtualMemorySizeInMB;
+            starting_virtual_memory_size_in_MB_ = startingVirtualMemorySizeInMB;
         }
 
         void setEndingVirtualMemorySizeInMB(uint64_t endingVirtualMemorySizeInMB)
         {
-            m_endingVirtualMemorySizeInMB = endingVirtualMemorySizeInMB;
+            ending_virtual_memory_size_in_MB_ = endingVirtualMemorySizeInMB;
         }
 
        private:
-        uint64_t m_numberOfTrianglesInDisjointUnion;
-        uint64_t m_numberOfTrianglesInFinalMesh;
+        uint64_t number_of_triangles_in_disjoint_union_;
+        uint64_t number_of_triangles_in_final_mesh_;
 
-        uint64_t m_elapsedCPUTimeInNanoSeconds;
-        uint64_t m_elapsedWallTimeInNanoSeconds;
+        uint64_t elapsed_cpu_time_in_nanoseconds_;
+        uint64_t elapsed_wall_time_in_nanoseconds_;
 
-        uint64_t m_startingVirtualMemorySizeInMB;
-        uint64_t m_endingVirtualMemorySizeInMB;
+        uint64_t starting_virtual_memory_size_in_MB_;
+        uint64_t ending_virtual_memory_size_in_MB_;
     };
 
     class CorkTriangle : public Math::TriangleByIndices
