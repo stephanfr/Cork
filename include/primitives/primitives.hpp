@@ -41,8 +41,8 @@
 //	Setup the numeric precision and the vector implementation for the build.
 //
 
-#include "Vector2DTemplate.h"
-#include "Vector3DTemplate.h"
+#include "math/vector_2D_template.hpp"
+#include "math/vector_3D_template.hpp"
 
 namespace Cork::Math
 {

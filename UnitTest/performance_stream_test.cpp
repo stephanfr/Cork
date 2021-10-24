@@ -2,7 +2,7 @@
 #include <catch2/catch_all.hpp>
 #include <sstream>
 
-#include <math/Primitives.h>
+#include "primitives/primitives.hpp"
 
 #include "util/performance_stringstream.h"
 

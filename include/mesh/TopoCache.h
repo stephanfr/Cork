@@ -36,8 +36,8 @@
 #include <unordered_set>
 
 #include "MeshBase.h"
-#include "intersection/empty3d.h"
-#include "intersection/quantization.h"
+#include "intersection/empty3d.hpp"
+#include "intersection/quantization.hpp"
 #include "util/ManagedIntrusiveList.h"
 #include "util/SparseVector.h"
 
@@ -168,12 +168,12 @@ namespace Cork
             return (Empty3d::EdgeIn(*(m_verts[0]->quantizedValue()), *(m_verts[1]->quantizedValue())));
         }
 
-        ExteriorCalculusR4::GMPExt4_2 edgeExactCoordinates(const Quantization::Quantizer& quantizer) const
+        Math::ExteriorCalculusR4::GMPExt4_2 edgeExactCoordinates(const Quantization::Quantizer& quantizer) const
         {
-            ExteriorCalculusR4::GMPExt4_1 ep[2];
+            Math::ExteriorCalculusR4::GMPExt4_1 ep[2];
 
-            ep[0] = ExteriorCalculusR4::GMPExt4_1(*(m_verts[0]->quantizedValue()), quantizer);
-            ep[1] = ExteriorCalculusR4::GMPExt4_1(*(m_verts[1]->quantizedValue()), quantizer);
+            ep[0] = Math::ExteriorCalculusR4::GMPExt4_1(*(m_verts[0]->quantizedValue()), quantizer);
+            ep[1] = Math::ExteriorCalculusR4::GMPExt4_1(*(m_verts[1]->quantizedValue()), quantizer);
 
             return ep[0].join(ep[1]);
         }
@@ -288,15 +288,15 @@ namespace Cork
             return (std::min(m_edges[0]->length(), std::min(m_edges[1]->length(), m_edges[2]->length())));
         }
 
-        const ExteriorCalculusR4::GMPExt4_3 triangleExactCoordinates(const Quantization::Quantizer& quantizer) const
+        const Math::ExteriorCalculusR4::GMPExt4_3 triangleExactCoordinates(const Quantization::Quantizer& quantizer) const
         {
-            ExteriorCalculusR4::GMPExt4_3 value;
+            Math::ExteriorCalculusR4::GMPExt4_3 value;
 
-            ExteriorCalculusR4::GMPExt4_1 p[3];
+            Math::ExteriorCalculusR4::GMPExt4_1 p[3];
 
-            p[0] = ExteriorCalculusR4::GMPExt4_1(*(m_verts[0]->quantizedValue()), quantizer);
-            p[1] = ExteriorCalculusR4::GMPExt4_1(*(m_verts[1]->quantizedValue()), quantizer);
-            p[2] = ExteriorCalculusR4::GMPExt4_1(*(m_verts[2]->quantizedValue()), quantizer);
+            p[0] = Math::ExteriorCalculusR4::GMPExt4_1(*(m_verts[0]->quantizedValue()), quantizer);
+            p[1] = Math::ExteriorCalculusR4::GMPExt4_1(*(m_verts[1]->quantizedValue()), quantizer);
+            p[2] = Math::ExteriorCalculusR4::GMPExt4_1(*(m_verts[2]->quantizedValue()), quantizer);
 
             return (p[0].join(p[1])).join(p[2]);
         }

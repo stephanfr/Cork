@@ -86,7 +86,7 @@ TEST_CASE("Topology Tests", "[file io]")
         hole_edges.emplace_back(Cork::Math::EdgeByIndices(31u, 40u));
         hole_edges.emplace_back(Cork::Math::EdgeByIndices(41u, 22u));
 
-        std::vector<Cork::Meshes::Hole> holes = Cork::Meshes::HoleBuilder::extract_holes(hole_edges);
+        std::vector<Cork::Hole> holes = Cork::HoleBuilder::extract_holes(hole_edges);
 
         REQUIRE(holes.size() == 6);
         REQUIRE(((holes[0].vertices()[0] == 13u) && (holes[0].vertices()[1] == 12u) &&

@@ -31,7 +31,7 @@
 #include <vector>
 
 #include "CPPResult.hpp"
-#include "math/Primitives.h"
+#include "primitives/primitives.hpp"
 #include "statistics/statistics.h"
 
 namespace Cork::Meshes

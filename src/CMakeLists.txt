@@ -27,10 +27,10 @@ add_library(Corklib SHARED
 #    FileFormats/ifs.cpp
     FileFormats/off.cpp
     Intersection/empty3d.cpp
-    Intersection/streaming_operators.cpp
+    primitives/streaming_operators.cpp
     Intersection/triangle.c
     Intersection/triangulator.cpp
-    Mesh/Intersection.cpp
+    Intersection/Intersection.cpp
     Mesh/Mesh.cpp
     Mesh/TopoCache.cpp
     Mesh/TriangleMesh.cpp

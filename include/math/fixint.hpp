@@ -49,7 +49,7 @@
 #include <iostream>
 #include <string>
 
-namespace Cork::FixInt
+namespace Cork::Math::FixInt
 {
     template <bool test_val>
     struct ASSERT_STATIC

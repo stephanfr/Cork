@@ -31,10 +31,10 @@
 #include <boost/timer/timer.hpp>
 #include <sstream>
 
-#include "intersection/unsafe_ray_triangle_intersection.h"
-#include "math/Primitives.h"
+#include "intersection/unsafe_ray_triangle_intersection.hpp"
+#include "primitives/primitives.hpp"
 #include "mesh/EGraphCache.h"
-#include "mesh/IntersectionProblem.h"
+#include "intersection/intersection_problem.hpp"
 #include "mesh/TopoCache.h"
 #include "util/ThreadPool.h"
 #include "util/unionFind.h"

@@ -22,9 +22,9 @@
 #include <deque>
 #include <vector>
 
-#include "math/Primitives.h"
+#include "primitives/primitives.hpp"
 
-namespace Cork::Meshes
+namespace Cork
 {
     using VertexIndex = Math::VertexIndex;
     using EdgeByIndices = Math::EdgeByIndices;

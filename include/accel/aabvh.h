@@ -34,7 +34,7 @@
 
 #include "CorkDefs.h"
 #include "Xoshiro256Plus.h"
-#include "math/Primitives.h"
+#include "primitives/primitives.hpp"
 #include "mesh/TopoCache.h"
 #include "oneapi/tbb/spin_mutex.h"
 #include "oneapi/tbb/task_group.h"

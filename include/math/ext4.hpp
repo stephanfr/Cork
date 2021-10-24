@@ -69,7 +69,7 @@
 
  */
 
-namespace Cork::ExteriorCalculusR4
+namespace Cork::Math::ExteriorCalculusR4
 {
     // types for k-vectors in R4:
     //      Ext4_k

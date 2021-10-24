@@ -31,11 +31,11 @@
 #include <random>
 
 #include "accel/aabvh.h"
-#include "intersection/empty3d.h"
-#include "intersection/gmpext4.h"
-#include "intersection/quantization.h"
+#include "intersection/empty3d.hpp"
+#include "math/gmpext4.hpp"
+#include "intersection/quantization.hpp"
 #include "intersection/triangulator.hpp"
-#include "mesh/IntersectionProblem.h"
+#include "intersection/intersection_problem.hpp"
 #include "mesh/MeshBase.h"
 #include "mesh/TopoCache.h"
 #include "tbb/tbb.h"
@@ -264,8 +264,8 @@ namespace Cork::Intersection
 
     inline Math::Vector3D computeCoords(const TopoEdge& e, const TopoTri& t, const Quantization::Quantizer& quantizer)
     {
-        ExteriorCalculusR4::GMPExt4_2 edgeCoordinates(e.edgeExactCoordinates(quantizer));
-        ExteriorCalculusR4::GMPExt4_3 triangleCoordinates(t.triangleExactCoordinates(quantizer));
+        Math::ExteriorCalculusR4::GMPExt4_2 edgeCoordinates(e.edgeExactCoordinates(quantizer));
+        Math::ExteriorCalculusR4::GMPExt4_3 triangleCoordinates(t.triangleExactCoordinates(quantizer));
 
         return (Empty3d::coordsExact(edgeCoordinates, triangleCoordinates, quantizer));
     }

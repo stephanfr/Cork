@@ -44,9 +44,9 @@
 #include <iostream>
 
 #include "ext4_base.hpp"
-#include "intersection/quantization.h"
+#include "intersection/quantization.hpp"
 
-namespace Cork::ExteriorCalculusR4
+namespace Cork::Math::ExteriorCalculusR4
 {
     std::ostream &operator<<(std::ostream &out, __mpz_struct const *value);
 

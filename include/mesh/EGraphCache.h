@@ -33,7 +33,7 @@
 #include "util/CachingFactory.h"
 #include "util/ConstuctOnceResizeableVector.h"
 #include "util/SparseVector.h"
-#include "math/Primitives.h"
+#include "primitives/primitives.hpp"
 
 namespace Cork
 {

@@ -25,7 +25,7 @@
 // +-------------------------------------------------------------------------
 #pragma once
 
-#include "math/Primitives.h"
+#include "primitives/primitives.hpp"
 
 namespace Cork
 {

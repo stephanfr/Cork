@@ -36,10 +36,10 @@
 #include <iostream>
 
 #include "ext4_base.hpp"
-#include "fixint.h"
-#include "intersection/quantization.h"
+#include "fixint.hpp"
+#include "intersection/quantization.hpp"
 
-namespace Cork::ExteriorCalculusR4
+namespace Cork::Math::ExteriorCalculusR4
 {
     template <int Nbits>
     class FixExt4_2;

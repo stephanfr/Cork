@@ -29,8 +29,8 @@
 #include <tbb/spin_mutex.h>
 #include <tbb/task_group.h>
 
-#include "intersection/gmpext4.h"
-#include "intersection/quantization.h"
+#include "math/gmpext4.hpp"
+#include "intersection/quantization.hpp"
 
 namespace Cork
 {

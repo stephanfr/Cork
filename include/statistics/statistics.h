@@ -28,14 +28,13 @@
 
 #include <memory>
 
-#include "math/Primitives.h"
-#include "mesh/self_intersections.hpp"
-#include "mesh/hole.hpp"
+#include "primitives/primitives.hpp"
+#include "intersection/self_intersections.hpp"
+#include "primitives/hole.hpp"
 
 namespace Cork::Statistics
 {
     using IntersectionInfo = Intersection::IntersectionInfo;
-    using Hole = Cork::Meshes::Hole;
 
     class GeometricStatistics
     {

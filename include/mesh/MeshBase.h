@@ -30,8 +30,8 @@
 #include <vector>
 
 #include "cork.h"
-#include "intersection/quantization.h"
-#include "math/Primitives.h"
+#include "intersection/quantization.hpp"
+#include "primitives/primitives.hpp"
 #include "triangle_mesh.h"
 
 namespace Cork

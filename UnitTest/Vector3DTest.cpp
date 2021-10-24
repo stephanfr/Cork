@@ -5,7 +5,7 @@
 
 #define __AVX_AVAILABLE__
 
-#include "math/Vector3DTemplate.h"
+#include "math/vector_3D_template.hpp"
 
 #include <string>
 

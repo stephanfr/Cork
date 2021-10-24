@@ -1,9 +1,9 @@
 #pragma once
 
 #include "CorkDefs.h"
-#include "math/Primitives.h"
+#include "primitives/primitives.hpp"
 
-namespace Cork::ExteriorCalculusR4
+namespace Cork::Math::ExteriorCalculusR4
 {
     namespace Constants
     {

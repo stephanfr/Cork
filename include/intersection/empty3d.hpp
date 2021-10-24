@@ -28,14 +28,22 @@
 #include <array>
 #include <atomic>
 
-#include "ext4.h"
-#include "fixext4.hpp"
-#include "gmpext4.h"
-#include "math/Primitives.h"
-#include "quantization.h"
+#include "math/ext4.hpp"
+#include "math/fixext4.hpp"
+#include "math/gmpext4.hpp"
+#include "primitives/primitives.hpp"
+#include "quantization.hpp"
 
 namespace Cork::Empty3d
 {
+    using Ext4_1 = Math::ExteriorCalculusR4::Ext4_1;
+    using Ext4_2 = Math::ExteriorCalculusR4::Ext4_2;
+    using Ext4_3 = Math::ExteriorCalculusR4::Ext4_3;
+
+    using GMPExt4_1 = Math::ExteriorCalculusR4::GMPExt4_1;
+    using GMPExt4_2 = Math::ExteriorCalculusR4::GMPExt4_2;
+    using GMPExt4_3 = Math::ExteriorCalculusR4::GMPExt4_3;
+
     class ExactArithmeticContext
     {
        public:
@@ -54,14 +62,14 @@ namespace Cork::Empty3d
         {
         }
 
-        const ExteriorCalculusR4::Ext4_1& p0() const { return p0_; };
-        const ExteriorCalculusR4::Ext4_1& p1() const { return p1_; };
-        const ExteriorCalculusR4::Ext4_1& p2() const { return p2_; };
+        const Ext4_1& p0() const { return p0_; };
+        const Ext4_1& p1() const { return p1_; };
+        const Ext4_1& p2() const { return p2_; };
 
        private:
-        const ExteriorCalculusR4::Ext4_1 p0_;
-        const ExteriorCalculusR4::Ext4_1 p1_;
-        const ExteriorCalculusR4::Ext4_1 p2_;
+        const Ext4_1 p0_;
+        const Ext4_1 p1_;
+        const Ext4_1 p2_;
     };
 
     class EdgeIn
@@ -71,12 +79,12 @@ namespace Cork::Empty3d
 
         EdgeIn(const Math::Vector3D& edge0, const Math::Vector3D& edge1) : p0_(edge0), p1_(edge1) {}
 
-        const ExteriorCalculusR4::Ext4_1& p0() const { return p0_; }
-        const ExteriorCalculusR4::Ext4_1& p1() const { return p1_; }
+        const Ext4_1& p0() const { return p0_; }
+        const Ext4_1& p1() const { return p1_; }
 
        private:
-        const ExteriorCalculusR4::Ext4_1 p0_;
-        const ExteriorCalculusR4::Ext4_1 p1_;
+        const Ext4_1 p0_;
+        const Ext4_1 p1_;
     };
 
     class TriEdgeIn
@@ -100,7 +108,7 @@ namespace Cork::Empty3d
         bool exactFallback(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const;
     };
 
-    Math::Vector3D coordsExact(const ExteriorCalculusR4::GMPExt4_2& edge, const ExteriorCalculusR4::GMPExt4_3& triangle,
+    Math::Vector3D coordsExact(const GMPExt4_2& edge, const GMPExt4_3& triangle,
                                const Quantization::Quantizer& quantizer);
 
     class TriTriTriIn
@@ -127,9 +135,9 @@ namespace Cork::Empty3d
         bool exactFallback(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const;
     };
 
-    Math::Vector3D coordsExact(const ExteriorCalculusR4::GMPExt4_3& triangle0,
-                               const ExteriorCalculusR4::GMPExt4_3& triangle1,
-                               const ExteriorCalculusR4::GMPExt4_3& triangle2,
+    Math::Vector3D coordsExact(const GMPExt4_3& triangle0,
+                               const GMPExt4_3& triangle1,
+                               const GMPExt4_3& triangle2,
                                const Quantization::Quantizer& quantizer);
 
 }  // namespace Cork::Empty3d

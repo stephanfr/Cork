@@ -31,14 +31,12 @@
 
 #include "CorkDefs.h"
 #include "cork.h"
-#include "intersection/quantization.h"
-#include "mesh/IntersectionProblem.h"
+#include "intersection/quantization.hpp"
+#include "intersection/intersection_problem.hpp"
 #include "mesh/mesh.h"
 
 namespace Cork::Statistics
 {
-    using HoleBuilder = Meshes::HoleBuilder;
-
     GeometricStatisticsEngine::GeometricStatisticsEngine(const TriangleMesh& triangle_mesh,
                                                          PropertiesToCompute propertiesToCompute)
         : triangle_mesh_(triangle_mesh),
@@ -140,7 +138,7 @@ namespace Cork::Statistics
             }
         }
 
-        std::vector<Hole> holes = HoleBuilder::extract_holes( hole_edges_ );
+        std::vector<Hole> holes = HoleBuilder::extract_holes(hole_edges_);
 
         std::unique_ptr<Mesh> single_mesh(new Mesh(triangle_mesh_, CorkService::get_default_control_block()));
 
@@ -150,8 +148,8 @@ namespace Cork::Statistics
         {
             std::cout << "Failed to get Quantizer: " << get_quantizer_result.message() << std::endl;
 
-            return (TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, holes,
-                                          std::vector<IntersectionInfo>()));
+            return (
+                TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, holes, std::vector<IntersectionInfo>()));
         }
 
         Quantization::Quantizer quantizer(get_quantizer_result.return_value());

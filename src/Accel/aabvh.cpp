@@ -26,7 +26,7 @@
 
 #include "accel/aabvh.h"
 
-#include "./intersection/gmpext4.h"
+#include "math/gmpext4.hpp"
 #include "tbb/task_group.h"
 
 namespace Cork::AABVH

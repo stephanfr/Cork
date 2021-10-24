@@ -28,7 +28,7 @@
 #include <cmath>
 
 #include "CPPResult.hpp"
-#include "math/Primitives.h"
+#include "primitives/primitives.hpp"
 
 namespace Cork
 {
