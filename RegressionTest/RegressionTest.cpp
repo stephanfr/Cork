@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
     bool write_results = vm.count("write-results") > 0;
     bool write_stats = vm.count("write-statistics") > 0;
 
-    Cork::SolverControlBlock control_block = Cork::CorkService::GetDefaultControlBlock();
+    Cork::SolverControlBlock control_block = Cork::CorkService::get_default_control_block();
 
     control_block.set_use_multiple_threads(true);
 
@@ -260,8 +260,8 @@ int main(int argc, char* argv[])
 
             std::cout << first_model.first.filename() << "    " << second_model.first.filename() << std::endl;
 
-            std::unique_ptr<Cork::CorkMesh> first_mesh = Cork::CorkService::FromTriangleMesh(*first_model.second);
-            std::unique_ptr<Cork::CorkMesh> second_mesh = Cork::CorkService::FromTriangleMesh(*second_model.second);
+            std::unique_ptr<Cork::CorkMesh> first_mesh = Cork::CorkService::from_triangle_mesh(*first_model.second);
+            std::unique_ptr<Cork::CorkMesh> second_mesh = Cork::CorkService::from_triangle_mesh(*second_model.second);
 
             if (compute_union)
             {

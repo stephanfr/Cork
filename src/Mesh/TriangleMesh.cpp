@@ -71,6 +71,11 @@ namespace Cork::Meshes
                                        (*m_vertices)[triangleByIndices.c()]));
         }
 
+        void AddTriangle(const TriangleByIndices& triangle_to_add) final
+        {
+            m_triangles->emplace_back( triangle_to_add );
+        }
+
         void remove_triangle(TriangleByIndicesIndex triangle_index) { m_triangles->erase(m_triangles->begin() + TriangleByIndicesIndex::integer_type( triangle_index)); }
 
         [[nodiscard]] const Math::BBox3D& boundingBox() const final { return m_boundingBox; }

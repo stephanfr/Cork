@@ -242,7 +242,5 @@ class ThreadPool
 
             nextTask->Execute();
         }
-
-        std::cout << "Exiting ThreadMain" << std::endl;
     }
 };

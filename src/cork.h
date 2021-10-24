@@ -125,9 +125,9 @@ namespace Cork
 
         CorkService& operator=(const CorkService&) = delete;
 
-        static std::unique_ptr<CorkMesh> FromTriangleMesh(const TriangleMesh& triangleMesh);
+        static std::unique_ptr<CorkMesh> from_triangle_mesh(const TriangleMesh& triangleMesh);
 
-        static const SolverControlBlock& GetDefaultControlBlock();
+        static const SolverControlBlock& get_default_control_block();
     };
 
     enum class BooleanOperationResultCodes
@@ -155,16 +155,16 @@ namespace Cork
         // NOLINTBEGIN(google-default-arguments)
 
         [[nodiscard]] virtual BooleanOperationResult Union(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = CorkService::GetDefaultControlBlock()) const = 0;
+            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = CorkService::get_default_control_block()) const = 0;
 
         [[nodiscard]] virtual BooleanOperationResult Difference(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = CorkService::GetDefaultControlBlock()) const = 0;
+            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = CorkService::get_default_control_block()) const = 0;
 
         [[nodiscard]] virtual BooleanOperationResult Intersection(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = CorkService::GetDefaultControlBlock()) const = 0;
+            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = CorkService::get_default_control_block()) const = 0;
 
         [[nodiscard]] virtual BooleanOperationResult SymmetricDifference(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = CorkService::GetDefaultControlBlock()) const = 0;
+            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock = CorkService::get_default_control_block()) const = 0;
 
         // NOLINTEND(google-default-arguments)
 

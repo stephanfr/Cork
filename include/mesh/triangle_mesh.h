@@ -64,6 +64,7 @@ namespace Cork::Meshes
 
         virtual TriangleByVertices triangleByVertices(const TriangleByIndices& triangleByIndices) const = 0;
 
+        virtual void AddTriangle(const TriangleByIndices& triangle_to_add) = 0;
         virtual void remove_triangle(TriangleByIndicesIndex triangle_index) = 0;
 
         virtual const Math::BBox3D& boundingBox() const = 0;

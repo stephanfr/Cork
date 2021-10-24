@@ -55,8 +55,6 @@
 
 namespace Cork::Files
 {
-    using TriangleMesh = Meshes::TriangleMesh;
-    
     enum class ReadFileResultCodes
     {
         SUCCESS = 0,
@@ -94,10 +92,10 @@ namespace Cork::Files
         ERROR_WRITING_TO_IFS_FILE
     };
 
-    using ReadFileResult = SEFUtility::ResultWithReturnUniquePtr<ReadFileResultCodes, TriangleMesh>;
+    using ReadFileResult = SEFUtility::ResultWithReturnUniquePtr<ReadFileResultCodes, Meshes::TriangleMesh>;
     using WriteFileResult = SEFUtility::Result<WriteFileResultCodes>;
 
     CORKLIB_API ReadFileResult readOFF(const std::filesystem::path& file_path);
-    CORKLIB_API WriteFileResult writeOFF(const std::filesystem::path& file_path, const TriangleMesh& mesh_to_write);
+    CORKLIB_API WriteFileResult writeOFF(const std::filesystem::path& file_path, const Meshes::TriangleMesh& mesh_to_write);
 
 }  // namespace Cork::Files

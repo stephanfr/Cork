@@ -242,7 +242,7 @@ namespace Cork::Files
     //  Write on OFF file
     //
 
-    WriteFileResult writeOFF(const std::filesystem::path& file_path, const TriangleMesh& mesh_to_write)
+    WriteFileResult writeOFF(const std::filesystem::path& file_path, const Meshes::TriangleMesh& mesh_to_write)
     {
         //	Open the output file
 

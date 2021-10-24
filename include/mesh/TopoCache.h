@@ -469,8 +469,6 @@ namespace Cork
             m_vertexListPool.reserve(100000);
             m_edgeListPool.reserve(100000);
             m_triListPool.reserve(100000);
-
-            std::cout << "Creating TopoCacheWorkspace" << std::endl;
         }
 
         virtual ~TopoCacheWorkspace() {}
