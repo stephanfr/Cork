@@ -30,15 +30,12 @@
 #include <vector>
 
 #include "cork.h"
-#include "intersection/quantization.hpp"
+#include "math/quantization.hpp"
 #include "primitives/primitives.hpp"
 #include "triangle_mesh.h"
 
-namespace Cork
+namespace Cork::Meshes
 {
-    using VertexIndex = Math::VertexIndex;
-    using TriangleByIndices = Math::TriangleByIndices;
-
     class SolverPerfStats : public SolverPerformanceStatisticsIfx
     {
        public:
@@ -105,13 +102,13 @@ namespace Cork
         uint64_t ending_virtual_memory_size_in_MB_;
     };
 
-    class CorkTriangle : public Math::TriangleByIndices
+    class CorkTriangle : public Primitives::TriangleByIndices
     {
        public:
         CorkTriangle() {}
 
         CorkTriangle(const TriangleByIndices& triangleToCopy, uint32_t boolAlgData, uint32_t triangle_id)
-            : triangle_id_(triangle_id), Math::TriangleByIndices(triangleToCopy), m_boolAlgData(boolAlgData)
+            : triangle_id_(triangle_id), Primitives::TriangleByIndices(triangleToCopy), m_boolAlgData(boolAlgData)
         {
         }
 
@@ -136,19 +133,16 @@ namespace Cork
         uint32_t triangle_id_;
     };
 
-    typedef Math::Vector3D CorkVertex;
+    typedef Primitives::Vector3D CorkVertex;
 
     class MeshBase
     {
        public:
         using TriangleVector = std::vector<CorkTriangle>;
-        using VertexVector = Math::Vertex3DVector;
 
         MeshBase() = delete;
 
-        MeshBase(const SolverControlBlock& controlBlock)
-            : m_controlBlock(controlBlock)
-        {}
+        MeshBase(const SolverControlBlock& controlBlock) : m_controlBlock(controlBlock) {}
 
         MeshBase(const MeshBase& meshBaseToCopy, const SolverControlBlock& controlBlock)
             : m_boundingBox(meshBaseToCopy.m_boundingBox),
@@ -162,9 +156,7 @@ namespace Cork
 
         virtual ~MeshBase() {}
 
-
-        MeshBase&   operator=( const MeshBase& ) = delete;
-
+        MeshBase& operator=(const MeshBase&) = delete;
 
         const SolverControlBlock& solverControlBlock() const { return (*m_controlBlock); }
 
@@ -172,20 +164,21 @@ namespace Cork
 
         const TriangleVector& triangles() const { return (m_tris); }
 
-        VertexVector& vertices() { return (m_verts); }
+        Primitives::Vertex3DVector& vertices() { return (m_verts); }
 
-        const VertexVector& vertices() const { return (m_verts); }
+        const Primitives::Vertex3DVector& vertices() const { return (m_verts); }
 
-        const Math::BBox3D& boundingBox() const { return m_boundingBox; }
-        Math::MinAndMaxEdgeLengths min_and_max_edge_lengths() const { return min_and_max_edge_lengths_; }
+        const Primitives::BBox3D& boundingBox() const { return m_boundingBox; }
+        Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths() const { return min_and_max_edge_lengths_; }
         double max_vertex_magnitude() const { return max_vertex_magnitude_; }
 
-        const Quantization::Quantizer::GetQuantizerResult getQuantizer() const
+        const Math::Quantizer::GetQuantizerResult getQuantizer() const
         {
-            return Quantization::Quantizer::get_quantizer(max_vertex_magnitude_, min_and_max_edge_lengths_.min());
+            return Math::Quantizer::get_quantizer(max_vertex_magnitude_, min_and_max_edge_lengths_.min());
         }
 
-        void for_raw_tris(std::function<void(VertexIndex, VertexIndex, VertexIndex)> func)
+        void for_raw_tris(
+            std::function<void(Primitives::VertexIndex, Primitives::VertexIndex, Primitives::VertexIndex)> func)
         {
             for (auto& tri : m_tris)
             {
@@ -193,7 +186,8 @@ namespace Cork
             }
         }
 
-        void for_raw_tris(std::function<void(VertexIndex, VertexIndex, VertexIndex)> func) const
+        void for_raw_tris(
+            std::function<void(Primitives::VertexIndex, Primitives::VertexIndex, Primitives::VertexIndex)> func) const
         {
             for (auto& tri : m_tris)
             {
@@ -203,11 +197,11 @@ namespace Cork
 
        protected:
         TriangleVector m_tris;
-        VertexVector m_verts;
+        Primitives::Vertex3DVector m_verts;
 
-        Math::BBox3D m_boundingBox;
+        Primitives::BBox3D m_boundingBox;
 
-        Math::MinAndMaxEdgeLengths min_and_max_edge_lengths_;
+        Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths_;
         double max_vertex_magnitude_;
 
         std::optional<SolverControlBlock> m_controlBlock;
@@ -215,4 +209,4 @@ namespace Cork
         SolverPerfStats m_performanceStats;
     };
 
-}  // namespace Cork
+}  // namespace Cork::Meshes

@@ -30,10 +30,13 @@
 #include <tbb/task_group.h>
 
 #include "math/gmpext4.hpp"
-#include "intersection/quantization.hpp"
 
-namespace Cork
+namespace Cork::Meshes
 {
+    using VertexIndex = Primitives::VertexIndex;
+
+    using TriangleVertexId = Primitives::TriangleVertexId;
+
     TopoCache::TopoCache(MeshBase& owner, TopoCacheWorkspace& workspace)
         : m_mesh(owner),
           m_workspace(workspace),
@@ -48,10 +51,7 @@ namespace Cork
         init();
     }
 
-    TopoCache::~TopoCache()
-    {
-        
-    }
+    TopoCache::~TopoCache() {}
 
     void TopoCache::init()
     {
@@ -87,13 +87,14 @@ namespace Cork
             VertexIndex vertex1_index = ref_tri[1];
             VertexIndex vertex2_index = ref_tri[2];
 
-            Math::TriangleVertexId vertex0_id = Math::TriangleVertexId::A;
-            Math::TriangleVertexId vertex1_id = Math::TriangleVertexId::B;
-            Math::TriangleVertexId vertex2_id = Math::TriangleVertexId::C;
+            TriangleVertexId vertex0_id = TriangleVertexId::A;
+            TriangleVertexId vertex1_id = TriangleVertexId::B;
+            TriangleVertexId vertex2_id = TriangleVertexId::C;
 
             TopoTri* tri = m_topoTriList.emplace_back(
-                ref_tri.triangle_id(), i, m_topoVertexList.getPool()[VertexIndex::integer_type( vertex0_index )],
-                m_topoVertexList.getPool()[VertexIndex::integer_type( vertex1_index )], m_topoVertexList.getPool()[VertexIndex::integer_type( vertex2_index )]);
+                ref_tri.triangle_id(), i, m_topoVertexList.getPool()[VertexIndex::integer_type(vertex0_index)],
+                m_topoVertexList.getPool()[VertexIndex::integer_type(vertex1_index)],
+                m_topoVertexList.getPool()[VertexIndex::integer_type(vertex2_index)]);
 
             // then, put these in arbitrary but globally consistent order
 
@@ -117,9 +118,9 @@ namespace Cork
 
             // and accrue in structure
 
-            TopoVert* v0 = &(m_topoVertexList.getPool()[VertexIndex::integer_type( vertex0_index )]);
-            TopoVert* v1 = &(m_topoVertexList.getPool()[VertexIndex::integer_type( vertex1_index )]);
-            TopoVert* v2 = &(m_topoVertexList.getPool()[VertexIndex::integer_type( vertex2_index )]);
+            TopoVert* v0 = &(m_topoVertexList.getPool()[VertexIndex::integer_type(vertex0_index)]);
+            TopoVert* v1 = &(m_topoVertexList.getPool()[VertexIndex::integer_type(vertex1_index)]);
+            TopoVert* v2 = &(m_topoVertexList.getPool()[VertexIndex::integer_type(vertex2_index)]);
 
             //	Create edges and link them to the triangle
 
@@ -128,7 +129,8 @@ namespace Cork
             TopoEdge* edge12;
 
             {
-                TopoEdgePrototype& edge01Proto = edgeacc[VertexIndex::integer_type(vertex0_index)].find_or_add(VertexIndex::integer_type(vertex1_index));
+                TopoEdgePrototype& edge01Proto = edgeacc[VertexIndex::integer_type(vertex0_index)].find_or_add(
+                    VertexIndex::integer_type(vertex1_index));
 
                 edge01 = edge01Proto.edge();
 
@@ -140,7 +142,8 @@ namespace Cork
 
                 edge01->triangles().insert(tri);
 
-                TopoEdgePrototype& edge02Proto = edgeacc[VertexIndex::integer_type(vertex0_index)].find_or_add(VertexIndex::integer_type(vertex2_index));
+                TopoEdgePrototype& edge02Proto = edgeacc[VertexIndex::integer_type(vertex0_index)].find_or_add(
+                    VertexIndex::integer_type(vertex2_index));
 
                 edge02 = edge02Proto.edge();
 
@@ -152,7 +155,8 @@ namespace Cork
 
                 edge02->triangles().insert(tri);
 
-                TopoEdgePrototype& edge12Proto = edgeacc[VertexIndex::integer_type(vertex1_index)].find_or_add(VertexIndex::integer_type(vertex2_index));
+                TopoEdgePrototype& edge12Proto = edgeacc[VertexIndex::integer_type(vertex1_index)].find_or_add(
+                    VertexIndex::integer_type(vertex2_index));
 
                 edge12 = edge12Proto.edge();
 
@@ -213,7 +217,7 @@ namespace Cork
             }
             else
             {
-                vertex_map.emplace_back(INVALID_ID);
+                vertex_map.emplace_back(Primitives::UNINTIALIZED_INDEX);
             }
         }
 
@@ -248,7 +252,7 @@ namespace Cork
             }
             else
             {
-                tmap.emplace_back(INVALID_ID);
+                tmap.emplace_back(Primitives::UNINTIALIZED_INDEX);
             }
         }
 

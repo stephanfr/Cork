@@ -53,7 +53,7 @@
 
 namespace Cork::AABVH
 {
-    typedef SEFUtility::RNG::Xoshiro256Plus<g_SIMD_Level> Xoshiro256Plus;
+    using Xoshiro256Plus = SEFUtility::RNG::Xoshiro256Plus<g_SIMD_Level>;
 
     //	Maximum leaf size - needs to be a power of 2 (i.e. 2, 4, 8, 16, 32, 64)
 
@@ -62,29 +62,29 @@ namespace Cork::AABVH
     class alignas(SIMD_MEMORY_ALIGNMENT) GeomBlob
     {
        public:
-        explicit GeomBlob(const TopoEdge& idx) : m_id(idx)
+        explicit GeomBlob(const Meshes::TopoEdge& idx) : m_id(idx)
         {
-            const Cork::Math::Vector3D& p0 = *((idx.verts()[0])->quantizedValue());
-            const Cork::Math::Vector3D& p1 = *((idx.verts()[1])->quantizedValue());
+            const Primitives::Vector3D& p0 = *((idx.verts()[0])->quantizedValue());
+            const Primitives::Vector3D& p1 = *((idx.verts()[1])->quantizedValue());
 
-            m_bbox = Cork::Math::BBox3D(p0.min(p1), p0.max(p1));
+            m_bbox = Primitives::BBox3D(p0.min(p1), p0.max(p1));
         }
 
-        const TopoEdge& index() const { return (m_id); }
+        const Meshes::TopoEdge& index() const { return (m_id); }
 
-        const Cork::Math::BBox3D& boundingBox() const { return (m_bbox); }
+        const Primitives::BBox3D& boundingBox() const { return (m_bbox); }
 
        private:
-        Cork::Math::BBox3D m_bbox;
+        Primitives::BBox3D m_bbox;
 
-        const TopoEdge& m_id;
+        const Meshes::TopoEdge& m_id;
     };
 
     typedef std::vector<GeomBlob> GeomBlobVector;
 
     //	A BlobIDList will never be larger than LEAF_SIZE so a static vector is OK
 
-    typedef boost::container::static_vector<IndexType, LEAF_SIZE> BlobIDList;
+    typedef boost::container::static_vector<Primitives::IndexType, LEAF_SIZE> BlobIDList;
 
     class alignas( SIMD_MEMORY_ALIGNMENT) AABVHNode  // : public IntrusiveListHook
     {
@@ -99,19 +99,19 @@ namespace Cork::AABVH
 
         AABVHNode* right() const { return (m_right); }
 
-        const Cork::Math::BBox3D& boundingBox() const { return (m_bbox); }
+        const Primitives::BBox3D& boundingBox() const { return (m_bbox); }
 
-        Cork::Math::BBox3D& boundingBox() { return (m_bbox); }
+        Primitives::BBox3D& boundingBox() { return (m_bbox); }
 
         const std::array<BlobIDList, 2>& blobIDLists() const { return (m_blobids); }
 
-        void AddBlobID(IndexType listIndex, IndexType blobID) { m_blobids[listIndex].emplace_back(blobID); }
+        void AddBlobID(Primitives::IndexType listIndex, Primitives::IndexType blobID) { m_blobids[listIndex].emplace_back(blobID); }
 
        private:
         AABVHNode* m_left;
         AABVHNode* m_right;
 
-        Cork::Math::BBox3D m_bbox;
+        Primitives::BBox3D m_bbox;
         std::array<BlobIDList, 2> m_blobids;
     };
 
@@ -215,7 +215,7 @@ namespace Cork::AABVH
 
             for (auto& blob : *m_blobs)
             {
-                Cork::Math::Vector3D repPoint(
+                Primitives::Vector3D repPoint(
                     blob.boundingBox().minima() +
                     ((blob.boundingBox().maxima() - blob.boundingBox().minima()) / (NUMERIC_PRECISION)2.0));
 
@@ -229,8 +229,8 @@ namespace Cork::AABVH
 
         ~AxisAlignedBoundingVolumeHierarchy() { m_nodeCollections.reset(); }
 
-        void EdgesIntersectingTriangle(const TopoTri& triangle, IntersectionType intersectionType,
-                                       TopoEdgePointerVector& edges)
+        void EdgesIntersectingTriangle(const Meshes::TopoTri& triangle, IntersectionType intersectionType,
+                                       Meshes::TopoEdgePointerVector& edges)
         {
             //	Set the boolAlgData index for intersections between two bodies or for self-intersections.
 
@@ -270,7 +270,7 @@ namespace Cork::AABVH
                 {
                     const BlobIDList& blobIds = node->blobIDLists()[blobIDListSelector];
 
-                    for (IndexType bid : blobIds)
+                    for (Primitives::IndexType bid : blobIds)
                     {
                         auto& currentBlob = (*m_blobs)[bid];
 
@@ -298,7 +298,7 @@ namespace Cork::AABVH
 
         std::vector<NUMERIC_PRECISION> m_representativePoints[3];
 
-        std::vector<IndexType> m_tmpids;
+        std::vector<Primitives::IndexType> m_tmpids;
 
         Xoshiro256Plus random_number_generator_;
 

@@ -27,10 +27,10 @@
 
 #include "primitives/primitives.hpp"
 
-namespace Cork
+namespace Cork::Intersection
 {
-    inline bool CheckForRayTriangleIntersection(Math::Ray3D& ray, Math::Vector3D& va, Math::Vector3D& vb,
-                                                Math::Vector3D& vc)
+    inline bool CheckForRayTriangleIntersection(Primitives::Ray3D& ray, Primitives::Vector3D& va,
+                                                Primitives::Vector3D& vb, Primitives::Vector3D& vc)
     {
         // re-center the problem at the base point of the ray
         va -= ray.origin();
@@ -73,8 +73,9 @@ namespace Cork
         return ((NUMERIC_PRECISION)(volABC / edgeSum) > 0);
     }
 
-    inline bool CheckForRayTriangleIntersectionWithPoint(Math::Ray3D& ray, Math::Vector3D& va, Math::Vector3D& vb,
-                                                         Math::Vector3D& vc, NUMERIC_PRECISION* t, Math::Vector3D* bary)
+    inline bool CheckForRayTriangleIntersectionWithPoint(Primitives::Ray3D& ray, Primitives::Vector3D& va,
+                                                         Primitives::Vector3D& vb, Primitives::Vector3D& vc,
+                                                         NUMERIC_PRECISION* t, Primitives::Vector3D* bary)
     {
         // re-center the problem at the base point of the ray
         va -= ray.origin();
@@ -121,9 +122,9 @@ namespace Cork
             return (false);
         }
 
-        *bary = Math::Vector3D((NUMERIC_PRECISION)(volBC / edgeSum), (NUMERIC_PRECISION)(volCA / edgeSum),
-                               (NUMERIC_PRECISION)(volAB / edgeSum));
+        *bary = Primitives::Vector3D((NUMERIC_PRECISION)(volBC / edgeSum), (NUMERIC_PRECISION)(volCA / edgeSum),
+                                     (NUMERIC_PRECISION)(volAB / edgeSum));
 
         return (true);
     }
-}  // namespace Cork
+}  // namespace Cork::Intersection

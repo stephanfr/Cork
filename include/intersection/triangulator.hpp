@@ -101,9 +101,9 @@ namespace Cork::Triangulator
     class NormalProjector
     {
        public:
-        NormalProjector(const Math::Vector3D& v0, const Math::Vector3D& v1, const Math::Vector3D& v2)
+        NormalProjector(const Primitives::Vector3D& v0, const Primitives::Vector3D& v1, const Primitives::Vector3D& v2)
         {
-            Math::Vector3D normal = (v1 - v0).cross(v2 - v0);
+            Primitives::Vector3D normal = (v1 - v0).cross(v2 - v0);
             uint normdim = normal.abs().maxDim();
             proj_dim0_ = (normdim + 1) % 3;
             proj_dim1_ = (normdim + 2) % 3;
@@ -188,7 +188,7 @@ namespace Cork::Triangulator
             point_markers_[number_of_points_++] = boundary;
         }
 
-        inline void add_point( const Math::Vector3D&    point, bool boundary, const NormalProjector& projector )
+        inline void add_point( const Primitives::Vector3D&    point, bool boundary, const NormalProjector& projector )
         {
             points_[number_of_points_].first = point[projector.proj_dim0()];
             points_[number_of_points_].second = projector.flip_sign() ? point[projector.proj_dim1()]  * projector.sign_flip() : point[projector.proj_dim1()];

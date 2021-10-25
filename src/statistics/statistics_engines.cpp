@@ -31,12 +31,17 @@
 
 #include "CorkDefs.h"
 #include "cork.h"
-#include "intersection/quantization.hpp"
+#include "math/quantization.hpp"
 #include "intersection/intersection_problem.hpp"
 #include "mesh/mesh.h"
 
 namespace Cork::Statistics
 {
+    using Vector3D = Primitives::Vector3D;
+
+    using TriangleByVertices = Primitives::TriangleByVertices;
+
+
     GeometricStatisticsEngine::GeometricStatisticsEngine(const TriangleMesh& triangle_mesh,
                                                          PropertiesToCompute propertiesToCompute)
         : triangle_mesh_(triangle_mesh),
@@ -52,21 +57,21 @@ namespace Cork::Statistics
         }
     }
 
-    void GeometricStatisticsEngine::AddTriangle(const Math::TriangleByVertices& nextTriangle)
+    void GeometricStatisticsEngine::AddTriangle(const TriangleByVertices& nextTriangle)
     {
         //	Get the edges
 
         if ((m_propertiesToCompute & (PropertiesToCompute::AREA_AND_VOLUME | PropertiesToCompute::EDGE_LENGTHS)) != 0)
         {
-            Math::Vector3D edgeAB = nextTriangle.edgeAB_from_origin();
-            Math::Vector3D edgeAC = nextTriangle.edgeAC_from_origin();
-            Math::Vector3D edgeBC = nextTriangle.edgeBC_from_origin();
+            Vector3D edgeAB = nextTriangle.edgeAB_from_origin();
+            Vector3D edgeAC = nextTriangle.edgeAC_from_origin();
+            Vector3D edgeBC = nextTriangle.edgeBC_from_origin();
 
             if ((m_propertiesToCompute & PropertiesToCompute::AREA_AND_VOLUME) != 0)
             {
                 //	Add the incremental area of this triangle
 
-                Math::Vector3D ABcrossAC = edgeAB.cross(edgeAC);
+                Vector3D ABcrossAC = edgeAB.cross(edgeAC);
 
                 m_area += ABcrossAC.len() / 2;
 
@@ -101,7 +106,7 @@ namespace Cork::Statistics
         }
     }
 
-    inline void TopologicalStatisticsEngine::AddTriangle(const Math::TriangleByIndices& nextTriangle)
+    inline void TopologicalStatisticsEngine::AddTriangle(const Primitives::TriangleByIndices& nextTriangle)
     {
         EdgeSet::iterator itrEdgeAB = edges_.emplace(nextTriangle.a(), nextTriangle.b()).first;
         EdgeSet::iterator itrEdgeAC = edges_.emplace(nextTriangle.a(), nextTriangle.c()).first;
@@ -133,16 +138,16 @@ namespace Cork::Statistics
 
                 if (edge.numIncidences() <= 1)
                 {
-                    hole_edges_.push_back(dynamic_cast<const Math::EdgeByIndices&>(edge));
+                    hole_edges_.push_back(dynamic_cast<const Primitives::EdgeByIndices&>(edge));
                 }
             }
         }
 
         std::vector<Hole> holes = HoleBuilder::extract_holes(hole_edges_);
 
-        std::unique_ptr<Mesh> single_mesh(new Mesh(triangle_mesh_, CorkService::get_default_control_block()));
+        std::unique_ptr<Meshes::Mesh> single_mesh(new Meshes::Mesh(triangle_mesh_, CorkService::get_default_control_block()));
 
-        Quantization::Quantizer::GetQuantizerResult get_quantizer_result = single_mesh->getQuantizer();
+        Math::Quantizer::GetQuantizerResult get_quantizer_result = single_mesh->getQuantizer();
 
         if (!get_quantizer_result.succeeded())
         {
@@ -152,7 +157,7 @@ namespace Cork::Statistics
                 TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, holes, std::vector<IntersectionInfo>()));
         }
 
-        Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+        Math::Quantizer quantizer(get_quantizer_result.return_value());
 
         std::unique_ptr<Intersection::IntersectionProblemIfx> iproblem(
             Intersection::IntersectionProblemIfx::GetProblem(*single_mesh, quantizer, single_mesh->boundingBox()));

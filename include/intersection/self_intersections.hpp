@@ -25,9 +25,9 @@ namespace Cork::Intersection
 {
     struct IntersectionInfo
     {
-        IntersectionInfo(Math::TriangleByIndicesIndex edge_triangle_id, Math::TriangleEdgeId edge_index,
-                         Math::TriangleByIndicesIndex triangle_instersected_id,
-                         const std::vector<Math::TriangleByIndicesIndex>& triangles_sharing_edge)
+        IntersectionInfo(Primitives::TriangleByIndicesIndex edge_triangle_id, Primitives::TriangleEdgeId edge_index,
+                         Primitives::TriangleByIndicesIndex triangle_instersected_id,
+                         const std::vector<Primitives::TriangleByIndicesIndex>& triangles_sharing_edge)
             : edge_triangle_id_(edge_triangle_id),
               edge_index_(edge_index),
               triangle_instersected_id_(triangle_instersected_id),
@@ -35,10 +35,10 @@ namespace Cork::Intersection
         {
         }
 
-        Math::TriangleByIndicesIndex edge_triangle_id_;
-        Math::TriangleEdgeId edge_index_;
-        Math::TriangleByIndicesIndex triangle_instersected_id_;
-        std::vector<Math::TriangleByIndicesIndex> triangles_sharing_edge_;
+        Primitives::TriangleByIndicesIndex edge_triangle_id_;
+        Primitives::TriangleEdgeId edge_index_;
+        Primitives::TriangleByIndicesIndex triangle_instersected_id_;
+        std::vector<Primitives::TriangleByIndicesIndex> triangles_sharing_edge_;
     };
 
 }  // namespace Cork::Intersection

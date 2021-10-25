@@ -32,7 +32,7 @@
 #include "math/fixext4.hpp"
 #include "math/gmpext4.hpp"
 #include "primitives/primitives.hpp"
-#include "quantization.hpp"
+
 
 namespace Cork::Empty3d
 {
@@ -57,7 +57,7 @@ namespace Cork::Empty3d
        public:
         TriIn() = delete;
 
-        TriIn(const Math::Vector3D& tri0, const Math::Vector3D& tri1, const Math::Vector3D& tri2)
+        TriIn(const Primitives::Vector3D& tri0, const Primitives::Vector3D& tri1, const Primitives::Vector3D& tri2)
             : p0_(tri0), p1_(tri1), p2_(tri2)
         {
         }
@@ -77,7 +77,7 @@ namespace Cork::Empty3d
        public:
         EdgeIn() = delete;
 
-        EdgeIn(const Math::Vector3D& edge0, const Math::Vector3D& edge1) : p0_(edge0), p1_(edge1) {}
+        EdgeIn(const Primitives::Vector3D& edge0, const Primitives::Vector3D& edge1) : p0_(edge0), p1_(edge1) {}
 
         const Ext4_1& p0() const { return p0_; }
         const Ext4_1& p1() const { return p1_; }
@@ -94,10 +94,10 @@ namespace Cork::Empty3d
 
         bool isEmpty(ExactArithmeticContext& context) const;
 
-        bool emptyExact(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const;
+        bool emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
 
-        Math::Vector3D coords() const;
-        Math::Vector3D coordsExact(const Quantization::Quantizer& quantizer) const;
+        Primitives::Vector3D coords() const;
+        Primitives::Vector3D coordsExact(const Math::Quantizer& quantizer) const;
 
        private:
         TriIn tri;
@@ -105,11 +105,11 @@ namespace Cork::Empty3d
 
         int emptyFilter() const;
 
-        bool exactFallback(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const;
+        bool exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
     };
 
-    Math::Vector3D coordsExact(const GMPExt4_2& edge, const GMPExt4_3& triangle,
-                               const Quantization::Quantizer& quantizer);
+    Primitives::Vector3D coordsExact(const GMPExt4_2& edge, const GMPExt4_3& triangle,
+                                     const Math::Quantizer& quantizer);
 
     class TriTriTriIn
     {
@@ -122,22 +122,20 @@ namespace Cork::Empty3d
         const std::array<TriIn, 3>& triangle() const { return (m_tri); }
 
         bool isEmpty(ExactArithmeticContext& context) const;
-        bool emptyExact(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const;
+        bool emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
 
-        Math::Vector3D coords() const;
-        Math::Vector3D coordsExact(const Quantization::Quantizer& quantizer) const;
+        Primitives::Vector3D coords() const;
+        Primitives::Vector3D coordsExact(const Math::Quantizer& quantizer) const;
 
        private:
         std::array<TriIn, 3> m_tri;
 
         int emptyFilter() const;
 
-        bool exactFallback(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const;
+        bool exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
     };
 
-    Math::Vector3D coordsExact(const GMPExt4_3& triangle0,
-                               const GMPExt4_3& triangle1,
-                               const GMPExt4_3& triangle2,
-                               const Quantization::Quantizer& quantizer);
+    Primitives::Vector3D coordsExact(const GMPExt4_3& triangle0, const GMPExt4_3& triangle1, const GMPExt4_3& triangle2,
+                                     const Math::Quantizer& quantizer);
 
 }  // namespace Cork::Empty3d

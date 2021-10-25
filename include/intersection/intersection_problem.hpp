@@ -31,41 +31,41 @@
 
 namespace Cork::Intersection
 {
-        enum class AdjustPerturbationResultCodes
+    enum class AdjustPerturbationResultCodes
+    {
+        SUCCESS = 0,
+        MAXIMUM_PERTURBATION_REACHED
+    };
+
+    using AdjustPerturbationResult = SEFUtility::ResultWithReturnValue<AdjustPerturbationResultCodes, int>;
+
+    class IntersectionProblemIfx
+    {
+       public:
+        enum class IntersectionProblemResultCodes
         {
             SUCCESS = 0,
-            MAXIMUM_PERTURBATION_REACHED
+            OUT_OF_MEMORY,
+            SUBDIVIDE_FAILED,
+            EXHAUSTED_PURTURBATION_RETRIES,
+            SELF_INTERSECTING_MESH,
+            CONSOLIDATE_FAILED
         };
 
-        typedef SEFUtility::ResultWithReturnValue<AdjustPerturbationResultCodes, int> AdjustPerturbationResult;
+        using IntersectionProblemResult = SEFUtility::Result<IntersectionProblemResultCodes>;
 
-        class IntersectionProblemIfx
-        {
-           public:
-            enum class IntersectionProblemResultCodes
-            {
-                SUCCESS = 0,
-                OUT_OF_MEMORY,
-                SUBDIVIDE_FAILED,
-                EXHAUSTED_PURTURBATION_RETRIES,
-                SELF_INTERSECTING_MESH,
-                CONSOLIDATE_FAILED
-            };
+        static std::unique_ptr<IntersectionProblemIfx> GetProblem(Meshes::MeshBase& owner,
+                                                                  const Math::Quantizer& quantizer,
+                                                                  const Primitives::BBox3D& intersectionBBox);
 
-            typedef SEFUtility::Result<IntersectionProblemResultCodes> IntersectionProblemResult;
+        virtual ~IntersectionProblemIfx() {}
 
-            static std::unique_ptr<IntersectionProblemIfx> GetProblem(MeshBase& owner,
-                                                                      const Quantization::Quantizer& quantizer,
-                                                                      const Cork::Math::BBox3D& intersectionBBox);
+        virtual IntersectionProblemResult FindIntersections() = 0;
+        virtual IntersectionProblemResult ResolveAllIntersections() = 0;
 
-            virtual ~IntersectionProblemIfx() {}
+        virtual const std::vector<IntersectionInfo> CheckSelfIntersection() = 0;
 
-            virtual IntersectionProblemResult FindIntersections() = 0;
-            virtual IntersectionProblemResult ResolveAllIntersections() = 0;
-
-            virtual const std::vector<IntersectionInfo> CheckSelfIntersection() = 0;
-
-            virtual void commit() = 0;
-        };
+        virtual void commit() = 0;
+    };
 
 }  // namespace Cork::Intersection

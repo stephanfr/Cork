@@ -31,6 +31,8 @@
 
 namespace Cork::AABVH
 {
+    using IndexType = Primitives::IndexType;
+
     // precondition: begin <= select < end
 
     inline void AxisAlignedBoundingVolumeHierarchy::QuickSelect(size_t select, size_t begin, size_t end, size_t dim)

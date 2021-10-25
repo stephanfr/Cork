@@ -28,11 +28,8 @@
 #include "mesh/EGraphCache.h"
 #include "tbb/tbb.h"
 
-namespace Cork
+namespace Cork::Meshes
 {
-    using IndexType = Math::IndexType;
-    using TriangleMesh = Meshes::TriangleMesh;
-
     //
     //	The Mesh class brings together the functionality needed for the boolean operations
     //
@@ -64,14 +61,13 @@ namespace Cork
 
         // NOLINTBEGIN(google-default-arguments)
 
-        BooleanOperationResult Union(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock ) const final;
-        BooleanOperationResult Difference(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock ) const final;
-        BooleanOperationResult Intersection(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock ) const final;
-        BooleanOperationResult SymmetricDifference(
-            const CorkMesh& rhs, const SolverControlBlock& solverControlBlock ) const final;
+        BooleanOperationResult Union(const CorkMesh& rhs, const SolverControlBlock& solverControlBlock) const final;
+        BooleanOperationResult Difference(const CorkMesh& rhs,
+                                          const SolverControlBlock& solverControlBlock) const final;
+        BooleanOperationResult Intersection(const CorkMesh& rhs,
+                                            const SolverControlBlock& solverControlBlock) const final;
+        BooleanOperationResult SymmetricDifference(const CorkMesh& rhs,
+                                                   const SolverControlBlock& solverControlBlock) const final;
 
         // NOLINTEND(google-default-arguments)
 
@@ -128,8 +124,8 @@ namespace Cork
         void for_ecache(EGraphCache& ecache, int numThreads,
                         std::function<void(const EGraphEntryTIDVector& tids)> action) const;
 
-        bool isInside(IndexType tid, uint32_t operand);
+        bool isInside(Primitives::IndexType tid, uint32_t operand);
 
-        void RayTriangleIntersection(const CorkTriangle& tri, Math::Ray3D& ray, long& winding);
+        void RayTriangleIntersection(const CorkTriangle& tri, Primitives::Ray3D& ray, long& winding);
     };
-}  // namespace Cork
+}  // namespace Cork::Meshes

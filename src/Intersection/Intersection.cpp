@@ -33,7 +33,6 @@
 #include "accel/aabvh.h"
 #include "intersection/empty3d.hpp"
 #include "math/gmpext4.hpp"
-#include "intersection/quantization.hpp"
 #include "intersection/triangulator.hpp"
 #include "intersection/intersection_problem.hpp"
 #include "mesh/MeshBase.h"
@@ -52,6 +51,20 @@ extern "C"
 
 namespace Cork::Intersection
 {
+    using IndexType = Primitives::IndexType;
+    using VertexIndex = Primitives::VertexIndex;
+
+    using TriangleByIndicesIndex = Primitives::TriangleByIndicesIndex;
+
+    using CorkTriangle = Meshes::CorkTriangle;
+    using MeshBase = Meshes::MeshBase;
+    using TopoVert = Meshes::TopoVert;
+    using TopoEdge = Meshes::TopoEdge;
+    using TopoTri = Meshes::TopoTri;
+    using TopoCache = Meshes::TopoCache;
+    using TopoCacheWorkspace = Meshes::TopoCacheWorkspace;
+    using TopoEdgePointerVector = Meshes::TopoEdgePointerVector;
+
     //  The following template classes are needed to insure the correct delete function is associated
     //      with the allocation function used for elements passed to the Triangle library.
 
@@ -70,7 +83,7 @@ namespace Cork::Intersection
     class PerturbationEpsilon
     {
        public:
-        explicit PerturbationEpsilon(const Quantization::Quantizer& quantizer)
+        explicit PerturbationEpsilon(const Math::Quantizer& quantizer)
             : m_bitsOfPurturbationRange(quantizer.bitsOfPurturbationRange()),
               m_quantum(quantizer.purturbationQuantum()),
               m_numAdjustments(0)
@@ -111,7 +124,7 @@ namespace Cork::Intersection
             return (AdjustPerturbationResult(m_numAdjustments));
         }
 
-        Math::Vector3D getPerturbation() const { return (m_randMatrix.getPerturbation(m_numAdjustments, m_quantum)); }
+        Primitives::Vector3D getPerturbation() const { return (m_randMatrix.getPerturbation(m_numAdjustments, m_quantum)); }
 
        private:
         int m_bitsOfPurturbationRange;
@@ -183,7 +196,7 @@ namespace Cork::Intersection
                 }
             }
 
-            Math::Vector3D getPerturbation(int index, double quantum)
+            Primitives::Vector3D getPerturbation(int index, double quantum)
             {
                 if (index >= m_numEntries.size())
                 {
@@ -202,7 +215,7 @@ namespace Cork::Intersection
 
                 const std::tuple<long, long, long>& randEntry = m_randomizationMatrix[index][arrayIndex];
 
-                return (Math::Vector3D(std::get<0>(randEntry) * quantum, std::get<1>(randEntry) * quantum,
+                return (Primitives::Vector3D(std::get<0>(randEntry) * quantum, std::get<1>(randEntry) * quantum,
                                        std::get<2>(randEntry) * quantum));
             }
 
@@ -213,16 +226,16 @@ namespace Cork::Intersection
 
             std::mt19937 m_mersenneTwister;
 
-            Math::Vector3D getBruteForcePerturbation(int index, double quantum)
+            Primitives::Vector3D getBruteForcePerturbation(int index, double quantum)
             {
                 //	We have overrun the size of the randomization table so compute the perturbation
                 //		brute force with lots of random calls.
 
                 int perturbRange = 1 << (index + 2);
 
-                Math::Vector3D perturbation;
+                Primitives::Vector3D perturbation;
 
-                perturbation = Math::Vector3D((m_mersenneTwister() % perturbRange) * quantum,
+                perturbation = Primitives::Vector3D((m_mersenneTwister() % perturbRange) * quantum,
                                               (m_mersenneTwister() % perturbRange) * quantum,
                                               (m_mersenneTwister() % perturbRange) * quantum);
 
@@ -262,7 +275,7 @@ namespace Cork::Intersection
         const TopoTri& t2;
     };
 
-    inline Math::Vector3D computeCoords(const TopoEdge& e, const TopoTri& t, const Quantization::Quantizer& quantizer)
+    inline Primitives::Vector3D computeCoords(const TopoEdge& e, const TopoTri& t, const Math::Quantizer& quantizer)
     {
         Math::ExteriorCalculusR4::GMPExt4_2 edgeCoordinates(e.edgeExactCoordinates(quantizer));
         Math::ExteriorCalculusR4::GMPExt4_3 triangleCoordinates(t.triangleExactCoordinates(quantizer));
@@ -270,8 +283,8 @@ namespace Cork::Intersection
         return (Empty3d::coordsExact(edgeCoordinates, triangleCoordinates, quantizer));
     }
 
-    inline Math::Vector3D computeCoords(const TopoTri& t0, const TopoTri& t1, const TopoTri& t2,
-                                        const Quantization::Quantizer& quantizer)
+    inline Primitives::Vector3D computeCoords(const TopoTri& t0, const TopoTri& t1, const TopoTri& t2,
+                                        const Math::Quantizer& quantizer)
     {
         return (Empty3d::coordsExact(t0.triangleExactCoordinates(quantizer), t1.triangleExactCoordinates(quantizer),
                                      t2.triangleExactCoordinates(quantizer), quantizer));
@@ -358,19 +371,19 @@ namespace Cork::Intersection
 
         GenericVertType() { m_edges.reserve(16); }
 
-        GenericVertType(VertexType type, TopoVert& concreteVertex, const Math::Vector3D& coordinate)
+        GenericVertType(VertexType type, TopoVert& concreteVertex, const Primitives::Vector3D& coordinate)
             : m_vertexType(type), m_concreteVertex(concreteVertex), m_coordinate(coordinate)
         {
             m_edges.reserve(16);
         }
 
-        GenericVertType(VertexType type, TopoVert& concreteVertex, const Math::Vector3D& coordinate, bool boundary)
+        GenericVertType(VertexType type, TopoVert& concreteVertex, const Primitives::Vector3D& coordinate, bool boundary)
             : m_vertexType(type), m_concreteVertex(concreteVertex), m_coordinate(coordinate), m_boundary(boundary)
         {
             m_edges.reserve(16);
         }
 
-        GenericVertType(VertexType type, TopoVert& concreteVertex, const Math::Vector3D& coordinate, bool boundary,
+        GenericVertType(VertexType type, TopoVert& concreteVertex, const Primitives::Vector3D& coordinate, bool boundary,
                         GluePointMarker& glueMarker)
             : m_vertexType(type),
               m_concreteVertex(concreteVertex),
@@ -383,7 +396,7 @@ namespace Cork::Intersection
             m_glueMarker->addVertexToCopies(this);
         }
 
-        GenericVertType(VertexType type, const Math::Vector3D& coordinate, bool boundary, GluePointMarker& glueMarker)
+        GenericVertType(VertexType type, const Primitives::Vector3D& coordinate, bool boundary, GluePointMarker& glueMarker)
             : m_vertexType(type), m_coordinate(coordinate), m_boundary(boundary), m_glueMarker(glueMarker)
         {
             m_edges.reserve(16);
@@ -399,7 +412,7 @@ namespace Cork::Intersection
 
         void setConcreteVertex(TopoVert& concreteVertex) { m_concreteVertex.emplace(concreteVertex); }
 
-        const Math::Vector3D& coordinate() const { return (m_coordinate); }
+        const Primitives::Vector3D& coordinate() const { return (m_coordinate); }
 
         bool isBoundary() const { return (m_boundary); }
 
@@ -426,21 +439,14 @@ namespace Cork::Intersection
 
         uint m_index;  // temporary for triangulation marshalling
 
-        Math::Vector3D m_coordinate;
+        Primitives::Vector3D m_coordinate;
 
         EdgeCollection m_edges;
 
         boost::optional<GluePointMarker&> m_glueMarker;
     };
 
-    //    typedef GenericVertType IsctVertType;
-    //    typedef GenericVertType OrigVertType;
-
     using OrigVertType = GenericVertType;
-
-    //    typedef ManagedIntrusiveValueList<IsctVertType> IsctVertTypeList;
-    //    typedef ManagedIntrusivePointerList<IsctVertType> IntersectionVertexPointerList;
-    //    typedef ManagedIntrusiveValueList<OrigVertType> OrigVertTypeList;
 
     using IsctVertTypeList = ManagedIntrusiveValueList<IsctVertType>;
     using IntersectionVertexPointerList = ManagedIntrusivePointerList<IsctVertType>;
@@ -677,8 +683,8 @@ namespace Cork::Intersection
 
         typedef tbb::concurrent_bounded_queue<TriAndEdgeQueueMessage*> TriangleAndIntersectingEdgesQueue;
 
-        IntersectionProblemBase(MeshBase& owner, const Quantization::Quantizer& quantizer,
-                                const Math::BBox3D& intersectionBBox, IntersectionProblemWorkspaceBase& workspace);
+        IntersectionProblemBase(MeshBase& owner, const Math::Quantizer& quantizer,
+                                const Primitives::BBox3D& intersectionBBox, IntersectionProblemWorkspaceBase& workspace);
 
         IntersectionProblemBase(const IntersectionProblemBase& isctProblemToCopy) = delete;
 
@@ -703,7 +709,7 @@ namespace Cork::Intersection
                                                     computeCoords(t0, t1, t2, m_quantizer), boundary, glue));
         }
 
-        IsctVertType* newSplitIsctVert(const Math::Vector3D& coords, GluePointMarker& glue)
+        IsctVertType* newSplitIsctVert(const Primitives::Vector3D& coords, GluePointMarker& glue)
         {
             return (m_isctVertTypeList.emplace_back(GenericVertType::VertexType::INTERSECTION, coords, false, glue));
         }
@@ -744,7 +750,7 @@ namespace Cork::Intersection
         {
             for (VertexIndex i = 0u; i < m_quantizedCoords.size(); i++)
             {
-                Math::Vector3D perturbation = m_perturbation.getPerturbation();
+                Primitives::Vector3D perturbation = m_perturbation.getPerturbation();
 
                 m_quantizedCoords[i] = m_quantizedCoords[i] + perturbation;
             }
@@ -949,7 +955,7 @@ namespace Cork::Intersection
                 ownerMesh().triangles()[parent.ref()].boolAlgData();
         }
 
-        void dumpIsctPoints(std::vector<Math::Vector3D>* points)
+        void dumpIsctPoints(std::vector<Primitives::Vector3D>* points)
         {
             points->resize(m_gluePointMarkerList.size());
 
@@ -966,7 +972,7 @@ namespace Cork::Intersection
         }
 
        protected:
-        typedef Math::Vertex3DVector QuantizedCoordinatesVector;
+        using QuantizedCoordinatesVector = Primitives::Vertex3DVector;
 
         IntersectionProblemWorkspaceBase& m_workspace;
 
@@ -974,12 +980,12 @@ namespace Cork::Intersection
 
         Empty3d::ExactArithmeticContext m_exactArithmeticContext;
 
-        std::unique_ptr<Math::BBox3D> m_intersectionBBox;
+        std::unique_ptr<Primitives::BBox3D> m_intersectionBBox;
 
         //	Quantizer must be in front of the Perturbation as the perturbation initialization depends on the
         // quantizer
 
-        Quantization::Quantizer m_quantizer;
+        Math::Quantizer m_quantizer;
         PerturbationEpsilon m_perturbation;
 
         QuantizedCoordinatesVector m_quantizedCoords;
@@ -1187,7 +1193,7 @@ namespace Cork::Intersection
             addEdge(iv, tri_key);
         }
 
-        IsctVertType* addBoundaryEndpoint(const TopoTri& tri_key, const TopoEdge& edge, const Math::Vector3D& coord,
+        IsctVertType* addBoundaryEndpoint(const TopoTri& tri_key, const TopoEdge& edge, const Primitives::Vector3D& coord,
                                           GluePointMarker& glue)
         {
             IsctVertType* iv = m_iprob.newSplitIsctVert(coord, glue);
@@ -1203,7 +1209,7 @@ namespace Cork::Intersection
         // Should only happen for manually inserted split points on
         // edges, not for points computed via intersection...
 
-        IsctVertType* addBoundaryPointAlone(const TopoEdge& edge, const Math::Vector3D& coord, GluePointMarker& glue)
+        IsctVertType* addBoundaryPointAlone(const TopoEdge& edge, const Primitives::Vector3D& coord, GluePointMarker& glue)
         {
             IsctVertType* iv = m_iprob.newSplitIsctVert(coord, glue);
             addBoundaryHelper(edge, iv);
@@ -1488,7 +1494,7 @@ namespace Cork::Intersection
                 // sorting is the uncommon case
                 // determine the primary dimension and direction of the edge
 
-                Math::Vector3D dir = ge->ends()[1]->coordinate() - ge->ends()[0]->coordinate();
+                Primitives::Vector3D dir = ge->ends()[1]->coordinate() - ge->ends()[0]->coordinate();
                 uint dim = (fabs(dir.x()) > fabs(dir.y())) ? ((fabs(dir.x()) > fabs(dir.z())) ? 0 : 2)
                                                            : ((fabs(dir.y()) > fabs(dir.z())) ? 1 : 2);
                 double sign = (dir[dim] > 0.0) ? 1.0 : -1.0;
@@ -1608,7 +1614,7 @@ namespace Cork::Intersection
     {
        public:
         IntersectionProblem(
-            MeshBase& owner, const Quantization::Quantizer& quantizer, const Math::BBox3D& intersectionBBox,
+            MeshBase& owner, const Math::Quantizer& quantizer, const Primitives::BBox3D& intersectionBBox,
             SEFUtility::CachingFactory<Intersection::IntersectionProblemWorkspace>::UniquePtr& workspace);
 
         virtual ~IntersectionProblem() { reset(); }
@@ -1637,7 +1643,7 @@ namespace Cork::Intersection
             return (prob);
         }
 
-        void dumpIsctEdges(std::vector<std::pair<Math::Vector3D, Math::Vector3D>>* edges)
+        void dumpIsctEdges(std::vector<std::pair<Primitives::Vector3D, Primitives::Vector3D>>* edges)
         {
             edges->clear();
 
@@ -1713,13 +1719,13 @@ namespace Cork::Intersection
         }
     };
 
-    IntersectionProblemBase::IntersectionProblemBase(MeshBase& owner, const Quantization::Quantizer& quantizer,
-                                                     const Math::BBox3D& intersectionBBox,
+    IntersectionProblemBase::IntersectionProblemBase(MeshBase& owner, const Math::Quantizer& quantizer,
+                                                     const Primitives::BBox3D& intersectionBBox,
                                                      IntersectionProblemWorkspaceBase& workspace)
         : TopoCache(owner, workspace),
           m_quantizer(quantizer),
           m_perturbation(quantizer),
-          m_intersectionBBox(std::make_unique<Math::BBox3D>(intersectionBBox)),
+          m_intersectionBBox(std::make_unique<Primitives::BBox3D>(intersectionBBox)),
           m_workspace(workspace),
           m_gluePointMarkerList(workspace),
           m_isctVertTypeList(workspace),
@@ -1758,7 +1764,7 @@ namespace Cork::Intersection
     }
 
     IntersectionProblem::IntersectionProblem(
-        MeshBase& owner, const Quantization::Quantizer& quantizer, const Math::BBox3D& intersectionBBox,
+        MeshBase& owner, const Math::Quantizer& quantizer, const Primitives::BBox3D& intersectionBBox,
         SEFUtility::CachingFactory<Intersection::IntersectionProblemWorkspace>::UniquePtr& workspace)
         : IntersectionProblemBase(owner, quantizer, intersectionBBox, *(workspace.get())),
           m_workspace(std::move(workspace)),
@@ -2156,8 +2162,8 @@ namespace Cork::Intersection
     }
 
     std::unique_ptr<IntersectionProblemIfx> IntersectionProblemIfx::GetProblem(MeshBase& owner,
-                                                                               const Quantization::Quantizer& quantizer,
-                                                                               const Math::BBox3D& intersectionBBox)
+                                                                               const Math::Quantizer& quantizer,
+                                                                               const Primitives::BBox3D& intersectionBBox)
     {
         IntersectionWorkspaceFactory::UniquePtr workspace(IntersectionWorkspaceFactory::GetInstance());
 

@@ -31,28 +31,32 @@
 #include <boost/timer/timer.hpp>
 #include <sstream>
 
-#include "intersection/unsafe_ray_triangle_intersection.hpp"
-#include "primitives/primitives.hpp"
-#include "mesh/EGraphCache.h"
 #include "intersection/intersection_problem.hpp"
+#include "intersection/unsafe_ray_triangle_intersection.hpp"
+#include "mesh/EGraphCache.h"
 #include "mesh/TopoCache.h"
+#include "primitives/primitives.hpp"
 #include "util/ThreadPool.h"
 #include "util/unionFind.h"
 
-namespace Cork
+namespace Cork::Meshes
 {
     using namespace Intersection;
 
-    using Vertex = Math::Vertex3D;
-    using TriangleByIndicesIndex = Math::TriangleByIndicesIndex;
+    using IndexType = Primitives::IndexType;
+    using VertexIndex = Primitives::VertexIndex;
+
+    using TriangleByIndices = Primitives::TriangleByIndices;
+    using TriangleByIndicesIndex = Primitives::TriangleByIndicesIndex;
     using IncrementalVertexIndexTriangleMeshBuilder = Meshes::IncrementalVertexIndexTriangleMeshBuilder;
 
-    inline double triArea(const Math::Vector3D& a, const Math::Vector3D& b, const Math::Vector3D& c)
+    inline double triArea(const Primitives::Vector3D& a, const Primitives::Vector3D& b, const Primitives::Vector3D& c)
     {
         return ((b - a).cross(c - a).len());
     }
 
-    inline double triAreaSquared(const Math::Vector3D& a, const Math::Vector3D& b, const Math::Vector3D& c)
+    inline double triAreaSquared(const Primitives::Vector3D& a, const Primitives::Vector3D& b,
+                                 const Primitives::Vector3D& c)
     {
         return ((b - a).cross(c - a).len_squared());
     }
@@ -102,7 +106,7 @@ namespace Cork
     {
         // find the point to trace outward from...
 
-        Math::Vector3D p(m_verts[m_tris[tid].a()]);
+        Primitives::Vector3D p(m_verts[m_tris[tid].a()]);
 
         p += m_verts[m_tris[tid].b()];
         p += m_verts[m_tris[tid].c()];
@@ -110,8 +114,8 @@ namespace Cork
 
         // ok, we've got the point, now let's pick a direction
 
-        Math::Ray3DWithInverseDirection directionRay(
-            p, Math::Vector3D::randomVector(0.5, 1.5));  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        Primitives::Ray3DWithInverseDirection directionRay(
+            p, Primitives::Vector3D::randomVector(0.5, 1.5));  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
         long winding = 0;
 
@@ -130,8 +134,8 @@ namespace Cork
 
             //	Check the bounding box intersection first
 
-            Math::BBox3D boundingBox(m_verts[tri.a()].min(m_verts[tri.b()], m_verts[tri.c()]),
-                                     m_verts[tri.a()].max(m_verts[tri.b()], m_verts[tri.c()]));
+            Primitives::BBox3D boundingBox(m_verts[tri.a()].min(m_verts[tri.b()], m_verts[tri.c()]),
+                                           m_verts[tri.a()].max(m_verts[tri.b()], m_verts[tri.c()]));
 
             if (!boundingBox.intersects(directionRay))
             {
@@ -147,7 +151,7 @@ namespace Cork
         return (winding > 0);
     }
 
-    inline void Mesh::RayTriangleIntersection(const CorkTriangle& tri, Math::Ray3D& r, long& winding)
+    inline void Mesh::RayTriangleIntersection(const CorkTriangle& tri, Primitives::Ray3D& r, long& winding)
     {
         NUMERIC_PRECISION flip = 1.0;
 
@@ -155,9 +159,9 @@ namespace Cork
         VertexIndex b = tri.b();
         VertexIndex c = tri.c();
 
-        Math::Vector3D va = m_verts[a];
-        Math::Vector3D vb = m_verts[b];
-        Math::Vector3D vc = m_verts[c];
+        Primitives::Vector3D va = m_verts[a];
+        Primitives::Vector3D vb = m_verts[b];
+        Primitives::Vector3D vc = m_verts[c];
 
         // normalize vertex order (to prevent leaks)
 
@@ -184,7 +188,7 @@ namespace Cork
 
         if (CheckForRayTriangleIntersection(r, va, vb, vc))
         {
-            Math::Vector3D normal = flip * (vb - va).cross(vc - va);
+            Primitives::Vector3D normal = flip * (vb - va).cross(vc - va);
 
             if (normal.dot(r.direction()) > 0.0)
             {
@@ -201,8 +205,7 @@ namespace Cork
     //	Constructors and assignment operators
     //
 
-    Mesh::Mesh(const TriangleMesh& inputMesh, const SolverControlBlock& controlBlock)
-        : MeshBase( controlBlock )
+    Mesh::Mesh(const TriangleMesh& inputMesh, const SolverControlBlock& controlBlock) : MeshBase(controlBlock)
     {
         min_and_max_edge_lengths_ = inputMesh.min_and_max_edge_lengths();
         max_vertex_magnitude_ = inputMesh.max_vertex_magnitude();
@@ -212,7 +215,7 @@ namespace Cork
 
         //	Start by copying the vertices.
 
-        for (Vertex currentVertex : inputMesh.vertices())
+        for (auto currentVertex : inputMesh.vertices())
         {
             m_verts.emplace_back(currentVertex.x(), currentVertex.y(), currentVertex.z());
         }
@@ -320,7 +323,7 @@ namespace Cork
 
         //	Start by finding the intersections
 
-        Quantization::Quantizer::GetQuantizerResult get_quantizer_result = getQuantizer();
+        Math::Quantizer::GetQuantizerResult get_quantizer_result = getQuantizer();
 
         if (!get_quantizer_result.succeeded())
         {
@@ -329,7 +332,7 @@ namespace Cork
                                                        "Failed to create quantizer"));
         }
 
-        Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+        Math::Quantizer quantizer(get_quantizer_result.return_value());
 
         //	Find intersections and then resolve them.  We might have to repurturb if finding and resolving fails.
         //		We can repurturb until we run out of perturbation resolution.
@@ -574,8 +577,8 @@ namespace Cork
 
         std::unique_ptr<ComponentList> components(std::move(FindComponents(*ecache)));
 
-//        SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr topoCacheWorkspace(
-//            SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance());
+        //        SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr topoCacheWorkspace(
+        //            SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance());
 
         std::vector<std::set<VertexIndex>> bodies;
 
@@ -733,9 +736,9 @@ namespace Cork
         {
             currentTid = trisInComponent[i];
 
-            const Math::Vector3D& va = m_verts[m_tris[currentTid].a()];
-            const Math::Vector3D& vb = m_verts[m_tris[currentTid].b()];
-            const Math::Vector3D& vc = m_verts[m_tris[currentTid].c()];
+            const Primitives::Vector3D& va = m_verts[m_tris[currentTid].a()];
+            const Primitives::Vector3D& vb = m_verts[m_tris[currentTid].b()];
+            const Primitives::Vector3D& vc = m_verts[m_tris[currentTid].c()];
 
             double area =
                 triAreaSquared(va, vb, vc);  //	We don't need the square root, we just want the biggest surface area
@@ -1016,9 +1019,9 @@ namespace Cork
 
         for (auto& currentVertex : vertices())
         {
-            triangleMeshBuilder->AddVertex(Vertex((NUMERIC_PRECISION)currentVertex.x(),
-                                                  (NUMERIC_PRECISION)currentVertex.y(),
-                                                  (NUMERIC_PRECISION)currentVertex.z()));
+            triangleMeshBuilder->AddVertex(Primitives::Vertex3D((NUMERIC_PRECISION)currentVertex.x(),
+                                                                (NUMERIC_PRECISION)currentVertex.y(),
+                                                                (NUMERIC_PRECISION)currentVertex.z()));
         }
 
         for_raw_tris([&](VertexIndex a, VertexIndex b, VertexIndex c) {

@@ -44,7 +44,8 @@
 #include <iostream>
 
 #include "ext4_base.hpp"
-#include "intersection/quantization.hpp"
+#include "vector_3D_template.hpp"
+#include "quantization.hpp"
 
 namespace Cork::Math::ExteriorCalculusR4
 {
@@ -60,16 +61,15 @@ namespace Cork::Math::ExteriorCalculusR4
     class GMPExt4_1 : public GMPExt4_1Base
     {
        public:
-
         GMPExt4_1() = default;
 
-        GMPExt4_1(const GMPExt4_1& ext_to_copy) : GMPExt4_1Base(ext_to_copy) {}
-        GMPExt4_1(GMPExt4_1&& ext_to_move) : GMPExt4_1Base(ext_to_move) {}
+        GMPExt4_1(const GMPExt4_1 &ext_to_copy) : GMPExt4_1Base(ext_to_copy) {}
+        GMPExt4_1(GMPExt4_1 &&ext_to_move) : GMPExt4_1Base(ext_to_move) {}
 
-        GMPExt4_1& operator=(const GMPExt4_1& ext_to_copy) = default;
-        GMPExt4_1& operator=(GMPExt4_1&& ext_to_move) = default;
+        GMPExt4_1 &operator=(const GMPExt4_1 &ext_to_copy) = default;
+        GMPExt4_1 &operator=(GMPExt4_1 &&ext_to_move) = default;
 
-        explicit GMPExt4_1(const Math::Vector3D &in, const Quantization::Quantizer &quantizer)
+        explicit GMPExt4_1(const Vector3DTemplate<double> &in, const Math::Quantizer &quantizer)
         {
             e0_ = quantizer.quantize2int(in.x());
             e1_ = quantizer.quantize2int(in.y());
@@ -79,13 +79,13 @@ namespace Cork::Math::ExteriorCalculusR4
 
         ~GMPExt4_1() = default;
 
-        Math::Vector3D operator()(const Quantization::Quantizer &quantizer)
+        Vector3DTemplate<double> operator()(const Math::Quantizer &quantizer)
         {
             assert(e3_ != 0);  //  Trap any divisions by zero!
 
-            return Math::Vector3D(quantizer.reshrink(e0_.get_d() / e3_.get_d()),
-                                  quantizer.reshrink(e1_.get_d() / e3_.get_d()),
-                                  quantizer.reshrink(e2_.get_d() / e3_.get_d()));
+            return Vector3DTemplate<double>(quantizer.reshrink(e0_.get_d() / e3_.get_d()),
+                                            quantizer.reshrink(e1_.get_d() / e3_.get_d()),
+                                            quantizer.reshrink(e2_.get_d() / e3_.get_d()));
         }
 
         // Negation takes a k-vector and returns its negation neg(X,Y) and is safe for X=Y
@@ -126,12 +126,11 @@ namespace Cork::Math::ExteriorCalculusR4
     class GMPExt4_2 : public GMPExt4_2Base
     {
        public:
+        GMPExt4_2(const GMPExt4_2 &ext_to_copy) : GMPExt4_2Base(ext_to_copy) {}
+        GMPExt4_2(GMPExt4_2 &&ext_to_move) : GMPExt4_2Base(ext_to_move) {}
 
-        GMPExt4_2(const GMPExt4_2& ext_to_copy) : GMPExt4_2Base(ext_to_copy) {}
-        GMPExt4_2(GMPExt4_2&& ext_to_move) : GMPExt4_2Base(ext_to_move) {}
-
-        GMPExt4_2& operator=(const GMPExt4_2& ext_to_copy) = default;
-        GMPExt4_2& operator=(GMPExt4_2&& ext_to_move) = default;
+        GMPExt4_2 &operator=(const GMPExt4_2 &ext_to_copy) = default;
+        GMPExt4_2 &operator=(GMPExt4_2 &&ext_to_move) = default;
 
         //  Negation
 
@@ -178,11 +177,11 @@ namespace Cork::Math::ExteriorCalculusR4
        public:
         GMPExt4_3() = default;
 
-        GMPExt4_3(const GMPExt4_3& ext_to_copy) : GMPExt4_3Base(ext_to_copy) {}
-        GMPExt4_3(GMPExt4_3&& ext_to_move) : GMPExt4_3Base(ext_to_move) {}
+        GMPExt4_3(const GMPExt4_3 &ext_to_copy) : GMPExt4_3Base(ext_to_copy) {}
+        GMPExt4_3(GMPExt4_3 &&ext_to_move) : GMPExt4_3Base(ext_to_move) {}
 
-        GMPExt4_3& operator=(const GMPExt4_3& ext_to_copy) = default;
-        GMPExt4_3& operator=(GMPExt4_3&& ext_to_move) = default;
+        GMPExt4_3 &operator=(const GMPExt4_3 &ext_to_copy) = default;
+        GMPExt4_3 &operator=(GMPExt4_3 &&ext_to_move) = default;
 
         //  Negation
 
@@ -263,4 +262,4 @@ namespace Cork::Math::ExteriorCalculusR4
 
     inline GMPExt4_1 GMPExt4_2::meet(const GMPExt4_3 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
 
-}  // namespace Cork::ExteriorCalculusR4
+}  // namespace Cork::Math::ExteriorCalculusR4

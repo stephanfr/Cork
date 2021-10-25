@@ -44,28 +44,29 @@ namespace Cork::Files
 {
     //  Define some local symbols to cur through some of the namespacing
     
-    using TriangleByIndices = Math::TriangleByIndices;
+    using VertexIndex = Primitives::VertexIndex;
+    using TriangleByIndices = Primitives::TriangleByIndices;
     using IncrementalVertexIndexTriangleMeshBuilder = Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilder;
     using TriangleMeshBuilderResultCodes = Cork::Meshes::TriangleMeshBuilderResultCodes;
 
     constexpr uint32_t INITIAL_WRITE_BUFFER_SIZE = 131072;
 
-    inline std::istream& operator>>(std::istream& inStream, Math::TriangleByIndices& triToRead)
+    inline std::istream& operator>>(std::istream& inStream, Primitives::TriangleByIndices& triToRead)
     {
         return (inStream >> triToRead[0] >> triToRead[1] >> triToRead[2]);
     }
 
     inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
-                                                            const Math::TriangleByIndices& triToWrite)
+                                                            const Primitives::TriangleByIndices& triToWrite)
     {
-        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("3 {:d} {:d} {:d}"), Math::VertexIndex::integer_type(triToWrite[0]), Math::VertexIndex::integer_type(triToWrite[1]),
-                       Math::VertexIndex::integer_type(triToWrite[2]));
+        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("3 {:d} {:d} {:d}"), VertexIndex::integer_type(triToWrite[0]), VertexIndex::integer_type(triToWrite[1]),
+                       VertexIndex::integer_type(triToWrite[2]));
 
         return (out_stream);
     }
 
     inline SEFUtility::PerformanceOStringStream& WriteVertex(SEFUtility::PerformanceOStringStream& out_stream,
-                                                             const Math::Vertex3D& vertex)
+                                                             const Primitives::Vertex3D& vertex)
     {
         fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("{:g} {:g} {:g}"), vertex.x(), vertex.y(),
                        vertex.z());
@@ -74,7 +75,7 @@ namespace Cork::Files
     }
 
     inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
-                                                            const Math::Vector3D& vec)
+                                                            const Primitives::Vector3D& vec)
     {
         fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("{:g} {:g} {:g}"), vec.x(), vec.y(), vec.z());
 
@@ -173,7 +174,7 @@ namespace Cork::Files
                     }
                 }
 
-                meshBuilder->AddVertex(Math::Vertex3D(x, y, z));
+                meshBuilder->AddVertex(Primitives::Vertex3D(x, y, z));
 
                 if (meshBuilder->num_vertices() != i + 1)
                 {
@@ -225,7 +226,7 @@ namespace Cork::Files
                                                    "Error reading faces.");
                 }
 
-                if (meshBuilder->AddTriangle(TriangleByIndices(x_index, y_index, z_index)) !=
+                if (meshBuilder->AddTriangle(Primitives::TriangleByIndices(x_index, y_index, z_index)) !=
                     TriangleMeshBuilderResultCodes::SUCCESS)
                 {
                     return ReadFileResult::failure(
@@ -305,7 +306,7 @@ namespace Cork::Files
 
         out.flush();
 
-        return (WriteFileResult::success());
+        return WriteFileResult::success();
     }
 
 }  // namespace Cork::Files

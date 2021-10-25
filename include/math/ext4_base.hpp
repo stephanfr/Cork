@@ -1,7 +1,7 @@
 #pragma once
 
-#include "CorkDefs.h"
-#include "primitives/primitives.hpp"
+#include <gsl/gsl_util>
+#include <iostream>
 
 namespace Cork::Math::ExteriorCalculusR4
 {
@@ -72,7 +72,7 @@ namespace Cork::Math::ExteriorCalculusR4
             Ext4_1Base &operator=(const Ext4_1Base &ext_to_copy) = default;
             Ext4_1Base &operator=(Ext4_1Base &&ext_to_move) = default;
 
-            alignas(SIMD_MEMORY_ALIGNMENT) T e0_;
+            T e0_;
             T e1_;
             T e2_;
             T e3_;
@@ -143,7 +143,7 @@ namespace Cork::Math::ExteriorCalculusR4
             Ext4_2Base &operator=(const Ext4_2Base &ext_to_copy) = default;
             Ext4_2Base &operator=(Ext4_2Base &&ext_to_move) = default;
 
-            alignas(SIMD_MEMORY_ALIGNMENT) T e01_;
+            T e01_;
             T e02_;
             T e03_;
             T e12_;
@@ -208,7 +208,7 @@ namespace Cork::Math::ExteriorCalculusR4
             Ext4_3Base &operator=(const Ext4_3Base &ext_to_copy) = default;
             Ext4_3Base &operator=(Ext4_3Base &&ext_to_move) = default;
 
-            alignas(SIMD_MEMORY_ALIGNMENT) T e012_;
+            T e012_;
             T e013_;
             T e023_;
             T e123_;

@@ -81,6 +81,7 @@
         "variant": "cpp",
         "format": "cpp",
         "gsl_assert": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "charconv": "cpp"
     }
 }

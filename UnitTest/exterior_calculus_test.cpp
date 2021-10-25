@@ -37,7 +37,7 @@ namespace Cork
         {
             //  Create from a vector, assignment and equality
 
-            Cork::Math::Vector3D test_vec(7, 4, 3);
+            Cork::Primitives::Vector3D test_vec(7, 4, 3);
 
             Math::ExteriorCalculusR4::Ext4_1 test_R4_ext(test_vec);
             Math::ExteriorCalculusR4::Ext4_1 test_R4_ext_copy(test_R4_ext);
@@ -97,9 +97,9 @@ namespace Cork
 
         SECTION("Ext4_1 Join (Wedge Product)")
         {
-            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(3, 4, 5));
-            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(6, 7, 8));
-            Math::ExteriorCalculusR4::Ext4_1 vec_3(Cork::Math::Vector3D(14, -10, 5));
+            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Primitives::Vector3D(3, 4, 5));
+            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Primitives::Vector3D(6, 7, 8));
+            Math::ExteriorCalculusR4::Ext4_1 vec_3(Cork::Primitives::Vector3D(14, -10, 5));
 
             //  Compute wedge of two Ext4_1 vectors
 
@@ -122,8 +122,8 @@ namespace Cork
 
         SECTION("Ext4_1 Inner (Dot Product)")
         {
-            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(3, 4, 5));
-            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(6, 7, 8));
+            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Primitives::Vector3D(3, 4, 5));
+            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Primitives::Vector3D(6, 7, 8));
 
             double dot_1_2 = vec_1.inner(vec_2);
 
@@ -134,8 +134,8 @@ namespace Cork
         {
             //  Create from a vector, assignment and equality
 
-            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(7, 4, 3));
-            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(11, 17, 13));
+            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Primitives::Vector3D(7, 4, 3));
+            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Primitives::Vector3D(11, 17, 13));
 
             Math::ExteriorCalculusR4::Ext4_2 ext2_1 = vec_1.join(vec_2);
 
@@ -190,8 +190,8 @@ namespace Cork
         {
             //  Create from a pair of vectors and check values
 
-            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(7, 4, 3));
-            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(11, 17, 13));
+            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Primitives::Vector3D(7, 4, 3));
+            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Primitives::Vector3D(11, 17, 13));
 
             Math::ExteriorCalculusR4::Ext4_2 ext2_1 = vec_1.join(vec_2);
 
@@ -202,7 +202,7 @@ namespace Cork
 
             //  Compute the wedge product of the ext2_1 and the vector leaving an Ext4_3
 
-            Math::ExteriorCalculusR4::Ext4_1 vec_3(Cork::Math::Vector3D(14, -10, 5));
+            Math::ExteriorCalculusR4::Ext4_1 vec_3(Cork::Primitives::Vector3D(14, -10, 5));
 
             Math::ExteriorCalculusR4::Ext4_3 ext3_1 = ext2_1.join(vec_3);
 
@@ -214,8 +214,8 @@ namespace Cork
         {
             //  First Ext4_2
 
-            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(7, 4, 3));
-            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(11, 17, 13));
+            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Primitives::Vector3D(7, 4, 3));
+            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Primitives::Vector3D(11, 17, 13));
 
             Math::ExteriorCalculusR4::Ext4_2 ext2_1 = vec_1.join(vec_2);
 
@@ -226,8 +226,8 @@ namespace Cork
 
             //  Second Ext4_2
 
-            Math::ExteriorCalculusR4::Ext4_1 vec_3(Cork::Math::Vector3D(-5, 6, 9));
-            Math::ExteriorCalculusR4::Ext4_1 vec_4(Cork::Math::Vector3D(13, -17, 4));
+            Math::ExteriorCalculusR4::Ext4_1 vec_3(Cork::Primitives::Vector3D(-5, 6, 9));
+            Math::ExteriorCalculusR4::Ext4_1 vec_4(Cork::Primitives::Vector3D(13, -17, 4));
 
             Math::ExteriorCalculusR4::Ext4_2 ext2_2 = vec_3.join(vec_4);
 
@@ -243,12 +243,12 @@ namespace Cork
 
         SECTION("Triangle Edge Intersection with Ext4_2 Meet")
         {
-            Math::ExteriorCalculusR4::Ext4_1 tri_1(Cork::Math::Vector3D(2, 2, 1));
-            Math::ExteriorCalculusR4::Ext4_1 tri_2(Cork::Math::Vector3D(7, 4, 2));
-            Math::ExteriorCalculusR4::Ext4_1 tri_3(Cork::Math::Vector3D(4, 9, 3));
+            Math::ExteriorCalculusR4::Ext4_1 tri_1(Cork::Primitives::Vector3D(2, 2, 1));
+            Math::ExteriorCalculusR4::Ext4_1 tri_2(Cork::Primitives::Vector3D(7, 4, 2));
+            Math::ExteriorCalculusR4::Ext4_1 tri_3(Cork::Primitives::Vector3D(4, 9, 3));
 
-            Math::ExteriorCalculusR4::Ext4_1 edge_1(Cork::Math::Vector3D(2, 2, 3));
-            Math::ExteriorCalculusR4::Ext4_1 edge_2(Cork::Math::Vector3D(6, 7, 0));
+            Math::ExteriorCalculusR4::Ext4_1 edge_1(Cork::Primitives::Vector3D(2, 2, 3));
+            Math::ExteriorCalculusR4::Ext4_1 edge_2(Cork::Primitives::Vector3D(6, 7, 0));
 
             //  Build the Ext4_3 for the triangle
 
@@ -265,7 +265,7 @@ namespace Cork
             //  Convert back into a point, which is mostly just normalizing by e3.
             //      Negative e3 values will be resolved by the division.
 
-            Cork::Math::Vector3D result(intersection);
+            Cork::Primitives::Vector3D result(intersection);
 
             REQUIRE(((result.x() == Catch::Approx(538.0 / 145.0).epsilon(0.00001)) &&
                      (result.y() == Catch::Approx(120.0 / 29.0).epsilon(0.00001)) &&
@@ -274,9 +274,9 @@ namespace Cork
 
         SECTION("Ext4_3 Basic Tests")
         {
-            Math::ExteriorCalculusR4::Ext4_1 tri_1(Cork::Math::Vector3D(2, 2, 1));
-            Math::ExteriorCalculusR4::Ext4_1 tri_2(Cork::Math::Vector3D(7, 4, 2));
-            Math::ExteriorCalculusR4::Ext4_1 tri_3(Cork::Math::Vector3D(4, 9, 3));
+            Math::ExteriorCalculusR4::Ext4_1 tri_1(Cork::Primitives::Vector3D(2, 2, 1));
+            Math::ExteriorCalculusR4::Ext4_1 tri_2(Cork::Primitives::Vector3D(7, 4, 2));
+            Math::ExteriorCalculusR4::Ext4_1 tri_3(Cork::Primitives::Vector3D(4, 9, 3));
 
             //  Build the Ext4_3 for the triangle
 
@@ -324,17 +324,17 @@ namespace Cork
 
         SECTION("Triangle Triangle Triangle Intersection with Ext4_3 Meet")
         {
-            Math::ExteriorCalculusR4::Ext4_1 tri1_1(Cork::Math::Vector3D(1, 3, 1));
-            Math::ExteriorCalculusR4::Ext4_1 tri1_2(Cork::Math::Vector3D(4, 7, 4));
-            Math::ExteriorCalculusR4::Ext4_1 tri1_3(Cork::Math::Vector3D(7, 9, 3));
+            Math::ExteriorCalculusR4::Ext4_1 tri1_1(Cork::Primitives::Vector3D(1, 3, 1));
+            Math::ExteriorCalculusR4::Ext4_1 tri1_2(Cork::Primitives::Vector3D(4, 7, 4));
+            Math::ExteriorCalculusR4::Ext4_1 tri1_3(Cork::Primitives::Vector3D(7, 9, 3));
 
-            Math::ExteriorCalculusR4::Ext4_1 tri2_1(Cork::Math::Vector3D(2, 2, 3));
-            Math::ExteriorCalculusR4::Ext4_1 tri2_2(Cork::Math::Vector3D(6, 7, 3));
-            Math::ExteriorCalculusR4::Ext4_1 tri2_3(Cork::Math::Vector3D(4, 8, 4));
+            Math::ExteriorCalculusR4::Ext4_1 tri2_1(Cork::Primitives::Vector3D(2, 2, 3));
+            Math::ExteriorCalculusR4::Ext4_1 tri2_2(Cork::Primitives::Vector3D(6, 7, 3));
+            Math::ExteriorCalculusR4::Ext4_1 tri2_3(Cork::Primitives::Vector3D(4, 8, 4));
 
-            Math::ExteriorCalculusR4::Ext4_1 tri3_1(Cork::Math::Vector3D(2, 2, 4));
-            Math::ExteriorCalculusR4::Ext4_1 tri3_2(Cork::Math::Vector3D(6, 7, 1));
-            Math::ExteriorCalculusR4::Ext4_1 tri3_3(Cork::Math::Vector3D(4, 8, 5));
+            Math::ExteriorCalculusR4::Ext4_1 tri3_1(Cork::Primitives::Vector3D(2, 2, 4));
+            Math::ExteriorCalculusR4::Ext4_1 tri3_2(Cork::Primitives::Vector3D(6, 7, 1));
+            Math::ExteriorCalculusR4::Ext4_1 tri3_3(Cork::Primitives::Vector3D(4, 8, 5));
 
             //  Build the Ext4_3 for the triangle 1
 
@@ -357,7 +357,7 @@ namespace Cork
             //  Convert back into a point, which is mostly just normalizing by e3.
             //      Negative e3 values will be resolved by the division.
 
-            Cork::Math::Vector3D result(intersection);
+            Cork::Primitives::Vector3D result(intersection);
 
             REQUIRE(((result.x() == Catch::Approx(104.0 / 23.0).epsilon(0.00001)) &&
                      (result.y() == Catch::Approx(499.0 / 69.0).epsilon(0.00001)) &&
@@ -374,8 +374,8 @@ namespace Cork
         {
             //  Create from a vector, assignment and equality
 
-            Cork::Math::Vector3D test_vec(-7, -4, -3);
-            Cork::Math::Vector3D test_vec_2(-7, 4, -3);
+            Cork::Primitives::Vector3D test_vec(-7, -4, -3);
+            Cork::Primitives::Vector3D test_vec_2(-7, 4, -3);
 
             Math::ExteriorCalculusR4::Ext4_1 temp(test_vec);
 
@@ -439,9 +439,9 @@ namespace Cork
 
         SECTION("AbsExt4_1 Join (Wedge Product)")
         {
-            Math::ExteriorCalculusR4::AbsExt4_1 vec_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(-3, 4, 5)));
-            Math::ExteriorCalculusR4::AbsExt4_1 vec_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, -7, 8)));
-            Math::ExteriorCalculusR4::AbsExt4_1 vec_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(14, 10, -5)));
+            Math::ExteriorCalculusR4::AbsExt4_1 vec_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(-3, 4, 5)));
+            Math::ExteriorCalculusR4::AbsExt4_1 vec_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(6, -7, 8)));
+            Math::ExteriorCalculusR4::AbsExt4_1 vec_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(14, 10, -5)));
 
             //  Compute wedge of two AbsExt4_1 vectors
 
@@ -462,8 +462,8 @@ namespace Cork
 
         SECTION("AbsExt4_1 Inner (Dot Product)")
         {
-            Math::ExteriorCalculusR4::AbsExt4_1 vec_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(3, -4, 5)));
-            Math::ExteriorCalculusR4::AbsExt4_1 vec_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, 7, -8)));
+            Math::ExteriorCalculusR4::AbsExt4_1 vec_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(3, -4, 5)));
+            Math::ExteriorCalculusR4::AbsExt4_1 vec_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(6, 7, -8)));
 
             double dot_1_2 = vec_1.inner(vec_2);
 
@@ -474,8 +474,8 @@ namespace Cork
         {
             //  Create from an Ext4_2 from joining a pair of vectors and create an AbsExt2 from it
 
-            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(7, 4, 3));
-            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(11, 17, 13));
+            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Primitives::Vector3D(7, 4, 3));
+            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Primitives::Vector3D(11, 17, 13));
 
             Math::ExteriorCalculusR4::Ext4_2 ext2 = vec_1.join(vec_2);
 
@@ -535,8 +535,8 @@ namespace Cork
         {
             //  Create from a pair of vectors and check values
 
-            Math::ExteriorCalculusR4::AbsExt4_1 vec_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(7, 4, 3)));
-            Math::ExteriorCalculusR4::AbsExt4_1 vec_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(11, 17, 13)));
+            Math::ExteriorCalculusR4::AbsExt4_1 vec_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(7, 4, 3)));
+            Math::ExteriorCalculusR4::AbsExt4_1 vec_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(11, 17, 13)));
 
             Math::ExteriorCalculusR4::AbsExt4_2 ext2 = vec_1.join(vec_2);
 
@@ -547,7 +547,7 @@ namespace Cork
 
             //  Compute the wedge product of the Ext4_2 and the vector leaving an Ext4_3
 
-            Math::ExteriorCalculusR4::AbsExt4_1 vec_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(14, -10, 5)));
+            Math::ExteriorCalculusR4::AbsExt4_1 vec_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(14, -10, 5)));
 
             Math::ExteriorCalculusR4::AbsExt4_3 ext3 = ext2.join(vec_3);
 
@@ -558,8 +558,8 @@ namespace Cork
         {
             //  First Ext4_2
 
-            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(7, 4, 3));
-            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(11, 17, 13));
+            Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Primitives::Vector3D(7, 4, 3));
+            Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Primitives::Vector3D(11, 17, 13));
 
             Math::ExteriorCalculusR4::Ext4_2 ext2_1 = vec_1.join(vec_2);
 
@@ -568,8 +568,8 @@ namespace Cork
 
             //  Second Ext4_2
 
-            Math::ExteriorCalculusR4::Ext4_1 vec_3(Cork::Math::Vector3D(-5, 6, 9));
-            Math::ExteriorCalculusR4::Ext4_1 vec_4(Cork::Math::Vector3D(13, -17, 4));
+            Math::ExteriorCalculusR4::Ext4_1 vec_3(Cork::Primitives::Vector3D(-5, 6, 9));
+            Math::ExteriorCalculusR4::Ext4_1 vec_4(Cork::Primitives::Vector3D(13, -17, 4));
 
             Math::ExteriorCalculusR4::Ext4_2 ext2_2 = vec_3.join(vec_4);
 
@@ -588,12 +588,12 @@ namespace Cork
 
         SECTION("Triangle Edge Intersection with AbsExt4_2 Meet")
         {
-            Math::ExteriorCalculusR4::AbsExt4_1 tri_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(2, 2, 1)));
-            Math::ExteriorCalculusR4::AbsExt4_1 tri_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(7, 4, 2)));
-            Math::ExteriorCalculusR4::AbsExt4_1 tri_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(4, 9, 3)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(2, 2, 1)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(7, 4, 2)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(4, 9, 3)));
 
-            Math::ExteriorCalculusR4::AbsExt4_1 edge_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(2, 2, 3)));
-            Math::ExteriorCalculusR4::AbsExt4_1 edge_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, 7, 0)));
+            Math::ExteriorCalculusR4::AbsExt4_1 edge_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(2, 2, 3)));
+            Math::ExteriorCalculusR4::AbsExt4_1 edge_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(6, 7, 0)));
 
             //  Build the Ext4_3 for the triangle
 
@@ -610,7 +610,7 @@ namespace Cork
             //  Convert back into a point, which is mostly just normalizing by e3.
             //      Negative e3 values will be resolved by the division.
 
-            Cork::Math::Vector3D result(intersection);
+            Cork::Primitives::Vector3D result(intersection);
 
             REQUIRE(((result.x() == Catch::Approx(5162.0 / 1255.0).epsilon(0.00001)) &&
                      (result.y() == Catch::Approx(5818.0 / 1255.0).epsilon(0.00001)) &&
@@ -619,9 +619,9 @@ namespace Cork
 
         SECTION("AbsExt4_3 Basic Tests")
         {
-            Math::ExteriorCalculusR4::AbsExt4_1 tri_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(2, -2, 1)));
-            Math::ExteriorCalculusR4::AbsExt4_1 tri_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(-7, 4, 2)));
-            Math::ExteriorCalculusR4::AbsExt4_1 tri_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(4, 9, -3)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(2, -2, 1)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(-7, 4, 2)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(4, 9, -3)));
 
             //  Build the AbsExt4_3 for the triangle
 
@@ -670,17 +670,17 @@ namespace Cork
 
         SECTION("Triangle Triangle Triangle Intersection with AbsExt4_3 Meet")
         {
-            Math::ExteriorCalculusR4::AbsExt4_1 tri1_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(1, 3, 1)));
-            Math::ExteriorCalculusR4::AbsExt4_1 tri1_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(4, 7, 4)));
-            Math::ExteriorCalculusR4::AbsExt4_1 tri1_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(7, 9, 3)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri1_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(1, 3, 1)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri1_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(4, 7, 4)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri1_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(7, 9, 3)));
 
-            Math::ExteriorCalculusR4::AbsExt4_1 tri2_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(2, 2, 3)));
-            Math::ExteriorCalculusR4::AbsExt4_1 tri2_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, 7, 3)));
-            Math::ExteriorCalculusR4::AbsExt4_1 tri2_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(4, 8, 4)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri2_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(2, 2, 3)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri2_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(6, 7, 3)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri2_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(4, 8, 4)));
 
-            Math::ExteriorCalculusR4::AbsExt4_1 tri3_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(2, 2, 4)));
-            Math::ExteriorCalculusR4::AbsExt4_1 tri3_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, 7, 1)));
-            Math::ExteriorCalculusR4::AbsExt4_1 tri3_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(4, 8, 5)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri3_1(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(2, 2, 4)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri3_2(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(6, 7, 1)));
+            Math::ExteriorCalculusR4::AbsExt4_1 tri3_3(Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(4, 8, 5)));
 
             //  Build the AbsExt4_3 for the triangle 1
 
@@ -703,7 +703,7 @@ namespace Cork
             //  Convert back into a point, which is mostly just normalizing by e3.
             //      Negative e3 values will be resolved by the division.
 
-            Cork::Math::Vector3D result(intersection);
+            Cork::Primitives::Vector3D result(intersection);
 
             REQUIRE(((result.x() == Catch::Approx(5336236.0 / 1532419.0).epsilon(0.00001)) &&
                      (result.y() == Catch::Approx(7677043.0 / 1532419.0).epsilon(0.00001)) &&
@@ -718,16 +718,16 @@ namespace Cork
 
         SECTION("Basic FixExt4_1 Functionality")
         {
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e2, 10e-2);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e2, 10e-2);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
             //  Create from a vector, assignment and equality
 
-            Cork::Math::Vector3D test_vec(7, 4, 3);
+            Cork::Primitives::Vector3D test_vec(7, 4, 3);
 
             Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> test_R4_ext(test_vec, quantizer);
 
@@ -793,19 +793,19 @@ namespace Cork
 
         SECTION("Ext4_1 Join (Wedge Product)")
         {
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
             Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> vec_1(
-                Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(3, 4, 5)), quantizer);
+                Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(3, 4, 5)), quantizer);
             Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> vec_2(
-                Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(6, 7, 8)), quantizer);
+                Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(6, 7, 8)), quantizer);
             Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> vec_3(
-                Math::ExteriorCalculusR4::Ext4_1(Cork::Math::Vector3D(14, -10, 5)), quantizer);
+                Math::ExteriorCalculusR4::Ext4_1(Cork::Primitives::Vector3D(14, -10, 5)), quantizer);
 
             //  Compute wedge of two Ext4_1 vectors
 
@@ -827,15 +827,15 @@ namespace Cork
 
         SECTION("FixExt4_1 Inner (Dot Product)")
         {
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e2, 10e-2);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e2, 10e-2);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_1(Cork::Math::Vector3D(3, 4, 5), quantizer);
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_2(Cork::Math::Vector3D(6, 7, 8), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_1(Cork::Primitives::Vector3D(3, 4, 5), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_2(Cork::Primitives::Vector3D(6, 7, 8), quantizer);
 
             auto dot_1_2 = fixext1_1.inner(fixext1_2);
 
@@ -846,15 +846,15 @@ namespace Cork
         {
             //  Create from a vector, assignment and equality
 
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e2, 10e-2);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e2, 10e-2);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_1(Cork::Math::Vector3D(7, 4, 3), quantizer);
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_2(Cork::Math::Vector3D(11, 17, 13), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_1(Cork::Primitives::Vector3D(7, 4, 3), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_2(Cork::Primitives::Vector3D(11, 17, 13), quantizer);
 
             auto fixext2_1(fixext1_1.join(fixext1_2));
 
@@ -923,17 +923,17 @@ namespace Cork
         {
             //  Create from a vector, assignment and equality
 
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_1(Cork::Math::Vector3D(7, 4, 3), quantizer);
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_2(Cork::Math::Vector3D(11, 17, 13), quantizer);
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_3(Cork::Math::Vector3D(14, 9, 10), quantizer);
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_4(Cork::Math::Vector3D(19, 18, 16), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_1(Cork::Primitives::Vector3D(7, 4, 3), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_2(Cork::Primitives::Vector3D(11, 17, 13), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_3(Cork::Primitives::Vector3D(14, 9, 10), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_4(Cork::Primitives::Vector3D(19, 18, 16), quantizer);
 
             auto fixext2_1(fixext1_1.join(fixext1_2));
             auto fixext2_2(fixext1_3.join(fixext1_4));
@@ -947,16 +947,16 @@ namespace Cork
         {
             //  Create from a vector, assignment and equality
 
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_1(Cork::Math::Vector3D(7, 4, 3), quantizer);
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_2(Cork::Math::Vector3D(11, 17, 13), quantizer);
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_3(Cork::Math::Vector3D(14, 9, 10), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_1(Cork::Primitives::Vector3D(7, 4, 3), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_2(Cork::Primitives::Vector3D(11, 17, 13), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_3(Cork::Primitives::Vector3D(14, 9, 10), quantizer);
 
             auto fixext3_1((fixext1_1.join(fixext1_2)).join(fixext1_3));
 
@@ -1019,19 +1019,19 @@ namespace Cork
         {
             //  Create from a vector, assignment and equality
 
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_1(Cork::Math::Vector3D(7, 4, 3), quantizer);
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_2(Cork::Math::Vector3D(11, 17, 13), quantizer);
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_3(Cork::Math::Vector3D(14, 9, 10), quantizer);
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_4(Cork::Math::Vector3D(19, 18, 16), quantizer);
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_5(Cork::Math::Vector3D(14, 22, -6), quantizer);
-            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_6(Cork::Math::Vector3D(-5, -10, -15), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_1(Cork::Primitives::Vector3D(7, 4, 3), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_2(Cork::Primitives::Vector3D(11, 17, 13), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_3(Cork::Primitives::Vector3D(14, 9, 10), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_4(Cork::Primitives::Vector3D(19, 18, 16), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_5(Cork::Primitives::Vector3D(14, 22, -6), quantizer);
+            Math::ExteriorCalculusR4::FixExt4_1<FIXED_INTEGER_BITS> fixext1_6(Cork::Primitives::Vector3D(-5, -10, -15), quantizer);
 
             auto fixext3_1((fixext1_1.join(fixext1_2)).join(fixext1_3));
             auto fixext3_2((fixext1_4.join(fixext1_5)).join(fixext1_6));
@@ -1049,16 +1049,16 @@ namespace Cork
 
         SECTION("Basic GMPExt4_1 Functionality")
         {
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
             //  Create from a vector, assignment and equality
 
-            Cork::Math::Vector3D test_vec(7, 4, 3);
+            Cork::Primitives::Vector3D test_vec(7, 4, 3);
 
             Math::ExteriorCalculusR4::GMPExt4_1 test_R4_ext(test_vec, quantizer);
             Math::ExteriorCalculusR4::GMPExt4_1 test_R4_ext_copy(test_R4_ext);
@@ -1119,18 +1119,18 @@ namespace Cork
 
         SECTION("GMPExt4_1 Join (Wedge Product)")
         {
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
             //  Create from a vector, assignment and equality
 
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_1(Cork::Math::Vector3D(3, 4, 5), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_2(Cork::Math::Vector3D(6, 7, 8), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_3(Cork::Math::Vector3D(14, -10, 5), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_1(Cork::Primitives::Vector3D(3, 4, 5), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_2(Cork::Primitives::Vector3D(6, 7, 8), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_3(Cork::Primitives::Vector3D(14, -10, 5), quantizer);
 
             //  Compute wedge of two GMPExt4_1 vectors
 
@@ -1152,15 +1152,15 @@ namespace Cork
 
         SECTION("GMPExt4_1 Inner (Dot Product)")
         {
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_1(Cork::Math::Vector3D(3, 4, 5), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_2(Cork::Math::Vector3D(6, 7, 8), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_1(Cork::Primitives::Vector3D(3, 4, 5), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_2(Cork::Primitives::Vector3D(6, 7, 8), quantizer);
 
             auto dot_1_2 = vec_1.inner(vec_2);
 
@@ -1169,17 +1169,17 @@ namespace Cork
 
         SECTION("Basic GMPExt4_2 Functionality")
         {
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
             //  Create from a vector, assignment and equality
 
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_1(Cork::Math::Vector3D(7, 4, 3), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_2(Cork::Math::Vector3D(11, 17, 13), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_1(Cork::Primitives::Vector3D(7, 4, 3), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_2(Cork::Primitives::Vector3D(11, 17, 13), quantizer);
 
             Math::ExteriorCalculusR4::GMPExt4_2 ext2_1 = vec_1.join(vec_2);
 
@@ -1233,17 +1233,17 @@ namespace Cork
 
         SECTION("GMPExt4_2 Join (Wedge Product)")
         {
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
             //  Create from a pair of vectors and check values
 
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_1(Cork::Math::Vector3D(7, 4, 3), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_2(Cork::Math::Vector3D(11, 17, 13), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_1(Cork::Primitives::Vector3D(7, 4, 3), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_2(Cork::Primitives::Vector3D(11, 17, 13), quantizer);
 
             Math::ExteriorCalculusR4::GMPExt4_2 ext2_1 = vec_1.join(vec_2);
 
@@ -1252,7 +1252,7 @@ namespace Cork
 
             //  Compute the wedge product of the ext2_1 and the vector leaving an Ext4_3
 
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_3(Cork::Math::Vector3D(14, -10, 5), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_3(Cork::Primitives::Vector3D(14, -10, 5), quantizer);
 
             Math::ExteriorCalculusR4::GMPExt4_3 ext3_1 = ext2_1.join(vec_3);
 
@@ -1262,17 +1262,17 @@ namespace Cork
 
         SECTION("GMPExt4_2 Inner (Dot Product)")
         {
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
             //  First GMPExt4_2
 
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_1(Cork::Math::Vector3D(7, 4, 3), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_2(Cork::Math::Vector3D(11, 17, 13), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_1(Cork::Primitives::Vector3D(7, 4, 3), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_2(Cork::Primitives::Vector3D(11, 17, 13), quantizer);
 
             Math::ExteriorCalculusR4::GMPExt4_2 ext2_1 = vec_1.join(vec_2);
 
@@ -1283,8 +1283,8 @@ namespace Cork
 
             //  Second GMPExt4_2
 
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_3(Cork::Math::Vector3D(-5, 6, 9), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 vec_4(Cork::Math::Vector3D(13, -17, 4), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_3(Cork::Primitives::Vector3D(-5, 6, 9), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 vec_4(Cork::Primitives::Vector3D(13, -17, 4), quantizer);
 
             Math::ExteriorCalculusR4::GMPExt4_2 ext2_2 = vec_3.join(vec_4);
 
@@ -1300,19 +1300,19 @@ namespace Cork
 
         SECTION("Triangle Edge Intersection with GMPExt4_2 Meet")
         {
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
-            Math::ExteriorCalculusR4::GMPExt4_1 tri_1(Cork::Math::Vector3D(2, 2, 1), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 tri_2(Cork::Math::Vector3D(7, 4, 2), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 tri_3(Cork::Math::Vector3D(4, 9, 3), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri_1(Cork::Primitives::Vector3D(2, 2, 1), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri_2(Cork::Primitives::Vector3D(7, 4, 2), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri_3(Cork::Primitives::Vector3D(4, 9, 3), quantizer);
 
-            Math::ExteriorCalculusR4::GMPExt4_1 edge_1(Cork::Math::Vector3D(2, 2, 3), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 edge_2(Cork::Math::Vector3D(6, 7, 0), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 edge_1(Cork::Primitives::Vector3D(2, 2, 3), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 edge_2(Cork::Primitives::Vector3D(6, 7, 0), quantizer);
 
             //  Build the Ext4_3 for the triangle
 
@@ -1329,7 +1329,7 @@ namespace Cork
             //  Convert back into a point, which is mostly just normalizing by e3.
             //      Negative e3 values will be resolved by the division.
 
-            Cork::Math::Vector3D result(intersection(quantizer));
+            Cork::Primitives::Vector3D result(intersection(quantizer));
 
             REQUIRE(((result.x() == Catch::Approx(538.0 / 145.0).epsilon(0.00001)) &&
                      (result.y() == Catch::Approx(120.0 / 29.0).epsilon(0.00001)) &&
@@ -1338,16 +1338,16 @@ namespace Cork
 
         SECTION("GMPExt4_3 Basic Tests")
         {
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
-            Math::ExteriorCalculusR4::GMPExt4_1 tri_1(Cork::Math::Vector3D(2, 2, 1), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 tri_2(Cork::Math::Vector3D(7, 4, 2), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 tri_3(Cork::Math::Vector3D(4, 9, 3), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri_1(Cork::Primitives::Vector3D(2, 2, 1), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri_2(Cork::Primitives::Vector3D(7, 4, 2), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri_3(Cork::Primitives::Vector3D(4, 9, 3), quantizer);
 
             //  Build the Ext4_3 for the triangle
 
@@ -1400,24 +1400,24 @@ namespace Cork
         
         SECTION("Triangle Triangle Triangle Intersection with Ext4_3 Meet")
         {
-            Cork::Quantization::Quantizer::GetQuantizerResult get_quantizer_result =
-                Cork::Quantization::Quantizer::get_quantizer(10e6, 100);
+            Cork::Math::Quantizer::GetQuantizerResult get_quantizer_result =
+                Cork::Math::Quantizer::get_quantizer(10e6, 100);
 
             REQUIRE(get_quantizer_result.succeeded());
 
-            Cork::Quantization::Quantizer quantizer(get_quantizer_result.return_value());
+            Cork::Math::Quantizer quantizer(get_quantizer_result.return_value());
 
-            Math::ExteriorCalculusR4::GMPExt4_1 tri1_1(Cork::Math::Vector3D(1, 3, 1), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 tri1_2(Cork::Math::Vector3D(4, 7, 4), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 tri1_3(Cork::Math::Vector3D(7, 9, 3), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri1_1(Cork::Primitives::Vector3D(1, 3, 1), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri1_2(Cork::Primitives::Vector3D(4, 7, 4), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri1_3(Cork::Primitives::Vector3D(7, 9, 3), quantizer);
 
-            Math::ExteriorCalculusR4::GMPExt4_1 tri2_1(Cork::Math::Vector3D(2, 2, 3), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 tri2_2(Cork::Math::Vector3D(6, 7, 3), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 tri2_3(Cork::Math::Vector3D(4, 8, 4), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri2_1(Cork::Primitives::Vector3D(2, 2, 3), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri2_2(Cork::Primitives::Vector3D(6, 7, 3), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri2_3(Cork::Primitives::Vector3D(4, 8, 4), quantizer);
 
-            Math::ExteriorCalculusR4::GMPExt4_1 tri3_1(Cork::Math::Vector3D(2, 2, 4), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 tri3_2(Cork::Math::Vector3D(6, 7, 1), quantizer);
-            Math::ExteriorCalculusR4::GMPExt4_1 tri3_3(Cork::Math::Vector3D(4, 8, 5), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri3_1(Cork::Primitives::Vector3D(2, 2, 4), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri3_2(Cork::Primitives::Vector3D(6, 7, 1), quantizer);
+            Math::ExteriorCalculusR4::GMPExt4_1 tri3_3(Cork::Primitives::Vector3D(4, 8, 5), quantizer);
 
             //  Build the Ext4_3 for the triangle 1
 
@@ -1440,7 +1440,7 @@ namespace Cork
             //  Convert back into a point, which is mostly just normalizing by e3.
             //      Negative e3 values will be resolved by the division.
 
-            Cork::Math::Vector3D result(intersection(quantizer));
+            Cork::Primitives::Vector3D result(intersection(quantizer));
 
             REQUIRE(((result.x() == Catch::Approx(104.0 / 23.0).epsilon(0.00001)) &&
                      (result.y() == Catch::Approx(499.0 / 69.0).epsilon(0.00001)) &&
@@ -1455,8 +1455,8 @@ namespace Cork
             double dot_1_2_sum = 0;
 
             meter.measure([&dot_1_2_sum] {
-                Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(3, 4, 5));
-                Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(6, 7, 8));
+                Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Primitives::Vector3D(3, 4, 5));
+                Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Primitives::Vector3D(6, 7, 8));
 
                 for (auto i = 0; i < 2000000; i++)
                 {
@@ -1473,8 +1473,8 @@ namespace Cork
             double running_sum = 0;
 
             meter.measure([&running_sum] {
-                Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(3, 4, 5));
-                Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(6, 7, 8));
+                Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Primitives::Vector3D(3, 4, 5));
+                Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Primitives::Vector3D(6, 7, 8));
 
                 for (auto i = 0; i < 2000000; i++)
                 {
@@ -1494,9 +1494,9 @@ namespace Cork
             double running_sum = 0;
 
             meter.measure([&running_sum] {
-                Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Math::Vector3D(3, 4, 5));
-                Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Math::Vector3D(6, 7, 8));
-                Math::ExteriorCalculusR4::Ext4_1 vec_3(Cork::Math::Vector3D(14, -10, 5));
+                Math::ExteriorCalculusR4::Ext4_1 vec_1(Cork::Primitives::Vector3D(3, 4, 5));
+                Math::ExteriorCalculusR4::Ext4_1 vec_2(Cork::Primitives::Vector3D(6, 7, 8));
+                Math::ExteriorCalculusR4::Ext4_1 vec_3(Cork::Primitives::Vector3D(14, -10, 5));
 
                 Math::ExteriorCalculusR4::Ext4_2 e4_2 = vec_1.join(vec_2);
 
@@ -1519,12 +1519,12 @@ namespace Cork
             //  Compute the point of intersection.  Meet does some duals and a join.
 
             meter.measure([&running_dot_sum] {
-                Math::ExteriorCalculusR4::Ext4_1 tri_1(Cork::Math::Vector3D(2, 2, 1));
-                Math::ExteriorCalculusR4::Ext4_1 tri_2(Cork::Math::Vector3D(7, 4, 2));
-                Math::ExteriorCalculusR4::Ext4_1 tri_3(Cork::Math::Vector3D(4, 9, 3));
+                Math::ExteriorCalculusR4::Ext4_1 tri_1(Cork::Primitives::Vector3D(2, 2, 1));
+                Math::ExteriorCalculusR4::Ext4_1 tri_2(Cork::Primitives::Vector3D(7, 4, 2));
+                Math::ExteriorCalculusR4::Ext4_1 tri_3(Cork::Primitives::Vector3D(4, 9, 3));
 
-                Math::ExteriorCalculusR4::Ext4_1 edge_1(Cork::Math::Vector3D(2, 2, 3));
-                Math::ExteriorCalculusR4::Ext4_1 edge_2(Cork::Math::Vector3D(6, 7, 0));
+                Math::ExteriorCalculusR4::Ext4_1 edge_1(Cork::Primitives::Vector3D(2, 2, 3));
+                Math::ExteriorCalculusR4::Ext4_1 edge_2(Cork::Primitives::Vector3D(6, 7, 0));
 
                 //  Build the Ext4_3 for the triangle
 
@@ -1536,7 +1536,7 @@ namespace Cork
 
                 for (auto i = 0; i < 2000000; i++)
                 {
-                    Cork::Math::Vector3D intersection(e_ext2.meet(t_ext3));
+                    Cork::Primitives::Vector3D intersection(e_ext2.meet(t_ext3));
 
                     running_dot_sum += intersection.x() + intersection.y() + intersection.z();
 

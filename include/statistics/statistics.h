@@ -40,14 +40,14 @@ namespace Cork::Statistics
     {
        public:
         GeometricStatistics(size_t numVertices, size_t numTriangles, double area, double volume, double minEdgeLength,
-                            double maxEdgeLength, const Math::BBox3D& boundingBox)
+                            double maxEdgeLength, const Primitives::BBox3D& boundingBox)
             : m_numVertices(numVertices),
               m_numTriangles(numTriangles),
               m_area(area),
               m_volume(volume),
               m_minEdgeLength(minEdgeLength),
               m_maxEdgeLength(maxEdgeLength),
-              m_boundingBox(std::make_unique<Math::BBox3D>(boundingBox))
+              m_boundingBox(std::make_unique<Primitives::BBox3D>(boundingBox))
         {
         }
 
@@ -55,7 +55,7 @@ namespace Cork::Statistics
 
         size_t numTriangles() const { return (m_numTriangles); }
 
-        Math::BBox3D boundingBox() const { return (*m_boundingBox); }
+        Primitives::BBox3D boundingBox() const { return (*m_boundingBox); }
 
         double area() const { return (m_area); }
 
@@ -72,13 +72,12 @@ namespace Cork::Statistics
         double m_volume;
         double m_minEdgeLength;
         double m_maxEdgeLength;
-        std::unique_ptr<Math::BBox3D> m_boundingBox;
+        std::unique_ptr<Primitives::BBox3D> m_boundingBox;
     };
 
     class TopologicalStatistics
     {
        public:
-        using EdgeByIndicesVector = Math::EdgeByIndicesVector;
 
         TopologicalStatistics() = delete;
 

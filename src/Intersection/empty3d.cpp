@@ -24,11 +24,11 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include <cfloat>
-
 #include "intersection/empty3d.hpp"
 
-#include "intersection/quantization.hpp"
+#include <cfloat>
+
+#include "math/quantization.hpp"
 
 namespace Cork::Empty3d
 {
@@ -39,10 +39,12 @@ namespace Cork::Empty3d
     using AbsExt4_2 = Math::ExteriorCalculusR4::AbsExt4_2;
     using AbsExt4_3 = Math::ExteriorCalculusR4::AbsExt4_3;
 
-    template<int Nbits> using FixExt4_1 = Math::ExteriorCalculusR4::FixExt4_1<Nbits>;
-    template<int Nbits> using FixExt4_2 = Math::ExteriorCalculusR4::FixExt4_2<Nbits>;
-    template<int Nbits> using FixExt4_3 = Math::ExteriorCalculusR4::FixExt4_3<Nbits>;
-
+    template <int Nbits>
+    using FixExt4_1 = Math::ExteriorCalculusR4::FixExt4_1<Nbits>;
+    template <int Nbits>
+    using FixExt4_2 = Math::ExteriorCalculusR4::FixExt4_2<Nbits>;
+    template <int Nbits>
+    using FixExt4_3 = Math::ExteriorCalculusR4::FixExt4_3<Nbits>;
 
     inline bool filterCheck(double val, double absval, double coeff) { return (fabs(val) > (absval * coeff)); }
 
@@ -84,7 +86,7 @@ namespace Cork::Empty3d
                 (e_ext2.inner(a_e0) < 0.0) || (e_ext2.inner(a_e1) < 0.0));
     }
 
-    inline Math::Vector3D TriEdgeIn::coords() const
+    inline Primitives::Vector3D TriEdgeIn::coords() const
     {
         Ext4_2 temp_e2(tri.p0().join(tri.p1()));
         Ext4_3 t_ext3(temp_e2.join(tri.p2()));
@@ -100,7 +102,7 @@ namespace Cork::Empty3d
         // no need to adjust for negative w-coordinate.
         // will drop out in divide.
 
-        Math::Vector3D result(p_isct);
+        Primitives::Vector3D result(p_isct);
 
         return result;
     }
@@ -219,7 +221,7 @@ namespace Cork::Empty3d
         //        }
     }
 
-    bool TriEdgeIn::exactFallback(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const
+    bool TriEdgeIn::exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
     {
         //  We use 'auto' for type deduction extensively in this method.  The lengths of the
         //      FixExt? types change depending on the operations used.  For example, 64 bits would be
@@ -232,12 +234,10 @@ namespace Cork::Empty3d
         // pull in points
 
         std::array<FixExt4_1<FIXED_INTEGER_BITS>, 2> ep{
-            {FixExt4_1<FIXED_INTEGER_BITS>(edge.p0(), quantizer),
-             FixExt4_1<FIXED_INTEGER_BITS>(edge.p1(), quantizer)}};
-        std::array<FixExt4_1<FIXED_INTEGER_BITS>, 3> tp{
-            {FixExt4_1<FIXED_INTEGER_BITS>(tri.p0(), quantizer),
-             FixExt4_1<FIXED_INTEGER_BITS>(tri.p1(), quantizer),
-             FixExt4_1<FIXED_INTEGER_BITS>(tri.p2(), quantizer)}};
+            {FixExt4_1<FIXED_INTEGER_BITS>(edge.p0(), quantizer), FixExt4_1<FIXED_INTEGER_BITS>(edge.p1(), quantizer)}};
+        std::array<FixExt4_1<FIXED_INTEGER_BITS>, 3> tp{{FixExt4_1<FIXED_INTEGER_BITS>(tri.p0(), quantizer),
+                                                         FixExt4_1<FIXED_INTEGER_BITS>(tri.p1(), quantizer),
+                                                         FixExt4_1<FIXED_INTEGER_BITS>(tri.p2(), quantizer)}};
 
         // construct geometry
 
@@ -305,7 +305,7 @@ namespace Cork::Empty3d
         return (false);
     }
 
-    bool TriEdgeIn::emptyExact(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const
+    bool TriEdgeIn::emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
     {
         context.callcount++;
 
@@ -322,7 +322,7 @@ namespace Cork::Empty3d
         //        }
     }
 
-    Math::Vector3D TriEdgeIn::coordsExact(const Quantization::Quantizer& quantizer) const
+    Primitives::Vector3D TriEdgeIn::coordsExact(const Math::Quantizer& quantizer) const
     {
         //  Create the Edge and Triangle
 
@@ -385,8 +385,7 @@ namespace Cork::Empty3d
             for (uint pi = 0; pi < 3; pi++)
             {  // three copies...
                 Ext4_3 a;
-                Ext4_2 temp_e2(
-                    ((pi == 0) ? p_isct : m_tri[ti].p0()).join(((pi == 1) ? p_isct : m_tri[ti].p1())));
+                Ext4_2 temp_e2(((pi == 0) ? p_isct : m_tri[ti].p0()).join(((pi == 1) ? p_isct : m_tri[ti].p1())));
 
                 a = temp_e2.join(((pi == 2) ? p_isct : m_tri[ti].p2()));
                 double test = t_ext3s[ti].inner(a);
@@ -403,7 +402,7 @@ namespace Cork::Empty3d
         return (false);
     }
 
-    Math::Vector3D TriTriTriIn::coords() const
+    Primitives::Vector3D TriTriTriIn::coords() const
     {
         // construct the triangles
         std::array<Ext4_3, 3> t_ext3s;
@@ -422,7 +421,7 @@ namespace Cork::Empty3d
         // no need to adjust for negative w-coordinate.
         // will come out in the divide.
 
-        Math::Vector3D result(p_isct);
+        Primitives::Vector3D result(p_isct);
 
         return (result);
     }
@@ -514,7 +513,7 @@ namespace Cork::Empty3d
         //        }
     }
 
-    bool TriTriTriIn::exactFallback(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const
+    bool TriTriTriIn::exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
     {
         //  We use 'auto' for type deduction extensively in this method.  The lengths of the
         //      FixExt? types change depending on the operations used.  For example, 64 bits would be
@@ -597,7 +596,7 @@ namespace Cork::Empty3d
         return (false);
     }
 
-    bool TriTriTriIn::emptyExact(const Quantization::Quantizer& quantizer, ExactArithmeticContext& context) const
+    bool TriTriTriIn::emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
     {
         context.callcount++;
         int filter = emptyFilter();
@@ -613,7 +612,7 @@ namespace Cork::Empty3d
         //        }
     }
 
-    Math::Vector3D TriTriTriIn::coordsExact(const Quantization::Quantizer& quantizer) const
+    Primitives::Vector3D TriTriTriIn::coordsExact(const Math::Quantizer& quantizer) const
     {
         std::array<std::array<GMPExt4_1, 3>, 3> p;
         std::array<GMPExt4_3, 3> t;
@@ -637,8 +636,8 @@ namespace Cork::Empty3d
         return pisct(quantizer);
     }
 
-    Math::Vector3D coordsExact(const GMPExt4_2& edge, const GMPExt4_3& triangle,
-                               const Quantization::Quantizer& quantizer)
+    Primitives::Vector3D coordsExact(const GMPExt4_2& edge, const GMPExt4_3& triangle,
+                                     const Math::Quantizer& quantizer)
     {
         //	Compute the point of intersection
 
@@ -649,12 +648,11 @@ namespace Cork::Empty3d
         return pisct(quantizer);
     }
 
-    Math::Vector3D coordsExact(const GMPExt4_3& triangle0,
-                               const GMPExt4_3& triangle1,
-                               const GMPExt4_3& triangle2, const Quantization::Quantizer& quantizer)
+    Primitives::Vector3D coordsExact(const GMPExt4_3& triangle0, const GMPExt4_3& triangle1, const GMPExt4_3& triangle2,
+                                     const Math::Quantizer& quantizer)
     {
         //  Compute the point of intersection and return it
-        
+
         GMPExt4_1 pisct((triangle0.meet(triangle1)).meet(triangle2));
 
         return pisct(quantizer);

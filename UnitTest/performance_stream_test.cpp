@@ -15,7 +15,7 @@
 
 
 inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
-                                                        Cork::Math::Vector3D& vec)
+                                                        Cork::Primitives::Vector3D& vec)
 {
     fmt::format_to(std::move(out_stream.back_insert_iterator()), FMT_COMPILE("{:g} {:g} {:g}"), vec.x(), vec.y(),
                    vec.z());
@@ -24,7 +24,7 @@ inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceO
 }
 
 inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
-                                                        const Cork::Math::Vector3D& vec)
+                                                        const Cork::Primitives::Vector3D& vec)
 {
     fmt::format_to(std::move(out_stream.back_insert_iterator()), FMT_COMPILE("{:g} {:g} {:g}"), vec.x(), vec.y(),
                    vec.z());
@@ -206,7 +206,7 @@ TEST_CASE("GrowableStreambuf Tests", "[util basics]")
     {
         SEFUtility::PerformanceOStringStream test_stream(STREAM_BUFFER_PREALLOC_SIZE);
 
-        Cork::Math::Vector3D test{1.1, 2.2, 3.3};                   //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        Cork::Primitives::Vector3D test{1.1, 2.2, 3.3};                   //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
         for (int i = 0; i < NUM_BENCHMARK_ITERATIONS; i++)
         {
@@ -218,7 +218,7 @@ TEST_CASE("GrowableStreambuf Tests", "[util basics]")
     {
         std::stringstream test_stream;
 
-        Cork::Math::Vector3D test{1.1, 2.2, 3.3};                   //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        Cork::Primitives::Vector3D test{1.1, 2.2, 3.3};                   //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
         for (int i = 0; i < NUM_BENCHMARK_ITERATIONS; i++)
         {

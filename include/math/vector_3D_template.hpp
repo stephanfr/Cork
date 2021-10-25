@@ -66,7 +66,7 @@ namespace Cork::Math
         inline static SEFUtility::RNG::Xoshiro256Plus<SIMD> random_generator_ =
             SEFUtility::RNG::Xoshiro256Plus<SIMD>(1);
 
-        friend class BBox3D;
+        template<typename T, SIMDInstructionSet SIMDT> friend class BBox3DTemplate;
 
        public:
         //	Constructors
@@ -373,13 +373,6 @@ namespace Cork::Math
             }
         }
     };
-
-    //
-    //  Define the random number generator
-    //
-
-    //    template <class N, SIMDInstructionSet SIMD>
-    //    SEFUtility::RNG::Xoshiro256Plus<SIMD> Vector3DTemplate<N, SIMD>::random_generator_(1);
 
     //
     // Non Destructive Arithmetic

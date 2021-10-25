@@ -57,34 +57,34 @@ TEST_CASE("Topology Tests", "[file io]")
         //      of the vertices forming the hole may change as well.  The holes will be correct - but ordering may
         //      differ.
 
-        std::vector<Cork::Math::EdgeByIndices> hole_edges;
+        std::vector<Cork::Primitives::EdgeByIndices> hole_edges;
 
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(31u, 50u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(2u, 3u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(1u, 2u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(0u, 1u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(3u, 4u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(11u, 12u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(4u, 5u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(5u, 6u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(21u, 22u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(7u, 0u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(1u, 10u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(30u, 31u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(10u, 11u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(12u, 13u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(40u, 50u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(13u, 1u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(4u, 20u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(20u, 21u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(22u, 4u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(6u, 7u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(21u, 30u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(31u, 21u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(22u, 40u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(40u, 41u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(31u, 40u));
-        hole_edges.emplace_back(Cork::Math::EdgeByIndices(41u, 22u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(31u, 50u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(2u, 3u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(1u, 2u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(0u, 1u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(3u, 4u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(11u, 12u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(4u, 5u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(5u, 6u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(21u, 22u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(7u, 0u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(1u, 10u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(30u, 31u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(10u, 11u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(12u, 13u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(40u, 50u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(13u, 1u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(4u, 20u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(20u, 21u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(22u, 4u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(6u, 7u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(21u, 30u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(31u, 21u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(22u, 40u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(40u, 41u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(31u, 40u));
+        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(41u, 22u));
 
         std::vector<Cork::Hole> holes = Cork::HoleBuilder::extract_holes(hole_edges);
 
@@ -162,19 +162,19 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto stats = mesh->ComputeTopologicalStatistics();
 
-        std::set<Cork::Math::TriangleByIndicesIndex, std::greater<Cork::Math::TriangleByIndicesIndex>>
+        std::set<Cork::Primitives::TriangleByIndicesIndex, std::greater<Cork::Primitives::TriangleByIndicesIndex>>
             triangles_to_remove;
 
         for (auto record : stats.self_intersections())
         {
-            Cork::Math::EdgeByVertices edge_with_se(
-                Cork::Math::TriangleByVertices(mesh->triangles()[record.edge_triangle_id_], mesh->vertices())
+            Cork::Primitives::EdgeByVertices edge_with_se(
+                Cork::Primitives::TriangleByVertices(mesh->triangles()[record.edge_triangle_id_], mesh->vertices())
                     .edge(record.edge_index_));
 
             //            std::cout << "Edge Index: " << record.edge_index_ << " Edge: " << edge_with_se << " Triangle:
             //            "
             //                      <<
-            //                      Cork::Math::TriangleByVertices(mesh->triangles()[record.triangle_instersected_id_],
+            //                      Cork::Primitives::TriangleByVertices(mesh->triangles()[record.triangle_instersected_id_],
             //                                                        mesh->vertices())
             //                      << std::endl;
 
@@ -239,8 +239,9 @@ TEST_CASE("Topology Tests", "[file io]")
 
             for (auto triangle_to_add : *(result.return_ptr()))
             {
-                mesh2->AddTriangle(
-                    Cork::Meshes::TriangleByIndices( hole.vertices()[triangle_to_add.v2()], hole.vertices()[triangle_to_add.v1()], hole.vertices()[triangle_to_add.v0()]));
+                mesh2->AddTriangle(Cork::Primitives::TriangleByIndices(hole.vertices()[triangle_to_add.v2()],
+                                                                       hole.vertices()[triangle_to_add.v1()],
+                                                                       hole.vertices()[triangle_to_add.v0()]));
             }
         }
 

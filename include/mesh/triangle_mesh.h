@@ -36,19 +36,6 @@
 
 namespace Cork::Meshes
 {
-    using Vertex = Math::Vertex3D;
-    using VertexVector = Math::Vertex3DVector;
-
-    using EdgeByIndices = Math::EdgeByIndices;
-    using EdgeByIndicesVector = Math::EdgeByIndicesVector;
-
-    using TriangleByIndices = Math::TriangleByIndices;
-    using TriangleByVertices = Math::TriangleByVertices;
-
-    using TriangleByIndicesVector = Math::TriangleByIndicesVector;
-    using TriangleByIndicesIndex = Math::TriangleByIndicesIndex;
-
-
     class TriangleMesh
     {
        public:
@@ -59,16 +46,17 @@ namespace Cork::Meshes
         virtual size_t numTriangles() const = 0;
         virtual size_t numVertices() const = 0;
 
-        virtual const VertexVector& vertices() const = 0;
-        virtual const TriangleByIndicesVector& triangles() const = 0;
+        virtual const Primitives::Vertex3DVector& vertices() const = 0;
+        virtual const Primitives::TriangleByIndicesVector& triangles() const = 0;
 
-        virtual TriangleByVertices triangleByVertices(const TriangleByIndices& triangleByIndices) const = 0;
+        virtual Primitives::TriangleByVertices triangleByVertices(
+            const Primitives::TriangleByIndices& triangleByIndices) const = 0;
 
-        virtual void AddTriangle(const TriangleByIndices& triangle_to_add) = 0;
-        virtual void remove_triangle(TriangleByIndicesIndex triangle_index) = 0;
+        virtual void AddTriangle(const Primitives::TriangleByIndices& triangle_to_add) = 0;
+        virtual void remove_triangle(Primitives::TriangleByIndicesIndex triangle_index) = 0;
 
-        virtual const Math::BBox3D& boundingBox() const = 0;
-        virtual Math::MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
+        virtual const Primitives::BBox3D& boundingBox() const = 0;
+        virtual Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
         virtual double max_vertex_magnitude() const = 0;
 
         virtual Statistics::GeometricStatistics ComputeGeometricStatistics() const = 0;
@@ -84,8 +72,7 @@ namespace Cork::Meshes
         MESH_NOT_2_MANIFOLD
     };
 
-    typedef SEFUtility::ResultWithReturnUniquePtr<TriangleMeshBuilderResultCodes, TriangleMesh>
-        TriangleMeshBuilderResult;
+    using TriangleMeshBuilderResult = SEFUtility::ResultWithReturnUniquePtr<TriangleMeshBuilderResultCodes, TriangleMesh>;
 
     class IncrementalVertexIndexTriangleMeshBuilder
     {
@@ -97,10 +84,10 @@ namespace Cork::Meshes
 
         virtual size_t num_vertices() const = 0;
 
-        virtual VertexIndex AddVertex(const Vertex& vertexToAdd) = 0;
-        virtual TriangleMeshBuilderResultCodes AddTriangle(const TriangleByIndices& triangleToAdd) = 0;
+        virtual Primitives::VertexIndex AddVertex(const Primitives::Vertex3D& vertexToAdd) = 0;
+        virtual TriangleMeshBuilderResultCodes AddTriangle(const Primitives::TriangleByIndices& triangleToAdd) = 0;
 
         virtual std::unique_ptr<TriangleMesh> Mesh() = 0;
     };
 
-}  // namespace Cork
+}  // namespace Cork::Meshes

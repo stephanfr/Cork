@@ -28,6 +28,7 @@
 #include <immintrin.h>
 
 #include "ext4_base.hpp"
+#include "vector_3D_template.hpp"
 
 /*
 
@@ -73,6 +74,7 @@ namespace Cork::Math::ExteriorCalculusR4
 {
     // types for k-vectors in R4:
     //      Ext4_k
+    //      AbsExt4_k       - k vectors with positive only values
 
     class Ext4_2;
     class Ext4_3;
@@ -86,15 +88,13 @@ namespace Cork::Math::ExteriorCalculusR4
         Ext4_1(const Ext4_1 &ext_to_copy) : Ext4_1Base(ext_to_copy) {}
         Ext4_1(Ext4_1 &&ext_to_move) : Ext4_1Base(ext_to_move) {}
 
-#if defined(NUMERIC_PRECISION) && NUMERIC_PRECISION == double
-
-        explicit Ext4_1(const Math::Vector3D &vector)
+        explicit Ext4_1(const Vector3DTemplate<double> &vector)
             : Ext4_1Base(reinterpret_cast<const std::array<double, 4> &>(vector))
         {
             e3_ = Constants::DOUBLE_ONE;
         }
 
-        const Ext4_1 &operator=(const Math::Vector3D &vector)
+        const Ext4_1 &operator=(const Vector3DTemplate<double> &vector)
         {
             reinterpret_cast<std::array<double, 4> &>(e0_) = reinterpret_cast<const std::array<double, 4> &>(vector);
             e3_ = Constants::DOUBLE_ONE;
@@ -102,31 +102,16 @@ namespace Cork::Math::ExteriorCalculusR4
             return *this;
         }
 
-        operator Math::Vector3D() const
+        operator Vector3DTemplate<double>() const
         {
             assert(e3_ != 0);  //  Trap any divisions by zero!
 
-            Math::Vector3D vec(reinterpret_cast<const Math::Vector3D &>(e0_));
+            Vector3DTemplate<double> vec(reinterpret_cast<const Vector3DTemplate<double> &>(e0_));
             vec /= e3_;
 
             return vec;
         }
-#else
-        explicit Ext4_1(const Math::Vector3D &vector)
-            : e0(vector.x()), e1(vector.y()), e1(vector.z()), e3(Constants::DOUBLE_ONE)
-        {
-        }
 
-        const Ext4_1 &operator=(const Math::Vector3D &vector)
-        {
-            e0 = vector.x();
-            e1 = vector.y();
-            e2 = vector.z();
-            e3 = Constants::DOUBLE_ONE;
-
-            return *this;
-        }
-#endif
 
         Ext4_1 &operator=(const Ext4_1 &ext_to_copy ) = default;
         Ext4_1 &operator=(Ext4_1 &&ext_to_move ) = default;
@@ -355,11 +340,11 @@ namespace Cork::Math::ExteriorCalculusR4
             return *this;
         }
 
-        operator Math::Vector3D() const
+        operator Math::Vector3DTemplate<double>() const
         {
             assert(e3_ != 0);  //  Trap any divisions by zero!
 
-            Math::Vector3D vec(reinterpret_cast<const Math::Vector3D &>(e0_));
+            Math::Vector3DTemplate<double> vec(reinterpret_cast<const Vector3DTemplate<double> &>(e0_));
             vec /= e3_;
 
             return vec;

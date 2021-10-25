@@ -37,7 +37,8 @@
 
 #include "ext4_base.hpp"
 #include "fixint.hpp"
-#include "intersection/quantization.hpp"
+#include "vector_3D_template.hpp"
+#include "quantization.hpp"
 
 namespace Cork::Math::ExteriorCalculusR4
 {
@@ -59,7 +60,7 @@ namespace Cork::Math::ExteriorCalculusR4
         FixExt4_1(const FixExt4_1& ext_to_copy) : FixExt4_1Base(ext_to_copy) {}
         FixExt4_1(FixExt4_1&& ext_to_move) : FixExt4_1Base(ext_to_move) {}
 
-        explicit FixExt4_1(const Math::Vector3D& vec, const Quantization::Quantizer& quantizer)
+        explicit FixExt4_1(const Vector3DTemplate<double>& vec, const Math::Quantizer& quantizer)
             : FixExt4_1Base(IntegerType(quantizer.quantize2int(vec.x())), IntegerType(quantizer.quantize2int(vec.y())),
                             IntegerType(quantizer.quantize2int(vec.z())), IntegerType(1))
         {

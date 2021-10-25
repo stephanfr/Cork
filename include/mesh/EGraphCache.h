@@ -30,28 +30,26 @@
 #include <deque>
 #include <vector>
 
+#include "primitives/primitives.hpp"
 #include "util/CachingFactory.h"
 #include "util/ConstuctOnceResizeableVector.h"
 #include "util/SparseVector.h"
-#include "primitives/primitives.hpp"
 
-namespace Cork
+namespace Cork::Meshes
 {
     //	The TIDs vector length never seems to go beyond 4 but I will double that just to be sure
     //		as static vectors will return junk if they pass beyond their limit.
 
-#define EGRAPH_ENTRY_TIDS_VEC_LENGTH 8
+    static constexpr int EGRAPH_ENTRY_TIDS_VEC_LENGTH = 8;
 
-    using IndexType = Math::IndexType;
-
-    typedef boost::container::static_vector<IndexType, EGRAPH_ENTRY_TIDS_VEC_LENGTH> EGraphEntryTIDVector;
+    using EGraphEntryTIDVector = boost::container::static_vector<Primitives::IndexType, EGRAPH_ENTRY_TIDS_VEC_LENGTH>;
 
     class EGraphEntry : public SEFUtility::SparseVectorEntry
     {
        public:
-        EGraphEntry(IndexType index) : SEFUtility::SparseVectorEntry( index), m_vid(index) {}
+        EGraphEntry(Primitives::IndexType index) : SEFUtility::SparseVectorEntry(index), m_vid(index) {}
 
-        IndexType vid() const { return (m_vid); }
+        Primitives::IndexType vid() const { return (m_vid); }
 
         const EGraphEntryTIDVector& tids() const { return (m_tids); }
 
@@ -62,7 +60,7 @@ namespace Cork
         void setIsIsct(bool newValue) { m_isIsct = newValue; }
 
        private:
-        Cork::Math::IndexType m_vid;
+        Primitives::IndexType m_vid;
         EGraphEntryTIDVector m_tids;
         bool m_isIsct;
     };
@@ -70,11 +68,11 @@ namespace Cork
     class EGraphCache
     {
        public:
-        typedef SEFUtility::SparseVector<EGraphEntry, 10> EGraphSkeletonColumn;
-        typedef SEFUtility::ConstructOnceResizeableVector<EGraphSkeletonColumn> SkeletonColumnVector;
+        using EGraphSkeletonColumn = SEFUtility::SparseVector<EGraphEntry, 10>;
+        using SkeletonColumnVector = SEFUtility::ConstructOnceResizeableVector<EGraphSkeletonColumn>;
 
-        typedef SEFUtility::CachingFactory<SkeletonColumnVector> SkeletonColumnVectorFactory;
-        typedef SEFUtility::CachingFactory<SkeletonColumnVector>::UniquePtr SkeletonColumnVectorUniquePtr;
+        using SkeletonColumnVectorFactory = SEFUtility::CachingFactory<SkeletonColumnVector>;
+        using SkeletonColumnVectorUniquePtr = SEFUtility::CachingFactory<SkeletonColumnVector>::UniquePtr;
 
         EGraphCache() : m_skeletonPtr(SkeletonColumnVectorFactory::GetInstance()), m_skeleton(*m_skeletonPtr) {}
 
@@ -86,13 +84,13 @@ namespace Cork
 
         SkeletonColumnVector& columns() { return (m_skeleton); }
 
-        EGraphSkeletonColumn& operator[](IndexType index) { return (m_skeleton[index]); }
+        EGraphSkeletonColumn& operator[](Primitives::IndexType index) { return (m_skeleton[index]); }
 
-        const EGraphSkeletonColumn& operator[](IndexType index) const { return (m_skeleton[index]); }
+        const EGraphSkeletonColumn& operator[](Primitives::IndexType index) const { return (m_skeleton[index]); }
 
        private:
         SkeletonColumnVectorUniquePtr m_skeletonPtr;
         SkeletonColumnVector& m_skeleton;
     };
 
-}  // namespace Cork
+}  // namespace Cork::Meshes

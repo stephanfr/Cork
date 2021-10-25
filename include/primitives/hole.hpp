@@ -26,9 +26,6 @@
 
 namespace Cork
 {
-    using VertexIndex = Math::VertexIndex;
-    using EdgeByIndices = Math::EdgeByIndices;
-
     class Hole
     {
        public:
@@ -36,12 +33,12 @@ namespace Cork
 
         Hole& operator=(const Hole&) = default;
 
-        const std::vector<VertexIndex>& vertices() const { return vertices_; }
+        const std::vector<Primitives::VertexIndex>& vertices() const { return vertices_; }
 
        private:
-        std::vector<VertexIndex> vertices_;
+        std::vector<Primitives::VertexIndex> vertices_;
 
-        Hole(const std::vector<VertexIndex>& vertices) : vertices_(vertices) {}
+        Hole(const std::vector<Primitives::VertexIndex>& vertices) : vertices_(vertices) {}
 
         friend class HoleBuilder;
     };
@@ -50,7 +47,7 @@ namespace Cork
     {
        public :
 
-        static std::vector<Hole>    extract_holes(const std::vector<EdgeByIndices>&    hole_edges )
+        static std::vector<Hole>    extract_holes(const std::vector<Primitives::EdgeByIndices>&    hole_edges )
         {
             //  Return immediately with an empty list if there are no edges
 
@@ -63,7 +60,7 @@ namespace Cork
 
             std::vector<Hole> holes;
 
-            std::vector<EdgeByIndices>    edges(hole_edges);
+            std::vector<Primitives::EdgeByIndices>    edges(hole_edges);
 
             HoleBuilder hole_builder(edges.back());
 
@@ -104,7 +101,7 @@ namespace Cork
 
     private :
 
-        HoleBuilder(const EdgeByIndices& starting_edge)
+        HoleBuilder(const Primitives::EdgeByIndices& starting_edge)
         {
             vertices_.push_back(starting_edge.first());
             vertices_.push_back(starting_edge.second());
@@ -112,9 +109,9 @@ namespace Cork
 
         bool empty() const { return vertices_.empty(); }
 
-        const std::deque<VertexIndex>& vertices() const { return vertices_; }
+        const std::deque<Primitives::VertexIndex>& vertices() const { return vertices_; }
 
-        bool add_edge(const EdgeByIndices& next_edge)
+        bool add_edge(const Primitives::EdgeByIndices& next_edge)
         {
             assert(!is_closed());
 
@@ -181,7 +178,7 @@ namespace Cork
             return holes;
         }
 
-        void reset(const EdgeByIndices& starting_edge)
+        void reset(const Primitives::EdgeByIndices& starting_edge)
         {
             vertices_.clear();
 
@@ -189,7 +186,7 @@ namespace Cork
             vertices_.push_back(starting_edge.second());
         }
 
-        std::deque<VertexIndex> vertices_;
+        std::deque<Primitives::VertexIndex> vertices_;
 
         std::vector<Hole> extract_holes_recursively(Hole hole)
         {

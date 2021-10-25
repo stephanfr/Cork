@@ -33,8 +33,6 @@
 
 namespace Cork::Statistics
 {
-    using VertexIndex = Math::VertexIndex;
-
     class GeometricStatisticsEngine
     {
        public:
@@ -50,7 +48,7 @@ namespace Cork::Statistics
 
         size_t numTriangles() const { return triangle_mesh_.numTriangles(); }
 
-        const Math::BBox3D& boundingBox() const { return triangle_mesh_.boundingBox(); }
+        const Primitives::BBox3D& boundingBox() const { return triangle_mesh_.boundingBox(); }
 
         double area() const { return (m_area); }
 
@@ -71,7 +69,7 @@ namespace Cork::Statistics
         double m_minEdgeLength;
         double m_maxEdgeLength;
 
-        void AddTriangle(const Math::TriangleByVertices& nextTriangle);
+        void AddTriangle(const Primitives::TriangleByVertices& nextTriangle);
     };
 
     class TopologicalStatisticsEngine
@@ -88,11 +86,11 @@ namespace Cork::Statistics
         TopologicalStatistics Analyze();
 
        private:
-        class EdgeAndIncidence : public Math::EdgeByIndices
+        class EdgeAndIncidence : public Primitives::EdgeByIndices
         {
            public:
-            EdgeAndIncidence(const VertexIndex a, const VertexIndex b)
-                : Math::EdgeByIndices(a, b), m_numIncidences(0)
+            EdgeAndIncidence(const Primitives::VertexIndex a, const Primitives::VertexIndex b)
+                : Primitives::EdgeByIndices(a, b), m_numIncidences(0)
             {
             }
 
@@ -104,17 +102,17 @@ namespace Cork::Statistics
 
             struct HashFunction
             {
-                std::size_t operator()(const Math::EdgeByIndices& k) const { return (VertexIndex::integer_type(k.first()) * 10000019 ^ VertexIndex::integer_type(k.second())); }
+                std::size_t operator()(const Primitives::EdgeByIndices& k) const { return (Primitives::VertexIndex::integer_type(k.first()) * 10000019 ^ Primitives::VertexIndex::integer_type(k.second())); }
             };
 
            private:
             int m_numIncidences;
         };
 
-        using AssociatedVertexVector = boost::container::small_vector<Math::VertexIndex, 100>;
+        using AssociatedVertexVector = boost::container::small_vector<Primitives::VertexIndex, 100>;
 
         using EdgeSet = std::unordered_set<EdgeAndIncidence, EdgeAndIncidence::HashFunction>;
-        using VertexAssociations = std::unordered_map<Math::VertexIndex, AssociatedVertexVector>;
+        using VertexAssociations = std::unordered_map<Primitives::VertexIndex, AssociatedVertexVector>;
 
         const Cork::TriangleMesh& triangle_mesh_;
 
@@ -126,12 +124,12 @@ namespace Cork::Statistics
 
         EdgeSet edges_;
 
-        std::vector<Math::EdgeByIndices> hole_edges_;
-        std::vector<Math::EdgeByIndices> self_intersecting_edges_;
+        std::vector<Primitives::EdgeByIndices> hole_edges_;
+        std::vector<Primitives::EdgeByIndices> self_intersecting_edges_;
 
         VertexAssociations vertex_associations_;
 
-        void AddTriangle(const Math::TriangleByIndices& nextTriangle);
+        void AddTriangle(const Primitives::TriangleByIndices& nextTriangle);
     };
 
 }  // namespace Cork::Statistics
