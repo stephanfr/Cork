@@ -215,40 +215,40 @@ namespace Cork::Primitives
     class TriangleByIndices
     {
        public:
-        TriangleByIndices() : m_a(UNINTIALIZED_INDEX), m_b(UNINTIALIZED_INDEX), m_c(UNINTIALIZED_INDEX) {}
+        TriangleByIndices() : a_(UNINTIALIZED_INDEX), b_(UNINTIALIZED_INDEX), c_(UNINTIALIZED_INDEX) {}
 
-        TriangleByIndices(VertexIndex a, VertexIndex b, VertexIndex c) : m_a(a), m_b(b), m_c(c) {}
+        TriangleByIndices(VertexIndex a, VertexIndex b, VertexIndex c) : a_(a), b_(b), c_(c) {}
 
         virtual ~TriangleByIndices() {}
 
         const VertexIndex operator[](size_t index) const
         {
             assert(index < 3);
-            return (reinterpret_cast<const VertexIndex*>(&m_a))[index];
+            return (reinterpret_cast<const VertexIndex*>(&a_))[index];
         }
 
         VertexIndex& operator[](size_t index)
         {
             assert(index < 3);
-            return (reinterpret_cast<VertexIndex*>(&m_a))[index];
+            return (reinterpret_cast<VertexIndex*>(&a_))[index];
         }
 
-        const VertexIndex a() const { return (m_a); }
+        const VertexIndex a() const { return (a_); }
 
-        VertexIndex& a() { return (m_a); }
+        VertexIndex& a() { return (a_); }
 
-        const VertexIndex b() const { return (m_b); }
+        const VertexIndex b() const { return (b_); }
 
-        VertexIndex& b() { return (m_b); }
+        VertexIndex& b() { return (b_); }
 
-        const VertexIndex c() const { return (m_c); }
+        const VertexIndex c() const { return (c_); }
 
-        VertexIndex& c() { return (m_c); }
+        VertexIndex& c() { return (c_); }
 
        protected:
-        VertexIndex m_a;
-        VertexIndex m_b;
-        VertexIndex m_c;
+        VertexIndex a_;
+        VertexIndex b_;
+        VertexIndex c_;
     };
 
     inline std::ostream& operator<<(std::ostream& out, const TriangleByIndices& tri_by_indices)

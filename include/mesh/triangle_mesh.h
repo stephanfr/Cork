@@ -36,6 +36,27 @@
 
 namespace Cork::Meshes
 {
+
+        
+    enum class TopologicalStatisticsResultCodes
+    {
+        SUCCESS = 0,
+
+        ANALYSIS_FAILED
+    };
+
+    using TopologicalStatisticsResult = SEFUtility::ResultWithReturnValue<TopologicalStatisticsResultCodes,Statistics::TopologicalStatistics>;
+    
+    enum class HoleClosingResultCodes
+    {
+        SUCCESS = 0,
+
+        TRIANGULATION_FAILED
+    };
+
+    using HoleClosingResult = SEFUtility::Result<HoleClosingResultCodes>;
+
+
     class TriangleMesh
     {
        public:
@@ -60,7 +81,10 @@ namespace Cork::Meshes
         virtual double max_vertex_magnitude() const = 0;
 
         virtual Statistics::GeometricStatistics ComputeGeometricStatistics() const = 0;
-        virtual Statistics::TopologicalStatistics ComputeTopologicalStatistics() const = 0;
+        virtual TopologicalStatisticsResult ComputeTopologicalStatistics() const = 0;
+
+        virtual HoleClosingResult close_holes( const Statistics::TopologicalStatistics&     topo_stats ) = 0;
+        virtual void remove_self_intersections( const Statistics::TopologicalStatistics&     topo_stats ) = 0;
     };
 
     enum class TriangleMeshBuilderResultCodes

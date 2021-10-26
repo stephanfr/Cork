@@ -32,15 +32,15 @@ include_directories(
 )
 
 add_executable( tests
-  exterior_calculus_test.cpp
-  performance_stream_test.cpp
-  off_file_io_test.cpp
-  CachingFactoryTest.cpp
-  ConstructOnceResizeableVectorTest.cpp
-  Vector2DTest.cpp
-  Vector3DTest.cpp
+#  exterior_calculus_test.cpp
+#  performance_stream_test.cpp
+#  off_file_io_test.cpp
+#  CachingFactoryTest.cpp
+#  ConstructOnceResizeableVectorTest.cpp
+#  Vector2DTest.cpp
+#  Vector3DTest.cpp
   topology_tests.cpp
-  triangulator_test.cpp
+#  triangulator_test.cpp
 )
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain Corklib tbb mpir boost_program_options boost_filesystem boost_iostreams boost_system boost_timer boost_thread pthread)

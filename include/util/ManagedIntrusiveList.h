@@ -25,11 +25,14 @@
 // +-------------------------------------------------------------------------
 #pragma once
 
+#include <type_traits>
+
 #include "boost/intrusive/list.hpp"
 #include "boost/intrusive/unordered_set.hpp"
 #include "boost/noncopyable.hpp"
 #include "tbb/concurrent_vector.h"
 #include "tbb/spin_mutex.h"
+#include "type_safe/integer.hpp"
 
 namespace hidden
 {
@@ -70,12 +73,11 @@ class ContiguousStorage : public boost::noncopyable
     {
         if (new_minimum_size > current_size_)
         {
-			std::cout << "Growing ContiguousStorage from: " << current_size_ << " to " << new_minimum_size << std::endl;
+            std::cout << "Growing ContiguousStorage from: " << current_size_ << " to " << new_minimum_size << std::endl;
 
             current_size_ = new_minimum_size;
-			free(block_);
+            free(block_);
             block_ = static_cast<T*>(malloc(sizeof(T) * (current_size_ + 1)));
-
         }
 
         end_ = 0;
@@ -159,7 +161,43 @@ typedef boost::intrusive::list_base_hook<> IntrusiveListHook;
 typedef boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::normal_link>>
     IntrusiveListHookNoDestructorOnElements;
 
-template <typename T, typename TP = tbb::concurrent_vector<T>>
+//  For instances where we have strongly typed index types - we have the ValuePool below which will
+//      conditionally compile support for type_safe::integer<uint32_t> indices.  The list will default
+//      to uint32_t indices with an appropriate pool.
+
+template <typename T, typename TI>
+class ValuePool : public tbb::concurrent_vector<T>
+{
+   public:
+    T& operator[](size_t) = delete;
+    const T& operator[](size_t) const = delete;
+
+    T& operator[](TI index)
+    {
+        if constexpr (std::is_base_of<type_safe::integer<uint32_t>, TI>::value)
+        {
+            return tbb::concurrent_vector<T>::operator[](typename TI::integer_type(index));
+        }
+        else
+        {
+            return tbb::concurrent_vector<T>::operator[](index);
+        }
+    }
+
+    const T& operator[](TI index) const
+    {
+        if constexpr (std::is_base_of<type_safe::integer<uint32_t>, TI>::value)
+        {
+            return tbb::concurrent_vector<T>::operator[](typename TI::integer_type(index));
+        }
+        else
+        {
+            return tbb::concurrent_vector<T>::operator[](index);
+        }
+    }
+};
+
+template <typename T, typename TI = uint32_t, typename TP = ValuePool<T, TI>>
 class ManagedIntrusiveValueList : public boost::noncopyable,
                                   protected boost::intrusive::list<T, boost::intrusive::constant_time_size<true>>
 {

@@ -124,7 +124,7 @@ namespace Cork::Statistics
         vertex_associations_[nextTriangle.c()].push_back(nextTriangle.b());
     }
 
-    TopologicalStatistics TopologicalStatisticsEngine::Analyze()
+    TopologicalStatisticsEngineAnalyzeResult TopologicalStatisticsEngine::Analyze()
     {
         //  First, look for non 2 manifold edges - which means holes
 
@@ -151,10 +151,7 @@ namespace Cork::Statistics
 
         if (!get_quantizer_result.succeeded())
         {
-            std::cout << "Failed to get Quantizer: " << get_quantizer_result.message() << std::endl;
-
-            return (
-                TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, holes, std::vector<IntersectionInfo>()));
+            return TopologicalStatisticsEngineAnalyzeResult::failure( TopologicalStatisticsEngineAnalyzeResultCodes::UNABLE_TO_ACQUIRE_QUANTIZER, "Unable to Acquire Quntizer" );
         }
 
         Math::Quantizer quantizer(get_quantizer_result.return_value());
@@ -166,7 +163,7 @@ namespace Cork::Statistics
 
         const std::vector<IntersectionInfo> si_stats = iproblem->CheckSelfIntersection();
 
-        return TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, holes, si_stats);
+        return TopologicalStatisticsEngineAnalyzeResult::success( TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, holes, si_stats) );
     }
 
 };  // namespace Cork::Statistics

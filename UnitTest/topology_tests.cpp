@@ -45,9 +45,10 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(mesh->numTriangles() == 48);
 
         auto stats = mesh->ComputeTopologicalStatistics();
-        //        REQUIRE(stats.numBodies() == 1);
-        REQUIRE(stats.is_two_manifold());
-        REQUIRE(stats.num_edges() == 72);
+
+        REQUIRE( stats.succeeded() );
+        REQUIRE(stats.return_value().is_two_manifold());
+        REQUIRE(stats.return_value().num_edges() == 72);
     }
 
     SECTION("HoleBuilder Test")
@@ -119,11 +120,12 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto stats = mesh->ComputeTopologicalStatistics();
 
-        REQUIRE(!stats.is_two_manifold());
-        REQUIRE(stats.holes().size() == 1);
-        REQUIRE(((stats.holes()[0].vertices()[0] == 21u) && (stats.holes()[0].vertices()[1] == 5u) &&
-                 (stats.holes()[0].vertices()[2] == 11u)));
-        REQUIRE(stats.self_intersections().size() == 0);
+        REQUIRE( stats.succeeded() );
+        REQUIRE(!stats.return_value().is_two_manifold());
+        REQUIRE(stats.return_value().holes().size() == 1);
+        REQUIRE(((stats.return_value().holes()[0].vertices()[0] == 21u) && (stats.return_value().holes()[0].vertices()[1] == 5u) &&
+                 (stats.return_value().holes()[0].vertices()[2] == 11u)));
+        REQUIRE(stats.return_value().self_intersections().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
     }
 
@@ -140,19 +142,20 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto stats = mesh->ComputeTopologicalStatistics();
 
-        REQUIRE(!stats.is_two_manifold());
-        REQUIRE(stats.holes().size() == 3);
-        REQUIRE(((stats.holes()[0].vertices()[0] == 21u) && (stats.holes()[0].vertices()[1] == 11u) &&
-                 (stats.holes()[0].vertices()[2] == 5u) && (stats.holes()[0].vertices()[3] == 13u)));
-        REQUIRE(((stats.holes()[1].vertices()[0] == 16u) && (stats.holes()[1].vertices()[1] == 24u) &&
-                 (stats.holes()[1].vertices()[2] == 8u)));
-        REQUIRE(((stats.holes()[2].vertices()[0] == 16u) && (stats.holes()[2].vertices()[1] == 18u) &&
-                 (stats.holes()[2].vertices()[2] == 12u)));
-        REQUIRE(stats.self_intersections().size() == 0);
+        REQUIRE( stats.succeeded() );
+        REQUIRE(!stats.return_value().is_two_manifold());
+        REQUIRE(stats.return_value().holes().size() == 3);
+        REQUIRE(((stats.return_value().holes()[0].vertices()[0] == 21u) && (stats.return_value().holes()[0].vertices()[1] == 11u) &&
+                 (stats.return_value().holes()[0].vertices()[2] == 5u) && (stats.return_value().holes()[0].vertices()[3] == 13u)));
+        REQUIRE(((stats.return_value().holes()[1].vertices()[0] == 16u) && (stats.return_value().holes()[1].vertices()[1] == 24u) &&
+                 (stats.return_value().holes()[1].vertices()[2] == 8u)));
+        REQUIRE(((stats.return_value().holes()[2].vertices()[0] == 16u) && (stats.return_value().holes()[2].vertices()[1] == 18u) &&
+                 (stats.return_value().holes()[2].vertices()[2] == 12u)));
+        REQUIRE(stats.return_value().self_intersections().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
     }
 
-    SECTION("Find Self Intersections")
+    SECTION("Find and Fix Self Intersections - Simple")
     {
         auto read_result = Cork::Files::readOFF("../../UnitTest/Test Files/JuliaVaseWithSelfIntersection.off");
 
@@ -160,94 +163,131 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto* mesh(read_result.return_ptr().release());
 
-        auto stats = mesh->ComputeTopologicalStatistics();
+        auto topo_stats = mesh->ComputeTopologicalStatistics();
 
-        std::set<Cork::Primitives::TriangleByIndicesIndex, std::greater<Cork::Primitives::TriangleByIndicesIndex>>
-            triangles_to_remove;
+        REQUIRE( topo_stats.succeeded() );
+        REQUIRE(topo_stats.return_value().is_two_manifold());
+        REQUIRE(topo_stats.return_value().holes().size() == 0);
+        REQUIRE(topo_stats.return_value().self_intersections().size() == 2);
 
-        for (auto record : stats.self_intersections())
-        {
-            Cork::Primitives::EdgeByVertices edge_with_se(
-                Cork::Primitives::TriangleByVertices(mesh->triangles()[record.edge_triangle_id_], mesh->vertices())
-                    .edge(record.edge_index_));
+        mesh->remove_self_intersections( topo_stats.return_value() );
 
-            //            std::cout << "Edge Index: " << record.edge_index_ << " Edge: " << edge_with_se << " Triangle:
-            //            "
-            //                      <<
-            //                      Cork::Primitives::TriangleByVertices(mesh->triangles()[record.triangle_instersected_id_],
-            //                                                        mesh->vertices())
-            //                      << std::endl;
+        auto topo_stats_after_se_removal = mesh->ComputeTopologicalStatistics();
 
-            for (auto triangle_id : record.triangles_sharing_edge_)
-            {
-                triangles_to_remove.insert(triangle_id);
-            }
-        }
+        REQUIRE( topo_stats_after_se_removal.succeeded() );
+        REQUIRE(!topo_stats_after_se_removal.return_value().is_two_manifold());
+        REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 1);
+        REQUIRE(topo_stats_after_se_removal.return_value().self_intersections().size() == 0);
 
-        REQUIRE(stats.is_two_manifold());
-        REQUIRE(stats.holes().size() == 0);
-        REQUIRE(stats.self_intersections().size() == 2);
-        //        REQUIRE(stats.numBodies() == 1);
+        auto close_holes_result = mesh->close_holes( topo_stats_after_se_removal.return_value() );
 
-        auto read_result2 = Cork::Files::readOFF("../../UnitTest/Test Files/JuliaVaseWithSelfIntersection.off");
+        REQUIRE( close_holes_result.succeeded() );
 
-        REQUIRE(read_result2.succeeded());
+        auto topo_stats_after_closing_holes = mesh->ComputeTopologicalStatistics();
 
-        auto original_mesh(read_result2.return_ptr().release());
-
-        for (auto tri_to_remove_index : triangles_to_remove)
-        {
-            original_mesh->remove_triangle(tri_to_remove_index);
-        }
-
-        {
-            auto write_result = Cork::Files::writeOFF(
-                "../../UnitTest/Test Results/JuliaVaseWithSelfIntersectionRemovedHoleLeft.off", *original_mesh);
-        }
-
-        auto* mesh2(original_mesh);
-
-        auto stats2 = mesh2->ComputeTopologicalStatistics();
-
-        REQUIRE(!stats2.is_two_manifold());
-        REQUIRE(stats2.holes().size() == 1);
-        REQUIRE(stats2.self_intersections().size() == 0);
-
-        for (auto hole : stats2.holes())
-        {
-            Cork::Triangulator::NormalProjector projector(mesh2->vertices()[hole.vertices()[0]],
-                                                          mesh2->vertices()[hole.vertices()[1]],
-                                                          mesh2->vertices()[hole.vertices()[2]]);
-
-            Cork::Triangulator::Triangulator triangulator;
-
-            for (auto vertex_index : hole.vertices())
-            {
-                triangulator.add_point(mesh2->vertices()[vertex_index], true, projector);
-            }
-
-            for (int i = 0; i < hole.vertices().size() - 1; i++)
-            {
-                triangulator.add_segment(i, i + 1, true);
-            }
-
-            triangulator.add_segment(hole.vertices().size() - 1, 0, true);
-
-            auto result = triangulator.compute_triangulation();
-
-            REQUIRE(result.succeeded());
-
-            for (auto triangle_to_add : *(result.return_ptr()))
-            {
-                mesh2->AddTriangle(Cork::Primitives::TriangleByIndices(hole.vertices()[triangle_to_add.v2()],
-                                                                       hole.vertices()[triangle_to_add.v1()],
-                                                                       hole.vertices()[triangle_to_add.v0()]));
-            }
-        }
+        REQUIRE( topo_stats_after_closing_holes.succeeded() );
+        REQUIRE(topo_stats_after_closing_holes.return_value().is_two_manifold());
+        REQUIRE(topo_stats_after_closing_holes.return_value().holes().size() == 0);
+        REQUIRE(topo_stats_after_closing_holes.return_value().self_intersections().size() == 0);
 
         {
             auto write_result =
-                Cork::Files::writeOFF("../../UnitTest/Test Results/JuliaVaseRepaired.off", *original_mesh);
+                Cork::Files::writeOFF("../../UnitTest/Test Results/JuliaVaseRepaired.off", *mesh);
+
+            REQUIRE(write_result.succeeded());
+        }
+    }
+
+    SECTION("Find and Fix Self Intersections - Medium")
+    {
+        auto read_result = Cork::Files::readOFF("../../UnitTest/Test Files/Schoen_16WithSelfIntersections.off");
+
+        REQUIRE(read_result.succeeded());
+
+        auto* mesh(read_result.return_ptr().release());
+
+        auto topo_stats = mesh->ComputeTopologicalStatistics();
+
+//        REQUIRE(topo_stats.is_two_manifold());
+//        REQUIRE(topo_stats.holes().size() == 0);
+//        REQUIRE(topo_stats.self_intersections().size() == 2);
+
+        mesh->remove_self_intersections( topo_stats.return_value() );
+
+        auto topo_stats_after_se_removal = mesh->ComputeTopologicalStatistics();
+
+//        REQUIRE(!topo_stats_after_se_removal.is_two_manifold());
+//        REQUIRE(topo_stats_after_se_removal.holes().size() == 1);
+//        REQUIRE(topo_stats_after_se_removal.self_intersections().size() == 0);
+
+        {
+            auto write_result =
+                Cork::Files::writeOFF("../../UnitTest/Test Results/Schoen_16WithHoles.off", *mesh);
+
+            REQUIRE(write_result.succeeded());
+        }
+
+        auto close_holes_result = mesh->close_holes( topo_stats_after_se_removal.return_value() );
+
+//        REQUIRE( close_holes_result.succeeded() );
+
+        auto topo_stats_after_closing_holes = mesh->ComputeTopologicalStatistics();
+
+//        REQUIRE(topo_stats_after_closing_holes.is_two_manifold());
+//        REQUIRE(topo_stats_after_closing_holes.holes().size() == 0);
+//        REQUIRE(topo_stats_after_closing_holes.self_intersections().size() == 0);
+
+        {
+            auto write_result =
+                Cork::Files::writeOFF("../../UnitTest/Test Results/Schoen_16Repaired.off", *mesh);
+
+            REQUIRE(write_result.succeeded());
+        }
+    }
+
+    
+    SECTION("Find and Fix Self Intersections - Hard")
+    {
+        auto read_result = Cork::Files::readOFF("../../UnitTest/Test Files/bladeWithSelfIntersections.off");
+
+        REQUIRE(read_result.succeeded());
+
+        auto* mesh(read_result.return_ptr().release());
+
+        auto topo_stats = mesh->ComputeTopologicalStatistics();
+
+//        REQUIRE(topo_stats.is_two_manifold());
+//        REQUIRE(topo_stats.holes().size() == 0);
+//        REQUIRE(topo_stats.self_intersections().size() == 2);
+
+        mesh->remove_self_intersections( topo_stats.return_value() );
+
+        auto topo_stats_after_se_removal = mesh->ComputeTopologicalStatistics();
+
+//        REQUIRE(!topo_stats_after_se_removal.is_two_manifold());
+//        REQUIRE(topo_stats_after_se_removal.holes().size() == 1);
+//        REQUIRE(topo_stats_after_se_removal.self_intersections().size() == 0);
+
+        {
+            auto write_result =
+                Cork::Files::writeOFF("../../UnitTest/Test Results/bladeWithHoles.off", *mesh);
+
+            REQUIRE(write_result.succeeded());
+        }
+
+        auto close_holes_result = mesh->close_holes( topo_stats_after_se_removal.return_value() );
+
+//        REQUIRE( close_holes_result.succeeded() );
+
+        auto topo_stats_after_closing_holes = mesh->ComputeTopologicalStatistics();
+
+//        REQUIRE(topo_stats_after_closing_holes.is_two_manifold());
+//        REQUIRE(topo_stats_after_closing_holes.holes().size() == 0);
+//        REQUIRE(topo_stats_after_closing_holes.self_intersections().size() == 0);
+
+        {
+            auto write_result =
+                Cork::Files::writeOFF("../../UnitTest/Test Results/bladeRepaired.off", *mesh);
 
             REQUIRE(write_result.succeeded());
         }

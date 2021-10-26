@@ -34,8 +34,8 @@
 namespace Cork::Meshes
 {
     using VertexIndex = Primitives::VertexIndex;
-
     using TriangleVertexId = Primitives::TriangleVertexId;
+    using TriangleByIndices = Primitives::TriangleByIndices;
 
     TopoCache::TopoCache(MeshBase& owner, TopoCacheWorkspace& workspace)
         : m_mesh(owner),
@@ -92,9 +92,9 @@ namespace Cork::Meshes
             TriangleVertexId vertex2_id = TriangleVertexId::C;
 
             TopoTri* tri = m_topoTriList.emplace_back(
-                ref_tri.triangle_id(), i, m_topoVertexList.getPool()[VertexIndex::integer_type(vertex0_index)],
-                m_topoVertexList.getPool()[VertexIndex::integer_type(vertex1_index)],
-                m_topoVertexList.getPool()[VertexIndex::integer_type(vertex2_index)]);
+                ref_tri.triangle_id(), i, m_topoVertexList.getPool()[vertex0_index],
+                m_topoVertexList.getPool()[vertex1_index],
+                m_topoVertexList.getPool()[vertex2_index]);
 
             // then, put these in arbitrary but globally consistent order
 
@@ -118,9 +118,9 @@ namespace Cork::Meshes
 
             // and accrue in structure
 
-            TopoVert* v0 = &(m_topoVertexList.getPool()[VertexIndex::integer_type(vertex0_index)]);
-            TopoVert* v1 = &(m_topoVertexList.getPool()[VertexIndex::integer_type(vertex1_index)]);
-            TopoVert* v2 = &(m_topoVertexList.getPool()[VertexIndex::integer_type(vertex2_index)]);
+            TopoVert* v0 = &(m_topoVertexList.getPool()[vertex0_index]);
+            TopoVert* v1 = &(m_topoVertexList.getPool()[vertex1_index]);
+            TopoVert* v2 = &(m_topoVertexList.getPool()[vertex2_index]);
 
             //	Create edges and link them to the triangle
 

@@ -118,13 +118,13 @@ namespace Cork::Meshes
 
         uint32_t& boolAlgData() { return (m_boolAlgData); }
 
-        void flip() { std::swap(m_a, m_b); }
+        void flip() { std::swap(a_, b_); }
 
         void offsetIndices(uint32_t offsetValue)
         {
-            m_a += offsetValue;
-            m_b += offsetValue;
-            m_c += offsetValue;
+            a_ += offsetValue;
+            b_ += offsetValue;
+            c_ += offsetValue;
         }
 
        private:

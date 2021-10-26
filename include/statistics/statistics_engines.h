@@ -72,6 +72,17 @@ namespace Cork::Statistics
         void AddTriangle(const Primitives::TriangleByVertices& nextTriangle);
     };
 
+    
+    enum class TopologicalStatisticsEngineAnalyzeResultCodes
+    {
+        SUCCESS = 0,
+
+        UNABLE_TO_ACQUIRE_QUANTIZER
+    };
+
+    using TopologicalStatisticsEngineAnalyzeResult = SEFUtility::ResultWithReturnValue<TopologicalStatisticsEngineAnalyzeResultCodes,TopologicalStatistics>;
+
+
     class TopologicalStatisticsEngine
     {
        public:
@@ -83,7 +94,7 @@ namespace Cork::Statistics
             vertex_associations_.clear();
         }
 
-        TopologicalStatistics Analyze();
+        TopologicalStatisticsEngineAnalyzeResult Analyze();
 
        private:
         class EdgeAndIncidence : public Primitives::EdgeByIndices

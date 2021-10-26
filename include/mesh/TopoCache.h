@@ -38,6 +38,7 @@
 #include "MeshBase.h"
 #include "intersection/empty3d.hpp"
 #include "math/quantization.hpp"
+#include "primitives/primitives.hpp"
 #include "util/ManagedIntrusiveList.h"
 #include "util/SparseVector.h"
 
@@ -102,7 +103,7 @@ namespace Cork::Meshes
         TopoEdgePointerList m_edges;     // edges this vertex is incident on
     };
 
-    typedef ManagedIntrusiveValueList<TopoVert /*, ContiguousStorage<TopoVert, VertexIndex>*/> TopoVertexList;
+    typedef ManagedIntrusiveValueList<TopoVert,Primitives::VertexIndex> TopoVertexList;
 
     class TopoEdge final : public IntrusiveListHookNoDestructorOnElements
     {
@@ -184,7 +185,7 @@ namespace Cork::Meshes
         TopoTrianglePointerList m_tris;    // incident triangles
     };
 
-    typedef ManagedIntrusiveValueList<TopoEdge /*, ContiguousStorage<TopoEdge> */> TopoEdgeList;
+    typedef ManagedIntrusiveValueList<TopoEdge> TopoEdgeList;
 
     typedef boost::container::small_vector<const TopoEdge*, 24> TopoEdgePointerVector;
 
@@ -450,11 +451,11 @@ namespace Cork::Meshes
         std::array<TopoEdge*, 3> m_edges;  // edges of this triangle opposite to the given vertex
 
 #ifndef __AVX_AVAILABLE__
-        std::optional<Math::BBox3D> m_boundingBox;
+        std::optional<Primitives::BBox3D> m_boundingBox;
 #endif
     };
 
-    typedef ManagedIntrusiveValueList<TopoTri /*, ContiguousStorage<TopoTri>*/> TopoTriList;
+    typedef ManagedIntrusiveValueList<TopoTri> TopoTriList;
 
     class TopoCacheWorkspace
     {
@@ -497,70 +498,6 @@ namespace Cork::Meshes
         operator TopoEdgePointerList::SetPoolType &() { return topo_edge_pointer_set_pool_; }
 
        private:
-        template <typename T>
-        class UnorderedMapPool : public SEFUtility::UnorderedMapPool<T>
-        {
-           public:
-            UnorderedMapPool() {}
-
-            ~UnorderedMapPool()
-            {
-                std::cout << "In Unordered Map Pool destructor" << std::endl;
-
-                for (auto map : distributed_maps_)
-                {
-                    delete map;
-                }
-
-                for (auto map : available_maps_)
-                {
-                    delete map;
-                }
-            }
-
-            std::unordered_map<size_t, T>* new_map(size_t initial_size)
-            {
-                std::unordered_map<size_t, T>* map;
-
-                if (available_maps_.empty())
-                {
-                    map = new std::unordered_map<size_t, T>(initial_size);
-                }
-                else
-                {
-                    map = available_maps_.back();
-                    available_maps_.pop_back();
-                }
-
-                distributed_maps_.insert(map);
-
-                return map;
-            }
-
-            void release_map(std::unordered_map<size_t, T>* map)
-            {
-                map->clear();
-
-                distributed_maps_.erase(map);
-
-                available_maps_.push_back(map);
-            }
-
-            void clear()
-            {
-                for (auto map : distributed_maps_)
-                {
-                    available_maps_.push_back(map);
-                }
-
-                distributed_maps_.clear();
-            }
-
-           private:
-            std::deque<std::unordered_map<size_t, T>*> available_maps_;
-            std::unordered_set<std::unordered_map<size_t, T>*> distributed_maps_;
-        };
-
         template <typename T>
         class PointerSetPool : public SEFUtility::PointerSetPool<T>
         {

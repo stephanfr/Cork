@@ -32,9 +32,9 @@
 
 #include "accel/aabvh.h"
 #include "intersection/empty3d.hpp"
-#include "math/gmpext4.hpp"
-#include "intersection/triangulator.hpp"
 #include "intersection/intersection_problem.hpp"
+#include "intersection/triangulator.hpp"
+#include "math/gmpext4.hpp"
 #include "mesh/MeshBase.h"
 #include "mesh/TopoCache.h"
 #include "tbb/tbb.h"
@@ -124,7 +124,10 @@ namespace Cork::Intersection
             return (AdjustPerturbationResult(m_numAdjustments));
         }
 
-        Primitives::Vector3D getPerturbation() const { return (m_randMatrix.getPerturbation(m_numAdjustments, m_quantum)); }
+        Primitives::Vector3D getPerturbation() const
+        {
+            return (m_randMatrix.getPerturbation(m_numAdjustments, m_quantum));
+        }
 
        private:
         int m_bitsOfPurturbationRange;
@@ -216,7 +219,7 @@ namespace Cork::Intersection
                 const std::tuple<long, long, long>& randEntry = m_randomizationMatrix[index][arrayIndex];
 
                 return (Primitives::Vector3D(std::get<0>(randEntry) * quantum, std::get<1>(randEntry) * quantum,
-                                       std::get<2>(randEntry) * quantum));
+                                             std::get<2>(randEntry) * quantum));
             }
 
            private:
@@ -236,8 +239,8 @@ namespace Cork::Intersection
                 Primitives::Vector3D perturbation;
 
                 perturbation = Primitives::Vector3D((m_mersenneTwister() % perturbRange) * quantum,
-                                              (m_mersenneTwister() % perturbRange) * quantum,
-                                              (m_mersenneTwister() % perturbRange) * quantum);
+                                                    (m_mersenneTwister() % perturbRange) * quantum,
+                                                    (m_mersenneTwister() % perturbRange) * quantum);
 
                 if ((m_mersenneTwister() % 2) == 1)
                 {
@@ -284,7 +287,7 @@ namespace Cork::Intersection
     }
 
     inline Primitives::Vector3D computeCoords(const TopoTri& t0, const TopoTri& t1, const TopoTri& t2,
-                                        const Math::Quantizer& quantizer)
+                                              const Math::Quantizer& quantizer)
     {
         return (Empty3d::coordsExact(t0.triangleExactCoordinates(quantizer), t1.triangleExactCoordinates(quantizer),
                                      t2.triangleExactCoordinates(quantizer), quantizer));
@@ -377,14 +380,15 @@ namespace Cork::Intersection
             m_edges.reserve(16);
         }
 
-        GenericVertType(VertexType type, TopoVert& concreteVertex, const Primitives::Vector3D& coordinate, bool boundary)
+        GenericVertType(VertexType type, TopoVert& concreteVertex, const Primitives::Vector3D& coordinate,
+                        bool boundary)
             : m_vertexType(type), m_concreteVertex(concreteVertex), m_coordinate(coordinate), m_boundary(boundary)
         {
             m_edges.reserve(16);
         }
 
-        GenericVertType(VertexType type, TopoVert& concreteVertex, const Primitives::Vector3D& coordinate, bool boundary,
-                        GluePointMarker& glueMarker)
+        GenericVertType(VertexType type, TopoVert& concreteVertex, const Primitives::Vector3D& coordinate,
+                        bool boundary, GluePointMarker& glueMarker)
             : m_vertexType(type),
               m_concreteVertex(concreteVertex),
               m_coordinate(coordinate),
@@ -396,7 +400,8 @@ namespace Cork::Intersection
             m_glueMarker->addVertexToCopies(this);
         }
 
-        GenericVertType(VertexType type, const Primitives::Vector3D& coordinate, bool boundary, GluePointMarker& glueMarker)
+        GenericVertType(VertexType type, const Primitives::Vector3D& coordinate, bool boundary,
+                        GluePointMarker& glueMarker)
             : m_vertexType(type), m_coordinate(coordinate), m_boundary(boundary), m_glueMarker(glueMarker)
         {
             m_edges.reserve(16);
@@ -684,7 +689,8 @@ namespace Cork::Intersection
         typedef tbb::concurrent_bounded_queue<TriAndEdgeQueueMessage*> TriangleAndIntersectingEdgesQueue;
 
         IntersectionProblemBase(MeshBase& owner, const Math::Quantizer& quantizer,
-                                const Primitives::BBox3D& intersectionBBox, IntersectionProblemWorkspaceBase& workspace);
+                                const Primitives::BBox3D& intersectionBBox,
+                                IntersectionProblemWorkspaceBase& workspace);
 
         IntersectionProblemBase(const IntersectionProblemBase& isctProblemToCopy) = delete;
 
@@ -1193,8 +1199,8 @@ namespace Cork::Intersection
             addEdge(iv, tri_key);
         }
 
-        IsctVertType* addBoundaryEndpoint(const TopoTri& tri_key, const TopoEdge& edge, const Primitives::Vector3D& coord,
-                                          GluePointMarker& glue)
+        IsctVertType* addBoundaryEndpoint(const TopoTri& tri_key, const TopoEdge& edge,
+                                          const Primitives::Vector3D& coord, GluePointMarker& glue)
         {
             IsctVertType* iv = m_iprob.newSplitIsctVert(coord, glue);
             addBoundaryHelper(edge, iv);
@@ -1209,7 +1215,8 @@ namespace Cork::Intersection
         // Should only happen for manually inserted split points on
         // edges, not for points computed via intersection...
 
-        IsctVertType* addBoundaryPointAlone(const TopoEdge& edge, const Primitives::Vector3D& coord, GluePointMarker& glue)
+        IsctVertType* addBoundaryPointAlone(const TopoEdge& edge, const Primitives::Vector3D& coord,
+                                            GluePointMarker& glue)
         {
             IsctVertType* iv = m_iprob.newSplitIsctVert(coord, glue);
             addBoundaryHelper(edge, iv);
@@ -2024,16 +2031,26 @@ namespace Cork::Intersection
             {
                 if (t.intersectsEdge(*edge, m_quantizer, localArithmeticContext))
                 {
-                    std::vector<TriangleByIndicesIndex> triangles_sharing_edge;
+                    std::set<TriangleByIndicesIndex> triangles_sharing_edge;
+                    std::set<TriangleByIndicesIndex> triangles_touching_triangles_sharing_edge;
 
                     for (auto triangle_sharing_edge : edge->triangles())
                     {
-                        triangles_sharing_edge.push_back(triangle_sharing_edge->source_triangle_id());
+                        triangles_sharing_edge.insert(triangle_sharing_edge->source_triangle_id());
+
+                        for (auto touching_edge : triangle_sharing_edge->edges())
+                        {
+                            for (auto triangle_touching : touching_edge->triangles())
+                            {
+                                triangles_touching_triangles_sharing_edge.insert(
+                                    triangle_touching->source_triangle_id());
+                            }
+                        }
                     }
 
-                    self_intersecting_edges.emplace_back(
-                        Intersection::IntersectionInfo(edge->source_triangle_id(), edge->edge_index(),
-                                                       t.source_triangle_id(), triangles_sharing_edge));
+                    self_intersecting_edges.emplace_back(Intersection::IntersectionInfo(
+                        edge->source_triangle_id(), edge->edge_index(), t.source_triangle_id(), triangles_sharing_edge,
+                        triangles_touching_triangles_sharing_edge));
                 }
             }
 
@@ -2161,9 +2178,8 @@ namespace Cork::Intersection
         return (IntersectionProblemResult::success());
     }
 
-    std::unique_ptr<IntersectionProblemIfx> IntersectionProblemIfx::GetProblem(MeshBase& owner,
-                                                                               const Math::Quantizer& quantizer,
-                                                                               const Primitives::BBox3D& intersectionBBox)
+    std::unique_ptr<IntersectionProblemIfx> IntersectionProblemIfx::GetProblem(
+        MeshBase& owner, const Math::Quantizer& quantizer, const Primitives::BBox3D& intersectionBBox)
     {
         IntersectionWorkspaceFactory::UniquePtr workspace(IntersectionWorkspaceFactory::GetInstance());
 
