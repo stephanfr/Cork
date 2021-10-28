@@ -31,8 +31,8 @@
 
 #include "CorkDefs.h"
 #include "cork.h"
-#include "math/quantization.hpp"
 #include "intersection/intersection_problem.hpp"
+#include "math/quantization.hpp"
 #include "mesh/mesh.h"
 
 namespace Cork::Statistics
@@ -41,129 +41,139 @@ namespace Cork::Statistics
 
     using TriangleByVertices = Primitives::TriangleByVertices;
 
-
     GeometricStatisticsEngine::GeometricStatisticsEngine(const TriangleMesh& triangle_mesh,
-                                                         PropertiesToCompute propertiesToCompute)
-        : triangle_mesh_(triangle_mesh),
-          m_propertiesToCompute(propertiesToCompute),
-          m_area(0.0),
-          m_volume(0.0),
-          m_minEdgeLength(DBL_MAX),
-          m_maxEdgeLength(DBL_MIN)
+                                                         GeometricProperties properties_to_compute)
+        : num_triangles_(triangle_mesh.numTriangles()),
+          num_vertices_(triangle_mesh.numVertices()),
+          area_(0.0),
+          volume_(0.0),
+          min_edge_length_(DBL_MAX),
+          max_edge_length_(DBL_MIN),
+          bounding_box_(triangle_mesh.boundingBox())
     {
-        for (const auto& currentTriangle : triangle_mesh_.triangles())
+        for (const auto& currentTriangle : triangle_mesh.triangles())
         {
-            AddTriangle(triangle_mesh_.triangleByVertices(currentTriangle));
-        }
-    }
+            auto tri_by_verts = triangle_mesh.triangleByVertices(currentTriangle);
 
-    void GeometricStatisticsEngine::AddTriangle(const TriangleByVertices& nextTriangle)
-    {
-        //	Get the edges
+            //	Get the edges
 
-        if ((m_propertiesToCompute & (PropertiesToCompute::AREA_AND_VOLUME | PropertiesToCompute::EDGE_LENGTHS)) != 0)
-        {
-            Vector3D edgeAB = nextTriangle.edgeAB_from_origin();
-            Vector3D edgeAC = nextTriangle.edgeAC_from_origin();
-            Vector3D edgeBC = nextTriangle.edgeBC_from_origin();
-
-            if ((m_propertiesToCompute & PropertiesToCompute::AREA_AND_VOLUME) != 0)
+            if ((properties_to_compute &
+                 (GeometricProperties::GEOM_AREA_AND_VOLUME | GeometricProperties::GEOM_EDGE_LENGTHS)) != 0)
             {
-                //	Add the incremental area of this triangle
+                Vector3D edgeAB = tri_by_verts.edgeAB_from_origin();
+                Vector3D edgeAC = tri_by_verts.edgeAC_from_origin();
+                Vector3D edgeBC = tri_by_verts.edgeBC_from_origin();
 
-                Vector3D ABcrossAC = edgeAB.cross(edgeAC);
-
-                m_area += ABcrossAC.len() / 2;
-
-                //	Do the same for volume
-
-                double temp = nextTriangle.vertexA().dot(ABcrossAC);
-
-                m_volume += temp / 6;
-            }
-
-            //	Update the min/max edge lengths
-
-            if ((m_propertiesToCompute & PropertiesToCompute::EDGE_LENGTHS) != 0)
-            {
-                m_minEdgeLength =
-                    std::min(m_minEdgeLength, (double)std::min(edgeAB.len(), std::min(edgeAC.len(), edgeBC.len())));
-                m_maxEdgeLength =
-                    std::max(m_maxEdgeLength, (double)std::max(edgeAB.len(), std::max(edgeAC.len(), edgeBC.len())));
-            }
-        }
-    };
-
-    TopologicalStatisticsEngine::TopologicalStatisticsEngine(const TriangleMesh& triangle_mesh)
-        : triangle_mesh_(triangle_mesh), num_bodys_(0), m_minEdgeLength(DBL_MAX), m_maxEdgeLength(DBL_MIN)
-    {
-        edges_.reserve(triangle_mesh_.numTriangles() * 6);
-        vertex_associations_.reserve(triangle_mesh_.numTriangles() * 12);
-
-        for (const auto& currentTriangle : triangle_mesh_.triangles())
-        {
-            AddTriangle(currentTriangle);
-        }
-    }
-
-    inline void TopologicalStatisticsEngine::AddTriangle(const Primitives::TriangleByIndices& nextTriangle)
-    {
-        EdgeSet::iterator itrEdgeAB = edges_.emplace(nextTriangle.a(), nextTriangle.b()).first;
-        EdgeSet::iterator itrEdgeAC = edges_.emplace(nextTriangle.a(), nextTriangle.c()).first;
-        EdgeSet::iterator itrEdgeBC = edges_.emplace(nextTriangle.b(), nextTriangle.c()).first;
-
-        int abIncidences = const_cast<EdgeAndIncidence&>(*itrEdgeAB).AddIncidence();
-        int acIncidences = const_cast<EdgeAndIncidence&>(*itrEdgeAC).AddIncidence();
-        int bcIncidences = const_cast<EdgeAndIncidence&>(*itrEdgeBC).AddIncidence();
-
-        vertex_associations_[nextTriangle.a()].push_back(nextTriangle.b());
-        vertex_associations_[nextTriangle.a()].push_back(nextTriangle.c());
-        vertex_associations_[nextTriangle.b()].push_back(nextTriangle.a());
-        vertex_associations_[nextTriangle.b()].push_back(nextTriangle.c());
-        vertex_associations_[nextTriangle.c()].push_back(nextTriangle.a());
-        vertex_associations_[nextTriangle.c()].push_back(nextTriangle.b());
-    }
-
-    TopologicalStatisticsEngineAnalyzeResult TopologicalStatisticsEngine::Analyze()
-    {
-        //  First, look for non 2 manifold edges - which means holes
-
-        num_non_2_manifold_ = 0;
-
-        for (auto& edge : edges_)
-        {
-            if (edge.numIncidences() != 2)
-            {
-                num_non_2_manifold_++;
-
-                if (edge.numIncidences() <= 1)
+                if ((properties_to_compute & GeometricProperties::GEOM_AREA_AND_VOLUME) != 0)
                 {
-                    hole_edges_.push_back(dynamic_cast<const Primitives::EdgeByIndices&>(edge));
+                    //	Add the incremental area of this triangle
+
+                    Vector3D ABcrossAC = edgeAB.cross(edgeAC);
+
+                    area_ += ABcrossAC.len() / 2;
+
+                    //	Do the same for volume
+
+                    double temp = tri_by_verts.vertexA().dot(ABcrossAC);
+
+                    volume_ += temp / 6;
+                }
+
+                //	Update the min/max edge lengths
+
+                if ((properties_to_compute & GeometricProperties::GEOM_EDGE_LENGTHS) != 0)
+                {
+                    min_edge_length_ = std::min(min_edge_length_,
+                                                (double)std::min(edgeAB.len(), std::min(edgeAC.len(), edgeBC.len())));
+                    max_edge_length_ = std::max(max_edge_length_,
+                                                (double)std::max(edgeAB.len(), std::max(edgeAC.len(), edgeBC.len())));
                 }
             }
         }
+    }
 
-        std::vector<Hole> holes = HoleBuilder::extract_holes(hole_edges_);
+    TopologicalStatisticsEngine::TopologicalStatisticsEngine(const TriangleMesh& triangle_mesh)
+        : triangle_mesh_(triangle_mesh)
+    {
+        edges_.reserve((triangle_mesh.numTriangles() * 6) + 10);  //  Pad just a little bit
 
-        std::unique_ptr<Meshes::Mesh> single_mesh(new Meshes::Mesh(triangle_mesh_, CorkService::get_default_control_block()));
-
-        Math::Quantizer::GetQuantizerResult get_quantizer_result = single_mesh->getQuantizer();
-
-        if (!get_quantizer_result.succeeded())
+        for (const auto& current_triangle : triangle_mesh_.triangles())
         {
-            return TopologicalStatisticsEngineAnalyzeResult::failure( TopologicalStatisticsEngineAnalyzeResultCodes::UNABLE_TO_ACQUIRE_QUANTIZER, "Unable to Acquire Quntizer" );
+            EdgeSet::iterator itrEdgeAB = edges_.emplace(current_triangle.a(), current_triangle.b()).first;
+            EdgeSet::iterator itrEdgeAC = edges_.emplace(current_triangle.a(), current_triangle.c()).first;
+            EdgeSet::iterator itrEdgeBC = edges_.emplace(current_triangle.b(), current_triangle.c()).first;
+
+            const_cast<EdgeAndIncidence&>(*itrEdgeAB).AddIncidence();
+            const_cast<EdgeAndIncidence&>(*itrEdgeAC).AddIncidence();
+            const_cast<EdgeAndIncidence&>(*itrEdgeBC).AddIncidence();
+        }
+    }
+
+    TopologicalStatisticsEngineAnalyzeResult TopologicalStatisticsEngine::Analyze(
+        TopologicalProperties props_to_compute)
+    {
+        //  First, look for non 2 manifold edges
+
+        int num_non_2_manifold = 0;
+        int num_edges = 0;
+        std::vector<Hole> holes;
+        std::vector<IntersectionInfo> si_stats;
+
+        if (props_to_compute & TopologicalProperties::TOPO_BASE)
+        {
+            for (auto& edge : edges_)
+            {
+                if (edge.numIncidences() != 2)
+                {
+                    num_non_2_manifold++;
+                }
+            }
+
+            num_edges = edges_.size();
         }
 
-        Math::Quantizer quantizer(get_quantizer_result.return_value());
+        if (props_to_compute & TopologicalProperties::TOPO_HOLES)
+        {
+            std::vector<Primitives::EdgeByIndices> hole_edges;
 
-        std::unique_ptr<Intersection::IntersectionProblemIfx> iproblem(
-            Intersection::IntersectionProblemIfx::GetProblem(*single_mesh, quantizer, single_mesh->boundingBox()));
+            for (auto& edge : edges_)
+            {
+                if (edge.numIncidences() != 2)
+                {
+                    if (edge.numIncidences() <= 1)
+                    {
+                        hole_edges.push_back(dynamic_cast<const Primitives::EdgeByIndices&>(edge));
+                    }
+                }
+            }
+            holes = HoleBuilder::extract_holes(hole_edges);
+        }
 
-        Intersection::IntersectionProblemIfx::IntersectionProblemResult findResult = iproblem->FindIntersections();
+        if (props_to_compute & TopologicalProperties::TOPO_SELF_INTERSECTIONS)
+        {
+            std::unique_ptr<Meshes::Mesh> single_mesh(
+                new Meshes::Mesh(triangle_mesh_, CorkService::get_default_control_block()));
 
-        const std::vector<IntersectionInfo> si_stats = iproblem->CheckSelfIntersection();
+            Math::Quantizer::GetQuantizerResult get_quantizer_result = single_mesh->getQuantizer();
 
-        return TopologicalStatisticsEngineAnalyzeResult::success( TopologicalStatistics(edges_.size(), 0, num_non_2_manifold_, holes, si_stats) );
+            if (!get_quantizer_result.succeeded())
+            {
+                return TopologicalStatisticsEngineAnalyzeResult::failure(
+                    TopologicalStatisticsEngineAnalyzeResultCodes::UNABLE_TO_ACQUIRE_QUANTIZER,
+                    "Unable to Acquire Quntizer");
+            }
+
+            Math::Quantizer quantizer(get_quantizer_result.return_value());
+
+            std::unique_ptr<Intersection::IntersectionProblemIfx> iproblem(
+                Intersection::IntersectionProblemIfx::GetProblem(*single_mesh, quantizer, single_mesh->boundingBox()));
+
+            Intersection::IntersectionProblemIfx::IntersectionProblemResult findResult = iproblem->FindIntersections();
+
+            si_stats = iproblem->CheckSelfIntersection();
+        }
+
+        return TopologicalStatistics(num_edges, 0, num_non_2_manifold, holes, si_stats);
     }
 
 };  // namespace Cork::Statistics

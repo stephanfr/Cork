@@ -60,27 +60,27 @@ void WriteMeshStatistics(const Cork::TriangleMesh& mesh, const std::string& file
                          std::ofstream& geotopoResults)
 {
     Cork::Statistics::GeometricStatistics stats = mesh.ComputeGeometricStatistics();
-    Cork::Statistics::TopologicalStatistics topo_stats = mesh.ComputeTopologicalStatistics();
+    Cork::Meshes::TopologicalStatisticsResult topo_stats = mesh.ComputeTopologicalStatistics( Cork::Statistics::TopologicalProperties::TOPO_BASE );
 
-    geotopoResults << filename << "\t" << topo_stats.is_two_manifold() << "\t";
-    geotopoResults << stats.numVertices() << "\t" << topo_stats.num_edges() << "\t" << stats.numTriangles() << "\t";
+    geotopoResults << filename << "\t" << topo_stats.return_value().is_two_manifold() << "\t";
+    geotopoResults << stats.num_vertices() << "\t" << topo_stats.return_value().num_edges() << "\t" << stats.num_triangles() << "\t";
     geotopoResults << stats.area() << "\t" << stats.volume() << "\t";
     //	geotopoResults << stats.maxEdgeLength() << "\t" << stats.minEdgeLength() << "\t";
-    geotopoResults << stats.boundingBox().minima().x() << "\t" << stats.boundingBox().minima().y() << "\t"
-                   << stats.boundingBox().minima().z() << "\t";
-    geotopoResults << stats.boundingBox().maxima().x() << "\t" << stats.boundingBox().maxima().y() << "\t"
-                   << stats.boundingBox().maxima().z() << std::endl;
+    geotopoResults << stats.bounding_box().minima().x() << "\t" << stats.bounding_box().minima().y() << "\t"
+                   << stats.bounding_box().minima().z() << "\t";
+    geotopoResults << stats.bounding_box().maxima().x() << "\t" << stats.bounding_box().maxima().y() << "\t"
+                   << stats.bounding_box().maxima().z() << std::endl;
 
     num_successful_operations++;
 
-    if (topo_stats.is_two_manifold())
+    if (topo_stats.return_value().is_two_manifold())
     {
         num_two_manifold_results++;
     }
 
-    total_num_vertices += stats.numVertices();
-    total_num_edges += topo_stats.num_edges();
-    total_num_triangles += stats.numTriangles();
+    total_num_vertices += stats.num_vertices();
+    total_num_edges += topo_stats.return_value().num_edges();
+    total_num_triangles += stats.num_triangles();
 }
 
 //  NOLINTNEXTLINE
@@ -224,11 +224,15 @@ int main(int argc, char* argv[])
 
         std::cout << "Read: " << current_model.filename().string() << std::endl;
 
-        Cork::Statistics::TopologicalStatistics    topo_stats( read_model_result.return_ptr()->ComputeTopologicalStatistics() );
+        Cork::Meshes::TopologicalStatisticsResult topo_stats = read_model_result.return_ptr()->ComputeTopologicalStatistics( Cork::Statistics::TopologicalProperties::TOPO_ALL );
 
-        if( !topo_stats.is_two_manifold() )
+        if( topo_stats.succeeded() )
         {
-            std::cout << "Num holes: " << topo_stats.holes().size() << "    Num Self Intersections: " << topo_stats.self_intersections().size() << std::endl;
+            std::cout << "Num holes: " << topo_stats.return_value().holes().size() << "    Num Self Intersections: " << topo_stats.return_value().self_intersections().size() << std::endl;
+        }
+        else
+        {
+            std::cout << "Unable to compute Topo Stats for Mesh" << std::endl;
         }
 
         models.emplace_back(

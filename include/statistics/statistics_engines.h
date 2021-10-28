@@ -36,43 +36,30 @@ namespace Cork::Statistics
     class GeometricStatisticsEngine
     {
        public:
-        enum PropertiesToCompute
-        {
-            ALL = 0xFFFF,
-            AREA_AND_VOLUME = 2,
-            EDGE_LENGTHS = 4
-        };
-
         explicit GeometricStatisticsEngine(const Cork::TriangleMesh& triangle_mesh,
-                                           PropertiesToCompute propertiesToCompute = ALL);
+                                           GeometricProperties propertiesToCompute = GeometricProperties::GEOM_ALL);
 
-        size_t numTriangles() const { return triangle_mesh_.numTriangles(); }
-
-        const Primitives::BBox3D& boundingBox() const { return triangle_mesh_.boundingBox(); }
-
-        double area() const { return (m_area); }
-
-        double volume() const { return (m_volume); }
-
-        double minEdgeLength() const { return (m_minEdgeLength); }
-
-        double maxEdgeLength() const { return (m_maxEdgeLength); }
+        GeometricStatistics     statistics() const
+        {
+            return GeometricStatistics( num_triangles_, num_vertices_, area_, volume_, min_edge_length_, max_edge_length_, bounding_box_ );
+        }
 
        private:
-        PropertiesToCompute m_propertiesToCompute;
 
-        const Cork::TriangleMesh& triangle_mesh_;
+        uint32_t    num_triangles_;
+        uint32_t    num_vertices_;
 
-        double m_area;
-        double m_volume;
+        double area_;
+        double volume_;
 
-        double m_minEdgeLength;
-        double m_maxEdgeLength;
+        double min_edge_length_;
+        double max_edge_length_;
+
+        Primitives::BBox3D      bounding_box_;
 
         void AddTriangle(const Primitives::TriangleByVertices& nextTriangle);
     };
 
-    
     enum class TopologicalStatisticsEngineAnalyzeResultCodes
     {
         SUCCESS = 0,
@@ -80,23 +67,21 @@ namespace Cork::Statistics
         UNABLE_TO_ACQUIRE_QUANTIZER
     };
 
-    using TopologicalStatisticsEngineAnalyzeResult = SEFUtility::ResultWithReturnValue<TopologicalStatisticsEngineAnalyzeResultCodes,TopologicalStatistics>;
-
+    using TopologicalStatisticsEngineAnalyzeResult =
+        SEFUtility::ResultWithReturnValue<TopologicalStatisticsEngineAnalyzeResultCodes, TopologicalStatistics>;
 
     class TopologicalStatisticsEngine
     {
        public:
         TopologicalStatisticsEngine(const Cork::TriangleMesh& triangle_mesh);
 
-        ~TopologicalStatisticsEngine()
-        {
-            edges_.clear();
-            vertex_associations_.clear();
-        }
+        ~TopologicalStatisticsEngine() = default;
 
-        TopologicalStatisticsEngineAnalyzeResult Analyze();
+        TopologicalStatisticsEngineAnalyzeResult Analyze(TopologicalProperties props_to_compute);
 
        private:
+        const Cork::TriangleMesh& triangle_mesh_;
+
         class EdgeAndIncidence : public Primitives::EdgeByIndices
         {
            public:
@@ -113,34 +98,20 @@ namespace Cork::Statistics
 
             struct HashFunction
             {
-                std::size_t operator()(const Primitives::EdgeByIndices& k) const { return (Primitives::VertexIndex::integer_type(k.first()) * 10000019 ^ Primitives::VertexIndex::integer_type(k.second())); }
+                std::size_t operator()(const Primitives::EdgeByIndices& k) const
+                {
+                    return (Primitives::VertexIndex::integer_type(k.first()) * 10000019 ^
+                            Primitives::VertexIndex::integer_type(k.second()));
+                }
             };
 
            private:
             int m_numIncidences;
         };
 
-        using AssociatedVertexVector = boost::container::small_vector<Primitives::VertexIndex, 100>;
-
         using EdgeSet = std::unordered_set<EdgeAndIncidence, EdgeAndIncidence::HashFunction>;
-        using VertexAssociations = std::unordered_map<Primitives::VertexIndex, AssociatedVertexVector>;
-
-        const Cork::TriangleMesh& triangle_mesh_;
-
-        double m_minEdgeLength;
-        double m_maxEdgeLength;
-
-        int num_bodys_;
-        int num_non_2_manifold_;
 
         EdgeSet edges_;
-
-        std::vector<Primitives::EdgeByIndices> hole_edges_;
-        std::vector<Primitives::EdgeByIndices> self_intersecting_edges_;
-
-        VertexAssociations vertex_associations_;
-
-        void AddTriangle(const Primitives::TriangleByIndices& nextTriangle);
     };
 
 }  // namespace Cork::Statistics

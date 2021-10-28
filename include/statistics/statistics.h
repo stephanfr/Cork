@@ -28,59 +28,71 @@
 
 #include <memory>
 
-#include "primitives/primitives.hpp"
 #include "intersection/self_intersections.hpp"
 #include "primitives/hole.hpp"
+#include "primitives/primitives.hpp"
 
 namespace Cork::Statistics
 {
+    enum GeometricProperties : uint16_t
+    {
+        GEOM_ALL = 0xFFFF,
+        GEOM_AREA_AND_VOLUME = 2,
+        GEOM_EDGE_LENGTHS = 4
+    };
+
+    enum TopologicalProperties : uint16_t
+    {
+        TOPO_ALL = 0xFFFF,
+        TOPO_BASE = 1,
+        TOPO_HOLES = 2,
+        TOPO_SELF_INTERSECTIONS = 4
+    };
+
     using IntersectionInfo = Intersection::IntersectionInfo;
 
     class GeometricStatistics
     {
        public:
-        GeometricStatistics(size_t numVertices, size_t numTriangles, double area, double volume, double minEdgeLength,
-                            double maxEdgeLength, const Primitives::BBox3D& boundingBox)
-            : m_numVertices(numVertices),
-              m_numTriangles(numTriangles),
-              m_area(area),
-              m_volume(volume),
-              m_minEdgeLength(minEdgeLength),
-              m_maxEdgeLength(maxEdgeLength),
-              m_boundingBox(std::make_unique<Primitives::BBox3D>(boundingBox))
+        GeometricStatistics(uint32_t num_triangles, uint32_t num_vertices, double area, double volume,
+                            double min_edge_length, double max_edge_length, const Primitives::BBox3D& bounding_box)
+            : num_triangles_(num_triangles),
+              num_vertices_(num_vertices),
+              area_(area),
+              volume_(volume),
+              min_edge_length_(min_edge_length),
+              max_edge_length_(max_edge_length),
+              bounding_box_(bounding_box)
         {
         }
 
-        size_t numVertices() const { return (m_numVertices); }
+        size_t num_vertices() const { return (num_vertices_); }
 
-        size_t numTriangles() const { return (m_numTriangles); }
+        size_t num_triangles() const { return (num_triangles_); }
 
-        Primitives::BBox3D boundingBox() const { return (*m_boundingBox); }
+        const Primitives::BBox3D& bounding_box() const { return bounding_box_; }
 
-        double area() const { return (m_area); }
+        double area() const { return (area_); }
 
-        double volume() const { return (m_volume); }
+        double volume() const { return (volume_); }
 
-        double minEdgeLength() const { return (m_minEdgeLength); }
+        double min_edge_length() const { return (min_edge_length_); }
 
-        double maxEdgeLength() const { return (m_maxEdgeLength); }
+        double max_edge_length() const { return (max_edge_length_); }
 
        private:
-        size_t m_numVertices;
-        size_t m_numTriangles;
-        double m_area;
-        double m_volume;
-        double m_minEdgeLength;
-        double m_maxEdgeLength;
-        std::unique_ptr<Primitives::BBox3D> m_boundingBox;
+        size_t num_vertices_;
+        size_t num_triangles_;
+        double area_;
+        double volume_;
+        double min_edge_length_;
+        double max_edge_length_;
+        const Primitives::BBox3D bounding_box_;
     };
-
-
 
     class TopologicalStatistics
     {
        public:
-
         TopologicalStatistics() = delete;
 
         TopologicalStatistics(size_t num_edges, size_t num_bodies, size_t non_2_manifold_edges,

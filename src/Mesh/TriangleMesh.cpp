@@ -94,21 +94,18 @@ namespace Cork::Meshes
         }
         [[nodiscard]] double max_vertex_magnitude() const final { return max_vertex_magnitude_; }
 
-        [[nodiscard]] Statistics::GeometricStatistics ComputeGeometricStatistics() const final
+        [[nodiscard]] Statistics::GeometricStatistics ComputeGeometricStatistics(Statistics::GeometricProperties props_to_compute) const final
         {
-            Statistics::GeometricStatisticsEngine geometricStatsEngine(*this);
+            Statistics::GeometricStatisticsEngine geometricStatsEngine(*this, props_to_compute);
 
-            return (Statistics::GeometricStatistics(
-                m_vertices->size(), geometricStatsEngine.numTriangles(), geometricStatsEngine.area(),
-                geometricStatsEngine.volume(), geometricStatsEngine.minEdgeLength(),
-                geometricStatsEngine.maxEdgeLength(), geometricStatsEngine.boundingBox()));
+            return Statistics::GeometricStatistics( geometricStatsEngine.statistics() );
         }
 
-        [[nodiscard]] TopologicalStatisticsResult ComputeTopologicalStatistics() const final
+        [[nodiscard]] TopologicalStatisticsResult ComputeTopologicalStatistics(Statistics::TopologicalProperties     props_to_compute) const final
         {
             Statistics::TopologicalStatisticsEngine statsEngine(*this);
 
-            auto result = statsEngine.Analyze();
+            auto result = statsEngine.Analyze(props_to_compute);
 
             if( result.failed() )
             {

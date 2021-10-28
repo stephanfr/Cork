@@ -80,8 +80,8 @@ namespace Cork::Meshes
         virtual Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
         virtual double max_vertex_magnitude() const = 0;
 
-        virtual Statistics::GeometricStatistics ComputeGeometricStatistics() const = 0;
-        virtual TopologicalStatisticsResult ComputeTopologicalStatistics() const = 0;
+        virtual Statistics::GeometricStatistics ComputeGeometricStatistics(Statistics::GeometricProperties props_to_compute ) const = 0;
+        virtual TopologicalStatisticsResult ComputeTopologicalStatistics(Statistics::TopologicalProperties     props_to_compute) const = 0;
 
         virtual HoleClosingResult close_holes( const Statistics::TopologicalStatistics&     topo_stats ) = 0;
         virtual void remove_self_intersections( const Statistics::TopologicalStatistics&     topo_stats ) = 0;

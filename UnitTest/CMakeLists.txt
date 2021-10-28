@@ -40,6 +40,7 @@ add_executable( tests
 #  Vector2DTest.cpp
 #  Vector3DTest.cpp
   topology_tests.cpp
+  geometric_tests.cpp
 #  triangulator_test.cpp
 )
 
