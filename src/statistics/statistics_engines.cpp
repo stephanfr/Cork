@@ -168,7 +168,7 @@ namespace Cork::Statistics
             std::unique_ptr<Intersection::IntersectionProblemIfx> iproblem(
                 Intersection::IntersectionProblemIfx::GetProblem(*single_mesh, quantizer, single_mesh->boundingBox()));
 
-            Intersection::IntersectionProblemIfx::IntersectionProblemResult findResult = iproblem->FindIntersections();
+            Intersection::IntersectionProblemResult findResult = iproblem->FindIntersections();
 
             si_stats = iproblem->CheckSelfIntersection();
         }

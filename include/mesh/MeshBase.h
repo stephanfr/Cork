@@ -107,12 +107,10 @@ namespace Cork::Meshes
        public:
         CorkTriangle() {}
 
-        CorkTriangle(const TriangleByIndices& triangleToCopy, uint32_t boolAlgData, uint32_t triangle_id)
-            : triangle_id_(triangle_id), Primitives::TriangleByIndices(triangleToCopy), m_boolAlgData(boolAlgData)
+        CorkTriangle(const TriangleByIndices& triangleToCopy, uint32_t boolAlgData)
+            : Primitives::TriangleByIndices(triangleToCopy), m_boolAlgData(boolAlgData)
         {
         }
-
-        uint32_t triangle_id() const { return triangle_id_; }
 
         const uint32_t boolAlgData() const { return (m_boolAlgData); }
 
@@ -129,8 +127,6 @@ namespace Cork::Meshes
 
        private:
         uint32_t m_boolAlgData;  // internal use by algorithm - value must be copied when the triangle is subdivided
-
-        uint32_t triangle_id_;
     };
 
     typedef Primitives::Vector3D CorkVertex;

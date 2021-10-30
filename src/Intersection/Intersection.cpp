@@ -24,11 +24,11 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-//	The gmpext4.h include has to happen first, otherwise we run into multiple declaration issues.
 
 #include <boost/noncopyable.hpp>
 #include <boost/optional.hpp>
 #include <random>
+#include "tbb/tbb.h"
 
 #include "accel/aabvh.h"
 #include "intersection/empty3d.hpp"
@@ -37,7 +37,7 @@
 #include "math/gmpext4.hpp"
 #include "mesh/MeshBase.h"
 #include "mesh/TopoCache.h"
-#include "tbb/tbb.h"
+#include "intersection/perturbation_epsilon.hpp"
 #include "util/CachingFactory.h"
 #include "util/ManagedIntrusiveList.h"
 #include "util/ThreadingHelpers.h"
@@ -79,194 +79,6 @@ namespace Cork::Intersection
     {
         void operator()(T* pointer) { free(pointer); }
     };
-
-    class PerturbationEpsilon
-    {
-       public:
-        explicit PerturbationEpsilon(const Math::Quantizer& quantizer)
-            : m_bitsOfPurturbationRange(quantizer.bitsOfPurturbationRange()),
-              m_quantum(quantizer.purturbationQuantum()),
-              m_numAdjustments(0)
-        {
-        }
-
-        PerturbationEpsilon() = delete;
-        PerturbationEpsilon(const PerturbationEpsilon&) = delete;
-        PerturbationEpsilon(PerturbationEpsilon&&) = delete;
-
-        ~PerturbationEpsilon() = default;
-
-        PerturbationEpsilon& operator=(const PerturbationEpsilon&) = delete;
-        PerturbationEpsilon& operator=(PerturbationEpsilon&&) = delete;
-
-        bool sufficientRange() const
-        {
-            return ((m_bitsOfPurturbationRange - m_numAdjustments) >=
-                    PERTURBATION_BUFFER_BITS + MINIMUM_PERTURBATION_RANGE_BITS);
-        }
-
-        NUMERIC_PRECISION quantum() const { return (m_quantum); }
-
-        int numAdjustments() const { return (m_numAdjustments); }
-
-        AdjustPerturbationResult adjust()
-        {
-            m_numAdjustments++;
-
-            m_randomRange <<= 1;
-
-            if (!sufficientRange())
-            {
-                return (AdjustPerturbationResult::failure(AdjustPerturbationResultCodes::MAXIMUM_PERTURBATION_REACHED,
-                                                          "Maximum Perturbation reached"));
-            }
-
-            return (AdjustPerturbationResult(m_numAdjustments));
-        }
-
-        Primitives::Vector3D getPerturbation() const
-        {
-            return (m_randMatrix.getPerturbation(m_numAdjustments, m_quantum));
-        }
-
-       private:
-        int m_bitsOfPurturbationRange;
-        double m_quantum;
-
-        int m_numAdjustments;
-
-        int m_randomRange;
-
-        class PerturbationRandomizationMatrix
-        {
-           public:
-            PerturbationRandomizationMatrix() : m_mersenneTwister(time(0))  //  NOLINT(cert-msc32-c, cert-msc51-cpp)
-            {
-                for (int numPermutations = 4; numPermutations <= 32;
-                     numPermutations <<= 1)  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
-                {
-                    m_randomizationMatrix.push_back(std::vector<std::tuple<long, long, long>>());
-
-                    auto& currentVec = m_randomizationMatrix.back();
-
-                    for (int i = 0; i <= numPermutations; i++)
-                    {
-                        for (int j = 0; j <= numPermutations; j++)
-                        {
-                            for (int k = 0; k <= numPermutations; k++)
-                            {
-                                currentVec.push_back(std::tuple<long, long, long>(i, j, k));
-
-                                if (i > 0)
-                                {
-                                    currentVec.push_back(std::tuple<long, long, long>(-i, j, k));
-                                }
-
-                                if (j > 0)
-                                {
-                                    currentVec.push_back(std::tuple<long, long, long>(i, -j, k));
-                                }
-
-                                if (k > 0)
-                                {
-                                    currentVec.push_back(std::tuple<long, long, long>(i, j, -k));
-                                }
-
-                                if ((i > 0) && (j > 0))
-                                {
-                                    currentVec.push_back(std::tuple<long, long, long>(-i, -j, k));
-                                }
-
-                                if ((i > 0) && (k > 0))
-                                {
-                                    currentVec.push_back(std::tuple<long, long, long>(-i, j, -k));
-                                }
-
-                                if ((j > 0) && (k > 0))
-                                {
-                                    currentVec.push_back(std::tuple<long, long, long>(i, -j, -k));
-                                }
-
-                                if ((i > 0) && (j > 0) && (k > 0))
-                                {
-                                    currentVec.push_back(std::tuple<long, long, long>(-i, -j, -k));
-                                }
-                            }
-                        }
-                    }
-
-                    m_numEntries.push_back(currentVec.size());
-                }
-            }
-
-            Primitives::Vector3D getPerturbation(int index, double quantum)
-            {
-                if (index >= m_numEntries.size())
-                {
-                    return (getBruteForcePerturbation(index, quantum));
-                }
-
-                //	Using the standard clib random number generator std::rand() resulted in spurious errors
-                //		in triangle consolidation.  This seems not to be the case with the MT generator.
-                //
-                //	I don't quite understand why this approach to creating an array of purturbation combinations
-                //		and then choosing the right combo with a single random number is more fragile than
-                //		the prior method of generating random values for each offset but with std::rand() there
-                //		were certainly problems.
-
-                long arrayIndex(m_mersenneTwister() % m_numEntries[index]);
-
-                const std::tuple<long, long, long>& randEntry = m_randomizationMatrix[index][arrayIndex];
-
-                return (Primitives::Vector3D(std::get<0>(randEntry) * quantum, std::get<1>(randEntry) * quantum,
-                                             std::get<2>(randEntry) * quantum));
-            }
-
-           private:
-            std::vector<size_t> m_numEntries;
-
-            std::vector<std::vector<std::tuple<long, long, long>>> m_randomizationMatrix;
-
-            std::mt19937 m_mersenneTwister;
-
-            Primitives::Vector3D getBruteForcePerturbation(int index, double quantum)
-            {
-                //	We have overrun the size of the randomization table so compute the perturbation
-                //		brute force with lots of random calls.
-
-                int perturbRange = 1 << (index + 2);
-
-                Primitives::Vector3D perturbation;
-
-                perturbation = Primitives::Vector3D((m_mersenneTwister() % perturbRange) * quantum,
-                                                    (m_mersenneTwister() % perturbRange) * quantum,
-                                                    (m_mersenneTwister() % perturbRange) * quantum);
-
-                if ((m_mersenneTwister() % 2) == 1)
-                {
-                    perturbation[0] = -perturbation[0];
-                }
-
-                if ((m_mersenneTwister() % 2) == 1)
-                {
-                    perturbation[1] = -perturbation[1];
-                }
-
-                if ((m_mersenneTwister() % 2) == 1)
-                {
-                    perturbation[2] = -perturbation[2];
-                }
-
-                return (perturbation);
-            }
-        };
-
-        static PerturbationRandomizationMatrix m_randMatrix;
-    };
-
-    //	Define the static global so it is initialized
-
-    PerturbationEpsilon::PerturbationRandomizationMatrix PerturbationEpsilon::m_randMatrix;  //  NOLINT(cert-err58-cpp)
 
     class TriTripleTemp
     {
@@ -1959,7 +1771,7 @@ namespace Cork::Intersection
         (dynamic_cast<IntersectionProblemWorkspace*>(m_workspace.get()))->reset();
     }
 
-    IntersectionProblem::IntersectionProblemResult IntersectionProblem::FindIntersections()
+    IntersectionProblemResult IntersectionProblem::FindIntersections()
     {
         perturbPositions();  // always perturb for safety...
 
@@ -2060,7 +1872,7 @@ namespace Cork::Intersection
         return self_intersecting_edges;
     }
 
-    IntersectionProblem::IntersectionProblemResult IntersectionProblem::ResolveAllIntersections()
+    IntersectionProblemResult IntersectionProblem::ResolveAllIntersections()
     {
         //	Subdivide the mesh in each triangle problem.
 

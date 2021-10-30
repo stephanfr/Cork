@@ -224,7 +224,7 @@ namespace Cork::Meshes
 
         for (TriangleByIndicesIndex i = 0u; i < inputMesh.triangles().size(); i++)
         {
-            m_tris.emplace_back(inputMesh.triangles()[i], 0, TriangleByIndicesIndex::integer_type(i));
+            m_tris.emplace_back(inputMesh.triangles()[i], 0);
         }
 
         m_boundingBox = inputMesh.boundingBox();
@@ -342,7 +342,7 @@ namespace Cork::Meshes
 
         while (true)
         {
-            IntersectionProblemIfx::IntersectionProblemResult findResult = iproblem->FindIntersections();
+            IntersectionProblemResult findResult = iproblem->FindIntersections();
 
             if (!findResult.succeeded())
             {
@@ -355,7 +355,7 @@ namespace Cork::Meshes
 
             //	Next, resolve them
 
-            IntersectionProblemIfx::IntersectionProblemResult resolveResult = iproblem->ResolveAllIntersections();
+            IntersectionProblemResult resolveResult = iproblem->ResolveAllIntersections();
 
             if (!resolveResult.succeeded())
             {
@@ -365,7 +365,7 @@ namespace Cork::Meshes
                 // repurturbation will work.
 
                 if (resolveResult.error_code() ==
-                    IntersectionProblemIfx::IntersectionProblemResultCodes::SELF_INTERSECTING_MESH)
+                    IntersectionProblemResultCodes::SELF_INTERSECTING_MESH)
                 {
                     return SetupBooleanProblemResult::failure(resolveResult,
                                                               SetupBooleanProblemResultCodes::SELF_INTERSECTING_MESH,

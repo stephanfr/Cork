@@ -48,12 +48,13 @@ namespace Cork::Meshes
     {
         workspace.reset(m_mesh.vertices().size(), m_mesh.triangles().size() * 3, m_mesh.triangles().size());
 
-        init();
+        init(m_mesh.triangles());
     }
 
     TopoCache::~TopoCache() {}
 
-    void TopoCache::init()
+    template<typename T>
+    void TopoCache::init( T& triangle_by_indices_list )
     {
         //	First lay out vertices
 
@@ -77,9 +78,9 @@ namespace Cork::Meshes
 
         std::vector<TopoEdgePrototypeVector> edgeacc(m_meshVertices.size());
 
-        for (size_t i = 0; i < m_meshTriangles.size(); i++)
+        for (size_t i = 0; i < triangle_by_indices_list.size(); i++)
         {
-            const CorkTriangle& ref_tri = m_meshTriangles[i];
+            const TriangleByIndices& ref_tri = triangle_by_indices_list[i];
 
             // triangles <--> verts
 
@@ -92,7 +93,7 @@ namespace Cork::Meshes
             TriangleVertexId vertex2_id = TriangleVertexId::C;
 
             TopoTri* tri = m_topoTriList.emplace_back(
-                ref_tri.triangle_id(), i, m_topoVertexList.getPool()[vertex0_index],
+                ref_tri.uid(), i, m_topoVertexList.getPool()[vertex0_index],
                 m_topoVertexList.getPool()[vertex1_index],
                 m_topoVertexList.getPool()[vertex2_index]);
 

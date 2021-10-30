@@ -31,28 +31,21 @@
 
 namespace Cork::Intersection
 {
-    enum class AdjustPerturbationResultCodes
+    enum class IntersectionProblemResultCodes
     {
         SUCCESS = 0,
-        MAXIMUM_PERTURBATION_REACHED
+        OUT_OF_MEMORY,
+        SUBDIVIDE_FAILED,
+        EXHAUSTED_PURTURBATION_RETRIES,
+        SELF_INTERSECTING_MESH,
+        CONSOLIDATE_FAILED
     };
 
-    using AdjustPerturbationResult = SEFUtility::ResultWithReturnValue<AdjustPerturbationResultCodes, int>;
+    using IntersectionProblemResult = SEFUtility::Result<IntersectionProblemResultCodes>;
 
     class IntersectionProblemIfx
     {
        public:
-        enum class IntersectionProblemResultCodes
-        {
-            SUCCESS = 0,
-            OUT_OF_MEMORY,
-            SUBDIVIDE_FAILED,
-            EXHAUSTED_PURTURBATION_RETRIES,
-            SELF_INTERSECTING_MESH,
-            CONSOLIDATE_FAILED
-        };
-
-        using IntersectionProblemResult = SEFUtility::Result<IntersectionProblemResultCodes>;
 
         static std::unique_ptr<IntersectionProblemIfx> GetProblem(Meshes::MeshBase& owner,
                                                                   const Math::Quantizer& quantizer,

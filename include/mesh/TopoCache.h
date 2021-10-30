@@ -103,7 +103,7 @@ namespace Cork::Meshes
         TopoEdgePointerList m_edges;     // edges this vertex is incident on
     };
 
-    typedef ManagedIntrusiveValueList<TopoVert,Primitives::VertexIndex> TopoVertexList;
+    typedef ManagedIntrusiveValueList<TopoVert, Primitives::VertexIndex> TopoVertexList;
 
     class TopoEdge final : public IntrusiveListHookNoDestructorOnElements
     {
@@ -702,7 +702,8 @@ namespace Cork::Meshes
 
         //	Methods
 
-        void init();
+        template <typename T>
+        void init(T& triangle_by_indices_list);
     };
 
     std::ostream& operator<<(std::ostream& out, const TopoVert& vertex);
