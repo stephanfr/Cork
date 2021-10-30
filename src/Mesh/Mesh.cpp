@@ -1025,7 +1025,7 @@ namespace Cork::Meshes
         }
 
         for_raw_tris([&](VertexIndex a, VertexIndex b, VertexIndex c) {
-            triangleMeshBuilder->AddTriangle(TriangleByIndices(a, b, c));
+            triangleMeshBuilder->AddTriangle(a, b, c);
         });
 
         return (triangleMeshBuilder->Mesh());

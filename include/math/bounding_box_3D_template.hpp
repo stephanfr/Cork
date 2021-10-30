@@ -26,13 +26,12 @@
 
 #pragma once
 
+#include "math/ray_3D_template.hpp"
 #include "math/vector_2D_template.hpp"
 #include "math/vector_3D_template.hpp"
-#include "math/ray_3D_template.hpp"
 
 namespace Cork::Math
 {
-
     static inline constexpr __m256d cnstexpr_mm256_set1_pd(double value)
     {
         return (__m256d){value, value, value, value};
@@ -42,75 +41,77 @@ namespace Cork::Math
     static constexpr __m256d AVXtwo = cnstexpr_mm256_set1_pd(2.0);
 #endif
 
-    template<typename N, SIMDInstructionSet SIMD = g_SIMD_Level>
-    class BBox3DTemplate final
+    template <typename N, SIMDInstructionSet SIMD = g_SIMD_Level>
+    class BBox3DTemplate
     {
        public:
         BBox3DTemplate() : m_minp(FLT_MAX, FLT_MAX, FLT_MAX), m_maxp(-FLT_MAX, -FLT_MAX, -FLT_MAX) {}
 
-        BBox3DTemplate(const Vector3DTemplate<N>& minpp, const Vector3DTemplate<N>& maxpp) : m_minp(minpp), m_maxp(maxpp) {}
+        BBox3DTemplate(const Vector3DTemplate<N, SIMD>& minpp, const Vector3DTemplate<N, SIMD>& maxpp)
+            : m_minp(minpp), m_maxp(maxpp)
+        {
+        }
 
         BBox3DTemplate(const BBox3DTemplate& bb) : m_minp(bb.m_minp), m_maxp(bb.m_maxp) {}
 
-        const Vector3DTemplate<N>& minima() const { return (m_minp); }
+        const Vector3DTemplate<N, SIMD>& minima() const { return (m_minp); }
 
-        const Vector3DTemplate<N>& maxima() const { return (m_maxp); }
+        const Vector3DTemplate<N, SIMD>& maxima() const { return (m_maxp); }
 
-        Vector3DTemplate<N> center() const
+        Vector3DTemplate<N, SIMD> center() const
         {
-#ifdef __AVX_AVAILABLE__
-            Vector3DTemplate<N> result;
+            if constexpr (SIMD >= SIMDInstructionSet::AVX)
+            {
+                Vector3DTemplate<N, SIMD> result;
 
-            _mm256_store_pd((double*)&result.ymm_,
-                            _mm256_add_pd(m_minp, _mm256_div_pd(_mm256_sub_pd(m_maxp, m_minp), AVXtwo)));
+                _mm256_store_pd((double*)&result.ymm_,
+                                _mm256_add_pd(m_minp, _mm256_div_pd(_mm256_sub_pd(m_maxp, m_minp), AVXtwo)));
 
-            return (result);
-#else
-            return (m_minp + ((m_maxp - m_minp) / (NUMERIC_PRECISION)2.0));
-#endif
+                return (result);
+            }
+            else
+            {
+                return (m_minp + ((m_maxp - m_minp) / (NUMERIC_PRECISION)2.0));
+            }
         }
 
         bool isEmpty() const { return ((m_maxp[0] < m_minp[0]) || (m_maxp[1] < m_minp[1]) || (m_maxp[2] < m_minp[2])); }
 
-        bool isIn(const Vector3DTemplate<N>& pointToTest) const
+        bool isIn(const Vector3DTemplate<N, SIMD>& pointToTest) const
         {
             return ((m_minp[0] <= pointToTest[0]) && (pointToTest[0] <= m_maxp[0]) && (m_minp[1] <= pointToTest[1]) &&
                     (pointToTest[1] <= m_maxp[1]) && (m_minp[2] <= pointToTest[2]) && (pointToTest[2] <= m_maxp[2]));
         }
 
-#ifdef __AVX_AVAILABLE__
-
-        //	SSE2 implementation
-
         bool intersects(const BBox3DTemplate& rhs) const
         {
-            return (_mm256_movemask_pd(_mm256_and_pd(_mm256_cmp_pd(m_minp, rhs.m_maxp, _CMP_LE_OQ),
-                                                     _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) == 0x0F);
+            if constexpr (SIMD >= SIMDInstructionSet::AVX)
+            {
+                return (_mm256_movemask_pd(_mm256_and_pd(_mm256_cmp_pd(m_minp, rhs.m_maxp, _CMP_LE_OQ),
+                                                         _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) == 0x0F);
+            }
+            else
+            {
+                return ((m_minp[0] <= rhs.m_maxp[0]) && (m_maxp[0] >= rhs.m_minp[0]) && (m_minp[1] <= rhs.m_maxp[1]) &&
+                        (m_maxp[1] >= rhs.m_minp[1]) && (m_minp[2] <= rhs.m_maxp[2]) && (m_maxp[2] >= rhs.m_minp[2]));
+            }
         }
 
         inline bool doesNotIntersect(const BBox3DTemplate& rhs) const
         {
-            return (_mm256_movemask_pd(_mm256_and_pd(_mm256_cmp_pd(m_minp, rhs.m_maxp, _CMP_LE_OQ),
-                                                     _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) != 0x0F);
+            if constexpr (SIMD >= SIMDInstructionSet::AVX)
+            {
+                return (_mm256_movemask_pd(_mm256_and_pd(_mm256_cmp_pd(m_minp, rhs.m_maxp, _CMP_LE_OQ),
+                                                         _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) != 0x0F);
+            }
+            else
+            {
+                return ((m_minp[0] >= rhs.m_maxp[0]) || (m_maxp[0] <= rhs.m_minp[0]) || (m_minp[1] >= rhs.m_maxp[1]) ||
+                        (m_maxp[1] <= rhs.m_minp[1]) || (m_minp[2] >= rhs.m_maxp[2]) || (m_maxp[2] <= rhs.m_minp[2]));
+            }
         }
 
-#else
-
-        inline bool intersects(const BBox3DTemplate& rhs) const
-        {
-            return ((m_minp[0] <= rhs.m_maxp[0]) && (m_maxp[0] >= rhs.m_minp[0]) && (m_minp[1] <= rhs.m_maxp[1]) &&
-                    (m_maxp[1] >= rhs.m_minp[1]) && (m_minp[2] <= rhs.m_maxp[2]) && (m_maxp[2] >= rhs.m_minp[2]));
-        }
-
-        inline bool doesNotIntersect(const BBox3DTemplate& rhs) const
-        {
-            return ((m_minp[0] >= rhs.m_maxp[0]) || (m_maxp[0] <= rhs.m_minp[0]) || (m_minp[1] >= rhs.m_maxp[1]) ||
-                    (m_maxp[1] <= rhs.m_minp[1]) || (m_minp[2] >= rhs.m_maxp[2]) || (m_maxp[2] <= rhs.m_minp[2]));
-        }
-
-#endif
-
-        void scale(const Vector3DTemplate<N>& scaling)
+        void scale(const Vector3DTemplate<N, SIMD>& scaling)
         {
             m_minp = Vector3DTemplate<N>(m_minp.x() * scaling.x(), m_minp.y() * scaling.y(), m_minp.z() * scaling.z());
             m_maxp = Vector3DTemplate<N>(m_maxp.x() * scaling.x(), m_maxp.y() * scaling.y(), m_maxp.z() * scaling.z());
@@ -118,24 +119,30 @@ namespace Cork::Math
 
         void convex(const BBox3DTemplate& rhs)
         {
-#ifdef __AVX_AVAILABLE__
-            m_minp = _mm256_min_pd(m_minp, rhs.m_minp);
-            m_maxp = _mm256_max_pd(m_maxp, rhs.m_maxp);
-#else
-            m_minp = min(m_minp, rhs.m_minp);
-            m_maxp = max(m_maxp, rhs.m_maxp);
-#endif
+            if constexpr (SIMD >= SIMDInstructionSet::AVX)
+            {
+                m_minp = _mm256_min_pd(m_minp, rhs.m_minp);
+                m_maxp = _mm256_max_pd(m_maxp, rhs.m_maxp);
+            }
+            else
+            {
+                m_minp = m_minp.min(rhs.m_minp);
+                m_maxp = m_maxp.min(rhs.m_maxp);
+            }
         }
 
         void convex(const BBox3DTemplate& rhs, BBox3DTemplate& result) const
         {
-#ifdef __AVX_AVAILABLE__
-            _mm256_store_pd((double*)&result.m_minp, _mm256_min_pd(m_minp, rhs.m_minp));
-            _mm256_store_pd((double*)&result.m_maxp, _mm256_max_pd(m_maxp, rhs.m_maxp));
-#else
-            result.m_minp = min(m_minp, rhs.m_minp);
-            result.m_maxp = max(m_maxp, rhs.m_maxp);
-#endif
+            if constexpr (SIMD >= SIMDInstructionSet::AVX)
+            {
+                _mm256_store_pd((double*)&result.m_minp, _mm256_min_pd(m_minp, rhs.m_minp));
+                _mm256_store_pd((double*)&result.m_maxp, _mm256_max_pd(m_maxp, rhs.m_maxp));
+            }
+            else
+            {
+                result.m_minp = m_minp.min(rhs.m_minp);
+                result.m_maxp = m_maxp.max(rhs.m_maxp);
+            }
         }
 
         BBox3DTemplate intersection(const BBox3DTemplate& rhs) const
@@ -143,11 +150,11 @@ namespace Cork::Math
             return (BBox3DTemplate(m_minp.max(rhs.m_minp), m_maxp.min(rhs.m_maxp)));
         }
 
-        Vector3DTemplate<N> dim() const { return (m_maxp - m_minp); }
+        Vector3DTemplate<N, SIMD> dim() const { return (m_maxp - m_minp); }
 
         N surfaceArea() const
         {
-            Vector3DTemplate<N> d = dim();
+            auto d = dim();
             return (2 * (d[1] * d[2] + d[0] * d[2] + d[0] * d[1]));
         }
 
@@ -155,7 +162,8 @@ namespace Cork::Math
         {
             N txmin, txmax, tymin, tymax, tzmin, tzmax, txymin, txymax;
 
-            const std::array<Vector3DTemplate<N>, 2>& bounds = reinterpret_cast<const std::array<Vector3DTemplate<N>, 2>&>(m_minp);
+            const std::array<Vector3DTemplate<N, SIMD>, 2>& bounds =
+                reinterpret_cast<const std::array<Vector3DTemplate<N, SIMD>, 2>&>(m_minp);
 
             txmin = (bounds[ray.signs()[0]].x() - ray.origin().x()) * ray.inverseDirection().x();
             tymax = (bounds[1 - ray.signs()[1]].y() - ray.origin().y()) * ray.inverseDirection().y();
@@ -189,16 +197,17 @@ namespace Cork::Math
         }
 
        private:
-        Vector3DTemplate<N> m_minp;
-        Vector3DTemplate<N> m_maxp;
+        Vector3DTemplate<N, SIMD> m_minp;
+        Vector3DTemplate<N, SIMD> m_maxp;
     };
 
-    template<typename N>
-    inline std::ostream& operator<<(std::ostream& out, const BBox3DTemplate<N>& bb)
+    template <typename N, SIMDInstructionSet SIMD>
+    inline std::ostream& operator<<(std::ostream& out, const BBox3DTemplate<N, SIMD>& bb)
     {
         return out << "[min" << bb.minima() << ";max" << bb.maxima() << ']';
     }
 
-//    template<typename N>
-//    static const BBox3DTemplate<N> gEmptyBoundingBox(Math::Vector3DTemplate<N>(0.0, 0.0, 0.0), Vector3DTemplate<N>(0.0, 0.0, 0.0));
-}
+    //    template<typename N>
+    //    static const BBox3DTemplate<N> gEmptyBoundingBox(Math::Vector3DTemplate<N>(0.0, 0.0, 0.0),
+    //    Vector3DTemplate<N>(0.0, 0.0, 0.0));
+}  // namespace Cork::Math

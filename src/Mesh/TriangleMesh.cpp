@@ -28,6 +28,7 @@
 #include <set>
 #include <unordered_map>
 
+#include "primitives/index_remapper.hpp"
 #include "intersection/triangulator.hpp"
 #include "mesh/triangle_mesh.h"
 #include "statistics/statistics_engines.h"
@@ -94,25 +95,28 @@ namespace Cork::Meshes
         }
         [[nodiscard]] double max_vertex_magnitude() const final { return max_vertex_magnitude_; }
 
-        [[nodiscard]] Statistics::GeometricStatistics ComputeGeometricStatistics(Statistics::GeometricProperties props_to_compute) const final
+        [[nodiscard]] Statistics::GeometricStatistics ComputeGeometricStatistics(
+            Statistics::GeometricProperties props_to_compute) const final
         {
             Statistics::GeometricStatisticsEngine geometricStatsEngine(*this, props_to_compute);
 
-            return Statistics::GeometricStatistics( geometricStatsEngine.statistics() );
+            return Statistics::GeometricStatistics(geometricStatsEngine.statistics());
         }
 
-        [[nodiscard]] TopologicalStatisticsResult ComputeTopologicalStatistics(Statistics::TopologicalProperties     props_to_compute) const final
+        [[nodiscard]] TopologicalStatisticsResult ComputeTopologicalStatistics(
+            Statistics::TopologicalProperties props_to_compute) const final
         {
             Statistics::TopologicalStatisticsEngine statsEngine(*this);
 
             auto result = statsEngine.Analyze(props_to_compute);
 
-            if( result.failed() )
+            if (result.failed())
             {
-                return TopologicalStatisticsResult::failure( result, TopologicalStatisticsResultCodes::ANALYSIS_FAILED, "Topological Analysis Failed" );
+                return TopologicalStatisticsResult::failure(result, TopologicalStatisticsResultCodes::ANALYSIS_FAILED,
+                                                            "Topological Analysis Failed");
             }
 
-            return TopologicalStatisticsResult::success( result.return_value() );
+            return TopologicalStatisticsResult::success(result.return_value());
         }
 
         void remove_self_intersections(const Statistics::TopologicalStatistics& topo_stats)
@@ -182,7 +186,7 @@ namespace Cork::Meshes
 
                 for (auto triangle_to_add : *(result.return_ptr()))
                 {
-                    AddTriangle(Cork::Primitives::TriangleByIndices(hole.vertices()[triangle_to_add.v2()],
+                    AddTriangle(TriangleByIndices( Primitives::UNINTIALIZED_INDEX, hole.vertices()[triangle_to_add.v2()],
                                                                     hole.vertices()[triangle_to_add.v1()],
                                                                     hole.vertices()[triangle_to_add.v0()]));
                 }
@@ -292,13 +296,12 @@ namespace Cork::Meshes
             return (VertexIndex::integer_type(m_vertexIndexRemapper.size()) - 1u);
         }
 
-        TriangleMeshBuilderResultCodes AddTriangle(const TriangleByIndices& triangleToAdd) final
+        TriangleMeshBuilderResultCodes AddTriangle(VertexIndex a, VertexIndex b, VertexIndex c) final
         {
             //	Insure the indices are in bounds
 
-            if ((triangleToAdd[0] >= m_vertexIndexRemapper.size()) ||
-                (triangleToAdd[1] >= m_vertexIndexRemapper.size()) ||
-                (triangleToAdd[2] >= m_vertexIndexRemapper.size()))
+            if ((a >= m_vertexIndexRemapper.size()) || (b >= m_vertexIndexRemapper.size()) ||
+                (c >= m_vertexIndexRemapper.size()))
             {
                 return (TriangleMeshBuilderResultCodes::VERTEX_INDEX_OUT_OF_BOUNDS);
             }
@@ -313,9 +316,8 @@ namespace Cork::Meshes
 
             //	Remap the triangle indices
 
-            TriangleByIndices remappedTriangle(m_vertexIndexRemapper[VertexIndex::integer_type(triangleToAdd.a())],
-                                               m_vertexIndexRemapper[VertexIndex::integer_type(triangleToAdd.b())],
-                                               m_vertexIndexRemapper[VertexIndex::integer_type(triangleToAdd.c())]);
+            TriangleByIndices remappedTriangle(m_triangles->size(), m_vertexIndexRemapper[a], m_vertexIndexRemapper[b],
+                                               m_vertexIndexRemapper[c]);
 
             //	Add the triangle to the vector
 
@@ -351,7 +353,7 @@ namespace Cork::Meshes
 
         VertexIndexLookupMap m_vertexIndices;
         std::shared_ptr<Vertex3DVector> m_indexedVertices;
-        std::vector<VertexIndex> m_vertexIndexRemapper;
+        Primitives::IndexRemapper<VertexIndex> m_vertexIndexRemapper;
 
         std::shared_ptr<TriangleByIndicesVector> m_triangles;
 

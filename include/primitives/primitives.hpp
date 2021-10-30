@@ -28,7 +28,6 @@
 
 #include "type_safe/integer.hpp"
 
-
 //	Setup the numeric precision and the vector implementation for the build.
 
 #include "CorkDefs.h"
@@ -215,9 +214,14 @@ namespace Cork::Primitives
     class TriangleByIndices
     {
        public:
-        TriangleByIndices() : a_(UNINTIALIZED_INDEX), b_(UNINTIALIZED_INDEX), c_(UNINTIALIZED_INDEX) {}
+        using UIDType = uint32_t;
 
-        TriangleByIndices(VertexIndex a, VertexIndex b, VertexIndex c) : a_(a), b_(b), c_(c) {}
+        TriangleByIndices()
+            : uid_(UNINTIALIZED_INDEX), a_(UNINTIALIZED_INDEX), b_(UNINTIALIZED_INDEX), c_(UNINTIALIZED_INDEX)
+        {
+        }
+
+        TriangleByIndices(UIDType uid, VertexIndex a, VertexIndex b, VertexIndex c) : uid_(uid), a_(a), b_(b), c_(c) {}
 
         virtual ~TriangleByIndices() {}
 
@@ -233,19 +237,23 @@ namespace Cork::Primitives
             return (reinterpret_cast<VertexIndex*>(&a_))[index];
         }
 
-        const VertexIndex a() const { return (a_); }
+        UIDType uid() const { return uid_; }
 
-        VertexIndex& a() { return (a_); }
+        const VertexIndex a() const { return a_; }
 
-        const VertexIndex b() const { return (b_); }
+        VertexIndex& a() { return a_; }
 
-        VertexIndex& b() { return (b_); }
+        const VertexIndex b() const { return b_; }
 
-        const VertexIndex c() const { return (c_); }
+        VertexIndex& b() { return b_; }
 
-        VertexIndex& c() { return (c_); }
+        const VertexIndex c() const { return c_; }
+
+        VertexIndex& c() { return c_; }
 
        protected:
+        UIDType uid_;
+
         VertexIndex a_;
         VertexIndex b_;
         VertexIndex c_;

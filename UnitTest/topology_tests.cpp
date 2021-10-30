@@ -292,4 +292,52 @@ TEST_CASE("Topology Tests", "[file io]")
             REQUIRE(write_result.succeeded());
         }
     }
+
+        
+    SECTION("Find and Fix Self Intersections - Harder")
+    {
+        auto read_result = Cork::Files::readOFF("../../UnitTest/Test Files/TulipWithSelfIntersections.off");
+
+        REQUIRE(read_result.succeeded());
+
+        auto* mesh(read_result.return_ptr().release());
+
+        auto topo_stats = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
+
+//        REQUIRE(topo_stats.is_two_manifold());
+//        REQUIRE(topo_stats.holes().size() == 0);
+//        REQUIRE(topo_stats.self_intersections().size() == 2);
+
+        mesh->remove_self_intersections( topo_stats.return_value() );
+
+        auto topo_stats_after_se_removal = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
+
+//        REQUIRE(!topo_stats_after_se_removal.is_two_manifold());
+//        REQUIRE(topo_stats_after_se_removal.holes().size() == 1);
+//        REQUIRE(topo_stats_after_se_removal.self_intersections().size() == 0);
+
+        {
+            auto write_result =
+                Cork::Files::writeOFF("../../UnitTest/Test Results/TulipWithHoles.off", *mesh);
+
+            REQUIRE(write_result.succeeded());
+        }
+
+        auto close_holes_result = mesh->close_holes( topo_stats_after_se_removal.return_value() );
+
+//        REQUIRE( close_holes_result.succeeded() );
+
+        auto topo_stats_after_closing_holes = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
+
+//        REQUIRE(topo_stats_after_closing_holes.is_two_manifold());
+//        REQUIRE(topo_stats_after_closing_holes.holes().size() == 0);
+//        REQUIRE(topo_stats_after_closing_holes.self_intersections().size() == 0);
+
+        {
+            auto write_result =
+                Cork::Files::writeOFF("../../UnitTest/Test Results/TulipRepaired.off", *mesh);
+
+            REQUIRE(write_result.succeeded());
+        }
+    }
 }

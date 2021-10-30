@@ -191,13 +191,13 @@ namespace Cork::Files
         {
             TriangleMeshBuilderResultCodes resultCode;
 
-            for (unsigned int i = 0; i < num_faces; ++i)
+            for (uint32_t i = 0; i < num_faces; ++i)
             {
                 uint32_t poly_sides(0);
 
-                uint32_t x_index(0);
-                uint32_t y_index(0);
-                uint32_t z_index(0);
+                VertexIndex x_index(0u);
+                VertexIndex y_index(0u);
+                VertexIndex z_index(0u);
 
                 //  We cannot use read_line_exactly as we want to detect non-triangular polygons
 
@@ -210,8 +210,8 @@ namespace Cork::Files
                 }
 
                 //  NOLINTNEXTLINE(cert-err34-c, cppcoreguidelines-pro-type-vararg, hicpp-vararg)
-                items_processed = std::sscanf(next_line.c_str(), "%u %u %u %u %n", &poly_sides, &x_index, &y_index,
-                                              &z_index, &chars_processed);
+                items_processed = std::sscanf(next_line.c_str(), "%u %u %u %u %n", &poly_sides, reinterpret_cast<uint32_t*>(&x_index), reinterpret_cast<uint32_t*>(&y_index),
+                                              reinterpret_cast<uint32_t*>(&z_index), &chars_processed);
 
                 if ((items_processed >= 1) && (poly_sides != 3))
                 {
@@ -226,7 +226,7 @@ namespace Cork::Files
                                                    "Error reading faces.");
                 }
 
-                if (meshBuilder->AddTriangle(Primitives::TriangleByIndices(x_index, y_index, z_index)) !=
+                if (meshBuilder->AddTriangle( x_index, y_index, z_index ) !=
                     TriangleMeshBuilderResultCodes::SUCCESS)
                 {
                     return ReadFileResult::failure(

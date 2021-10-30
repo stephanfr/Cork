@@ -59,7 +59,7 @@ uint64_t total_num_triangles = 0;
 void WriteMeshStatistics(const Cork::TriangleMesh& mesh, const std::string& filename,
                          std::ofstream& geotopoResults)
 {
-    Cork::Statistics::GeometricStatistics stats = mesh.ComputeGeometricStatistics();
+    Cork::Statistics::GeometricStatistics stats = mesh.ComputeGeometricStatistics( Cork::Statistics::GeometricProperties::GEOM_ALL );
     Cork::Meshes::TopologicalStatisticsResult topo_stats = mesh.ComputeTopologicalStatistics( Cork::Statistics::TopologicalProperties::TOPO_BASE );
 
     geotopoResults << filename << "\t" << topo_stats.return_value().is_two_manifold() << "\t";

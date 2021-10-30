@@ -31,57 +31,57 @@
 
 namespace Cork::Math
 {
-    template<typename N>
+    template<typename N, SIMDInstructionSet SIMD = g_SIMD_Level>
     class Ray3DTemplate
     {
        public:
         Ray3DTemplate() {}
 
-        Ray3DTemplate(const Vector3DTemplate<N>& point, const Vector3DTemplate<N>& dir) : m_origin(point), m_direction(dir) {}
+        Ray3DTemplate(const Vector3DTemplate<N, SIMD>& point, const Vector3DTemplate<N>& dir) : m_origin(point), m_direction(dir) {}
 
         Ray3DTemplate(const Ray3DTemplate& cp) : m_origin(cp.m_origin), m_direction(cp.m_direction) {}
 
-        const Vector3DTemplate<N>& origin() const { return (m_origin); }
+        const Vector3DTemplate<N, SIMD>& origin() const { return (m_origin); }
 
-        const Vector3DTemplate<N>& direction() const { return (m_direction); }
+        const Vector3DTemplate<N, SIMD>& direction() const { return (m_direction); }
 
        private:
-        Vector3DTemplate<N> m_origin;
-        Vector3DTemplate<N> m_direction;
+        Vector3DTemplate<N, SIMD> m_origin;
+        Vector3DTemplate<N, SIMD> m_direction;
     };
 
-    template<typename N>
-    class Ray3DWithInverseDirectionTemplate : public Ray3DTemplate<N>
+    template<typename N, SIMDInstructionSet SIMD = g_SIMD_Level>
+    class Ray3DWithInverseDirectionTemplate : public Ray3DTemplate<N, SIMD>
     {
        public:
         Ray3DWithInverseDirectionTemplate() {}
 
-        Ray3DWithInverseDirectionTemplate(const Vector3DTemplate<N>& point, const Vector3DTemplate<N>& dir)
-            : Ray3DTemplate<N>(point, dir),
+        Ray3DWithInverseDirectionTemplate(const Vector3DTemplate<N, SIMD>& point, const Vector3DTemplate<N, SIMD>& dir)
+            : Ray3DTemplate<N, SIMD>(point, dir),
               m_inverseDirection(1.0 / dir.x(), 1.0 / dir.y(), 1.0 / dir.z()),
               m_signs({(m_inverseDirection.x() < 0), (m_inverseDirection.y() < 0), (m_inverseDirection.z() < 0)})
         {
         }
 
-        Ray3DWithInverseDirectionTemplate(const Ray3DTemplate<N>& cp)
-            : Ray3DTemplate<N>(cp),
+        Ray3DWithInverseDirectionTemplate(const Ray3DTemplate<N, SIMD>& cp)
+            : Ray3DTemplate<N, SIMD>(cp),
               m_inverseDirection(1.0 / cp.direction().x(), 1.0 / cp.direction().y(), 1.0 / cp.direction().z()),
               m_signs({(m_inverseDirection.x() < 0), (m_inverseDirection.y() < 0), (m_inverseDirection.z() < 0)})
         {
         }
 
-        const Vector3DTemplate<N>& inverseDirection() const { return (m_inverseDirection); }
+        const Vector3DTemplate<N, SIMD>& inverseDirection() const { return (m_inverseDirection); }
 
         const std::array<int, 3>& signs() const { return (m_signs); }
 
        private:
-        Vector3DTemplate<N> m_inverseDirection;
+        Vector3DTemplate<N, SIMD> m_inverseDirection;
 
         std::array<int, 3> m_signs;
     };
 
-    template<typename N>
-    inline std::ostream& operator<<(std::ostream& out, const Ray3DTemplate<N>& ray)
+    template<typename N, SIMDInstructionSet SIMD>
+    inline std::ostream& operator<<(std::ostream& out, const Ray3DTemplate<N, SIMD>& ray)
     {
         return out << '[' << ray.origin() << ';' << ray.direction() << ']';
     }
