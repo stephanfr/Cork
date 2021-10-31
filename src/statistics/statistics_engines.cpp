@@ -165,12 +165,10 @@ namespace Cork::Statistics
 
             Math::Quantizer quantizer(get_quantizer_result.return_value());
 
-            std::unique_ptr<Intersection::IntersectionProblemIfx> iproblem(
-                Intersection::IntersectionProblemIfx::GetProblem(*single_mesh, quantizer, single_mesh->boundingBox()));
+            std::unique_ptr<Intersection::SelfIntersectionFinder> se_finder(
+                Intersection::SelfIntersectionFinder::GetFinder(const_cast<Primitives::TriangleByIndicesVector&>(triangle_mesh_.triangles()), const_cast<Primitives::Vertex3DVector&>(triangle_mesh_.vertices()), triangle_mesh_.numTriangles() * 3, quantizer));
 
-            Intersection::IntersectionProblemResult findResult = iproblem->FindIntersections();
-
-            si_stats = iproblem->CheckSelfIntersection();
+            si_stats = se_finder->CheckSelfIntersection();
         }
 
         return TopologicalStatistics(num_edges, 0, num_non_2_manifold, holes, si_stats);

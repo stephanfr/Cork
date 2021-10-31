@@ -37,149 +37,18 @@ namespace Cork::Meshes
     using TriangleVertexId = Primitives::TriangleVertexId;
     using TriangleByIndices = Primitives::TriangleByIndices;
 
-    TopoCache::TopoCache(MeshBase& owner, TopoCacheWorkspace& workspace)
-        : m_mesh(owner),
-          m_workspace(workspace),
-          m_meshTriangles(owner.triangles()),
-          m_meshVertices(owner.vertices()),
-          m_topoVertexList(m_workspace),
-          m_topoEdgeList(m_workspace),
-          m_topoTriList(m_workspace)
-    {
-        workspace.reset(m_mesh.vertices().size(), m_mesh.triangles().size() * 3, m_mesh.triangles().size());
-
-        init(m_mesh.triangles());
-    }
+    TopoCache::TopoCache(MeshBase& owner, const Math::Quantizer& quantizer, TopoCacheWorkspace& workspace)
+        : TopoCacheBase( owner.triangles(), owner.vertices(), owner.triangles().size() * 3, quantizer, workspace ),
+          m_mesh(owner)
+    {}
 
     TopoCache::~TopoCache() {}
-
-    template<typename T>
-    void TopoCache::init( T& triangle_by_indices_list )
-    {
-        //	First lay out vertices
-
-        for (uint i = 0; i < m_meshVertices.size(); i++)
-        {
-            m_topoVertexList.emplace_back(i, m_workspace, m_workspace);
-        }
-
-        // We need to still do the following
-        //  * Generate TopoTris
-        //  * Generate TopoEdges
-        // ---- Hook up references between
-        //  * Triangles and Vertices
-        //  * Triangles and Edges
-        //  * Vertices and Edges
-
-        // We handle two of these items in a pass over the triangles,
-        //  * Generate TopoTris
-        //  * Hook up Triangles and Vertices
-        // building a structure to handle the edges as we go:
-
-        std::vector<TopoEdgePrototypeVector> edgeacc(m_meshVertices.size());
-
-        for (size_t i = 0; i < triangle_by_indices_list.size(); i++)
-        {
-            const TriangleByIndices& ref_tri = triangle_by_indices_list[i];
-
-            // triangles <--> verts
-
-            VertexIndex vertex0_index = ref_tri[0];
-            VertexIndex vertex1_index = ref_tri[1];
-            VertexIndex vertex2_index = ref_tri[2];
-
-            TriangleVertexId vertex0_id = TriangleVertexId::A;
-            TriangleVertexId vertex1_id = TriangleVertexId::B;
-            TriangleVertexId vertex2_id = TriangleVertexId::C;
-
-            TopoTri* tri = m_topoTriList.emplace_back(
-                ref_tri.uid(), i, m_topoVertexList.getPool()[vertex0_index],
-                m_topoVertexList.getPool()[vertex1_index],
-                m_topoVertexList.getPool()[vertex2_index]);
-
-            // then, put these in arbitrary but globally consistent order
-
-            if (vertex0_index > vertex1_index)
-            {
-                std::swap(vertex0_index, vertex1_index);
-                std::swap(vertex0_id, vertex1_id);
-            }
-
-            if (vertex1_index > vertex2_index)
-            {
-                std::swap(vertex1_index, vertex2_index);
-                std::swap(vertex1_id, vertex2_id);
-            }
-
-            if (vertex0_index > vertex1_index)
-            {
-                std::swap(vertex0_index, vertex1_index);
-                std::swap(vertex0_id, vertex1_id);
-            }
-
-            // and accrue in structure
-
-            TopoVert* v0 = &(m_topoVertexList.getPool()[vertex0_index]);
-            TopoVert* v1 = &(m_topoVertexList.getPool()[vertex1_index]);
-            TopoVert* v2 = &(m_topoVertexList.getPool()[vertex2_index]);
-
-            //	Create edges and link them to the triangle
-
-            TopoEdge* edge01;
-            TopoEdge* edge02;
-            TopoEdge* edge12;
-
-            {
-                TopoEdgePrototype& edge01Proto = edgeacc[VertexIndex::integer_type(vertex0_index)].find_or_add(
-                    VertexIndex::integer_type(vertex1_index));
-
-                edge01 = edge01Proto.edge();
-
-                if (edge01 == nullptr)
-                {
-                    edge01 = edge01Proto.setEdge(m_topoEdgeList.emplace_back(
-                        tri->source_triangle_id(), from_vertices(vertex0_id, vertex1_id), v0, v1, m_workspace));
-                }
-
-                edge01->triangles().insert(tri);
-
-                TopoEdgePrototype& edge02Proto = edgeacc[VertexIndex::integer_type(vertex0_index)].find_or_add(
-                    VertexIndex::integer_type(vertex2_index));
-
-                edge02 = edge02Proto.edge();
-
-                if (edge02 == nullptr)
-                {
-                    edge02 = edge02Proto.setEdge(m_topoEdgeList.emplace_back(
-                        tri->source_triangle_id(), from_vertices(vertex0_id, vertex2_id), v0, v2, m_workspace));
-                }
-
-                edge02->triangles().insert(tri);
-
-                TopoEdgePrototype& edge12Proto = edgeacc[VertexIndex::integer_type(vertex1_index)].find_or_add(
-                    VertexIndex::integer_type(vertex2_index));
-
-                edge12 = edge12Proto.edge();
-
-                if (edge12 == nullptr)
-                {
-                    edge12 = edge12Proto.setEdge(m_topoEdgeList.emplace_back(
-                        tri->source_triangle_id(), from_vertices(vertex1_id, vertex2_id), v1, v2, m_workspace));
-                }
-
-                edge12->triangles().insert(tri);
-            }
-            //	We swapped around indices, so now fix the edge assignments
-
-            tri->AssignEdges(v0, v1, v2, edge01, edge02, edge12);
-        }
-    }
 
     void TopoCache::commit()
     {
         // record which vertices are live
 
-        std::vector<bool> live_verts(m_meshVertices.size(), false);  //	All initialized to zero
+        std::vector<bool> live_verts(mesh_vertices_.size(), false);  //	All initialized to zero
 
         for (auto& vert : m_topoVertexList)
         {
@@ -188,7 +57,7 @@ namespace Cork::Meshes
 
         // record which triangles are live, and record connectivity
 
-        std::vector<bool> live_tris(m_meshTriangles.size(), false);  //	All initialized to zero
+        std::vector<bool> live_tris(mesh_triangles_.size(), false);  //	All initialized to zero
 
         for (auto& tri : m_topoTriList)
         {
@@ -196,7 +65,7 @@ namespace Cork::Meshes
 
             for (size_t k = 0; k < 3; k++)
             {
-                m_meshTriangles[tri.ref()][k] = tri.verts()[k]->ref();
+                mesh_triangles_[tri.ref()][k] = tri.verts()[k]->ref();
             }
         }
 
@@ -204,16 +73,16 @@ namespace Cork::Meshes
 
         std::vector<VertexIndex> vertex_map;
 
-        vertex_map.reserve(m_meshVertices.size());
+        vertex_map.reserve(mesh_vertices_.size());
 
         VertexIndex vert_write(0u);
 
-        for (VertexIndex::integer_type read = 0; read < m_meshVertices.size(); read++)
+        for (VertexIndex::integer_type read = 0; read < mesh_vertices_.size(); read++)
         {
             if (live_verts[read])
             {
                 vertex_map.emplace_back(vert_write);
-                m_meshVertices[vert_write] = m_meshVertices[VertexIndex(read)];
+                mesh_vertices_[vert_write] = mesh_vertices_[VertexIndex(read)];
                 vert_write++;
             }
             else
@@ -222,7 +91,7 @@ namespace Cork::Meshes
             }
         }
 
-        m_meshVertices.resize(VertexIndex::integer_type(vert_write));
+        mesh_vertices_.resize(VertexIndex::integer_type(vert_write));
 
         // rewrite the vertex reference ids
 
@@ -232,21 +101,21 @@ namespace Cork::Meshes
         }
 
         std::vector<size_t> tmap;
-        tmap.reserve(m_meshTriangles.size());
+        tmap.reserve(mesh_triangles_.size());
 
         size_t tri_write = 0;
 
-        for (size_t read = 0; read < m_meshTriangles.size(); read++)
+        for (size_t read = 0; read < mesh_triangles_.size(); read++)
         {
             if (live_tris[read])
             {
                 tmap.emplace_back(tri_write);
-                m_meshTriangles[tri_write] = m_meshTriangles[read];
+                mesh_triangles_[tri_write] = mesh_triangles_[read];
 
                 for (uint k = 0; k < 3; k++)
                 {
-                    m_meshTriangles[tri_write][k] =
-                        vertex_map[VertexIndex::integer_type(m_meshTriangles[tri_write][k])];
+                    mesh_triangles_[tri_write][k] =
+                        vertex_map[VertexIndex::integer_type(mesh_triangles_[tri_write][k])];
                 }
 
                 tri_write++;
@@ -257,7 +126,7 @@ namespace Cork::Meshes
             }
         }
 
-        m_meshTriangles.resize(tri_write);
+        mesh_triangles_.resize(tri_write);
 
         // rewrite the triangle reference ids
 
@@ -358,6 +227,7 @@ namespace Cork::Meshes
         cout << "There were " << vert_count << " VERTS" << endl;
     }
 
+/*
     // support functions for validity check
 
     template <class T, class Container>
@@ -374,100 +244,6 @@ namespace Cork::Meshes
 
         return (c);
     }
+*/
 
-    /*
-        template<class T>
-        inline
-        bool count2(const T arr[], const T &val)
-        {
-            return ((arr[0] == val)? 1 : 0) + ((arr[1] == val)? 1 : 0);
-        }
-
-        template<class T>
-        inline
-        bool count3(const T arr[], const T &val)
-        {
-            return ((arr[0] == val)? 1 : 0) + ((arr[1] == val)? 1 : 0) + ((arr[2] == val)? 1 : 0);
-        }
-
-        bool TopoCache::isValid()
-        {
-            //print();
-            std::set<Vptr> vaddr;
-            std::set<Eptr> eaddr;
-            std::set<Tptr> taddr;
-            verts.for_each([&vaddr](Vptr v) { vaddr.insert(v); });
-            edges.for_each([&eaddr](Eptr e) { eaddr.insert(e); });
-            tris.for_each( [&taddr](Tptr t) { taddr.insert(t); });
-
-            // check verts
-            verts.for_each([&](Vptr v)
-            {
-                ENSURE(v->ref < mesh->verts.size());
-
-                // make sure each edge pointer goes somewhere and that
-                // the pointed-to site also points back correctly
-
-                for(Eptr e : v->edges)
-                {
-                    ENSURE(eaddr.count(e) > 0); // pointer is good
-                    ENSURE(count2(e->verts, v) == 1); // back-pointer is good
-                }
-
-                for(Tptr t : v->tris)
-                {
-                    ENSURE(taddr.count(t) > 0);
-                    ENSURE(count3(t->verts, v) == 1);
-                }
-            });
-
-            // check edges
-            edges.for_each([&](Eptr e)
-            {
-                // check for non-degeneracy
-                ENSURE(e->verts[0] != e->verts[1]);
-
-                for(uint k=0; k<2; k++)
-                {
-                    Vptr v = e->verts[k];
-                    ENSURE(vaddr.count(v) > 0);
-                    ENSURE(count(v->edges, e) == 1);
-                }
-
-                for(Tptr t : e->tris)
-                {
-                    ENSURE(taddr.count(t) > 0);
-                    ENSURE(count3(t->edges, e) == 1);
-                }
-            });
-
-            // check triangles
-            tris.for_each([&](Tptr t)
-            {
-                // check for non-degeneracy
-                ENSURE(t->verts[0] != t->verts[1] && t->verts[1] != t->verts[2]
-                                                  && t->verts[0] != t->verts[2]);
-                for(uint k=0; k<3; k++)
-                {
-                    Vptr v = t->verts[k];
-                    ENSURE(vaddr.count(v) > 0);
-                    ENSURE(count(v->tris, t) == 1);
-
-                    Eptr e = t->edges[k];
-                    ENSURE(eaddr.count(e) == 1);
-                    ENSURE(count(e->tris, t) == 1);
-
-                    // also need to ensure that the edges are opposite the
-                    // vertices as expected
-                    Vptr v0 = e->verts[0];
-                    Vptr v1 = e->verts[1];
-                    ENSURE((v0 == t->verts[(k+1)%3] && v1 == t->verts[(k+2)%3])
-                        || (v0 == t->verts[(k+2)%3] && v1 == t->verts[(k+1)%3]));
-                }
-            });
-
-            return true;
-        }
-        */
-
-}  // namespace Cork
+}  // namespace Cork::Meshes

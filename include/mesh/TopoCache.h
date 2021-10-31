@@ -33,6 +33,7 @@
 #include <boost/dynamic_bitset.hpp>
 #include <limits>
 #include <optional>
+#include <type_traits>
 #include <unordered_set>
 
 #include "MeshBase.h"
@@ -67,23 +68,32 @@ namespace Cork::Meshes
     class TopoVert final : public boost::noncopyable, public IntrusiveListHookNoDestructorOnElements
     {
        public:
-        TopoVert() : m_ref(Primitives::UNINTIALIZED_INDEX), m_data(nullptr) {}
+        TopoVert() : m_ref(Primitives::UNINTIALIZED_INDEX) {}
 
-        explicit TopoVert(Primitives::VertexIndex ref, TopoTrianglePointerList::SetPoolType& tri_ptr_set_pool,
+        explicit TopoVert(Primitives::VertexIndex ref, Primitives::Vertex3D quantized_coordinates,
+                          TopoTrianglePointerList::SetPoolType& tri_ptr_set_pool,
                           TopoEdgePointerList::SetPoolType& edge_ptr_set_pool)
-            : m_ref(ref), m_data(nullptr), m_tris(tri_ptr_set_pool), m_edges(edge_ptr_set_pool)
+            : m_ref(ref),
+              quantized_coordinates_(quantized_coordinates),
+              m_tris(tri_ptr_set_pool),
+              m_edges(edge_ptr_set_pool)
         {
         }
 
+        TopoVert(const TopoVert&) = delete;
+        TopoVert(TopoVert&&) = delete;
+
         ~TopoVert() {}
+
+        TopoVert& operator=(const TopoVert&) = delete;
+        TopoVert& operator=(TopoVert&&) = delete;
 
         Primitives::VertexIndex ref() const { return (m_ref); }
 
         void setRef(Primitives::VertexIndex newValue) { m_ref = newValue; }
 
-        const Primitives::Vector3D* quantizedValue() const { return (m_data); }
-
-        void setQuantizedValue(Primitives::Vector3D* newValue) { m_data = newValue; }
+        const Primitives::Vertex3D& quantizedValue() const { return (quantized_coordinates_); }
+        void perturb( const Primitives::Vertex3D&   perturbation ) { quantized_coordinates_ += perturbation; }
 
         void addTriangle(TopoTri& triangle) { m_tris.insert(&triangle); }
 
@@ -97,7 +107,7 @@ namespace Cork::Meshes
 
        private:
         Primitives::VertexIndex m_ref;  // index to actual data
-        Primitives::Vector3D* m_data;   // algorithm specific handle
+        Primitives::Vertex3D quantized_coordinates_;
 
         TopoTrianglePointerList m_tris;  // triangles this vertex is incident on
         TopoEdgePointerList m_edges;     // edges this vertex is incident on
@@ -144,31 +154,31 @@ namespace Cork::Meshes
 
         Primitives::BBox3D boundingBox() const
         {
-            const Primitives::Vector3D& p0 = *(m_verts[0]->quantizedValue());
-            const Primitives::Vector3D& p1 = *(m_verts[1]->quantizedValue());
+            const Primitives::Vector3D& p0 = m_verts[0]->quantizedValue();
+            const Primitives::Vector3D& p1 = m_verts[1]->quantizedValue();
 
             return Primitives::BBox3D(p0.min(p1), p0.max(p1));
         }
 
         NUMERIC_PRECISION length() const
         {
-            const Primitives::Vector3D& p0 = *(m_verts[0]->quantizedValue());
-            const Primitives::Vector3D& p1 = *(m_verts[1]->quantizedValue());
+            const Primitives::Vector3D& p0 = m_verts[0]->quantizedValue();
+            const Primitives::Vector3D& p1 = m_verts[1]->quantizedValue();
 
             return ((p0 - p1).len());
         }
 
         operator Empty3d::EdgeIn() const
         {
-            return (Empty3d::EdgeIn(*(m_verts[0]->quantizedValue()), *(m_verts[1]->quantizedValue())));
+            return Empty3d::EdgeIn(m_verts[0]->quantizedValue(), m_verts[1]->quantizedValue());
         }
 
         Math::ExteriorCalculusR4::GMPExt4_2 edgeExactCoordinates(const Math::Quantizer& quantizer) const
         {
             Math::ExteriorCalculusR4::GMPExt4_1 ep[2];
 
-            ep[0] = Math::ExteriorCalculusR4::GMPExt4_1(*(m_verts[0]->quantizedValue()), quantizer);
-            ep[1] = Math::ExteriorCalculusR4::GMPExt4_1(*(m_verts[1]->quantizedValue()), quantizer);
+            ep[0] = Math::ExteriorCalculusR4::GMPExt4_1(m_verts[0]->quantizedValue(), quantizer);
+            ep[1] = Math::ExteriorCalculusR4::GMPExt4_1(m_verts[1]->quantizedValue(), quantizer);
 
             return ep[0].join(ep[1]);
         }
@@ -257,9 +267,9 @@ namespace Cork::Meshes
                 return (m_boundingBox.value());
             }
 
-            const Primitives::Vector3D& p0 = *(m_verts[0]->quantizedValue());
-            const Primitives::Vector3D& p1 = *(m_verts[1]->quantizedValue());
-            const Primitives::Vector3D& p2 = *(m_verts[2]->quantizedValue());
+            const Primitives::Vector3D& p0 = m_verts[0]->quantizedValue();
+            const Primitives::Vector3D& p1 = m_verts[1]->quantizedValue();
+            const Primitives::Vector3D& p2 = m_verts[2]->quantizedValue();
 
             const_cast<std::optional<Primitives::BBox3D>&>(m_boundingBox).emplace(p0.min(p1, p2), p0.max(p1, p2));
 
@@ -271,9 +281,9 @@ namespace Cork::Meshes
 
         const Primitives::BBox3D boundingBox() const
         {
-            const Primitives::Vector3D& p0 = *(m_verts[0]->quantizedValue());
-            const Primitives::Vector3D& p1 = *(m_verts[1]->quantizedValue());
-            const Primitives::Vector3D& p2 = *(m_verts[2]->quantizedValue());
+            const Primitives::Vector3D& p0 = m_verts[0]->quantizedValue();
+            const Primitives::Vector3D& p1 = m_verts[1]->quantizedValue();
+            const Primitives::Vector3D& p2 = m_verts[2]->quantizedValue();
 
             return (Primitives::BBox3D(p0.min(p1, p2), p0.max(p1, p2)));
         }
@@ -290,9 +300,9 @@ namespace Cork::Meshes
 
             Math::ExteriorCalculusR4::GMPExt4_1 p[3];
 
-            p[0] = Math::ExteriorCalculusR4::GMPExt4_1(*(m_verts[0]->quantizedValue()), quantizer);
-            p[1] = Math::ExteriorCalculusR4::GMPExt4_1(*(m_verts[1]->quantizedValue()), quantizer);
-            p[2] = Math::ExteriorCalculusR4::GMPExt4_1(*(m_verts[2]->quantizedValue()), quantizer);
+            p[0] = Math::ExteriorCalculusR4::GMPExt4_1(m_verts[0]->quantizedValue(), quantizer);
+            p[1] = Math::ExteriorCalculusR4::GMPExt4_1(m_verts[1]->quantizedValue(), quantizer);
+            p[2] = Math::ExteriorCalculusR4::GMPExt4_1(m_verts[2]->quantizedValue(), quantizer);
 
             return (p[0].join(p[1])).join(p[2]);
         }
@@ -419,8 +429,8 @@ namespace Cork::Meshes
 
         operator Empty3d::TriIn() const
         {
-            return (Empty3d::TriIn(*(m_verts[0]->quantizedValue()), *(m_verts[1]->quantizedValue()),
-                                   *(m_verts[2]->quantizedValue())));
+            return (Empty3d::TriIn(m_verts[0]->quantizedValue(), m_verts[1]->quantizedValue(),
+                                   m_verts[2]->quantizedValue()));
         }
 
         bool intersectsEdge(const TopoEdge& edgeToCheck, const Math::Quantizer& quantizer,
@@ -572,24 +582,27 @@ namespace Cork::Meshes
         TopoTriList::PoolType m_triListPool;
     };
 
-    class TopoCache : public boost::noncopyable
+    template <typename T>
+    class TopoCacheBase
     {
        public:
-        TopoCache(MeshBase& owner, TopoCacheWorkspace& workspace);
+        TopoCacheBase(T& triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges,
+                      const Math::Quantizer& quantizer, TopoCacheWorkspace& workspace)
+            : m_workspace(workspace),
+              quantizer_(quantizer),
+              mesh_triangles_(triangles),
+              mesh_vertices_(vertices),
+              num_edges_(num_edges),
+              m_topoVertexList(m_workspace),
+              m_topoEdgeList(m_workspace),
+              m_topoTriList(m_workspace)
+        {
+            workspace.reset(mesh_vertices_.size(), num_edges_, mesh_triangles_.size());
 
-        virtual ~TopoCache();
+            init();
+        }
 
-        // until commit() is called, the Mesh::verts and Mesh::tris
-        // arrays will still contain garbage entries
-
-        void commit();
-
-        bool isValid();
-        void print();
-
-        MeshBase& ownerMesh() { return (m_mesh); }
-
-        const MeshBase& ownerMesh() const { return (m_mesh); }
+        virtual ~TopoCacheBase(){};
 
         const TopoTriList& triangles() const { return (m_topoTriList); }
 
@@ -603,24 +616,198 @@ namespace Cork::Meshes
 
         TopoVertexList& vertices() { return (m_topoVertexList); }
 
+       private:
+        TopoCacheBase() = delete;
+
+        TopoCacheBase(const TopoCacheBase&) = delete;
+        TopoCacheBase(TopoCacheBase&&) = delete;
+
+        TopoCacheBase& operator=(const TopoCacheBase&) = delete;
+        TopoCacheBase& operator=(TopoCacheBase&&) = delete;
+
+        //	Data Members
+
+       protected:
+        TopoCacheWorkspace& m_workspace;
+        const Math::Quantizer& quantizer_;
+
+        T& mesh_triangles_;
+        Primitives::Vertex3DVector& mesh_vertices_;
+
+        const uint32_t num_edges_;
+
+        TopoVertexList m_topoVertexList;
+        TopoEdgeList m_topoEdgeList;
+        TopoTriList m_topoTriList;
+
+        //	Methods
+
+        void init()
+        {
+            using TriangleByIndices = Primitives::TriangleByIndices;
+            using VertexIndex = Primitives::VertexIndex;
+            using TriangleVertexId = Primitives::TriangleVertexId;
+            using TriangleByIndicesIndex = Primitives::TriangleByIndicesIndex;
+            using TriangleByIndicesVector = Primitives::TriangleByIndicesVector;
+
+            //	First lay out vertices
+
+            for (uint i = 0; i < mesh_vertices_.size(); i++)
+            {
+                m_topoVertexList.emplace_back(i, quantizer_.quantize(mesh_vertices_[VertexIndex(i)]), m_workspace,
+                                              m_workspace);
+            }
+
+            // We need to still do the following
+            //  * Generate TopoTris
+            //  * Generate TopoEdges
+            // ---- Hook up references between
+            //  * Triangles and Vertices
+            //  * Triangles and Edges
+            //  * Vertices and Edges
+
+            // We handle two of these items in a pass over the triangles,
+            //  * Generate TopoTris
+            //  * Hook up Triangles and Vertices
+            // building a structure to handle the edges as we go:
+
+            std::vector<TopoEdgePrototypeVector> edgeacc(mesh_vertices_.size());
+
+            uint32_t i = -1;
+
+            for (const TriangleByIndices& ref_tri : mesh_triangles_)
+            {
+                i++;
+
+                // triangles <--> verts
+
+                VertexIndex vertex0_index = ref_tri[0];
+                VertexIndex vertex1_index = ref_tri[1];
+                VertexIndex vertex2_index = ref_tri[2];
+
+                TriangleVertexId vertex0_id = TriangleVertexId::A;
+                TriangleVertexId vertex1_id = TriangleVertexId::B;
+                TriangleVertexId vertex2_id = TriangleVertexId::C;
+
+                TopoTri* tri = m_topoTriList.emplace_back(ref_tri.uid(), i, m_topoVertexList.getPool()[vertex0_index],
+                                                          m_topoVertexList.getPool()[vertex1_index],
+                                                          m_topoVertexList.getPool()[vertex2_index]);
+
+                // then, put these in arbitrary but globally consistent order
+
+                if (vertex0_index > vertex1_index)
+                {
+                    std::swap(vertex0_index, vertex1_index);
+                    std::swap(vertex0_id, vertex1_id);
+                }
+
+                if (vertex1_index > vertex2_index)
+                {
+                    std::swap(vertex1_index, vertex2_index);
+                    std::swap(vertex1_id, vertex2_id);
+                }
+
+                if (vertex0_index > vertex1_index)
+                {
+                    std::swap(vertex0_index, vertex1_index);
+                    std::swap(vertex0_id, vertex1_id);
+                }
+
+                // and accrue in structure
+
+                TopoVert* v0 = &(m_topoVertexList.getPool()[vertex0_index]);
+                TopoVert* v1 = &(m_topoVertexList.getPool()[vertex1_index]);
+                TopoVert* v2 = &(m_topoVertexList.getPool()[vertex2_index]);
+
+                //	Create edges and link them to the triangle
+
+                TopoEdge* edge01;
+                TopoEdge* edge02;
+                TopoEdge* edge12;
+
+                {
+                    TopoEdgePrototype& edge01Proto = edgeacc[VertexIndex::integer_type(vertex0_index)].find_or_add(
+                        VertexIndex::integer_type(vertex1_index));
+
+                    edge01 = edge01Proto.edge();
+
+                    if (edge01 == nullptr)
+                    {
+                        edge01 = edge01Proto.setEdge(m_topoEdgeList.emplace_back(
+                            tri->source_triangle_id(), from_vertices(vertex0_id, vertex1_id), v0, v1, m_workspace));
+                    }
+
+                    edge01->triangles().insert(tri);
+
+                    TopoEdgePrototype& edge02Proto = edgeacc[VertexIndex::integer_type(vertex0_index)].find_or_add(
+                        VertexIndex::integer_type(vertex2_index));
+
+                    edge02 = edge02Proto.edge();
+
+                    if (edge02 == nullptr)
+                    {
+                        edge02 = edge02Proto.setEdge(m_topoEdgeList.emplace_back(
+                            tri->source_triangle_id(), from_vertices(vertex0_id, vertex2_id), v0, v2, m_workspace));
+                    }
+
+                    edge02->triangles().insert(tri);
+
+                    TopoEdgePrototype& edge12Proto = edgeacc[VertexIndex::integer_type(vertex1_index)].find_or_add(
+                        VertexIndex::integer_type(vertex2_index));
+
+                    edge12 = edge12Proto.edge();
+
+                    if (edge12 == nullptr)
+                    {
+                        edge12 = edge12Proto.setEdge(m_topoEdgeList.emplace_back(
+                            tri->source_triangle_id(), from_vertices(vertex1_id, vertex2_id), v1, v2, m_workspace));
+                    }
+
+                    edge12->triangles().insert(tri);
+                }
+                //	We swapped around indices, so now fix the edge assignments
+
+                tri->AssignEdges(v0, v1, v2, edge01, edge02, edge12);
+            }
+        }
+    };
+
+    class TopoCache : public TopoCacheBase<MeshBase::TriangleVector>
+    {
+       public:
+        TopoCache(MeshBase& owner, const Math::Quantizer& quantizer, TopoCacheWorkspace& workspace);
+
+        virtual ~TopoCache();
+
+        // until commit() is called, the Mesh::verts and Mesh::tris
+        // arrays will still contain garbage entries
+
+        void commit();
+
+        void print();
+
+        MeshBase& ownerMesh() { return (m_mesh); }
+
+        const MeshBase& ownerMesh() const { return (m_mesh); }
+
         // helpers to create bits and pieces
 
         TopoVert* newVert()
         {
-            Primitives::VertexIndex::integer_type ref = m_meshVertices.size();
+            Primitives::VertexIndex::integer_type ref = mesh_vertices_.size();
 
-            m_meshVertices.emplace_back();
+            mesh_vertices_.emplace_back();
 
-            return (m_topoVertexList.emplace_back(ref, m_workspace, m_workspace));
+            return (m_topoVertexList.emplace_back(ref, mesh_vertices_.back(), m_workspace, m_workspace));
         }
 
         TopoEdge* newEdge() { return (m_topoEdgeList.emplace_back()); }
 
         TopoTri* newTri()
         {
-            Primitives::IndexType ref = m_meshTriangles.size();
+            Primitives::IndexType ref = mesh_triangles_.size();
 
-            m_meshTriangles.push_back(CorkTriangle());
+            mesh_triangles_.push_back(CorkTriangle());
 
             return (m_topoTriList.emplace_back(ref));
         }
@@ -684,26 +871,21 @@ namespace Cork::Meshes
         void flipTri(TopoTri* t)
         {
             t->flip();
-            m_meshTriangles[t->ref()].flip();
+            mesh_triangles_[t->ref()].flip();
         }
 
        private:
+        TopoCache() = delete;
+
+        TopoCache(const TopoCache&) = delete;
+        TopoCache(TopoCache&&) = delete;
+
+        TopoCache& operator=(const TopoCache&) = delete;
+        TopoCache& operator=(TopoCache&&) = delete;
+
         //	Data Members
 
         MeshBase& m_mesh;
-        TopoCacheWorkspace& m_workspace;
-
-        MeshBase::TriangleVector& m_meshTriangles;
-        Primitives::Vertex3DVector& m_meshVertices;
-
-        TopoVertexList m_topoVertexList;
-        TopoEdgeList m_topoEdgeList;
-        TopoTriList m_topoTriList;
-
-        //	Methods
-
-        template <typename T>
-        void init(T& triangle_by_indices_list);
     };
 
     std::ostream& operator<<(std::ostream& out, const TopoVert& vertex);

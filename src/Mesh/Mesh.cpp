@@ -337,8 +337,8 @@ namespace Cork::Meshes
         //	Find intersections and then resolve them.  We might have to repurturb if finding and resolving fails.
         //		We can repurturb until we run out of perturbation resolution.
 
-        std::unique_ptr<IntersectionProblemIfx> iproblem(
-            IntersectionProblemIfx::GetProblem(*this, quantizer, intersectionBBox));
+        std::unique_ptr<IntersectionSolver> iproblem(
+            IntersectionSolver::GetSolver(*this, quantizer, intersectionBBox));
 
         while (true)
         {
@@ -755,10 +755,12 @@ namespace Cork::Meshes
 
     void Mesh::doDeleteAndFlip(std::function<TriCode(uint32_t bool_alg_data)> classify)
     {
+        Math::Quantizer::GetQuantizerResult get_quantizer_result = getQuantizer();
+
         SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr topoCacheWorkspace(
             SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance());
 
-        TopoCache topocache(*this, *topoCacheWorkspace);
+        TopoCache topocache(*this, get_quantizer_result.return_value(), *topoCacheWorkspace);
 
         std::vector<TopoTri*> toDelete;
 

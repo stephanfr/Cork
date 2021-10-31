@@ -43,20 +43,27 @@ namespace Cork::Intersection
 
     using IntersectionProblemResult = SEFUtility::Result<IntersectionProblemResultCodes>;
 
-    class IntersectionProblemIfx
+
+    class SelfIntersectionFinder
     {
        public:
+        static std::unique_ptr<SelfIntersectionFinder> GetFinder(Primitives::TriangleByIndicesVector&  triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges, const Math::Quantizer& quantizer);
 
-        static std::unique_ptr<IntersectionProblemIfx> GetProblem(Meshes::MeshBase& owner,
-                                                                  const Math::Quantizer& quantizer,
-                                                                  const Primitives::BBox3D& intersectionBBox);
+        virtual ~SelfIntersectionFinder() {}
 
-        virtual ~IntersectionProblemIfx() {}
+        virtual const std::vector<IntersectionInfo> CheckSelfIntersection() = 0;
+    };
+
+    class IntersectionSolver
+    {
+       public:
+        static std::unique_ptr<IntersectionSolver> GetSolver(Meshes::MeshBase& owner, const Math::Quantizer& quantizer,
+                                                             const Primitives::BBox3D& intersectionBBox);
+
+        virtual ~IntersectionSolver() {}
 
         virtual IntersectionProblemResult FindIntersections() = 0;
         virtual IntersectionProblemResult ResolveAllIntersections() = 0;
-
-        virtual const std::vector<IntersectionInfo> CheckSelfIntersection() = 0;
 
         virtual void commit() = 0;
     };

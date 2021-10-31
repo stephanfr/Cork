@@ -64,8 +64,8 @@ namespace Cork::AABVH
        public:
         explicit GeomBlob(const Meshes::TopoEdge& idx) : m_id(idx)
         {
-            const Primitives::Vector3D& p0 = *((idx.verts()[0])->quantizedValue());
-            const Primitives::Vector3D& p1 = *((idx.verts()[1])->quantizedValue());
+            const Primitives::Vector3D& p0 = (idx.verts()[0])->quantizedValue();
+            const Primitives::Vector3D& p1 = (idx.verts()[1])->quantizedValue();
 
             m_bbox = Primitives::BBox3D(p0.min(p1), p0.max(p1));
         }

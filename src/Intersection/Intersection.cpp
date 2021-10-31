@@ -24,20 +24,19 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-
 #include <boost/noncopyable.hpp>
 #include <boost/optional.hpp>
 #include <random>
-#include "tbb/tbb.h"
 
 #include "accel/aabvh.h"
 #include "intersection/empty3d.hpp"
 #include "intersection/intersection_problem.hpp"
+#include "intersection/perturbation_epsilon.hpp"
 #include "intersection/triangulator.hpp"
 #include "math/gmpext4.hpp"
 #include "mesh/MeshBase.h"
 #include "mesh/TopoCache.h"
-#include "intersection/perturbation_epsilon.hpp"
+#include "tbb/tbb.h"
 #include "util/CachingFactory.h"
 #include "util/ManagedIntrusiveList.h"
 #include "util/ThreadingHelpers.h"
@@ -64,6 +63,8 @@ namespace Cork::Intersection
     using TopoCache = Meshes::TopoCache;
     using TopoCacheWorkspace = Meshes::TopoCacheWorkspace;
     using TopoEdgePointerVector = Meshes::TopoEdgePointerVector;
+
+    using QuantizedCoordinatesVector = Primitives::Vertex3DVector;
 
     //  The following template classes are needed to insure the correct delete function is associated
     //      with the allocation function used for elements passed to the Triangle library.
@@ -545,7 +546,7 @@ namespace Cork::Intersection
 
         OrigVertType* newOrigVert(TopoVert* v)
         {
-            return (m_origVertTypeList.emplace_back(GenericVertType::VertexType::ORIGINAL, *v, *(v->quantizedValue()),
+            return (m_origVertTypeList.emplace_back(GenericVertType::VertexType::ORIGINAL, *v, v->quantizedValue(),
                                                     true));
         }
 
@@ -566,11 +567,11 @@ namespace Cork::Intersection
 
         void perturbPositions()
         {
-            for (VertexIndex i = 0u; i < m_quantizedCoords.size(); i++)
+            for (auto& vertex : vertices() )
             {
                 Primitives::Vector3D perturbation = m_perturbation.getPerturbation();
 
-                m_quantizedCoords[i] = m_quantizedCoords[i] + perturbation;
+                vertex.perturb(perturbation);
             }
         }
 
@@ -790,7 +791,6 @@ namespace Cork::Intersection
         }
 
        protected:
-        using QuantizedCoordinatesVector = Primitives::Vertex3DVector;
 
         IntersectionProblemWorkspaceBase& m_workspace;
 
@@ -805,8 +805,6 @@ namespace Cork::Intersection
 
         Math::Quantizer m_quantizer;
         PerturbationEpsilon m_perturbation;
-
-        QuantizedCoordinatesVector m_quantizedCoords;
 
         GluePointMarkerList m_gluePointMarkerList;
         IsctVertTypeList m_isctVertTypeList;
@@ -1429,21 +1427,22 @@ namespace Cork::Intersection
 
     typedef SEFUtility::CachingFactory<Intersection::IntersectionProblemWorkspace> IntersectionWorkspaceFactory;
 
-    class IntersectionProblem : public IntersectionProblemBase, public IntersectionProblemIfx
+    class IntersectionSolverImpl : public IntersectionProblemBase, public IntersectionSolver
     {
        public:
-        IntersectionProblem(
+        IntersectionSolverImpl(
             MeshBase& owner, const Math::Quantizer& quantizer, const Primitives::BBox3D& intersectionBBox,
             SEFUtility::CachingFactory<Intersection::IntersectionProblemWorkspace>::UniquePtr& workspace);
 
-        virtual ~IntersectionProblem() { reset(); }
+        virtual ~IntersectionSolverImpl() { reset(); }
 
         //	Implementation of IntersectionProblemIfx
 
         IntersectionProblemResult FindIntersections() final;
         IntersectionProblemResult ResolveAllIntersections() final;
 
-        const std::vector<IntersectionInfo> CheckSelfIntersection() final;  // test for self intersections in the mesh
+        //        const std::vector<IntersectionInfo> CheckSelfIntersection() final;  // test for self intersections in
+        //        the mesh
 
         void commit() { TopoCache::commit(); }
 
@@ -1541,7 +1540,7 @@ namespace Cork::Intersection
     IntersectionProblemBase::IntersectionProblemBase(MeshBase& owner, const Math::Quantizer& quantizer,
                                                      const Primitives::BBox3D& intersectionBBox,
                                                      IntersectionProblemWorkspaceBase& workspace)
-        : TopoCache(owner, workspace),
+        : TopoCache(owner, quantizer, workspace),
           m_quantizer(quantizer),
           m_perturbation(quantizer),
           m_intersectionBBox(std::make_unique<Primitives::BBox3D>(intersectionBBox)),
@@ -1569,20 +1568,9 @@ namespace Cork::Intersection
         {
             e.setBoolAlgData(e.triangles().front()->boolAlgData());
         }
-
-        // and use vertex auxiliary data to store quantized vertex coordinates
-
-        m_quantizedCoords.reserve(TopoCache::ownerMesh().vertices().size());
-
-        for (TopoVert& v : TopoCache::vertices())
-        {
-            m_quantizedCoords.emplace_back(m_quantizer.quantize(ownerMesh().vertices()[v.ref()]));
-
-            v.setQuantizedValue(&(m_quantizedCoords.back()));
-        }
     }
 
-    IntersectionProblem::IntersectionProblem(
+    IntersectionSolverImpl::IntersectionSolverImpl(
         MeshBase& owner, const Math::Quantizer& quantizer, const Primitives::BBox3D& intersectionBBox,
         SEFUtility::CachingFactory<Intersection::IntersectionProblemWorkspace>::UniquePtr& workspace)
         : IntersectionProblemBase(owner, quantizer, intersectionBBox, *(workspace.get())),
@@ -1591,7 +1579,7 @@ namespace Cork::Intersection
     {
     }
 
-    IntersectionProblem::TryToFindIntersectionsResult IntersectionProblem::tryToFindIntersections()
+    IntersectionSolverImpl::TryToFindIntersectionsResult IntersectionSolverImpl::tryToFindIntersections()
     {
         m_exactArithmeticContext.degeneracy_count = 0;
 
@@ -1665,7 +1653,7 @@ namespace Cork::Intersection
         return (TryToFindIntersectionsResult::success());
     }
 
-    bool IntersectionProblem::findTriTriTriIntersections()
+    bool IntersectionSolverImpl::findTriTriTriIntersections()
     {
         // we're going to peek into the triangle problems in order to
         // identify potential candidates for Tri-Tri-Tri intersections
@@ -1744,7 +1732,7 @@ namespace Cork::Intersection
         return (true);
     }
 
-    void IntersectionProblem::reset()
+    void IntersectionSolverImpl::reset()
     {
         // the data pointer in the triangles points to tproblems
         // that we're about to destroy,
@@ -1771,7 +1759,7 @@ namespace Cork::Intersection
         (dynamic_cast<IntersectionProblemWorkspace*>(m_workspace.get()))->reset();
     }
 
-    IntersectionProblemResult IntersectionProblem::FindIntersections()
+    IntersectionProblemResult IntersectionSolverImpl::FindIntersections()
     {
         perturbPositions();  // always perturb for safety...
 
@@ -1823,56 +1811,7 @@ namespace Cork::Intersection
         return (IntersectionProblemResult::success());
     }
 
-    const std::vector<IntersectionInfo> IntersectionProblem::CheckSelfIntersection()
-    {
-        Empty3d::ExactArithmeticContext localArithmeticContext;
-        std::vector<IntersectionInfo> self_intersecting_edges;
-
-        if (m_edgeBVH.get() == nullptr)
-        {
-            CreateBoundingVolumeHierarchy();
-        }
-
-        TopoEdgePointerVector edges;
-
-        for (TopoTri& t : triangles())
-        {
-            m_edgeBVH->EdgesIntersectingTriangle(t, AABVH::IntersectionType::SELF_INTERSECTION, edges);
-
-            for (const TopoEdge* edge : edges)
-            {
-                if (t.intersectsEdge(*edge, m_quantizer, localArithmeticContext))
-                {
-                    std::set<TriangleByIndicesIndex> triangles_sharing_edge;
-                    std::set<TriangleByIndicesIndex> triangles_touching_triangles_sharing_edge;
-
-                    for (auto triangle_sharing_edge : edge->triangles())
-                    {
-                        triangles_sharing_edge.insert(triangle_sharing_edge->source_triangle_id());
-
-                        for (auto touching_edge : triangle_sharing_edge->edges())
-                        {
-                            for (auto triangle_touching : touching_edge->triangles())
-                            {
-                                triangles_touching_triangles_sharing_edge.insert(
-                                    triangle_touching->source_triangle_id());
-                            }
-                        }
-                    }
-
-                    self_intersecting_edges.emplace_back(Intersection::IntersectionInfo(
-                        edge->source_triangle_id(), edge->edge_index(), t.source_triangle_id(), triangles_sharing_edge,
-                        triangles_touching_triangles_sharing_edge));
-                }
-            }
-
-            edges.clear();
-        }
-
-        return self_intersecting_edges;
-    }
-
-    IntersectionProblemResult IntersectionProblem::ResolveAllIntersections()
+    IntersectionProblemResult IntersectionSolverImpl::ResolveAllIntersections()
     {
         //	Subdivide the mesh in each triangle problem.
 
@@ -1900,15 +1839,15 @@ namespace Cork::Intersection
 
                 for (auto tri : allTris)
                 {
-                    std::cout << tri->boolAlgData() << "    (" << tri->verts()[0]->quantizedValue()->x() << ", "
-                              << tri->verts()[0]->quantizedValue()->y() << ", "
-                              << tri->verts()[0]->quantizedValue()->z() << ")    ("
-                              << tri->verts()[1]->quantizedValue()->x() << ", "
-                              << tri->verts()[1]->quantizedValue()->y() << ", "
-                              << tri->verts()[1]->quantizedValue()->z() << ")    ("
-                              << tri->verts()[2]->quantizedValue()->x() << ", "
-                              << tri->verts()[2]->quantizedValue()->y() << ", "
-                              << tri->verts()[2]->quantizedValue()->z() << ")" << std::endl;
+                    std::cout << tri->boolAlgData() << "    (" << tri->verts()[0]->quantizedValue().x() << ", "
+                              << tri->verts()[0]->quantizedValue().y() << ", "
+                              << tri->verts()[0]->quantizedValue().z() << ")    ("
+                              << tri->verts()[1]->quantizedValue().x() << ", "
+                              << tri->verts()[1]->quantizedValue().y() << ", "
+                              << tri->verts()[1]->quantizedValue().z() << ")    ("
+                              << tri->verts()[2]->quantizedValue().x() << ", "
+                              << tri->verts()[2]->quantizedValue().y() << ", "
+                              << tri->verts()[2]->quantizedValue().z() << ")" << std::endl;
                     std::cout.flush();
 
                     TopoEdgePointerVector edges;
@@ -1990,12 +1929,121 @@ namespace Cork::Intersection
         return (IntersectionProblemResult::success());
     }
 
-    std::unique_ptr<IntersectionProblemIfx> IntersectionProblemIfx::GetProblem(
-        MeshBase& owner, const Math::Quantizer& quantizer, const Primitives::BBox3D& intersectionBBox)
+    class SelfIntersectionFinderImpl : /*public IntersectionProblemBase,*/ public SelfIntersectionFinder
+    {
+       public:
+        SelfIntersectionFinderImpl(
+            Primitives::TriangleByIndicesVector& triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges,
+            const Math::Quantizer& quantizer,
+            SEFUtility::CachingFactory<Intersection::IntersectionProblemWorkspace>::UniquePtr& workspace);
+
+        virtual ~SelfIntersectionFinderImpl() { reset(); }
+
+        const std::vector<IntersectionInfo> CheckSelfIntersection() final;
+
+       private:
+        SEFUtility::CachingFactory<Intersection::IntersectionProblemWorkspace>::UniquePtr m_workspace;
+
+        Math::Quantizer quantizer_;
+
+        Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector> topo_cache_;
+
+        std::unique_ptr<AABVH::AxisAlignedBoundingVolumeHierarchy> m_edgeBVH;
+
+        void reset();
+
+        void CreateBoundingVolumeHierarchy()
+        {
+            std::unique_ptr<AABVH::GeomBlobVector> edge_geoms(new AABVH::GeomBlobVector());
+
+            edge_geoms->reserve(topo_cache_.edges().size());
+
+            for (auto& e : topo_cache_.edges())
+            {
+                edge_geoms->emplace_back(e);
+            }
+
+            m_edgeBVH.reset(new AABVH::AxisAlignedBoundingVolumeHierarchy(
+                edge_geoms, *m_workspace, Cork::CorkService::get_default_control_block()));
+        }
+    };
+
+    SelfIntersectionFinderImpl::SelfIntersectionFinderImpl(
+        Primitives::TriangleByIndicesVector& triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges,
+        const Math::Quantizer& quantizer,
+        SEFUtility::CachingFactory<Intersection::IntersectionProblemWorkspace>::UniquePtr& workspace)
+        : m_workspace(std::move(workspace)), quantizer_(quantizer), topo_cache_(triangles, vertices, num_edges, quantizer, *(m_workspace.get())) 
+    {
+        CreateBoundingVolumeHierarchy();
+    }
+
+    void SelfIntersectionFinderImpl::reset()
+    {
+        (dynamic_cast<IntersectionProblemWorkspace*>(m_workspace.get()))->reset();
+    }
+
+    const std::vector<IntersectionInfo> SelfIntersectionFinderImpl::CheckSelfIntersection()
+    {
+        Empty3d::ExactArithmeticContext localArithmeticContext;
+        std::vector<IntersectionInfo> self_intersecting_edges;
+
+        TopoEdgePointerVector edges;
+
+        for (TopoTri& t : topo_cache_.triangles())
+        {
+            m_edgeBVH->EdgesIntersectingTriangle(t, AABVH::IntersectionType::SELF_INTERSECTION, edges);
+
+            for (const TopoEdge* edge : edges)
+            {
+                if (t.intersectsEdge(*edge, quantizer_, localArithmeticContext))
+                {
+                    std::set<TriangleByIndicesIndex> triangles_sharing_edge;
+                    std::set<TriangleByIndicesIndex> triangles_touching_triangles_sharing_edge;
+
+                    for (auto triangle_sharing_edge : edge->triangles())
+                    {
+                        triangles_sharing_edge.insert(triangle_sharing_edge->source_triangle_id());
+
+                        for (auto touching_edge : triangle_sharing_edge->edges())
+                        {
+                            for (auto triangle_touching : touching_edge->triangles())
+                            {
+                                triangles_touching_triangles_sharing_edge.insert(
+                                    triangle_touching->source_triangle_id());
+                            }
+                        }
+                    }
+
+                    self_intersecting_edges.emplace_back(Intersection::IntersectionInfo(
+                        edge->source_triangle_id(), edge->edge_index(), t.source_triangle_id(), triangles_sharing_edge,
+                        triangles_touching_triangles_sharing_edge));
+                }
+            }
+
+            edges.clear();
+        }
+
+        return self_intersecting_edges;
+    }
+
+    std::unique_ptr<SelfIntersectionFinder> SelfIntersectionFinder::GetFinder(
+        Primitives::TriangleByIndicesVector& triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges,
+        const Math::Quantizer& quantizer)
     {
         IntersectionWorkspaceFactory::UniquePtr workspace(IntersectionWorkspaceFactory::GetInstance());
 
-        return (std::unique_ptr<IntersectionProblemIfx>(
-            new IntersectionProblem(owner, quantizer, intersectionBBox, workspace)));
+        std::unique_ptr<SelfIntersectionFinder> finder(
+            new SelfIntersectionFinderImpl(triangles, vertices, num_edges, quantizer, workspace));
+
+        return finder;
+    }
+
+    std::unique_ptr<IntersectionSolver> IntersectionSolver::GetSolver(MeshBase& owner, const Math::Quantizer& quantizer,
+                                                                      const Primitives::BBox3D& intersectionBBox)
+    {
+        IntersectionWorkspaceFactory::UniquePtr workspace(IntersectionWorkspaceFactory::GetInstance());
+
+        return (std::unique_ptr<IntersectionSolver>(
+            new IntersectionSolverImpl(owner, quantizer, intersectionBBox, workspace)));
     }
 }  // namespace Cork::Intersection

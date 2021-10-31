@@ -83,9 +83,9 @@ namespace Cork::Math
 
         double reshrink(double number) const { return (m_reshrink * number); }
 
-        Primitives::Vector3D quantize(const Primitives::Vector3D& vectorToQuantize) const
+        Primitives::Vertex3D quantize(const Primitives::Vector3D& vectorToQuantize) const
         {
-            return (Primitives::Vector3D(quantize(vectorToQuantize.x()), quantize(vectorToQuantize.y()),
+            return (Primitives::Vertex3D(quantize(vectorToQuantize.x()), quantize(vectorToQuantize.y()),
                                          quantize(vectorToQuantize.z())));
         }
 
