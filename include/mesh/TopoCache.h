@@ -42,6 +42,8 @@
 #include "primitives/primitives.hpp"
 #include "util/ManagedIntrusiveList.h"
 #include "util/SparseVector.h"
+#include "util/Resettable.h"
+#include "util/CachingFactory.h"
 
 namespace Cork::Meshes
 {
@@ -467,7 +469,7 @@ namespace Cork::Meshes
 
     typedef ManagedIntrusiveValueList<TopoTri> TopoTriList;
 
-    class TopoCacheWorkspace
+    class TopoCacheWorkspace : public SEFUtility::Resettable
     {
        public:
         TopoCacheWorkspace()
@@ -478,6 +480,12 @@ namespace Cork::Meshes
         }
 
         virtual ~TopoCacheWorkspace() {}
+
+
+        void reset()
+        {
+            clear();
+        }
 
         void reset(size_t num_vertices, size_t num_edges, size_t num_triangles)
         {
@@ -587,17 +595,17 @@ namespace Cork::Meshes
     {
        public:
         TopoCacheBase(T& triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges,
-                      const Math::Quantizer& quantizer, TopoCacheWorkspace& workspace)
-            : m_workspace(workspace),
+                      const Math::Quantizer& quantizer)
+            : m_workspace(SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance()),
               quantizer_(quantizer),
               mesh_triangles_(triangles),
               mesh_vertices_(vertices),
               num_edges_(num_edges),
-              m_topoVertexList(m_workspace),
-              m_topoEdgeList(m_workspace),
-              m_topoTriList(m_workspace)
+              m_topoVertexList(*(m_workspace.get())),
+              m_topoEdgeList(*(m_workspace.get())),
+              m_topoTriList(*(m_workspace.get()))
         {
-            workspace.reset(mesh_vertices_.size(), num_edges_, mesh_triangles_.size());
+            m_workspace.get()->reset(mesh_vertices_.size(), num_edges_, mesh_triangles_.size());
 
             init();
         }
@@ -628,7 +636,8 @@ namespace Cork::Meshes
         //	Data Members
 
        protected:
-        TopoCacheWorkspace& m_workspace;
+        SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr m_workspace;
+
         const Math::Quantizer& quantizer_;
 
         T& mesh_triangles_;
@@ -654,8 +663,8 @@ namespace Cork::Meshes
 
             for (uint i = 0; i < mesh_vertices_.size(); i++)
             {
-                m_topoVertexList.emplace_back(i, quantizer_.quantize(mesh_vertices_[VertexIndex(i)]), m_workspace,
-                                              m_workspace);
+                m_topoVertexList.emplace_back(i, quantizer_.quantize(mesh_vertices_[VertexIndex(i)]), *(m_workspace.get()),
+                                              *(m_workspace.get()));
             }
 
             // We need to still do the following
@@ -734,7 +743,7 @@ namespace Cork::Meshes
                     if (edge01 == nullptr)
                     {
                         edge01 = edge01Proto.setEdge(m_topoEdgeList.emplace_back(
-                            tri->source_triangle_id(), from_vertices(vertex0_id, vertex1_id), v0, v1, m_workspace));
+                            tri->source_triangle_id(), from_vertices(vertex0_id, vertex1_id), v0, v1, *(m_workspace.get())));
                     }
 
                     edge01->triangles().insert(tri);
@@ -747,7 +756,7 @@ namespace Cork::Meshes
                     if (edge02 == nullptr)
                     {
                         edge02 = edge02Proto.setEdge(m_topoEdgeList.emplace_back(
-                            tri->source_triangle_id(), from_vertices(vertex0_id, vertex2_id), v0, v2, m_workspace));
+                            tri->source_triangle_id(), from_vertices(vertex0_id, vertex2_id), v0, v2, *(m_workspace.get())));
                     }
 
                     edge02->triangles().insert(tri);
@@ -760,7 +769,7 @@ namespace Cork::Meshes
                     if (edge12 == nullptr)
                     {
                         edge12 = edge12Proto.setEdge(m_topoEdgeList.emplace_back(
-                            tri->source_triangle_id(), from_vertices(vertex1_id, vertex2_id), v1, v2, m_workspace));
+                            tri->source_triangle_id(), from_vertices(vertex1_id, vertex2_id), v1, v2, *(m_workspace.get())));
                     }
 
                     edge12->triangles().insert(tri);
@@ -775,7 +784,7 @@ namespace Cork::Meshes
     class TopoCache : public TopoCacheBase<MeshBase::TriangleVector>
     {
        public:
-        TopoCache(MeshBase& owner, const Math::Quantizer& quantizer, TopoCacheWorkspace& workspace);
+        TopoCache(MeshBase& owner, const Math::Quantizer& quantizer);
 
         virtual ~TopoCache();
 
@@ -798,7 +807,7 @@ namespace Cork::Meshes
 
             mesh_vertices_.emplace_back();
 
-            return (m_topoVertexList.emplace_back(ref, mesh_vertices_.back(), m_workspace, m_workspace));
+            return (m_topoVertexList.emplace_back(ref, mesh_vertices_.back(), *(m_workspace.get()), *(m_workspace.get())));
         }
 
         TopoEdge* newEdge() { return (m_topoEdgeList.emplace_back()); }

@@ -757,10 +757,7 @@ namespace Cork::Meshes
     {
         Math::Quantizer::GetQuantizerResult get_quantizer_result = getQuantizer();
 
-        SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr topoCacheWorkspace(
-            SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance());
-
-        TopoCache topocache(*this, get_quantizer_result.return_value(), *topoCacheWorkspace);
+        TopoCache topocache(*this, get_quantizer_result.return_value());
 
         std::vector<TopoTri*> toDelete;
 

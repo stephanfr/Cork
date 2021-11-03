@@ -37,8 +37,8 @@ namespace Cork::Meshes
     using TriangleVertexId = Primitives::TriangleVertexId;
     using TriangleByIndices = Primitives::TriangleByIndices;
 
-    TopoCache::TopoCache(MeshBase& owner, const Math::Quantizer& quantizer, TopoCacheWorkspace& workspace)
-        : TopoCacheBase( owner.triangles(), owner.vertices(), owner.triangles().size() * 3, quantizer, workspace ),
+    TopoCache::TopoCache(MeshBase& owner, const Math::Quantizer& quantizer)
+        : TopoCacheBase( owner.triangles(), owner.vertices(), owner.triangles().size() * 3, quantizer ),
           m_mesh(owner)
     {}
 

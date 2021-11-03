@@ -122,12 +122,10 @@ namespace SEFUtility
 		};
 
 
-		//	The UniquePtr is simply a stand::unique_ptr<T1> with a custom destructor based
+		//	The UniquePtr is simply a std::unique_ptr<T1> with a custom destructor based
 		//		on whether the cache or destroy the object
 
 		typedef std::unique_ptr<T, decltype(&CacheInstance)>			UniquePtr;
-
-
 
 		//	GetInstance() returns an instance of the managed class either from the cache or by creating
 		//		it new and associates the correct destructor to either cache or destroy the class when
