@@ -48,10 +48,11 @@ namespace Cork::Intersection
                                      t2.triangleExactCoordinates(quantizer), quantizer));
     }
 
-    class IntersectionProblemBase : public Meshes::TopoCache
+    class IntersectionProblemBase
     {
         protected :
 
+        using TopoCache = Meshes::TopoCache;
         using TopoVert = Meshes::TopoVert;
         using TopoEdge = Meshes::TopoEdge;
         using TopoTri = Meshes::TopoTri;
@@ -106,10 +107,9 @@ namespace Cork::Intersection
             TopoEdgePointerVector m_edges;
         };
 
-        typedef tbb::concurrent_bounded_queue<TriAndEdgeQueueMessage*> TriangleAndIntersectingEdgesQueue;
+        using TriangleAndIntersectingEdgesQueue = tbb::concurrent_bounded_queue<TriAndEdgeQueueMessage*>;
 
-        IntersectionProblemBase(MeshBase& owner, const Math::Quantizer& quantizer,
-                                const Primitives::BBox3D& intersectionBBox);
+        IntersectionProblemBase(MeshBase& owner_mesh, const Math::Quantizer& quantizer);
 
         IntersectionProblemBase(const IntersectionProblemBase& isctProblemToCopy) = delete;
 
@@ -117,21 +117,25 @@ namespace Cork::Intersection
 
         virtual ~IntersectionProblemBase() {}
 
-        IntersectionWorkspace& getWorkspace() { return *(m_intersection_problem_workspace.get()); }
+        IntersectionWorkspace& workspace() { return *(workspace_.get()); }
 
-        Empty3d::ExactArithmeticContext& ExactArithmeticContext() { return (m_exactArithmeticContext); }
+        MeshBase& owner_mesh() { return owner_mesh_; }
+
+        const MeshBase& owner_mesh() const { return owner_mesh_; }
+
+        TopoCache&      topo_cache() { return topo_cache_; }
 
         IsctVertType* newIsctVert(const TopoEdge& e, const TopoTri& t, bool boundary, GluePointMarker& glue)
         {
             return (m_isctVertTypeList.emplace_back(GenericVertType::VertexType::INTERSECTION,
-                                                    computeCoords(e, t, m_quantizer), boundary, glue));
+                                                    computeCoords(e, t, quantizer_), boundary, glue));
         }
 
         IsctVertType* newIsctVert(const TopoTri& t0, const TopoTri& t1, const TopoTri& t2, bool boundary,
                                   GluePointMarker& glue)
         {
             return (m_isctVertTypeList.emplace_back(GenericVertType::VertexType::INTERSECTION,
-                                                    computeCoords(t0, t1, t2, m_quantizer), boundary, glue));
+                                                    computeCoords(t0, t1, t2, quantizer_), boundary, glue));
         }
 
         IsctVertType* newSplitIsctVert(const Primitives::Vector3D& coords, GluePointMarker& glue)
@@ -171,97 +175,20 @@ namespace Cork::Intersection
             return (m_genericTriTypeList.emplace_back(v0, v1, v2));
         }
 
-        void perturbPositions()
-        {
-            for (auto& vertex : vertices())
-            {
-                Primitives::Vector3D perturbation = m_perturbation.getPerturbation();
+        void perturbPositions();
 
-                vertex.perturb(perturbation);
-            }
-        }
-
-        void CreateBoundingVolumeHierarchy()
-        {
-            std::unique_ptr<AABVH::GeomBlobVector> edge_geoms(new AABVH::GeomBlobVector());
-
-            edge_geoms->reserve(edges().size());
-
-            for (auto& e : edges())
-            {
-                edge_geoms->emplace_back(e);
-            }
-
-            m_edgeBVH.reset(new AABVH::AxisAlignedBoundingVolumeHierarchy(edge_geoms, getWorkspace(),
-                                                                          ownerMesh().solverControlBlock()));
-        }
+        void CreateBoundingVolumeHierarchy();
 
         void FindEdgeAndTriangleIntersections(AABVH::IntersectionType selfOrBooleanIntersection,
-                                              TriangleAndIntersectingEdgesQueue& triangleAndEdges)
-        {
-            CreateBoundingVolumeHierarchy();
-
-            //	Search for intersections, either in multiple threads or in a single thread
-            /*
-                            if( ownerMesh().solverControlBlock().useMultipleThreads() )
-                            {
-                                //	Multithreaded search
-
-                                assert( triangles().isCompact() );
-
-                                tbb::parallel_for( tbb::blocked_range<TopoTriList::PoolType::iterator>(
-               triangles().getPool().begin(), triangles().getPool().end(), ( triangles().getPool().size() / 4 ) - 1
-               ),
-                                    [&] ( tbb::blocked_range<TopoTriList::PoolType::iterator> triangles )
-                                {
-                                    TopoEdgePointerVector			edges;
-
-                                    for( TopoTri& t : triangles )
-                                    {
-                                        m_edgeBVH->EdgesIntersectingTriangle( t, selfOrBooleanIntersection, edges );
-
-                                        if (!edges.empty())
-                                        {
-                                            triangleAndEdges.push( new TriangleAndIntersectingEdgesMessage( t, edges
-               ));
-
-                                            edges.clear();
-                                        }
-                                    }
-                                }, tbb::simple_partitioner() );
-                            }
-                            else
-                            {
-                            */
-            //	Single threaded search
-
-            TopoEdgePointerVector edges;
-
-            for (TopoTri& tri : triangles())
-            {
-                m_edgeBVH->EdgesIntersectingTriangle(tri, selfOrBooleanIntersection, edges);
-
-                if (!edges.empty())
-                {
-                    triangleAndEdges.push(new TriangleAndIntersectingEdgesMessage(tri, edges));
-
-                    edges.clear();
-                }
-            }
-            //				}
-
-            //	Push the end of queue message
-
-            triangleAndEdges.push(new TriAndEdgeQueueEnd());
-        }
+                                              TriangleAndIntersectingEdgesQueue& triangleAndEdges);
 
         void createRealPtFromGluePt(GluePointMarker& glue)
         {
             assert(glue.vertices_to_be_glued().size() > 0);
 
-            TopoVert* v = TopoCache::newVert();
+            TopoVert* v = topo_cache_.newVert();
 
-            TopoCache::ownerMesh().vertices()[v->ref()] = glue.vertices_to_be_glued()[0]->coordinate();
+            topo_cache_.ownerMesh().vertices()[v->ref()] = glue.vertices_to_be_glued()[0]->coordinate();
 
             for (IsctVertType* iv : glue.vertices_to_be_glued())
             {
@@ -368,48 +295,35 @@ namespace Cork::Intersection
 
             //	Visual Studio's IDE gripes about the following when the explicit operator call is omitted
 
-            Empty3d::TriTriTriIn input(t0.operator Empty3d::TriIn(), t1.operator Empty3d::TriIn(),
-                                       t2.operator Empty3d::TriIn());
+            Empty3d::TriangleTriangleTriangleIntersection input(t0.operator Empty3d::IntersectingTriangle(), t1.operator Empty3d::IntersectingTriangle(),
+                                       t2.operator Empty3d::IntersectingTriangle());
 
-            return (!input.emptyExact(m_quantizer, m_exactArithmeticContext));
+            return input.emptyExact(quantizer_, exact_arithmetic_context_) != Empty3d::HasIntersection::YES;
         }
 
         void fillOutTriData(const TopoTri& piece, const TopoTri& parent)
         {
-            TopoCache::ownerMesh().triangles()[piece.ref()].boolAlgData() =
-                ownerMesh().triangles()[parent.ref()].boolAlgData();
+            topo_cache_.ownerMesh().triangles()[piece.ref()].boolAlgData() =
+                topo_cache_.ownerMesh().triangles()[parent.ref()].boolAlgData();
         }
 
-        void dumpIsctPoints(std::vector<Primitives::Vector3D>* points)
-        {
-            points->resize(m_gluePointMarkerList.size());
-
-            uint write = 0;
-
-            for (auto& glue : m_gluePointMarkerList)
-            {
-                assert(glue.vertices_to_be_glued().size() > 0);
-                IsctVertType* iv = glue.vertices_to_be_glued()[0];
-
-                (*points)[write] = iv->coordinate();
-                write++;
-            }
-        }
+        std::unique_ptr<std::vector<Primitives::Vector3D>> dumpIsctPoints();
 
        protected:
-        SEFUtility::CachingFactory<IntersectionWorkspace>::UniquePtr m_intersection_problem_workspace;
+        SEFUtility::CachingFactory<IntersectionWorkspace>::UniquePtr workspace_;
 
-        std::unique_ptr<AABVH::AxisAlignedBoundingVolumeHierarchy> m_edgeBVH;
+        MeshBase& owner_mesh_;
 
-        Empty3d::ExactArithmeticContext m_exactArithmeticContext;
+        Meshes::TopoCache   topo_cache_;
 
-        std::unique_ptr<Primitives::BBox3D> m_intersectionBBox;
+        std::unique_ptr<AABVH::AxisAlignedBoundingVolumeHierarchy> edge_bvh_;
 
-        //	Quantizer must be in front of the Perturbation as the perturbation initialization depends on the
-        // quantizer
+        Empty3d::ExactArithmeticContext exact_arithmetic_context_;
 
-        Math::Quantizer m_quantizer;
-        PerturbationEpsilon m_perturbation;
+        //	Quantizer must be in front of the Perturbation as the perturbation initialization depends on the quantizer
+
+        Math::Quantizer quantizer_;
+        PerturbationEpsilon perturbation_;
 
         GluePointMarkerList m_gluePointMarkerList;
         IsctVertTypeList m_isctVertTypeList;

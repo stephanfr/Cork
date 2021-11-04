@@ -40,11 +40,11 @@ namespace Cork::Intersection
 
        public:
         explicit EdgeCache(IntersectionProblemBase& intersectionProblem)
-            : m_intersectionProblem(intersectionProblem), m_edges(intersectionProblem.ownerMesh().vertices().size())
+            : m_intersectionProblem(intersectionProblem), m_edges(intersectionProblem.owner_mesh().vertices().size())
         {
         }
 
-        TopoEdge* operator()(TopoVert& v0, TopoVert& v1)
+        TopoEdge& operator()(TopoVert& v0, TopoVert& v1)
         {
             auto i = VertexIndex::integer_type(v0.ref());
             auto j = VertexIndex::integer_type(v1.ref());
@@ -58,9 +58,9 @@ namespace Cork::Intersection
 
             for (size_t k = 0; k < N; k++)
             {
-                if (m_edges[i][k].vid == VertexIndex(j))
+                if (m_edges[i][k].vertex_id() == VertexIndex(j))
                 {
-                    return (m_edges[i][k].e);
+                    return m_edges[i][k].edge().value();
                 }
             }
 
@@ -68,19 +68,13 @@ namespace Cork::Intersection
 
             m_edges[i].emplace_back(EdgeEntry(j));
 
-            TopoEdge* e = m_edges[i][N].e = m_intersectionProblem.newEdge();
+            TopoEdge& new_edge = m_edges[i][N].set_edge( *(m_intersectionProblem.topo_cache().newEdge(v0, v1)));
 
-            e->verts()[0] = &v0;
-            e->verts()[1] = &v1;
-
-            v0.edges().insert(e);
-            v1.edges().insert(e);
-
-            return (e);
+            return new_edge;
         }
 
         // k = 0, 1, or 2
-        TopoEdge* getTriangleEdge(GenericTriType* gt, uint k, const TopoTri& big_tri)
+        TopoEdge& getTriangleEdge(GenericTriType* gt, uint k, const TopoTri& big_tri)
         {
             GenericVertType* gv0 = gt->vertices()[(k + 1) % 3];
             GenericVertType* gv1 = gt->vertices()[(k + 2) % 3];
@@ -90,7 +84,7 @@ namespace Cork::Intersection
             // if neither of these are intersection points,
             // then this is a pre-existing edge...
 
-            TopoEdge* e = nullptr;
+            TopoEdge* edge = nullptr;
 
             if ((gv0->vertex_type() == GenericVertType::VertexType::ORIGINAL) &&
                 (gv1->vertex_type() == GenericVertType::VertexType::ORIGINAL))
@@ -103,24 +97,25 @@ namespace Cork::Intersection
 
                     if (((corner0 == &v0) && (corner1 == &v1)) || ((corner0 == &v1) && (corner1 == &v0)))
                     {
-                        e = big_tri.edges()[c];
+                        edge = big_tri.edges()[c];
                     }
                 }
 
-                assert(e != nullptr);
+                assert(edge != nullptr);
             }
             // otherwise, we need to check the cache to find this edge
             else
             {
-                e = operator()(v0, v1);
+                edge = &operator()(v0, v1);
             }
-            return e;
+
+            return *edge;
         }
 
-        TopoEdge* maybeEdge(GenericEdgeType* ge)
+        std::optional<std::reference_wrapper<TopoEdge>> maybeEdge(const GenericEdgeType& ge)
         {
-            size_t i = VertexIndex::integer_type(ge->ends()[0]->concrete_vertex().ref());
-            size_t j = VertexIndex::integer_type(ge->ends()[1]->concrete_vertex().ref());
+            size_t i = VertexIndex::integer_type(ge.ends()[0]->concrete_vertex().ref());
+            size_t j = VertexIndex::integer_type(ge.ends()[1]->concrete_vertex().ref());
 
             if (i > j)
             {
@@ -131,25 +126,34 @@ namespace Cork::Intersection
 
             for (size_t k = 0; k < N; k++)
             {
-                if (m_edges[i][k].vid == j)
+                if (m_edges[i][k].vertex_id() == j)
                 {
-                    return (m_edges[i][k].e);
+                    return m_edges[i][k].edge().value();
                 }
             }
 
             // if we can't find it
-            return (nullptr);
+            return std::optional<std::reference_wrapper<TopoEdge>>();
         }
 
        private:
-        struct EdgeEntry
+        class EdgeEntry
         {
+            public :
+
             EdgeEntry() = delete;
 
-            explicit EdgeEntry(IndexType id) : vid(id) {}
+            explicit EdgeEntry(IndexType vertex_id) : vertex_id_(vertex_id) {}
 
-            VertexIndex vid;
-            TopoEdge* e;
+            VertexIndex     vertex_id() const { return vertex_id_; }
+
+            std::optional<std::reference_wrapper<TopoEdge>>&        edge() { return edge_; }
+            TopoEdge&        set_edge( TopoEdge& edge ) { return edge_.emplace( edge ); }
+
+            private :
+
+            VertexIndex vertex_id_;
+            std::optional<std::reference_wrapper<TopoEdge>> edge_;
         };
 
         typedef std::vector<std::vector<EdgeEntry>> VectorOfEdgeEntryVectors;
@@ -158,4 +162,4 @@ namespace Cork::Intersection
 
         VectorOfEdgeEntryVectors m_edges;
     };
-}
+}  // namespace Cork::Intersection

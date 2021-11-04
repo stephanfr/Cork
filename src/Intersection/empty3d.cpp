@@ -48,14 +48,14 @@ namespace Cork::Empty3d
 
     inline bool filterCheck(double val, double absval, double coeff) { return (fabs(val) > (absval * coeff)); }
 
-    inline bool TriEdgeIn::isEmpty(ExactArithmeticContext& context) const
+    inline HasIntersection TriangleEdgeIntersection::isEmpty(ExactArithmeticContext& context) const
     {
-        context.callcount++;
+        context.add_call_count();
 
-        Ext4_2 temp_e2(tri.p0().join(tri.p1()));
-        Ext4_3 t_ext3 = temp_e2.join(tri.p2());
+        Ext4_2 temp_e2(tri_.p0().join(tri_.p1()));
+        Ext4_3 t_ext3 = temp_e2.join(tri_.p2());
 
-        Ext4_2 e_ext2(edge.p0().join(edge.p1()));
+        Ext4_2 e_ext2(edge_.p0().join(edge_.p1()));
 
         // compute the point of intersection
 
@@ -72,28 +72,28 @@ namespace Cork::Empty3d
         // a_t1 is the variation of t_ext3 with tp1 replaced with p_isct
         // and so on...
 
-        temp_e2 = p_isct.join(tri.p1());
-        Ext4_3 a_t0(temp_e2.join(tri.p2()));
-        temp_e2 = tri.p0().join(p_isct);
-        Ext4_3 a_t1(temp_e2.join(tri.p2()));
-        temp_e2 = tri.p0().join(tri.p1());
+        temp_e2 = p_isct.join(tri_.p1());
+        Ext4_3 a_t0(temp_e2.join(tri_.p2()));
+        temp_e2 = tri_.p0().join(p_isct);
+        Ext4_3 a_t1(temp_e2.join(tri_.p2()));
+        temp_e2 = tri_.p0().join(tri_.p1());
         Ext4_3 a_t2(temp_e2.join(p_isct));
 
-        Ext4_2 a_e0(p_isct.join(edge.p1()));
-        Ext4_2 a_e1(edge.p0().join(p_isct));
+        Ext4_2 a_e0(p_isct.join(edge_.p1()));
+        Ext4_2 a_e1(edge_.p0().join(p_isct));
 
-        return ((t_ext3.inner(a_t0) < 0.0) || (t_ext3.inner(a_t1) < 0.0) || (t_ext3.inner(a_t2) < 0.0) ||
-                (e_ext2.inner(a_e0) < 0.0) || (e_ext2.inner(a_e1) < 0.0));
+        return (((t_ext3.inner(a_t0) < 0.0) || (t_ext3.inner(a_t1) < 0.0) || (t_ext3.inner(a_t2) < 0.0) ||
+                (e_ext2.inner(a_e0) < 0.0) || (e_ext2.inner(a_e1) < 0.0))) ? HasIntersection::YES : HasIntersection::NO;
     }
 
-    inline Primitives::Vector3D TriEdgeIn::coords() const
+    inline Primitives::Vector3D TriangleEdgeIntersection::coords() const
     {
-        Ext4_2 temp_e2(tri.p0().join(tri.p1()));
-        Ext4_3 t_ext3(temp_e2.join(tri.p2()));
+        Ext4_2 temp_e2(tri_.p0().join(tri_.p1()));
+        Ext4_3 t_ext3(temp_e2.join(tri_.p2()));
 
         // construct the edge
 
-        Ext4_2 e_ext2(edge.p0().join(edge.p1()));
+        Ext4_2 e_ext2(edge_.p0().join(edge_.p1()));
 
         // compute the point of intersection
 
@@ -111,27 +111,27 @@ namespace Cork::Empty3d
     constexpr double COEFF_IT12_S1 = 20.0 * EPS + 256.0 * EPS2;
     constexpr double COEFF_IT12_S2 = 24.0 * EPS + 512.0 * EPS2;
 
-    int TriEdgeIn::emptyFilter() const
+    HasIntersection TriangleEdgeIntersection::emptyFilter() const
     {
         std::array<AbsExt4_1, 2> kep;
         std::array<AbsExt4_1, 3> ktp;
 
         // load the points
 
-        kep[0] = edge.p0();
-        kep[1] = edge.p1();
+        kep[0] = edge_.p0();
+        kep[1] = edge_.p1();
 
-        ktp[0] = tri.p0();
-        ktp[1] = tri.p1();
-        ktp[2] = tri.p2();
+        ktp[0] = tri_.p0();
+        ktp[1] = tri_.p1();
+        ktp[2] = tri_.p2();
 
         // form the edge and triangle
 
-        Ext4_2 e_ext2(edge.p0().join(edge.p1()));
+        Ext4_2 e_ext2(edge_.p0().join(edge_.p1()));
         AbsExt4_2 ke_ext2(kep[0].join(kep[1]));
-        Ext4_2 temp2(tri.p0().join(tri.p1()));
+        Ext4_2 temp2(tri_.p0().join(tri_.p1()));
         AbsExt4_2 ktemp2(ktp[0].join(ktp[1]));
-        Ext4_3 t_ext3(temp2.join(tri.p2()));
+        Ext4_3 t_ext3(temp2.join(tri_.p2()));
         AbsExt4_3 kt_ext3(ktemp2.join(ktp[2]));
 
         // compute the point of intersection
@@ -143,7 +143,7 @@ namespace Cork::Empty3d
 
         if (!filterCheck(pisct.e3(), kpisct.e3(), COEFF_IT12_PISCT))
         {
-            return 0;  // i.e. uncertain
+            return HasIntersection::MAYBE;  // i.e. uncertain
         }
 
         // need to adjust for negative w-coordinate
@@ -159,7 +159,7 @@ namespace Cork::Empty3d
 
         for (int i = 0; i < 2; i++)
         {
-            Ext4_2 a(((i == 0) ? pisct : edge.p0()).join((i == 1) ? pisct : edge.p1()));
+            Ext4_2 a(((i == 0) ? pisct : edge_.p0()).join((i == 1) ? pisct : edge_.p1()));
             AbsExt4_2 ka(((i == 0) ? kpisct : kep[0]).join((i == 1) ? kpisct : kep[1]));
 
             double dot = e_ext2.inner(a);
@@ -172,7 +172,7 @@ namespace Cork::Empty3d
 
             if (reliable && outside)
             {
-                return 1;  // i.e. true
+                return HasIntersection::YES;  // i.e. true
             }
 
             if (!reliable)
@@ -185,8 +185,8 @@ namespace Cork::Empty3d
 
         for (int i = 0; i < 3; i++)
         {
-            temp2 = ((i == 0) ? pisct : tri.p0()).join((i == 1) ? pisct : tri.p1());
-            Ext4_3 a(temp2.join((i == 2) ? pisct : tri.p2()));
+            temp2 = ((i == 0) ? pisct : tri_.p0()).join((i == 1) ? pisct : tri_.p1());
+            Ext4_3 a(temp2.join((i == 2) ? pisct : tri_.p2()));
             ktemp2 = ((i == 0) ? kpisct : ktp[0]).join((i == 1) ? kpisct : ktp[1]);
             AbsExt4_3 ka(ktemp2.join((i == 2) ? kpisct : ktp[2]));
 
@@ -200,7 +200,7 @@ namespace Cork::Empty3d
 
             if (reliable && outside)
             {
-                return 1;  // i.e. true
+                return HasIntersection::YES;  // i.e. true
             }
 
             if (!reliable)
@@ -209,7 +209,7 @@ namespace Cork::Empty3d
             }
         }
 
-        return uncertain ? 0 : -1;
+        return uncertain ? HasIntersection::MAYBE : HasIntersection::NO;
 
         //        if (uncertain)
         //        {
@@ -221,7 +221,7 @@ namespace Cork::Empty3d
         //        }
     }
 
-    bool TriEdgeIn::exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
+    HasIntersection TriangleEdgeIntersection::exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
     {
         //  We use 'auto' for type deduction extensively in this method.  The lengths of the
         //      FixExt? types change depending on the operations used.  For example, 64 bits would be
@@ -234,10 +234,10 @@ namespace Cork::Empty3d
         // pull in points
 
         std::array<FixExt4_1<FIXED_INTEGER_BITS>, 2> ep{
-            {FixExt4_1<FIXED_INTEGER_BITS>(edge.p0(), quantizer), FixExt4_1<FIXED_INTEGER_BITS>(edge.p1(), quantizer)}};
-        std::array<FixExt4_1<FIXED_INTEGER_BITS>, 3> tp{{FixExt4_1<FIXED_INTEGER_BITS>(tri.p0(), quantizer),
-                                                         FixExt4_1<FIXED_INTEGER_BITS>(tri.p1(), quantizer),
-                                                         FixExt4_1<FIXED_INTEGER_BITS>(tri.p2(), quantizer)}};
+            {FixExt4_1<FIXED_INTEGER_BITS>(edge_.p0(), quantizer), FixExt4_1<FIXED_INTEGER_BITS>(edge_.p1(), quantizer)}};
+        std::array<FixExt4_1<FIXED_INTEGER_BITS>, 3> tp{{FixExt4_1<FIXED_INTEGER_BITS>(tri_.p0(), quantizer),
+                                                         FixExt4_1<FIXED_INTEGER_BITS>(tri_.p1(), quantizer),
+                                                         FixExt4_1<FIXED_INTEGER_BITS>(tri_.p2(), quantizer)}};
 
         // construct geometry
 
@@ -259,8 +259,8 @@ namespace Cork::Empty3d
         }
         else if (e3sign == 0)
         {
-            context.degeneracy_count++;
-            return (true);
+            context.found_degeneracy();
+            return HasIntersection::YES;
         }
 
         // process edge
@@ -294,47 +294,44 @@ namespace Cork::Empty3d
 
         if (sign_e0 < 0 || sign_e1 < 0 || sign_t0 < 0 || sign_t1 < 0 || sign_t2 < 0)
         {
-            return (true);
+            return HasIntersection::YES;
         }
 
         if (sign_e0 == 0 || sign_e1 == 0 || sign_t0 == 0 || sign_t1 == 0 || sign_t2 == 0)
         {
-            context.degeneracy_count++;
+            context.found_degeneracy();
         }
 
-        return (false);
+        return HasIntersection::NO;
     }
 
-    bool TriEdgeIn::emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
+    HasIntersection TriangleEdgeIntersection::emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
     {
-        context.callcount++;
+        context.add_call_count();
 
-        int filter = emptyFilter();
+        HasIntersection filter = emptyFilter();
 
-        if (filter == 0)
+        if (filter == HasIntersection::MAYBE)
         {
-            context.exact_count++;
-            return (exactFallback(quantizer, context));
+            return exactFallback(quantizer, context);
         }
-        //        else
-        //        {
-        return (filter > 0);
-        //        }
+
+        return filter;
     }
 
-    Primitives::Vector3D TriEdgeIn::coordsExact(const Math::Quantizer& quantizer) const
+    Primitives::Vector3D TriangleEdgeIntersection::coordsExact(const Math::Quantizer& quantizer) const
     {
         //  Create the Edge and Triangle
 
         std::array<GMPExt4_1, 2> ep;
         std::array<GMPExt4_1, 3> tp;
 
-        ep[0] = GMPExt4_1(edge.p0(), quantizer);
-        ep[1] = GMPExt4_1(edge.p1(), quantizer);
+        ep[0] = GMPExt4_1(edge_.p0(), quantizer);
+        ep[1] = GMPExt4_1(edge_.p1(), quantizer);
 
-        tp[0] = GMPExt4_1(tri.p0(), quantizer);
-        tp[1] = GMPExt4_1(tri.p1(), quantizer);
-        tp[2] = GMPExt4_1(tri.p2(), quantizer);
+        tp[0] = GMPExt4_1(tri_.p0(), quantizer);
+        tp[1] = GMPExt4_1(tri_.p1(), quantizer);
+        tp[2] = GMPExt4_1(tri_.p2(), quantizer);
 
         GMPExt4_2 e(ep[0].join(ep[1]));
 
@@ -349,9 +346,9 @@ namespace Cork::Empty3d
         return pisct(quantizer);
     }
 
-    bool TriTriTriIn::isEmpty(ExactArithmeticContext& context) const
+    HasIntersection TriangleTriangleTriangleIntersection::isEmpty(ExactArithmeticContext& context) const
     {
-        context.callcount++;
+        context.add_call_count();
 
         // construct the triangles
         std::array<Ext4_3, 3> t_ext3s;
@@ -392,17 +389,17 @@ namespace Cork::Empty3d
 
                 if (test < 0.0)  // AHA, p_isct IS outside this triangle
                 {
-                    return true;
+                    return HasIntersection::YES;
                 }
             }
         }
 
         // well, p_isct must be inside all of the triangles.
 
-        return (false);
+        return HasIntersection::NO;
     }
 
-    Primitives::Vector3D TriTriTriIn::coords() const
+    Primitives::Vector3D TriangleTriangleTriangleIntersection::coords() const
     {
         // construct the triangles
         std::array<Ext4_3, 3> t_ext3s;
@@ -429,7 +426,7 @@ namespace Cork::Empty3d
     constexpr double COEFF_IT222_PISCT = 20.0 * EPS + 256.0 * EPS2;
     constexpr double COEFF_IT222_S2 = 34.0 * EPS + 1024.0 * EPS2;
 
-    int TriTriTriIn::emptyFilter() const
+    HasIntersection TriangleTriangleTriangleIntersection::emptyFilter() const
     {
         std::array<std::array<AbsExt4_1, 3>, 3> kp;
         std::array<Ext4_3, 3> t;
@@ -460,7 +457,7 @@ namespace Cork::Empty3d
 
         if (!filterCheck(pisct.e3(), kpisct.e3(), COEFF_IT222_PISCT))
         {
-            return 0;  // i.e. uncertain
+            return HasIntersection::MAYBE;  // i.e. uncertain
         }
 
         // need to adjust for negative w-coordinate
@@ -491,7 +488,7 @@ namespace Cork::Empty3d
 
                 if (reliable && outside)
                 {
-                    return 1;  // i.e. true
+                    return HasIntersection::YES;  // i.e. true
                 }
 
                 if (!reliable)
@@ -501,20 +498,14 @@ namespace Cork::Empty3d
             }
         }
 
-        return uncertain ? 0 : -1;
+        return uncertain ? HasIntersection::MAYBE : HasIntersection::NO;
 
-        //        if (uncertain)
-        //        {
-        //            return 0;
-        //        }
-        //        else
-        //        {
-        //            return -1;  // i.e. false (the intersection is not empty)
-        //        }
     }
 
-    bool TriTriTriIn::exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
+    HasIntersection TriangleTriangleTriangleIntersection::exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
     {
+        context.add_exact_computation();
+
         //  We use 'auto' for type deduction extensively in this method.  The lengths of the
         //      FixExt? types change depending on the operations used.  For example, 64 bits would be
         //      required to store the product of two 32 bit fixed integer types.  The types can get
@@ -557,8 +548,8 @@ namespace Cork::Empty3d
         }
         else if (e3sign == 0)
         {
-            context.degeneracy_count++;
-            return true;
+            context.found_degeneracy();
+            return HasIntersection::YES;
         }
 
         bool uncertain = false;
@@ -578,7 +569,7 @@ namespace Cork::Empty3d
 
                 if (testsign < 0)
                 {
-                    return true;
+                    return HasIntersection::YES;
                 }
 
                 if (testsign == 0)
@@ -590,29 +581,26 @@ namespace Cork::Empty3d
 
         if (uncertain)
         {
-            context.degeneracy_count++;
+            context.found_degeneracy();
         }
 
-        return (false);
+        return HasIntersection::NO;
     }
 
-    bool TriTriTriIn::emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
+    HasIntersection TriangleTriangleTriangleIntersection::emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
     {
-        context.callcount++;
-        int filter = emptyFilter();
+        context.add_call_count();
+        HasIntersection filter = emptyFilter();
 
-        if (filter == 0)
+        if (filter == HasIntersection::MAYBE)
         {
-            context.exact_count++;
-            return (exactFallback(quantizer, context));
+            return exactFallback(quantizer, context);
         }
-        //        else
-        //        {
-        return (filter > 0);
-        //        }
+
+        return filter;
     }
 
-    Primitives::Vector3D TriTriTriIn::coordsExact(const Math::Quantizer& quantizer) const
+    Primitives::Vector3D TriangleTriangleTriangleIntersection::coordsExact(const Math::Quantizer& quantizer) const
     {
         std::array<std::array<GMPExt4_1, 3>, 3> p;
         std::array<GMPExt4_3, 3> t;

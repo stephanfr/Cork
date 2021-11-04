@@ -30,6 +30,7 @@
 #include "intersection/intersection_problem_base.hpp"
 #include "intersection/triangle_problem.hpp"
 #include "util/CachingFactory.h"
+#include "util/optional_value_or_helper.hpp"
 
 namespace Cork::Intersection
 {
@@ -69,80 +70,10 @@ namespace Cork::Intersection
         const TopoTri& t2;
     };
 
-/*
-    class IntersectionProblemWorkspace : public IntersectionWorkspace
-    {
-       public:
-        IntersectionProblemWorkspace()
-        {
-            m_gluePointMarkerPool.reserve(100000);
-            m_isctVertexTypePool.reserve(200000);
-            m_isctEdgeTypePool.reserve(300000);
-            m_genericTriTypePool.reserve(100000);
-            m_triangleProblemList.reserve(100000);
-            m_isctVertexPointerPool.reserve(200000);
-            m_isctEdgePointerPool.reserve(100000);
-            m_genericTriPointerPool.reserve(100000);
-        }
-
-        virtual ~IntersectionProblemWorkspace() noexcept {};
-
-        void reset()
-        {
-            m_gluePointMarkerPool.clear();
-            m_isctVertexTypePool.clear();
-            m_isctEdgeTypePool.clear();
-            m_genericTriTypePool.clear();
-            m_triangleProblemList.clear();
-            m_isctVertexPointerPool.clear();
-            m_isctEdgePointerPool.clear();
-            m_genericTriPointerPool.clear();
-
-            m_AABVHWorkspace.reset();
-        }
-
-        operator GluePointMarkerList::PoolType &() { return (m_gluePointMarkerPool); }
-
-        operator IsctVertTypeList::PoolType &() { return (m_isctVertexTypePool); }
-
-        operator IsctEdgeTypeList::PoolType &() { return (m_isctEdgeTypePool); }
-
-        operator GenericTriTypeList::PoolType &() { return (m_genericTriTypePool); }
-
-        operator TriangleProblemList&() { return (m_triangleProblemList); }
-
-        operator IntersectionVertexPointerList::PoolType &() { return (m_isctVertexPointerPool); }
-
-        operator IntersectionEdgePointerList::PoolType &() { return (m_isctEdgePointerPool); }
-
-        operator GenericTriPointerList::PoolType &() { return (m_genericTriPointerPool); }
-
-        operator AABVH::Workspace &() { return (m_AABVHWorkspace); }
-
-       private:
-        GluePointMarkerList::PoolType m_gluePointMarkerPool;
-        IsctVertTypeList::PoolType m_isctVertexTypePool;  //	Covers both the intersection and original vertex
-                                                          // types
-        IsctEdgeTypeList::PoolType m_isctEdgeTypePool;
-        GenericTriTypeList::PoolType m_genericTriTypePool;
-        TriangleProblemList m_triangleProblemList;
-
-        IntersectionVertexPointerList::PoolType m_isctVertexPointerPool;
-        IntersectionEdgePointerList::PoolType m_isctEdgePointerPool;
-        GenericTriPointerList::PoolType m_genericTriPointerPool;
-
-        AABVH::Workspace m_AABVHWorkspace;
-    };
-
-    typedef SEFUtility::CachingFactory<IntersectionProblemWorkspace> IntersectionWorkspaceFactory;
-*/
-
-
     class IntersectionSolverImpl : public IntersectionProblemBase, public IntersectionSolver
     {
        public:
-        IntersectionSolverImpl(
-            MeshBase& owner, const Math::Quantizer& quantizer, const Primitives::BBox3D& intersectionBBox);
+        IntersectionSolverImpl(MeshBase& owner, const Math::Quantizer& quantizer);
 
         virtual ~IntersectionSolverImpl() { reset(); }
 
@@ -151,21 +82,20 @@ namespace Cork::Intersection
         IntersectionProblemResult FindIntersections() final;
         IntersectionProblemResult ResolveAllIntersections() final;
 
-        void commit() { TopoCache::commit(); }
+        void commit() { topo_cache_.commit(); }
 
         //	Other IntersectionProblem methods
 
-        TriangleProblem* getTprob(const TopoTri& t)
+        TriangleProblem& getTprob(const TopoTri& t)
         {
-            TriangleProblem* prob = reinterpret_cast<TriangleProblem*>(const_cast<void*>(t.data()));
-
-            if (!prob)
-            {
+            TriangleProblem& prob = optional_value_or_lambda(t.get_associated_triangle_problem(), [&] {
                 m_triangleProblemList.emplace_back(*this, t);
-                prob = &(m_triangleProblemList.back());
-            }
+                TriangleProblem* prob = &(m_triangleProblemList.back());
 
-            return (prob);
+                return std::ref(*prob);
+            });
+
+            return prob;
         }
 
         void dumpIsctEdges(std::vector<std::pair<Primitives::Vector3D, Primitives::Vector3D>>* edges)
@@ -185,7 +115,6 @@ namespace Cork::Intersection
         }
 
        private:
-
         TriangleProblemList m_triangleProblemList;
 
         // if we encounter ambiguous degeneracies, then this
@@ -210,7 +139,7 @@ namespace Cork::Intersection
         {
             for (auto& gt : tprob.gtris())
             {
-                TopoTri* t = TopoCache::newTri();
+                TopoTri* t = topo_cache_.newTri();
 
                 std::array<TopoVert*, 3> vertices;
                 std::array<TopoEdge*, 3> edges;
@@ -219,7 +148,7 @@ namespace Cork::Intersection
 
                 genericTri->set_concrete_triangle(t);
 
-                CorkTriangle& tri = TopoCache::ownerMesh().triangles()[t->ref()];
+                CorkTriangle& tri = topo_cache_.ownerMesh().triangles()[t->ref()];
 
                 for (uint k = 0; k < 3; k++)
                 {
@@ -227,7 +156,7 @@ namespace Cork::Intersection
                     vertices[k] = &v;
                     tri[k] = v.ref();
 
-                    edges[k] = ecache.getTriangleEdge(genericTri, k, tprob.triangle());
+                    edges[k] = &(ecache.getTriangleEdge(genericTri, k, tprob.triangle()));
                 }
 
                 t->setVertices(vertices);
@@ -239,52 +168,18 @@ namespace Cork::Intersection
             //	Once all the pieces are hooked up, let's kill the old triangle!
             //		We need to cast away the const here as well...
 
-            TopoCache::deleteTri(&(const_cast<TopoTri&>(tprob.triangle())));
+            topo_cache_.deleteTri(&(const_cast<TopoTri&>(tprob.triangle())));
         }
     };
 
-    IntersectionProblemBase::IntersectionProblemBase(MeshBase& owner, const Math::Quantizer& quantizer,
-                                                     const Primitives::BBox3D& intersectionBBox)
-        : TopoCache(owner, quantizer),
-          m_intersection_problem_workspace(std::move(IntersectionWorkspaceFactory::GetInstance())),
-          m_quantizer(quantizer),
-          m_perturbation(quantizer),
-          m_intersectionBBox(std::make_unique<Primitives::BBox3D>(intersectionBBox)),
-          m_gluePointMarkerList(*(m_intersection_problem_workspace.get())),
-          m_isctVertTypeList(*(m_intersection_problem_workspace.get())),
-          m_origVertTypeList(*(m_intersection_problem_workspace.get())),
-          m_isctEdgeTypeList(*(m_intersection_problem_workspace.get())),
-          m_origEdgeTypeList(*(m_intersection_problem_workspace.get())),
-          m_splitEdgeTypeList(*(m_intersection_problem_workspace.get())),
-          m_genericTriTypeList(*(m_intersection_problem_workspace.get()))
-    {
-        //	Initialize all the triangles to NOT have an associated tprob
-        //		and set the boolAlgData value based on the input triangle
-
-        for (TopoTri& t : triangles())
-        {
-            t.setData(nullptr);
-            t.setBoolAlgData(ownerMesh().triangles()[t.ref()].boolAlgData());
-        }
-
-        //	Initialize all of the edge solid IDs
-
-        for (TopoEdge& e : edges())
-        {
-            e.setBoolAlgData(e.triangles().front()->boolAlgData());
-        }
-    }
-
-    IntersectionSolverImpl::IntersectionSolverImpl(
-        MeshBase& owner, const Math::Quantizer& quantizer, const Primitives::BBox3D& intersectionBBox)
-        : IntersectionProblemBase(owner, quantizer, intersectionBBox)
-//          m_triangleProblemList(*(m_intersection_problem_workspace.get()))
+    IntersectionSolverImpl::IntersectionSolverImpl(MeshBase& owner, const Math::Quantizer& quantizer)
+        : IntersectionProblemBase(owner, quantizer)
     {
     }
 
     IntersectionSolverImpl::TryToFindIntersectionsResult IntersectionSolverImpl::tryToFindIntersections()
     {
-        m_exactArithmeticContext.degeneracy_count = 0;
+        exact_arithmetic_context_.reset_degeneracy_count();
 
         TriangleAndIntersectingEdgesQueue trianglesAndEdges;
 
@@ -311,28 +206,28 @@ namespace Cork::Intersection
 
             for (const TopoEdge* edge : ((TriangleAndIntersectingEdgesMessage&)(*currentMessage)).edges())
             {
-                if (triangle.intersectsEdge(*edge, m_quantizer, m_exactArithmeticContext))
+                if (triangle.intersectsEdge(*edge, quantizer_, exact_arithmetic_context_))
                 {
                     GluePointMarker* glue = m_gluePointMarkerList.emplace_back(
                         GluePointMarker::IntersectionType::EDGE_TRIANGLE, *edge, triangle);
 
                     // first add point and edges to the pierced triangle
 
-                    IsctVertType* iv = getTprob(triangle)->addInteriorEndpoint(*edge, *glue);
+                    IsctVertType* iv = getTprob(triangle).addInteriorEndpoint(*edge, *glue);
 
                     for (auto tri : edge->triangles())
                     {
-                        getTprob(*tri)->addBoundaryEndpoint(triangle, *edge, iv);
+                        getTprob(*tri).addBoundaryEndpoint(triangle, *edge, iv);
                     }
                 }
 
-                if (m_exactArithmeticContext.degeneracy_count != 0)
+                if (exact_arithmetic_context_.has_degeneracies())
                 {
                     break;
                 }
             }
 
-            if (m_exactArithmeticContext.degeneracy_count != 0)
+            if (exact_arithmetic_context_.has_degeneracies())
             {
                 break;
             }
@@ -340,7 +235,7 @@ namespace Cork::Intersection
 
         taskGroup.wait();
 
-        if (m_exactArithmeticContext.degeneracy_count > 0)
+        if (exact_arithmetic_context_.has_degeneracies())
         {
             return (TryToFindIntersectionsResult::failure(
                 TryToFindIntersectionsResultCodes::TRI_EGDE_DEGENERACIES,
@@ -389,9 +284,10 @@ namespace Cork::Intersection
                         // now look for the third edge.  We're not
                         // sure if it exists...
 
-                        TriangleProblem* prob1 = reinterpret_cast<TriangleProblem*>(t1.data());
+                        assert(t1.get_associated_triangle_problem());
+                        TriangleProblem& prob1 = t1.get_associated_triangle_problem().value();
 
-                        for (IsctEdgeType* ie : prob1->iedges())
+                        for (IsctEdgeType* ie : prob1.iedges())
                         {
                             if (&(ie->otherTriKey()) == &t2)
                             {
@@ -416,7 +312,7 @@ namespace Cork::Intersection
 
             // Abort if we encounter a degeneracy
 
-            if (m_exactArithmeticContext.degeneracy_count > 0)
+            if (exact_arithmetic_context_.has_degeneracies())
             {
                 break;
             }
@@ -424,12 +320,12 @@ namespace Cork::Intersection
             GluePointMarker* glue = m_gluePointMarkerList.emplace_back(
                 GluePointMarker::IntersectionType::TRIANGLE_TRIANGLE_TRIANGLE, t.t0, t.t1, t.t2);
 
-            getTprob(t.t0)->addInteriorPoint(t.t1, t.t2, *glue);
-            getTprob(t.t1)->addInteriorPoint(t.t0, t.t2, *glue);
-            getTprob(t.t2)->addInteriorPoint(t.t0, t.t1, *glue);
+            getTprob(t.t0).addInteriorPoint(t.t1, t.t2, *glue);
+            getTprob(t.t1).addInteriorPoint(t.t0, t.t2, *glue);
+            getTprob(t.t2).addInteriorPoint(t.t0, t.t1, *glue);
         }
 
-        if (m_exactArithmeticContext.degeneracy_count > 0)
+        if (exact_arithmetic_context_.has_degeneracies())
         {
             return (false);  // restart / abort
         }
@@ -461,7 +357,7 @@ namespace Cork::Intersection
 
         m_triangleProblemList.clear();
 
-        m_intersection_problem_workspace.get()->reset();
+        workspace().reset();
     }
 
     IntersectionProblemResult IntersectionSolverImpl::FindIntersections()
@@ -486,7 +382,7 @@ namespace Cork::Intersection
 
                 reset();
 
-                auto perturbAdjustResult = m_perturbation.adjust();
+                auto perturbAdjustResult = perturbation_.adjust();
 
                 if (!perturbAdjustResult.succeeded())
                 {
@@ -555,11 +451,11 @@ namespace Cork::Intersection
 
                     TopoEdgePointerVector edges;
 
-                    m_edgeBVH->EdgesIntersectingTriangle(*tri, AABVH::IntersectionType::SELF_INTERSECTION, edges);
+                    edge_bvh_->EdgesIntersectingTriangle(*tri, AABVH::IntersectionType::SELF_INTERSECTION, edges);
 
                     for (const TopoEdge* edge : edges)
                     {
-                        if (tri->intersectsEdge(*edge, m_quantizer, localArithmeticContext))
+                        if (tri->intersectsEdge(*edge, quantizer_, localArithmeticContext))
                         {
                             numIntersections++;
                         }
@@ -602,31 +498,7 @@ namespace Cork::Intersection
             createRealTriangles(tprob, ecache);
         }
 
-        // mark all edges as normal by zero-ing out the data
-
-        for (auto& e : TopoCache::edges())
-        {
-            e.setData(0);
-        }
-
-        // then iterate over the edges formed by intersections
-        // (i.e. those edges without the boundary flag set in each triangle)
-        // and mark those by setting the data pointer
-
-        for (IsctEdgeType& ie : m_isctEdgeTypeList)
-        {
-            // every ie must be non-boundary
-            TopoEdge* e = ecache.maybeEdge(&ie);
-            e->setData((void*)1);
-        }
-
-        for (auto& se : m_splitEdgeTypeList)
-        {
-            TopoEdge* e = ecache.maybeEdge(&se);
-            e->setData((void*)1);
-        }
-
-        // This basically takes care of everything EXCEPT one detail *) The base mesh data structures still need to
+        // This takes care of everything EXCEPT one detail *) The base mesh data structures still need to
         // be compacted This detail should be handled by the calling code...
 
         return (IntersectionProblemResult::success());
@@ -635,9 +507,8 @@ namespace Cork::Intersection
     class SelfIntersectionFinderImpl : public SelfIntersectionFinder
     {
        public:
-        SelfIntersectionFinderImpl(
-            Primitives::TriangleByIndicesVector& triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges,
-            const Math::Quantizer& quantizer);
+        SelfIntersectionFinderImpl(Primitives::TriangleByIndicesVector& triangles, Primitives::Vertex3DVector& vertices,
+                                   uint32_t num_edges, const Math::Quantizer& quantizer);
 
         virtual ~SelfIntersectionFinderImpl() { reset(); }
 
@@ -670,20 +541,17 @@ namespace Cork::Intersection
         }
     };
 
-    SelfIntersectionFinderImpl::SelfIntersectionFinderImpl(
-        Primitives::TriangleByIndicesVector& triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges,
-        const Math::Quantizer& quantizer)
-        : m_intersection_workspace(std::move(SEFUtility::CachingFactory<IntersectionWorkspace>::GetInstance() )),
+    SelfIntersectionFinderImpl::SelfIntersectionFinderImpl(Primitives::TriangleByIndicesVector& triangles,
+                                                           Primitives::Vertex3DVector& vertices, uint32_t num_edges,
+                                                           const Math::Quantizer& quantizer)
+        : m_intersection_workspace(std::move(SEFUtility::CachingFactory<IntersectionWorkspace>::GetInstance())),
           quantizer_(quantizer),
           topo_cache_(triangles, vertices, num_edges, quantizer)
     {
         CreateBoundingVolumeHierarchy();
     }
 
-    void SelfIntersectionFinderImpl::reset()
-    {
-        m_intersection_workspace.get()->reset();
-    }
+    void SelfIntersectionFinderImpl::reset() { m_intersection_workspace.get()->reset(); }
 
     const std::vector<IntersectionInfo> SelfIntersectionFinderImpl::CheckSelfIntersection()
     {
@@ -733,7 +601,7 @@ namespace Cork::Intersection
         Primitives::TriangleByIndicesVector& triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges,
         const Math::Quantizer& quantizer)
     {
-//        IntersectionWorkspaceFactory::UniquePtr workspace(IntersectionWorkspaceFactory::GetInstance());
+        //        IntersectionWorkspaceFactory::UniquePtr workspace(IntersectionWorkspaceFactory::GetInstance());
 
         std::unique_ptr<SelfIntersectionFinder> finder(
             new SelfIntersectionFinderImpl(triangles, vertices, num_edges, quantizer));
@@ -741,12 +609,10 @@ namespace Cork::Intersection
         return finder;
     }
 
-    std::unique_ptr<IntersectionSolver> IntersectionSolver::GetSolver(MeshBase& owner, const Math::Quantizer& quantizer,
-                                                                      const Primitives::BBox3D& intersectionBBox)
+    std::unique_ptr<IntersectionSolver> IntersectionSolver::GetSolver(MeshBase& owner, const Math::Quantizer& quantizer)
     {
-//        IntersectionWorkspaceFactory::UniquePtr workspace(IntersectionWorkspaceFactory::GetInstance());
+        //        IntersectionWorkspaceFactory::UniquePtr workspace(IntersectionWorkspaceFactory::GetInstance());
 
-        return (std::unique_ptr<IntersectionSolver>(
-            new IntersectionSolverImpl(owner, quantizer, intersectionBBox /*, workspace */)));
+        return (std::unique_ptr<IntersectionSolver>(new IntersectionSolverImpl(owner, quantizer)));
     }
 }  // namespace Cork::Intersection

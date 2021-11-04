@@ -116,7 +116,7 @@ namespace Cork::AABVH
             {
                 IndexType blobid(m_tmpids[begin + k]);
 
-                node->AddBlobID((*m_blobs)[blobid].index().boolAlgData(), blobid);
+                node->AddBlobID((*m_blobs)[blobid].index().boolean_algorithm_data(), blobid);
 
                 node->boundingBox().convex((*m_blobs)[blobid].boundingBox());
             }
@@ -191,7 +191,7 @@ namespace Cork::AABVH
             {
                 IndexType blobid = m_tmpids[begin + k];
 
-                node->AddBlobID((*m_blobs)[blobid].index().boolAlgData(), blobid);
+                node->AddBlobID((*m_blobs)[blobid].index().boolean_algorithm_data(), blobid);
 
                 node->boundingBox().convex((*m_blobs)[blobid].boundingBox());
             }

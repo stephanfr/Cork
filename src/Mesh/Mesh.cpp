@@ -338,7 +338,7 @@ namespace Cork::Meshes
         //		We can repurturb until we run out of perturbation resolution.
 
         std::unique_ptr<IntersectionSolver> iproblem(
-            IntersectionSolver::GetSolver(*this, quantizer, intersectionBBox));
+            IntersectionSolver::GetSolver(*this, quantizer));
 
         while (true)
         {

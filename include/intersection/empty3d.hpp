@@ -44,20 +44,51 @@ namespace Cork::Empty3d
     using GMPExt4_2 = Math::ExteriorCalculusR4::GMPExt4_2;
     using GMPExt4_3 = Math::ExteriorCalculusR4::GMPExt4_3;
 
+    enum class HasIntersection
+    {
+        NO = -1,
+        MAYBE = 0,
+        YES = 1
+    };
+
     class ExactArithmeticContext
     {
        public:
-        std::atomic<int> degeneracy_count = 0;
-        std::atomic<int> exact_count = 0;
-        std::atomic<int> callcount = 0;
+        ExactArithmeticContext() :
+            degeneracy_count_(0), exact_count_(0), call_count_(0)
+            {}
+
+        ExactArithmeticContext(const ExactArithmeticContext&) = delete;
+        ExactArithmeticContext(ExactArithmeticContext&&) = delete;
+
+        ExactArithmeticContext& operator=(const ExactArithmeticContext&) = delete;
+        ExactArithmeticContext& operator=(ExactArithmeticContext&&) = delete;
+
+        ~ExactArithmeticContext() = default;
+
+        void        reset_degeneracy_count() { degeneracy_count_ = 0; }
+        bool        has_degeneracies() const { return degeneracy_count_ > 0; }
+        void        found_degeneracy() { degeneracy_count_++; }
+
+        uint32_t    exact_count() const { return exact_count_; }
+        void        add_exact_computation() { exact_count_++; }
+
+        uint32_t    call_count() const { return call_count_; }
+        void        add_call_count() { call_count_++; }
+
+       private :
+
+        std::atomic<uint32_t> degeneracy_count_ = 0;
+        std::atomic<uint32_t> exact_count_ = 0;
+        std::atomic<uint32_t> call_count_ = 0;
     };
 
-    class TriIn
+    class IntersectingTriangle
     {
        public:
-        TriIn() = delete;
+        IntersectingTriangle() = delete;
 
-        TriIn(const Primitives::Vector3D& tri0, const Primitives::Vector3D& tri1, const Primitives::Vector3D& tri2)
+        IntersectingTriangle(const Primitives::Vector3D& tri0, const Primitives::Vector3D& tri1, const Primitives::Vector3D& tri2)
             : p0_(tri0), p1_(tri1), p2_(tri2)
         {
         }
@@ -72,12 +103,12 @@ namespace Cork::Empty3d
         const Ext4_1 p2_;
     };
 
-    class EdgeIn
+    class IntersectingEdge
     {
        public:
-        EdgeIn() = delete;
+        IntersectingEdge() = delete;
 
-        EdgeIn(const Primitives::Vector3D& edge0, const Primitives::Vector3D& edge1) : p0_(edge0), p1_(edge1) {}
+        IntersectingEdge(const Primitives::Vector3D& edge0, const Primitives::Vector3D& edge1) : p0_(edge0), p1_(edge1) {}
 
         const Ext4_1& p0() const { return p0_; }
         const Ext4_1& p1() const { return p1_; }
@@ -87,52 +118,52 @@ namespace Cork::Empty3d
         const Ext4_1 p1_;
     };
 
-    class TriEdgeIn
+    class TriangleEdgeIntersection
     {
        public:
-        TriEdgeIn(const TriIn&& triangle, const EdgeIn&& _edge) : tri(triangle), edge(_edge) {}
+        TriangleEdgeIntersection(const IntersectingTriangle&& triangle, const IntersectingEdge&& edge) : tri_(triangle), edge_(edge) {}
 
-        bool isEmpty(ExactArithmeticContext& context) const;
+        HasIntersection isEmpty(ExactArithmeticContext& context) const;
 
-        bool emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
+        HasIntersection emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
 
         Primitives::Vector3D coords() const;
         Primitives::Vector3D coordsExact(const Math::Quantizer& quantizer) const;
 
        private:
-        TriIn tri;
-        EdgeIn edge;
+        IntersectingTriangle tri_;
+        IntersectingEdge edge_;
 
-        int emptyFilter() const;
+        HasIntersection emptyFilter() const;
 
-        bool exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
+        HasIntersection exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
     };
 
     Primitives::Vector3D coordsExact(const GMPExt4_2& edge, const GMPExt4_3& triangle,
                                      const Math::Quantizer& quantizer);
 
-    class TriTriTriIn
+    class TriangleTriangleTriangleIntersection
     {
        public:
-        TriTriTriIn(const TriIn&& triangle0, const TriIn&& triangle1, const TriIn&& triangle2)
+        TriangleTriangleTriangleIntersection(const IntersectingTriangle&& triangle0, const IntersectingTriangle&& triangle1, const IntersectingTriangle&& triangle2)
             : m_tri({{triangle0, triangle1, triangle2}})
         {
         }
 
-        const std::array<TriIn, 3>& triangle() const { return (m_tri); }
+        const std::array<IntersectingTriangle, 3>& triangle() const { return (m_tri); }
 
-        bool isEmpty(ExactArithmeticContext& context) const;
-        bool emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
+        HasIntersection isEmpty(ExactArithmeticContext& context) const;
+        HasIntersection emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
 
         Primitives::Vector3D coords() const;
         Primitives::Vector3D coordsExact(const Math::Quantizer& quantizer) const;
 
        private:
-        std::array<TriIn, 3> m_tri;
+        std::array<IntersectingTriangle, 3> m_tri;
 
-        int emptyFilter() const;
+        HasIntersection emptyFilter() const;
 
-        bool exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
+        HasIntersection exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
     };
 
     Primitives::Vector3D coordsExact(const GMPExt4_3& triangle0, const GMPExt4_3& triangle1, const GMPExt4_3& triangle2,

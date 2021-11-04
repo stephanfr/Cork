@@ -1,5 +1,5 @@
 // +-------------------------------------------------------------------------
-// | Mesh.cpp
+// | Mesh.h
 // |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
@@ -23,10 +23,13 @@
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
+#pragma once
+
+#include "tbb/tbb.h"
 
 #include "MeshBase.h"
 #include "mesh/EGraphCache.h"
-#include "tbb/tbb.h"
+
 
 namespace Cork::Meshes
 {
@@ -96,7 +99,7 @@ namespace Cork::Meshes
             SELF_INTERSECTING_MESH
         };
 
-        typedef SEFUtility::Result<SetupBooleanProblemResultCodes> SetupBooleanProblemResult;
+        using SetupBooleanProblemResult = SEFUtility::Result<SetupBooleanProblemResultCodes>;
 
         enum class BuildEGraphCacheResultCodes
         {
@@ -106,8 +109,8 @@ namespace Cork::Meshes
 
         typedef SEFUtility::ResultWithReturnUniquePtr<BuildEGraphCacheResultCodes, EGraphCache> BuildEGraphCacheResult;
 
-        typedef tbb::concurrent_vector<size_t> ComponentType;
-        typedef tbb::concurrent_vector<ComponentType> ComponentList;
+        using ComponentType = tbb::concurrent_vector<size_t>;
+        using ComponentList = tbb::concurrent_vector<ComponentType>;
 
         SetupBooleanProblemResult SetupBooleanProblem(const Mesh& rhs);
 

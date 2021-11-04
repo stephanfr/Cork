@@ -49,14 +49,14 @@ namespace Cork::Intersection
         TriangleProblem(IntersectionProblemBase& iprob, const TopoTri& triangle)
             : m_iprob(iprob),
               m_triangle(triangle),
-              m_iverts(iprob.getWorkspace()),
-              m_iedges(iprob.getWorkspace()),
-              m_gtris(iprob.getWorkspace())
+              m_iverts(iprob.workspace()),
+              m_iedges(iprob.workspace()),
+              m_gtris(iprob.workspace())
         {
             //	m_triangle can be const... just about everywhere.  This link is the only non-const operation,
             //		so let's explicitly cast away the const here but leave it everytwhere else.
 
-            const_cast<TopoTri&>(m_triangle).setData(this);
+            const_cast<TopoTri&>(m_triangle).associate_triangle_problem(*this);
 
             // extract original edges/verts
 
@@ -80,7 +80,7 @@ namespace Cork::Intersection
 
         const TopoTri& triangle() const { return (m_triangle); }
 
-        void ResetTopoTriLink() { const_cast<TopoTri&>(m_triangle).setData(nullptr); }
+        void ResetTopoTriLink() { const_cast<TopoTri&>(m_triangle).clear_triangle_problem_association(); }
 
         const IntersectionEdgePointerList& iedges() const { return (m_iedges); }
 

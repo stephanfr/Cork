@@ -28,6 +28,7 @@ add_library(Corklib SHARED
     FileFormats/off.cpp
     Intersection/empty3d.cpp
     primitives/streaming_operators.cpp
+    Intersection/intersection_problem_base.cpp
     Intersection/perturbation_epsilon.cpp
     Intersection/triangle.c
     Intersection/triangulator.cpp
