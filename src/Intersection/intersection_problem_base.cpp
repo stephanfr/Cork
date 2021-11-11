@@ -28,16 +28,6 @@
 
 namespace Cork::Intersection
 {
-    //    using TriangleByIndicesIndex = Primitives::TriangleByIndicesIndex;
-    //
-    //    using TopoVert = Meshes::TopoVert;
-    //    using TopoEdge = Meshes::TopoEdge;
-    //    using TopoTri = Meshes::TopoTri;
-    //    using TopoEdgePointerVector = Meshes::TopoEdgePointerVector;
-
-    //    using CorkTriangle = Meshes::CorkTriangle;
-
-    //    using MeshBase = Meshes::MeshBase;
 
     IntersectionProblemBase::IntersectionProblemBase(MeshBase& owner_mesh, const Math::Quantizer& quantizer)
         : workspace_(std::move(IntersectionWorkspaceFactory::GetInstance())),
@@ -134,17 +124,13 @@ namespace Cork::Intersection
                         */
         //	Single threaded search
 
-        TopoEdgePointerVector edges;
-
         for (TopoTri& tri : topo_cache_.triangles())
         {
-            edge_bvh_->EdgesIntersectingTriangle(tri, selfOrBooleanIntersection, edges);
+            TopoEdgeReferenceVector edges( std::move( edge_bvh_->EdgesIntersectingTriangle(tri, selfOrBooleanIntersection)));
 
             if (!edges.empty())
             {
                 triangleAndEdges.push(new TriangleAndIntersectingEdgesMessage(tri, edges));
-
-                edges.clear();
             }
         }
         //				}

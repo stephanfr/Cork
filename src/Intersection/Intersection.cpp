@@ -154,7 +154,7 @@ namespace Cork::Intersection
                 {
                     TopoVert& v = genericTri->vertices()[k]->concrete_vertex();
                     vertices[k] = &v;
-                    tri[k] = v.ref();
+                    tri[k] = v.index();
 
                     edges[k] = &(ecache.getTriangleEdge(genericTri, k, tprob.triangle()));
                 }
@@ -204,20 +204,20 @@ namespace Cork::Intersection
 
             TopoTri& triangle = ((TriangleAndIntersectingEdgesMessage&)(*currentMessage)).triangle();
 
-            for (const TopoEdge* edge : ((TriangleAndIntersectingEdgesMessage&)(*currentMessage)).edges())
+            for (const TopoEdge& edge : ((TriangleAndIntersectingEdgesMessage&)(*currentMessage)).edges())
             {
-                if (triangle.intersectsEdge(*edge, quantizer_, exact_arithmetic_context_))
+                if (triangle.intersectsEdge(edge, quantizer_, exact_arithmetic_context_))
                 {
                     GluePointMarker* glue = m_gluePointMarkerList.emplace_back(
-                        GluePointMarker::IntersectionType::EDGE_TRIANGLE, *edge, triangle);
+                        GluePointMarker::IntersectionType::EDGE_TRIANGLE, edge, triangle);
 
                     // first add point and edges to the pierced triangle
 
-                    IsctVertType* iv = getTprob(triangle).addInteriorEndpoint(*edge, *glue);
+                    IsctVertType* iv = getTprob(triangle).addInteriorEndpoint(edge, *glue);
 
-                    for (auto tri : edge->triangles())
+                    for (auto tri : edge.triangles())
                     {
-                        getTprob(*tri).addBoundaryEndpoint(triangle, *edge, iv);
+                        getTprob(*tri).addBoundaryEndpoint(triangle, edge, iv);
                     }
                 }
 
@@ -449,19 +449,15 @@ namespace Cork::Intersection
                               << ")" << std::endl;
                     std::cout.flush();
 
-                    TopoEdgePointerVector edges;
+                    TopoEdgeReferenceVector edges( std::move( edge_bvh_->EdgesIntersectingTriangle(*tri, AABVH::IntersectionType::SELF_INTERSECTION )));
 
-                    edge_bvh_->EdgesIntersectingTriangle(*tri, AABVH::IntersectionType::SELF_INTERSECTION, edges);
-
-                    for (const TopoEdge* edge : edges)
+                    for (const TopoEdge& edge : edges)
                     {
-                        if (tri->intersectsEdge(*edge, quantizer_, localArithmeticContext))
+                        if (tri->intersectsEdge(edge, quantizer_, localArithmeticContext))
                         {
                             numIntersections++;
                         }
                     }
-
-                    edges.clear();
                 }
 
                 if (numIntersections > 0)
@@ -502,111 +498,6 @@ namespace Cork::Intersection
         // be compacted This detail should be handled by the calling code...
 
         return (IntersectionProblemResult::success());
-    }
-
-    class SelfIntersectionFinderImpl : public SelfIntersectionFinder
-    {
-       public:
-        SelfIntersectionFinderImpl(Primitives::TriangleByIndicesVector& triangles, Primitives::Vertex3DVector& vertices,
-                                   uint32_t num_edges, const Math::Quantizer& quantizer);
-
-        virtual ~SelfIntersectionFinderImpl() { reset(); }
-
-        const std::vector<IntersectionInfo> CheckSelfIntersection() final;
-
-       private:
-        SEFUtility::CachingFactory<IntersectionWorkspace>::UniquePtr m_intersection_workspace;
-
-        Math::Quantizer quantizer_;
-
-        Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector> topo_cache_;
-
-        std::unique_ptr<AABVH::AxisAlignedBoundingVolumeHierarchy> m_edgeBVH;
-
-        void reset();
-
-        void CreateBoundingVolumeHierarchy()
-        {
-            std::unique_ptr<AABVH::GeomBlobVector> edge_geoms(new AABVH::GeomBlobVector());
-
-            edge_geoms->reserve(topo_cache_.edges().size());
-
-            for (auto& e : topo_cache_.edges())
-            {
-                edge_geoms->emplace_back(e);
-            }
-
-            m_edgeBVH.reset(new AABVH::AxisAlignedBoundingVolumeHierarchy(
-                edge_geoms, *m_intersection_workspace, Cork::CorkService::get_default_control_block()));
-        }
-    };
-
-    SelfIntersectionFinderImpl::SelfIntersectionFinderImpl(Primitives::TriangleByIndicesVector& triangles,
-                                                           Primitives::Vertex3DVector& vertices, uint32_t num_edges,
-                                                           const Math::Quantizer& quantizer)
-        : m_intersection_workspace(std::move(SEFUtility::CachingFactory<IntersectionWorkspace>::GetInstance())),
-          quantizer_(quantizer),
-          topo_cache_(triangles, vertices, num_edges, quantizer)
-    {
-        CreateBoundingVolumeHierarchy();
-    }
-
-    void SelfIntersectionFinderImpl::reset() { m_intersection_workspace.get()->reset(); }
-
-    const std::vector<IntersectionInfo> SelfIntersectionFinderImpl::CheckSelfIntersection()
-    {
-        Empty3d::ExactArithmeticContext localArithmeticContext;
-        std::vector<IntersectionInfo> self_intersecting_edges;
-
-        TopoEdgePointerVector edges;
-
-        for (TopoTri& t : topo_cache_.triangles())
-        {
-            m_edgeBVH->EdgesIntersectingTriangle(t, AABVH::IntersectionType::SELF_INTERSECTION, edges);
-
-            for (const TopoEdge* edge : edges)
-            {
-                if (t.intersectsEdge(*edge, quantizer_, localArithmeticContext))
-                {
-                    std::set<TriangleByIndicesIndex> triangles_sharing_edge;
-                    std::set<TriangleByIndicesIndex> triangles_touching_triangles_sharing_edge;
-
-                    for (auto triangle_sharing_edge : edge->triangles())
-                    {
-                        triangles_sharing_edge.insert(triangle_sharing_edge->source_triangle_id());
-
-                        for (auto touching_edge : triangle_sharing_edge->edges())
-                        {
-                            for (auto triangle_touching : touching_edge->triangles())
-                            {
-                                triangles_touching_triangles_sharing_edge.insert(
-                                    triangle_touching->source_triangle_id());
-                            }
-                        }
-                    }
-
-                    self_intersecting_edges.emplace_back(Intersection::IntersectionInfo(
-                        edge->source_triangle_id(), edge->edge_index(), t.source_triangle_id(), triangles_sharing_edge,
-                        triangles_touching_triangles_sharing_edge));
-                }
-            }
-
-            edges.clear();
-        }
-
-        return self_intersecting_edges;
-    }
-
-    std::unique_ptr<SelfIntersectionFinder> SelfIntersectionFinder::GetFinder(
-        Primitives::TriangleByIndicesVector& triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges,
-        const Math::Quantizer& quantizer)
-    {
-        //        IntersectionWorkspaceFactory::UniquePtr workspace(IntersectionWorkspaceFactory::GetInstance());
-
-        std::unique_ptr<SelfIntersectionFinder> finder(
-            new SelfIntersectionFinderImpl(triangles, vertices, num_edges, quantizer));
-
-        return finder;
     }
 
     std::unique_ptr<IntersectionSolver> IntersectionSolver::GetSolver(MeshBase& owner, const Math::Quantizer& quantizer)

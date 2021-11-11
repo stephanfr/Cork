@@ -77,12 +77,12 @@ namespace Cork::Meshes
     class TopoVert final : public boost::noncopyable, public IntrusiveListHookNoDestructorOnElements
     {
        public:
-        TopoVert() : ref_(Primitives::UNINTIALIZED_INDEX) {}
+        TopoVert() : index_(Primitives::UNINTIALIZED_INDEX) {}
 
-        explicit TopoVert(Primitives::VertexIndex ref, Primitives::Vertex3D quantized_coordinates,
+        explicit TopoVert(Primitives::VertexIndex index, Primitives::Vertex3D quantized_coordinates,
                           TopoTrianglePointerList::SetPoolType& tri_ptr_set_pool,
                           TopoEdgePointerList::SetPoolType& edge_ptr_set_pool)
-            : ref_(ref),
+            : index_(index),
               quantized_coordinates_(quantized_coordinates),
               tris_(tri_ptr_set_pool),
               edges_(edge_ptr_set_pool)
@@ -97,9 +97,9 @@ namespace Cork::Meshes
         TopoVert& operator=(const TopoVert&) = delete;
         TopoVert& operator=(TopoVert&&) = delete;
 
-        Primitives::VertexIndex ref() const { return (ref_); }
+        Primitives::VertexIndex index() const { return (index_); }
 
-        void setRef(Primitives::VertexIndex newValue) { ref_ = newValue; }
+        void set_index(Primitives::VertexIndex newValue) { index_ = newValue; }
 
         const Primitives::Vertex3D& quantizedValue() const { return (quantized_coordinates_); }
         void perturb(const Primitives::Vertex3D& perturbation) { quantized_coordinates_ += perturbation; }
@@ -115,7 +115,7 @@ namespace Cork::Meshes
         TopoEdgePointerList& edges() { return edges_; }
 
        private:
-        Primitives::VertexIndex ref_;  // index to actual data
+        Primitives::VertexIndex index_;  // index to actual data
         Primitives::Vertex3D quantized_coordinates_;
 
         TopoTrianglePointerList tris_;  // triangles this vertex is incident on
@@ -127,7 +127,7 @@ namespace Cork::Meshes
     class TopoEdge final : public IntrusiveListHookNoDestructorOnElements
     {
        public:
-        TopoEdge() : source_triangle_id_(Primitives::UNINTIALIZED_INDEX) {}
+//        TopoEdge() : source_triangle_id_(Primitives::UNINTIALIZED_INDEX) {}
 
         TopoEdge(TopoVert& vertex0, TopoVert& vertex1)
             : source_triangle_id_(Primitives::UNINTIALIZED_INDEX), vertices_({{&vertex0, &vertex1}})
@@ -155,6 +155,9 @@ namespace Cork::Meshes
         uint32_t boolean_algorithm_data() const { return (boolean_algorithm_data_); }
 
         void set_boolean_algorithm_data(uint32_t newValue) { boolean_algorithm_data_ = newValue; }
+
+        const TopoVert&     vert_0() const { return *(vertices_[0]); }
+        const TopoVert&     vert_1() const { return *(vertices_[1]); }
 
         const std::array<TopoVert*, 2>& verts() const { return vertices_; }
 
@@ -208,6 +211,7 @@ namespace Cork::Meshes
     typedef ManagedIntrusiveValueList<TopoEdge> TopoEdgeList;
 
     typedef boost::container::small_vector<const TopoEdge*, 24> TopoEdgePointerVector;
+    typedef boost::container::small_vector<std::reference_wrapper<const TopoEdge>, 24> TopoEdgeReferenceVector;
 
     // support structure for cache construction
 

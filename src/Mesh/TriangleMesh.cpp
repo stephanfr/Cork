@@ -35,6 +35,7 @@
 
 namespace Cork::Meshes
 {
+    using Vertex3D = Primitives::Vertex3D;
     using Vertex3DVector = Primitives::Vertex3DVector;
 
     using IndexType = Primitives::IndexType;
@@ -129,11 +130,16 @@ namespace Cork::Meshes
 
             for (auto& record : topo_stats.self_intersections())
             {
-                //                for (auto triangle_id : record.triangles_sharing_edge() )
-                for (auto triangle_id : record.triangles_touching_triangles_sharing_edge())
+                for (auto triangle_id : record.triangles_including_se_vertex() )
                 {
                     triangles_to_remove.insert(triangle_id);
                 }
+
+//                for (auto triangle_id : record.neighboring_triangles()[0])
+//                {
+//                    triangles_to_remove.insert(triangle_id);
+//                }
+
             }
 
             for (auto tri_to_remove_index : triangles_to_remove)
@@ -181,14 +187,14 @@ namespace Cork::Meshes
                                                       "Triangulation failed for hole");
                 }
 
-                //  Add the new triangles which close the hole.  There will neve be new vertices to add based
+                //  Add the new triangles which close the hole.  There will never be new vertices to add based
                 //      on the settings of the triangulator - thus this operation is simple.
 
                 for (auto triangle_to_add : *(result.return_ptr()))
                 {
-                    AddTriangle(TriangleByIndices( Primitives::UNINTIALIZED_INDEX, hole.vertices()[triangle_to_add.v2()],
-                                                                    hole.vertices()[triangle_to_add.v1()],
-                                                                    hole.vertices()[triangle_to_add.v0()]));
+                    AddTriangle(TriangleByIndices( Primitives::UNINTIALIZED_INDEX, hole.vertices()[triangle_to_add.v0()],
+                                                                    hole.vertices()[triangle_to_add.v2()],
+                                                                    hole.vertices()[triangle_to_add.v1()]));
                 }
             }
 

@@ -26,18 +26,18 @@
 #pragma once
 
 #include <boost/container/static_vector.hpp>
+#include <boost/ptr_container/ptr_vector.hpp>
 #include <cstddef>
 #include <cstdlib>
 #include <deque>
 #include <vector>
-#include <boost/ptr_container/ptr_vector.hpp>
 
 #include "CorkDefs.h"
 #include "Xoshiro256Plus.h"
-#include "primitives/primitives.hpp"
 #include "mesh/TopoCache.h"
 #include "oneapi/tbb/spin_mutex.h"
 #include "oneapi/tbb/task_group.h"
+#include "primitives/primitives.hpp"
 #include "util/FastStack.h"
 #include "util/ManagedIntrusiveList.h"
 
@@ -80,13 +80,13 @@ namespace Cork::AABVH
         const Meshes::TopoEdge& m_id;
     };
 
-    typedef std::vector<GeomBlob> GeomBlobVector;
+    using GeomBlobVector = std::vector<GeomBlob>;
 
     //	A BlobIDList will never be larger than LEAF_SIZE so a static vector is OK
 
-    typedef boost::container::static_vector<Primitives::IndexType, LEAF_SIZE> BlobIDList;
+    using BlobIDList = boost::container::static_vector<Primitives::IndexType, LEAF_SIZE>;
 
-    class alignas( SIMD_MEMORY_ALIGNMENT) AABVHNode  // : public IntrusiveListHook
+    class alignas(SIMD_MEMORY_ALIGNMENT) AABVHNode  // : public IntrusiveListHook
     {
        public:
         AABVHNode() : m_left(nullptr), m_right(nullptr) {}
@@ -105,7 +105,10 @@ namespace Cork::AABVH
 
         const std::array<BlobIDList, 2>& blobIDLists() const { return (m_blobids); }
 
-        void AddBlobID(Primitives::IndexType listIndex, Primitives::IndexType blobID) { m_blobids[listIndex].emplace_back(blobID); }
+        void AddBlobID(Primitives::IndexType listIndex, Primitives::IndexType blobID)
+        {
+            m_blobids[listIndex].emplace_back(blobID);
+        }
 
        private:
         AABVHNode* m_left;
@@ -192,58 +195,60 @@ namespace Cork::AABVH
     {
        public:
         AxisAlignedBoundingVolumeHierarchy(std::unique_ptr<GeomBlobVector>& geoms, Workspace& workspace,
-                                           const SolverControlBlock& solverControlBlock)
-            : m_root(nullptr),
-              m_blobs(std::move(geoms)),
-              m_tmpids(m_blobs->size()),
-              m_nodeCollections(workspace.getAABVHNodeListCollection()),
+                                           const SolverControlBlock& solver_control_block)
+            : root_(nullptr),
+              blobs_(std::move(geoms)),
+              tmpids_(blobs_->size()),
+              node_collections_(workspace.getAABVHNodeListCollection()),
               random_number_generator_(RANDOM_SEED),
-              m_solverControlBlock(solverControlBlock)
+              solver_control_block_(solver_control_block)
         {
-            assert(m_blobs->size() > 0);
+            assert(blobs_->size() > 0);
 
-            m_nodeCollections.reset();
+            node_collections_.reset();
 
-            for (uint k = 0; k < m_tmpids.size(); k++)
+            for (uint k = 0; k < tmpids_.size(); k++)
             {
-                m_tmpids[k] = k;
+                tmpids_[k] = k;
             }
 
-            m_representativePoints[0].reserve(m_blobs->size());
-            m_representativePoints[1].reserve(m_blobs->size());
-            m_representativePoints[2].reserve(m_blobs->size());
+            representative_points_[0].reserve(blobs_->size());
+            representative_points_[1].reserve(blobs_->size());
+            representative_points_[2].reserve(blobs_->size());
 
-            for (auto& blob : *m_blobs)
+            for (auto& blob : *blobs_)
             {
                 Primitives::Vector3D repPoint(
                     blob.boundingBox().minima() +
                     ((blob.boundingBox().maxima() - blob.boundingBox().minima()) / (NUMERIC_PRECISION)2.0));
 
-                m_representativePoints[0].emplace_back(repPoint.x());
-                m_representativePoints[1].emplace_back(repPoint.y());
-                m_representativePoints[2].emplace_back(repPoint.z());
+                representative_points_[0].emplace_back(repPoint.x());
+                representative_points_[1].emplace_back(repPoint.y());
+                representative_points_[2].emplace_back(repPoint.z());
             }
 
-            m_root = ConstructTree(0, m_tmpids.size(), 2);
+            root_ = ConstructTree(0, tmpids_.size(), 2);
         }
 
-        ~AxisAlignedBoundingVolumeHierarchy() { m_nodeCollections.reset(); }
+        ~AxisAlignedBoundingVolumeHierarchy() { node_collections_.reset(); }
 
-        void EdgesIntersectingTriangle(const Meshes::TopoTri& triangle, IntersectionType intersectionType,
-                                       Meshes::TopoEdgePointerVector& edges)
+        Meshes::TopoEdgeReferenceVector EdgesIntersectingTriangle(const Meshes::TopoTri& triangle,
+                                                                IntersectionType intersectionType)
         {
+            Meshes::TopoEdgeReferenceVector edges;
+
             //	Set the boolAlgData index for intersections between two bodies or for self-intersections.
 
-            unsigned int blobIDListSelector = (
-                intersectionType == IntersectionType::BOOLEAN_INTERSECTION ? triangle.boolAlgData() ^ 1
-                                                                           : triangle.boolAlgData());
+            unsigned int blobIDListSelector =
+                (intersectionType == IntersectionType::BOOLEAN_INTERSECTION ? triangle.boolAlgData() ^ 1
+                                                                            : triangle.boolAlgData());
 
             //	Use a recursive search and save edges that intersect the triangle
 
             FastStack<AABVHNode*, 256> nodeStack;
 
             nodeStack.reset();
-            nodeStack.push(m_root);
+            nodeStack.push(root_);
 
             AABVHNode* node;
 
@@ -272,11 +277,11 @@ namespace Cork::AABVH
 
                     for (Primitives::IndexType bid : blobIds)
                     {
-                        auto& currentBlob = (*m_blobs)[bid];
+                        auto& currentBlob = (*blobs_)[bid];
 
                         if (currentBlob.boundingBox().intersects(triangle.boundingBox()))
                         {
-                            edges.push_back(&currentBlob.index());
+                            edges.push_back(currentBlob.index());
                         }
                     }
                 }
@@ -285,24 +290,26 @@ namespace Cork::AABVH
                     nodeStack.push2(node->left(), node->right());
                 }
             }
+
+            return edges;
         };
 
        private:
         //	Data members
 
-        AABVHNode* m_root;
+        AABVHNode* root_;
 
-        AABVHNodeListCollection& m_nodeCollections;
+        AABVHNodeListCollection& node_collections_;
 
-        std::unique_ptr<GeomBlobVector> m_blobs;
+        std::unique_ptr<GeomBlobVector> blobs_;
 
-        std::vector<NUMERIC_PRECISION> m_representativePoints[3];
+        std::vector<NUMERIC_PRECISION> representative_points_[3];
 
-        std::vector<Primitives::IndexType> m_tmpids;
+        std::vector<Primitives::IndexType> tmpids_;
 
         Xoshiro256Plus random_number_generator_;
 
-        const SolverControlBlock& m_solverControlBlock;
+        const SolverControlBlock& solver_control_block_;
 
         // process range of tmpids including begin, excluding end last_dim provides a hint by saying which dimension a
         // split was last made along

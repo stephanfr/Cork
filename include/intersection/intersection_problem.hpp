@@ -43,17 +43,6 @@ namespace Cork::Intersection
 
     using IntersectionProblemResult = SEFUtility::Result<IntersectionProblemResultCodes>;
 
-
-    class SelfIntersectionFinder
-    {
-       public:
-        static std::unique_ptr<SelfIntersectionFinder> GetFinder(Primitives::TriangleByIndicesVector&  triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges, const Math::Quantizer& quantizer);
-
-        virtual ~SelfIntersectionFinder() {}
-
-        virtual const std::vector<IntersectionInfo> CheckSelfIntersection() = 0;
-    };
-
     class IntersectionSolver
     {
        public:

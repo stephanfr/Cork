@@ -22,6 +22,7 @@
 #include <set>
 
 #include "primitives/primitives.hpp"
+#include "math/quantization.hpp"
 
 namespace Cork::Intersection
 {
@@ -32,13 +33,13 @@ namespace Cork::Intersection
 
         IntersectionInfo(Primitives::TriangleByIndicesIndex edge_triangle_id, Primitives::TriangleEdgeId edge_index,
                          Primitives::TriangleByIndicesIndex triangle_instersected_id,
-                         const std::set<Primitives::TriangleByIndicesIndex>& triangles_sharing_edge,
-                         const std::set<Primitives::TriangleByIndicesIndex>& triangles_touching_triangles_sharing_edge)
+                         std::set<Primitives::TriangleByIndicesIndex>&& triangles_including_se_vertex,
+                         std::array<std::set<Primitives::TriangleByIndicesIndex>,2>&& neighboring_triangles )
             : edge_triangle_id_(edge_triangle_id),
               edge_index_(edge_index),
               triangle_instersected_id_(triangle_instersected_id),
-              triangles_sharing_edge_(triangles_sharing_edge),
-              triangles_touching_triangles_sharing_edge_(triangles_touching_triangles_sharing_edge)
+              triangles_including_se_vertex_(triangles_including_se_vertex),
+              neighboring_triangles_(neighboring_triangles)
         {
         }
 
@@ -52,22 +53,33 @@ namespace Cork::Intersection
 
         Primitives::TriangleByIndicesIndex triangle_instersected_id() const { return triangle_instersected_id_; }
 
-        const std::set<Primitives::TriangleByIndicesIndex>& triangles_sharing_edge() const
+        const std::set<Primitives::TriangleByIndicesIndex>& triangles_including_se_vertex() const
         {
-            return triangles_sharing_edge_;
+            return triangles_including_se_vertex_;
         }
 
-        const std::set<Primitives::TriangleByIndicesIndex>& triangles_touching_triangles_sharing_edge() const
+        const std::array<std::set<Primitives::TriangleByIndicesIndex>,2>& neighboring_triangles() const
         {
-            return triangles_touching_triangles_sharing_edge_;
+            return neighboring_triangles_;
         }
 
        private:
         Primitives::TriangleByIndicesIndex edge_triangle_id_;
         Primitives::TriangleEdgeId edge_index_;
         Primitives::TriangleByIndicesIndex triangle_instersected_id_;
-        std::set<Primitives::TriangleByIndicesIndex> triangles_sharing_edge_;
-        std::set<Primitives::TriangleByIndicesIndex> triangles_touching_triangles_sharing_edge_;
+        std::set<Primitives::TriangleByIndicesIndex> triangles_including_se_vertex_;
+        std::array<std::set<Primitives::TriangleByIndicesIndex>,2> neighboring_triangles_;
+    };
+
+
+    class SelfIntersectionFinder
+    {
+       public:
+        static std::unique_ptr<SelfIntersectionFinder> GetFinder(Primitives::TriangleByIndicesVector&  triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges, const Math::Quantizer& quantizer);
+
+        virtual ~SelfIntersectionFinder() {}
+
+        virtual const std::vector<IntersectionInfo> CheckSelfIntersection() = 0;
     };
 
 }  // namespace Cork::Intersection

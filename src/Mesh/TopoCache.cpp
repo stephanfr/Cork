@@ -52,7 +52,7 @@ namespace Cork::Meshes
 
         for (auto& vert : m_topoVertexList)
         {
-            live_verts[VertexIndex::integer_type(vert.ref())] = true;
+            live_verts[VertexIndex::integer_type(vert.index())] = true;
         }
 
         // record which triangles are live, and record connectivity
@@ -65,7 +65,7 @@ namespace Cork::Meshes
 
             for (size_t k = 0; k < 3; k++)
             {
-                mesh_triangles_[tri.ref()][k] = tri.verts()[k]->ref();
+                mesh_triangles_[tri.ref()][k] = tri.verts()[k]->index();
             }
         }
 
@@ -97,7 +97,7 @@ namespace Cork::Meshes
 
         for (auto& vert : m_topoVertexList)
         {
-            vert.setRef(vertex_map[VertexIndex::integer_type(vert.ref())]);
+            vert.set_index(vertex_map[VertexIndex::integer_type(vert.index())]);
         }
 
         std::vector<size_t> tmap;
@@ -138,7 +138,7 @@ namespace Cork::Meshes
 
     std::ostream& operator<<(std::ostream& out, const TopoVert& vertex)
     {
-        out << "ref(" << vertex.ref() << ") "
+        out << "ref(" << vertex.index() << ") "
             << "e(" << vertex.edges().size() << "):";
 
         for (const TopoEdge* e : vertex.edges())
@@ -159,8 +159,8 @@ namespace Cork::Meshes
 
     std::ostream& operator<<(std::ostream& out, const TopoEdge& edge)
     {
-        out << "v(2):" << edge.verts()[0] << "(" << edge.verts()[0]->ref() << ");" << edge.verts()[1] << "("
-            << edge.verts()[1]->ref() << ");";
+        out << "v(2):" << edge.verts()[0] << "(" << edge.verts()[0]->index() << ");" << edge.verts()[1] << "("
+            << edge.verts()[1]->index() << ");";
         out << " "
             << "t(" << edge.triangles().size() << "):";
 
@@ -175,8 +175,8 @@ namespace Cork::Meshes
     std::ostream& operator<<(std::ostream& out, const TopoTri& tri)
     {
         out << "ref(" << tri.ref() << ") ";
-        out << "v(3):" << tri.verts()[0] << "(" << tri.verts()[0]->ref() << ");" << tri.verts()[1] << "("
-            << tri.verts()[1]->ref() << ");" << tri.verts()[2] << "(" << tri.verts()[2]->ref() << ");";
+        out << "v(3):" << tri.verts()[0] << "(" << tri.verts()[0]->index() << ");" << tri.verts()[1] << "("
+            << tri.verts()[1]->index() << ");" << tri.verts()[2] << "(" << tri.verts()[2]->index() << ");";
         out << " ";
         out << "e(3):" << tri.edges()[0] << ";" << tri.edges()[1] << ";" << tri.edges()[2] << ";";
         return out;
@@ -216,7 +216,7 @@ namespace Cork::Meshes
 
         for (auto& v : vertices())
         {
-            cout << " " << &v << ": ref(" << v.ref() << ")" << endl;
+            cout << " " << &v << ": ref(" << v.index() << ")" << endl;
             cout << "  e (" << v.edges().size() << ")" << endl;
             for (auto e : v.edges()) cout << "    " << &e << endl;
             cout << "  t (" << v.triangles().size() << ")" << endl;

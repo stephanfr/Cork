@@ -46,8 +46,8 @@ namespace Cork::Intersection
 
         TopoEdge& operator()(TopoVert& v0, TopoVert& v1)
         {
-            auto i = VertexIndex::integer_type(v0.ref());
-            auto j = VertexIndex::integer_type(v1.ref());
+            auto i = VertexIndex::integer_type(v0.index());
+            auto j = VertexIndex::integer_type(v1.index());
 
             if (i > j)
             {
@@ -114,8 +114,8 @@ namespace Cork::Intersection
 
         std::optional<std::reference_wrapper<TopoEdge>> maybeEdge(const GenericEdgeType& ge)
         {
-            size_t i = VertexIndex::integer_type(ge.ends()[0]->concrete_vertex().ref());
-            size_t j = VertexIndex::integer_type(ge.ends()[1]->concrete_vertex().ref());
+            size_t i = VertexIndex::integer_type(ge.ends()[0]->concrete_vertex().index());
+            size_t j = VertexIndex::integer_type(ge.ends()[1]->concrete_vertex().index());
 
             if (i > j)
             {

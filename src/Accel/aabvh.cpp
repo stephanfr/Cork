@@ -45,20 +45,20 @@ namespace Cork::AABVH
         }
 
         const NUMERIC_PRECISION* representativePoints(
-            m_representativePoints[dim].data());  //	NOLINT(cppcoreguidelines-init-variables)
+            representative_points_[dim].data());  //	NOLINT(cppcoreguidelines-init-variables)
 
         size_t pivotIndex((random_number_generator_.next() % (end - begin)) +
                           begin);  //	NOLINT(cppcoreguidelines-init-variables)
         NUMERIC_PRECISION pivotValue(
-            representativePoints[m_tmpids[pivotIndex]]);  //	NOLINT(cppcoreguidelines-init-variables)
+            representativePoints[tmpids_[pivotIndex]]);  //	NOLINT(cppcoreguidelines-init-variables)
 
         //	I don't usually care for pointer arithmetic but it makes a substantive difference here.
         //
         //	When multi-threaded, the changes to the indices front and back are OK as the tasks are working on
         //		separate parts of the tree so there is no risk of hitting the same tmpids at the same time.
 
-        IndexType* front(&m_tmpids[begin]);   //	NOLINT(cppcoreguidelines-init-variables)
-        IndexType* back(&m_tmpids[end - 1]);  //	NOLINT(cppcoreguidelines-init-variables)
+        IndexType* front(&tmpids_[begin]);   //	NOLINT(cppcoreguidelines-init-variables)
+        IndexType* back(&tmpids_[end - 1]);  //	NOLINT(cppcoreguidelines-init-variables)
 
         while (front < back)
         {
@@ -83,13 +83,13 @@ namespace Cork::AABVH
             front++;
         }
 
-        if (select < uint(front - &m_tmpids[0]))  //	NOLINT
+        if (select < uint(front - &tmpids_[0]))  //	NOLINT
         {
-            QuickSelect(select, begin, front - &m_tmpids[0], dim);
+            QuickSelect(select, begin, front - &tmpids_[0], dim);
         }
         else
         {
-            QuickSelect(select, front - &m_tmpids[0], end, dim);
+            QuickSelect(select, front - &tmpids_[0], end, dim);
         }
     };
 
@@ -107,18 +107,18 @@ namespace Cork::AABVH
 
         if (end - begin <= LEAF_SIZE)
         {
-            AABVHNodeList& nodeList = m_nodeCollections.getNodeList(INITIAL_NODE_LIST_SIZE);
+            AABVHNodeList& nodeList = node_collections_.getNodeList(INITIAL_NODE_LIST_SIZE);
 
             nodeList.emplace_back();
             AABVHNode* node(&nodeList.back());
 
             for (uint k = 0; k < end - begin; k++)
             {
-                IndexType blobid(m_tmpids[begin + k]);
+                IndexType blobid(tmpids_[begin + k]);
 
-                node->AddBlobID((*m_blobs)[blobid].index().boolean_algorithm_data(), blobid);
+                node->AddBlobID((*blobs_)[blobid].index().boolean_algorithm_data(), blobid);
 
-                node->boundingBox().convex((*m_blobs)[blobid].boundingBox());
+                node->boundingBox().convex((*blobs_)[blobid].boundingBox());
             }
 
             return (node);
@@ -134,18 +134,18 @@ namespace Cork::AABVH
         AABVHNode* node1 = nullptr;
         AABVHNode* node2 = nullptr;
 
-        if (m_solverControlBlock.use_multiple_threads())
+        if (solver_control_block_.use_multiple_threads())
         {
             tbb::task_group taskGroup;
 
             //	Recurse - but by splitting into a pair of tasks
 
             taskGroup.run([&] {
-                node1 = ConstructTreeRecursive(m_nodeCollections.getNodeList((end - begin) / (LEAF_SIZE / 2)), begin,
+                node1 = ConstructTreeRecursive(node_collections_.getNodeList((end - begin) / (LEAF_SIZE / 2)), begin,
                                                mid, dim);
             });
             node2 =
-                ConstructTreeRecursive(m_nodeCollections.getNodeList((end - begin) / (LEAF_SIZE / 2)), mid, end, dim);
+                ConstructTreeRecursive(node_collections_.getNodeList((end - begin) / (LEAF_SIZE / 2)), mid, end, dim);
 
             //	Wait for the two tasks to complete
 
@@ -156,14 +156,14 @@ namespace Cork::AABVH
             //	Recurse directly
 
             node1 =
-                ConstructTreeRecursive(m_nodeCollections.getNodeList((end - begin) / (LEAF_SIZE / 2)), begin, mid, dim);
+                ConstructTreeRecursive(node_collections_.getNodeList((end - begin) / (LEAF_SIZE / 2)), begin, mid, dim);
             node2 =
-                ConstructTreeRecursive(m_nodeCollections.getNodeList((end - begin) / (LEAF_SIZE / 2)), mid, end, dim);
+                ConstructTreeRecursive(node_collections_.getNodeList((end - begin) / (LEAF_SIZE / 2)), mid, end, dim);
         }
 
         //	Create the final node and set the bounding box
 
-        AABVHNodeList& primaryNodeList = m_nodeCollections.getPrimaryNodeList();
+        AABVHNodeList& primaryNodeList = node_collections_.getPrimaryNodeList();
 
         primaryNodeList.emplace_back(node1, node2);
         AABVHNode* node = &primaryNodeList.back();
@@ -189,11 +189,11 @@ namespace Cork::AABVH
 
             for (uint k = 0; k < end - begin; k++)
             {
-                IndexType blobid = m_tmpids[begin + k];
+                IndexType blobid = tmpids_[begin + k];
 
-                node->AddBlobID((*m_blobs)[blobid].index().boolean_algorithm_data(), blobid);
+                node->AddBlobID((*blobs_)[blobid].index().boolean_algorithm_data(), blobid);
 
-                node->boundingBox().convex((*m_blobs)[blobid].boundingBox());
+                node->boundingBox().convex((*blobs_)[blobid].boundingBox());
             }
 
             return (node);

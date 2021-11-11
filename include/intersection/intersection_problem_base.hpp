@@ -56,7 +56,7 @@ namespace Cork::Intersection
         using TopoVert = Meshes::TopoVert;
         using TopoEdge = Meshes::TopoEdge;
         using TopoTri = Meshes::TopoTri;
-        using TopoEdgePointerVector = Meshes::TopoEdgePointerVector;
+        using TopoEdgeReferenceVector = Meshes::TopoEdgeReferenceVector;
         using MeshBase = Meshes::MeshBase;
 
        public:
@@ -87,7 +87,7 @@ namespace Cork::Intersection
 
             TriangleAndIntersectingEdgesMessage(const TriangleAndIntersectingEdgesMessage&) = delete;
 
-            TriangleAndIntersectingEdgesMessage(TopoTri& tri, TopoEdgePointerVector& edges)
+            TriangleAndIntersectingEdgesMessage(TopoTri& tri, TopoEdgeReferenceVector& edges)
                 : m_triangle(tri), m_edges(edges)
             {
             }
@@ -100,11 +100,11 @@ namespace Cork::Intersection
 
             TopoTri& triangle() { return (m_triangle); }
 
-            TopoEdgePointerVector& edges() { return (m_edges); }
+            TopoEdgeReferenceVector& edges() { return (m_edges); }
 
            private:
             TopoTri& m_triangle;
-            TopoEdgePointerVector m_edges;
+            TopoEdgeReferenceVector m_edges;
         };
 
         using TriangleAndIntersectingEdgesQueue = tbb::concurrent_bounded_queue<TriAndEdgeQueueMessage*>;
@@ -188,7 +188,7 @@ namespace Cork::Intersection
 
             TopoVert* v = topo_cache_.newVert();
 
-            topo_cache_.ownerMesh().vertices()[v->ref()] = glue.vertices_to_be_glued()[0]->coordinate();
+            topo_cache_.ownerMesh().vertices()[v->index()] = glue.vertices_to_be_glued()[0]->coordinate();
 
             for (IsctVertType* iv : glue.vertices_to_be_glued())
             {

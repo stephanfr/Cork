@@ -172,6 +172,13 @@ TEST_CASE("Topology Tests", "[file io]")
 
         mesh->remove_self_intersections( topo_stats.return_value() );
 
+        {
+            auto write_result =
+                Cork::Files::writeOFF("../../UnitTest/Test Results/JuliaVaseWithSelfIntersectionRemoved.off", *mesh);
+
+            REQUIRE(write_result.succeeded());
+        }
+
         auto topo_stats_after_se_removal = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
         REQUIRE( topo_stats_after_se_removal.succeeded() );
