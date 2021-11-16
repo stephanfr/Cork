@@ -77,7 +77,6 @@ namespace Cork::Meshes
     class TopoVert final : public boost::noncopyable, public IntrusiveListHookNoDestructorOnElements
     {
        public:
-        TopoVert() : index_(Primitives::UNINTIALIZED_INDEX) {}
 
         explicit TopoVert(Primitives::VertexIndex index, Primitives::Vertex3D quantized_coordinates,
                           TopoTrianglePointerList::SetPoolType& tri_ptr_set_pool,
@@ -127,7 +126,6 @@ namespace Cork::Meshes
     class TopoEdge final : public IntrusiveListHookNoDestructorOnElements
     {
        public:
-//        TopoEdge() : source_triangle_id_(Primitives::UNINTIALIZED_INDEX) {}
 
         TopoEdge(TopoVert& vertex0, TopoVert& vertex1)
             : source_triangle_id_(Primitives::UNINTIALIZED_INDEX), vertices_({{&vertex0, &vertex1}})
@@ -240,7 +238,6 @@ namespace Cork::Meshes
     class TopoTri final : public boost::noncopyable, public IntrusiveListHookNoDestructorOnElements
     {
        public:
-        TopoTri() : ref_(0ul) {}
 
         explicit TopoTri(Primitives::IndexType ref) : ref_(ref) {}
 

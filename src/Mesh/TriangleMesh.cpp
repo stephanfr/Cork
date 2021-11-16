@@ -28,9 +28,10 @@
 #include <set>
 #include <unordered_map>
 
-#include "primitives/index_remapper.hpp"
 #include "intersection/triangulator.hpp"
 #include "mesh/triangle_mesh.h"
+#include "primitives/hole.hpp"
+#include "primitives/index_remapper.hpp"
 #include "statistics/statistics_engines.h"
 
 namespace Cork::Meshes
@@ -42,10 +43,14 @@ namespace Cork::Meshes
     using VertexIndex = Primitives::VertexIndex;
 
     using EdgeByVertices = Primitives::EdgeByVertices;
+    using EdgeByIndices = Primitives::EdgeByIndices;
+    using EdgeByIndicesVector = Primitives::EdgeByIndicesVector;
 
     using TriangleByIndices = Primitives::TriangleByIndices;
     using TriangleByIndicesVector = Primitives::TriangleByIndicesVector;
     using TriangleByIndicesIndex = Primitives::TriangleByIndicesIndex;
+
+    using TriangleEdgeId = Primitives::TriangleEdgeId;
 
     using TriangleByVertices = Primitives::TriangleByVertices;
 
@@ -126,26 +131,187 @@ namespace Cork::Meshes
             //      from the end of the vector moving forward.  This prevents corruption of the vector
             //      by having the vector compress with removals and then having the wrong element removed by index.
 
-            std::set<TriangleByIndicesIndex, std::greater<TriangleByIndicesIndex>> triangles_to_remove;
+            std::set<TriangleByIndicesIndex, std::greater<TriangleByIndicesIndex>> all_triangles_to_remove;
+            std::vector<TriangleByIndices>                                         all_triangles_to_add;
+
+            all_triangles_to_add.reserve( 1000 );
 
             for (auto& record : topo_stats.self_intersections())
             {
-                for (auto triangle_id : record.triangles_including_se_vertex() )
+                std::set<TriangleByIndicesIndex> triangles_to_remove;
+
+                for (auto triangle_id : record.triangles_including_se_vertex())
                 {
                     triangles_to_remove.insert(triangle_id);
                 }
 
-//                for (auto triangle_id : record.neighboring_triangles()[0])
-//                {
-//                    triangles_to_remove.insert(triangle_id);
-//                }
+                std::vector<Hole>   holes_for_se = get_hole_for_self_intersection( triangles_to_remove );
 
+                auto get_hole_closing_triangles_result = get_hole_closing_triangles(holes_for_se[0]);
+
+                if (!get_hole_closing_triangles_result.succeeded())
+                {
+                    std::cout << "closing hole failed" << std::endl;
+                    continue;
+                }
+
+                auto get_quantizer_result =
+                    Math::Quantizer::get_quantizer(max_vertex_magnitude(), min_and_max_edge_lengths().min());
+
+                //            if (!get_quantizer_result.succeeded())
+                //            {
+                //                return TopologicalStatisticsEngineAnalyzeResult::failure(
+                //                    TopologicalStatisticsEngineAnalyzeResultCodes::UNABLE_TO_ACQUIRE_QUANTIZER,
+                //                    "Unable to Acquire Quntizer");
+                //            }
+
+                Math::Quantizer quantizer(get_quantizer_result.return_value());
+
+                std::unique_ptr<Intersection::SelfIntersectionFinder> se_finder(
+                    Intersection::SelfIntersectionFinder::GetFinder(
+                        *(get_hole_closing_triangles_result.return_ptr()),
+                        const_cast<Primitives::Vertex3DVector&>(vertices()),
+                        get_hole_closing_triangles_result.return_ptr()->size() * 4, quantizer));
+
+                auto si_stats = se_finder->CheckSelfIntersection();
+
+                if (si_stats.size() == 0)
+                {
+                    for (auto tri_to_remove_index : triangles_to_remove)
+                    {
+                        all_triangles_to_remove.emplace( tri_to_remove_index);
+                    }
+
+                    for (auto tri_to_add : *(get_hole_closing_triangles_result.return_ptr()))
+                    {
+                        all_triangles_to_add.emplace_back(tri_to_add);
+                    }
+                }
+                else
+                {
+                    std::cout << "Found self-intersection trying to close hole" << std::endl;
+                }
             }
 
-            for (auto tri_to_remove_index : triangles_to_remove)
+            for (auto tri_to_remove_index : all_triangles_to_remove)
             {
                 remove_triangle(tri_to_remove_index);
             }
+
+            for (auto& tri_to_add : all_triangles_to_add)
+            {
+                AddTriangle(tri_to_add);
+            }
+        }
+
+        std::vector<Hole> get_hole_for_self_intersection(
+            const std::set<TriangleByIndicesIndex>& triangles_to_remove) const
+        {
+            std::map<EdgeByIndices, uint32_t, Primitives::EdgeByIndicesMapCompare> edge_counts;
+
+            for (auto tri_to_remove_index : triangles_to_remove)
+            {
+                auto edge_ab = edge_counts.find(triangles()[tri_to_remove_index].edge(TriangleEdgeId::AB));
+                auto edge_bc = edge_counts.find(triangles()[tri_to_remove_index].edge(TriangleEdgeId::BC));
+                auto edge_ca = edge_counts.find(triangles()[tri_to_remove_index].edge(TriangleEdgeId::CA));
+
+                if (edge_ab == edge_counts.end())
+                {
+                    edge_counts.insert(std::make_pair(triangles()[tri_to_remove_index].edge(TriangleEdgeId::AB), 1));
+                }
+                else
+                {
+                    edge_ab->second++;
+                }
+
+                if (edge_bc == edge_counts.end())
+                {
+                    edge_counts.insert(std::make_pair(triangles()[tri_to_remove_index].edge(TriangleEdgeId::BC), 1));
+                }
+                else
+                {
+                    edge_bc->second++;
+                }
+
+                if (edge_ca == edge_counts.end())
+                {
+                    edge_counts.insert(std::make_pair(triangles()[tri_to_remove_index].edge(TriangleEdgeId::CA), 1));
+                }
+                else
+                {
+                    edge_ca->second++;
+                }
+            }
+
+            EdgeByIndicesVector hole_edges;
+
+            for (auto edge : edge_counts)
+            {
+                if (edge.second == 1)
+                {
+                    hole_edges.emplace_back(edge.first);
+                }
+            }
+
+            return HoleBuilder::extract_holes(hole_edges);
+        }
+
+        using GetHoleClosingTrianglesResult =
+            SEFUtility::ResultWithReturnUniquePtr<HoleClosingResultCodes, TriangleByIndicesVector>;
+
+        GetHoleClosingTrianglesResult get_hole_closing_triangles(const Hole& hole)
+        {
+            //  Determine the projection needed to turn this into a 2D triangulation problem
+
+            Cork::Triangulator::NormalProjector projector(
+                vertices()[hole.vertices()[0]], vertices()[hole.vertices()[1]], vertices()[hole.vertices()[2]]);
+
+            //  Get the triangulator and add the points on the hole edge and the segments joining them.
+            //      This is trivial as the vertices are ordered so segments are just one after the next.
+            //      Holes must be closed, thus the last segment from the last vertex to the first.
+
+            Cork::Triangulator::Triangulator triangulator;
+
+            for (auto vertex_index : hole.vertices())
+            {
+                triangulator.add_point(vertices()[vertex_index], true, projector);
+            }
+
+            for (int i = 0; i < hole.vertices().size() - 1; i++)
+            {
+                triangulator.add_segment(i, i + 1, true);
+            }
+
+            triangulator.add_segment(hole.vertices().size() - 1, 0, true);
+
+            //  Compute the triangulation - I suppose some really messed up geometries might fail here.
+
+            auto result = triangulator.compute_triangulation();
+
+            if (result.failed())
+            {
+                return GetHoleClosingTrianglesResult::failure(result, HoleClosingResultCodes::TRIANGULATION_FAILED,
+                                                              "Triangulation failed for hole");
+            }
+
+            //  Add the new triangles which close the hole.  There will never be new vertices to add based
+            //      on the settings of the triangulator - thus this operation is simple.
+
+            std::unique_ptr<TriangleByIndicesVector> hole_closing_triangles =
+                std::make_unique<TriangleByIndicesVector>();
+
+            hole_closing_triangles->reserve(result.return_ptr()->size() + 2);
+
+            for (auto triangle_to_add : *(result.return_ptr()))
+            {
+                hole_closing_triangles->emplace_back(
+                    TriangleByIndices(Primitives::UNINTIALIZED_INDEX, hole.vertices()[triangle_to_add.v0()],
+                                      hole.vertices()[triangle_to_add.v2()], hole.vertices()[triangle_to_add.v1()]));
+            }
+
+            //  Return the triangles to close the hole
+
+            return GetHoleClosingTrianglesResult::success(std::move(hole_closing_triangles));
         }
 
         HoleClosingResult close_holes(const Statistics::TopologicalStatistics& topo_stats)
@@ -154,47 +320,16 @@ namespace Cork::Meshes
 
             for (auto hole : topo_stats.holes())
             {
-                //  Determine the projection needed to turn this into a 2D triangulation problem
+                auto result = get_hole_closing_triangles(hole);
 
-                Cork::Triangulator::NormalProjector projector(
-                    vertices()[hole.vertices()[0]], vertices()[hole.vertices()[1]], vertices()[hole.vertices()[2]]);
-
-                //  Get the triangulator and add the points on the hole edge and the segments joining them.
-                //      This is trivial as the vertices are ordered so segments are just one after the next.
-                //      Holes must be closed, thus the last segment from the last vertex to the first.
-
-                Cork::Triangulator::Triangulator triangulator;
-
-                for (auto vertex_index : hole.vertices())
+                if (!result.succeeded())
                 {
-                    triangulator.add_point(vertices()[vertex_index], true, projector);
+                    return HoleClosingResult::failure(result.error_code(), result.message());
                 }
 
-                for (int i = 0; i < hole.vertices().size() - 1; i++)
+                for (auto tri_to_add : *(result.return_ptr()))
                 {
-                    triangulator.add_segment(i, i + 1, true);
-                }
-
-                triangulator.add_segment(hole.vertices().size() - 1, 0, true);
-
-                //  Compute the triangulation - I suppose some really messed up geometries might fail here.
-
-                auto result = triangulator.compute_triangulation();
-
-                if (result.failed())
-                {
-                    return HoleClosingResult::failure(result, HoleClosingResultCodes::TRIANGULATION_FAILED,
-                                                      "Triangulation failed for hole");
-                }
-
-                //  Add the new triangles which close the hole.  There will never be new vertices to add based
-                //      on the settings of the triangulator - thus this operation is simple.
-
-                for (auto triangle_to_add : *(result.return_ptr()))
-                {
-                    AddTriangle(TriangleByIndices( Primitives::UNINTIALIZED_INDEX, hole.vertices()[triangle_to_add.v0()],
-                                                                    hole.vertices()[triangle_to_add.v2()],
-                                                                    hole.vertices()[triangle_to_add.v1()]));
+                    AddTriangle(tri_to_add);
                 }
             }
 

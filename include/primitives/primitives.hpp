@@ -211,76 +211,6 @@ namespace Cork::Primitives
     //	Define some base classes for key mesh classes: Triangle by vertex indices, Edges and Triangle by vertex points.
     //
 
-    class TriangleByIndices
-    {
-       public:
-        using UIDType = uint32_t;
-
-        TriangleByIndices()
-            : uid_(UNINTIALIZED_INDEX), a_(UNINTIALIZED_INDEX), b_(UNINTIALIZED_INDEX), c_(UNINTIALIZED_INDEX)
-        {
-        }
-
-        TriangleByIndices(UIDType uid, VertexIndex a, VertexIndex b, VertexIndex c) : uid_(uid), a_(a), b_(b), c_(c) {}
-
-        virtual ~TriangleByIndices() {}
-
-        const VertexIndex operator[](size_t index) const
-        {
-            assert(index < 3);
-            return (reinterpret_cast<const VertexIndex*>(&a_))[index];
-        }
-
-        VertexIndex& operator[](size_t index)
-        {
-            assert(index < 3);
-            return (reinterpret_cast<VertexIndex*>(&a_))[index];
-        }
-
-        UIDType uid() const { return uid_; }
-
-        const VertexIndex a() const { return a_; }
-
-        VertexIndex& a() { return a_; }
-
-        const VertexIndex b() const { return b_; }
-
-        VertexIndex& b() { return b_; }
-
-        const VertexIndex c() const { return c_; }
-
-        VertexIndex& c() { return c_; }
-
-       protected:
-        UIDType uid_;
-
-        VertexIndex a_;
-        VertexIndex b_;
-        VertexIndex c_;
-    };
-
-    inline std::ostream& operator<<(std::ostream& out, const TriangleByIndices& tri_by_indices)
-    {
-        out << "(" << tri_by_indices.a() << ", " << tri_by_indices.b() << ", " << tri_by_indices.c() << ")";
-        return out;
-    }
-
-    class TriangleByIndicesVector : public std::vector<TriangleByIndices>
-    {
-       public:
-        const TriangleByIndices& operator[](size_t) const = delete;
-        TriangleByIndices& operator[](size_t) = delete;
-
-        const TriangleByIndices& operator[](Primitives::TriangleByIndicesIndex idx) const
-        {
-            return data()[Primitives::TriangleByIndicesIndex::integer_type(idx)];
-        }
-        TriangleByIndices& operator[](Primitives::TriangleByIndicesIndex idx)
-        {
-            return data()[Primitives::TriangleByIndicesIndex::integer_type(idx)];
-        }
-    };
-
     class EdgeByIndices
     {
        public:
@@ -330,6 +260,129 @@ namespace Cork::Primitives
        private:
         VertexIndex first_vertex_;
         VertexIndex second_vertex_;
+    };
+
+    struct EdgeByIndicesMapCompare
+    {
+        bool operator()(const EdgeByIndices& edge1, const EdgeByIndices& edge2) const
+        {
+            //	Compare the smallest indices first and then the largest indices
+
+            if ( std::min( edge1.first(), edge1.second() ) < std::min( edge2.first(), edge2.second() ) )
+            {
+                return (true);
+            }
+
+            if ( std::min( edge1.first(), edge1.second() ) > std::min( edge2.first(), edge2.second() ) )
+            {
+                return (false);
+            }
+
+            //	Smallest indices are equal - check the largest next
+
+            if ( std::max( edge1.first(), edge1.second() ) < std::max( edge2.first(), edge2.second() ) )
+            {
+                return (true);
+            }
+
+            if ( std::max( edge1.first(), edge1.second() ) > std::max( edge2.first(), edge2.second() ) )
+            {
+                return (false);
+            }
+
+            //	The only way we should end up down here is if the two edges are the same
+
+            return (false);
+        }
+    };
+
+
+    class TriangleByIndices
+    {
+       public:
+        using UIDType = uint32_t;
+
+        TriangleByIndices()
+            : uid_(UNINTIALIZED_INDEX), a_(UNINTIALIZED_INDEX), b_(UNINTIALIZED_INDEX), c_(UNINTIALIZED_INDEX)
+        {
+        }
+
+        TriangleByIndices(UIDType uid, VertexIndex a, VertexIndex b, VertexIndex c) : uid_(uid), a_(a), b_(b), c_(c) {}
+
+        virtual ~TriangleByIndices() {}
+
+        const VertexIndex operator[](size_t index) const
+        {
+            assert(index < 3);
+            return (reinterpret_cast<const VertexIndex*>(&a_))[index];
+        }
+
+        VertexIndex& operator[](size_t index)
+        {
+            assert(index < 3);
+            return (reinterpret_cast<VertexIndex*>(&a_))[index];
+        }
+
+        UIDType uid() const { return uid_; }
+
+        const VertexIndex a() const { return a_; }
+
+        VertexIndex& a() { return a_; }
+
+        const VertexIndex b() const { return b_; }
+
+        VertexIndex& b() { return b_; }
+
+        const VertexIndex c() const { return c_; }
+
+        VertexIndex& c() { return c_; }
+
+        EdgeByIndices edge(TriangleEdgeId edge_id) const
+        {
+            switch (edge_id)
+            {
+                case TriangleEdgeId::AB:
+                    return EdgeByIndices(a_, b_);
+                    break;
+
+                case TriangleEdgeId::BC:
+                    return EdgeByIndices(b_, c_);
+                    break;
+            }
+
+            return EdgeByIndices(c_, a_);
+        }
+
+        void flip() { std::swap(b_, c_); }
+
+       protected:
+        UIDType uid_;
+
+        VertexIndex a_;
+        VertexIndex b_;
+        VertexIndex c_;
+    };
+
+    inline std::ostream& operator<<(std::ostream& out, const TriangleByIndices& tri_by_indices)
+    {
+        out << "(" << tri_by_indices.a() << ", " << tri_by_indices.b() << ", " << tri_by_indices.c() << ")";
+        return out;
+    }
+
+    class TriangleByIndicesVector : public std::vector<TriangleByIndices>
+    {
+       public:
+        const TriangleByIndices& operator[](size_t) const = delete;
+        TriangleByIndices& operator[](size_t) = delete;
+
+        const TriangleByIndices& operator[](Primitives::TriangleByIndicesIndex idx) const
+        {
+            return data()[Primitives::TriangleByIndicesIndex::integer_type(idx)];
+        }
+        TriangleByIndices& operator[](Primitives::TriangleByIndicesIndex idx)
+        {
+            return data()[Primitives::TriangleByIndicesIndex::integer_type(idx)];
+        }
     };
 
     using EdgeByIndicesVector = std::vector<EdgeByIndices>;
@@ -432,6 +485,8 @@ namespace Cork::Primitives
         {
             return std::max(c_.abs().max(), std::max(a_.abs().max(), b_.abs().max()));
         }
+
+        Vector3D normal() const { return (b_ - a_).cross(c_ - a_); }
 
        private:
         Vertex3D a_;

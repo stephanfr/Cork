@@ -21,25 +21,37 @@
 
 #include <set>
 
-#include "primitives/primitives.hpp"
 #include "math/quantization.hpp"
+#include "primitives/primitives.hpp"
 
 namespace Cork::Intersection
 {
+    class SelfIntersectingEdge
+    {
+       public:
+        SelfIntersectingEdge() = delete;
+
+        SelfIntersectingEdge(Primitives::TriangleByIndicesIndex edge_triangle_id, Primitives::TriangleEdgeId edge_index,
+                             Primitives::TriangleByIndicesIndex triangle_instersected_id)
+            : edge_triangle_id_(edge_triangle_id),
+              edge_index_(edge_index),
+              triangle_instersected_id_(triangle_instersected_id)
+        {
+        }
+
+        Primitives::TriangleByIndicesIndex edge_triangle_id_;
+        Primitives::TriangleEdgeId edge_index_;
+        Primitives::TriangleByIndicesIndex triangle_instersected_id_;
+    };
+
     class IntersectionInfo
     {
        public:
         IntersectionInfo() = delete;
 
-        IntersectionInfo(Primitives::TriangleByIndicesIndex edge_triangle_id, Primitives::TriangleEdgeId edge_index,
-                         Primitives::TriangleByIndicesIndex triangle_instersected_id,
-                         std::set<Primitives::TriangleByIndicesIndex>&& triangles_including_se_vertex,
-                         std::array<std::set<Primitives::TriangleByIndicesIndex>,2>&& neighboring_triangles )
-            : edge_triangle_id_(edge_triangle_id),
-              edge_index_(edge_index),
-              triangle_instersected_id_(triangle_instersected_id),
-              triangles_including_se_vertex_(triangles_including_se_vertex),
-              neighboring_triangles_(neighboring_triangles)
+        IntersectionInfo(std::vector<SelfIntersectingEdge>&& edges,
+                         std::set<Primitives::TriangleByIndicesIndex>&& triangles_including_se_vertex)
+            : edges_(edges), triangles_including_se_vertex_(triangles_including_se_vertex)
         {
         }
 
@@ -47,39 +59,33 @@ namespace Cork::Intersection
 
         ~IntersectionInfo() = default;
 
-        Primitives::TriangleByIndicesIndex edge_triangle_id() const { return edge_triangle_id_; }
-
-        Primitives::TriangleEdgeId edge_index() const { return edge_index_; }
-
-        Primitives::TriangleByIndicesIndex triangle_instersected_id() const { return triangle_instersected_id_; }
+        const std::vector<SelfIntersectingEdge>& edges() const { return edges_; }
 
         const std::set<Primitives::TriangleByIndicesIndex>& triangles_including_se_vertex() const
         {
             return triangles_including_se_vertex_;
         }
 
-        const std::array<std::set<Primitives::TriangleByIndicesIndex>,2>& neighboring_triangles() const
-        {
-            return neighboring_triangles_;
-        }
-
        private:
-        Primitives::TriangleByIndicesIndex edge_triangle_id_;
-        Primitives::TriangleEdgeId edge_index_;
-        Primitives::TriangleByIndicesIndex triangle_instersected_id_;
+        std::vector<SelfIntersectingEdge> edges_;
         std::set<Primitives::TriangleByIndicesIndex> triangles_including_se_vertex_;
-        std::array<std::set<Primitives::TriangleByIndicesIndex>,2> neighboring_triangles_;
-    };
 
+        friend class SelfIntersectionFinderImpl;
+    };
 
     class SelfIntersectionFinder
     {
        public:
-        static std::unique_ptr<SelfIntersectionFinder> GetFinder(Primitives::TriangleByIndicesVector&  triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges, const Math::Quantizer& quantizer);
+        static std::unique_ptr<SelfIntersectionFinder> GetFinder(Primitives::TriangleByIndicesVector& triangles,
+                                                                 Primitives::Vertex3DVector& vertices,
+                                                                 uint32_t num_edges, const Math::Quantizer& quantizer);
 
         virtual ~SelfIntersectionFinder() {}
 
         virtual const std::vector<IntersectionInfo> CheckSelfIntersection() = 0;
+
+        virtual std::set<Primitives::TriangleByIndicesIndex> find_enclosing_triangles(
+            const std::set<Primitives::TriangleByIndicesIndex>& triangles_patch) = 0;
     };
 
 }  // namespace Cork::Intersection

@@ -151,10 +151,12 @@ namespace Cork::Statistics
 
         if (props_to_compute & TopologicalProperties::TOPO_SELF_INTERSECTIONS)
         {
-            std::unique_ptr<Meshes::Mesh> single_mesh(
-                new Meshes::Mesh(triangle_mesh_, CorkService::get_default_control_block()));
+//            std::unique_ptr<Meshes::Mesh> single_mesh(
+//                new Meshes::Mesh(triangle_mesh_, CorkService::get_default_control_block()));
 
-            Math::Quantizer::GetQuantizerResult get_quantizer_result = single_mesh->getQuantizer();
+//            Math::Quantizer::GetQuantizerResult get_quantizer_result = triangle_mesh_.getQuantizer();
+
+            auto get_quantizer_result = Math::Quantizer::get_quantizer(triangle_mesh_.max_vertex_magnitude(), triangle_mesh_.min_and_max_edge_lengths().min());
 
             if (!get_quantizer_result.succeeded())
             {

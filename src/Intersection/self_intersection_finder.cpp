@@ -46,6 +46,9 @@ namespace Cork::Intersection
 
         const std::vector<IntersectionInfo> CheckSelfIntersection() final;
 
+        std::set<TriangleByIndicesIndex> find_enclosing_triangles(
+            const std::set<TriangleByIndicesIndex>& triangles_patch) final;
+
        private:
         SEFUtility::CachingFactory<IntersectionWorkspace>::UniquePtr m_intersection_workspace;
 
@@ -88,7 +91,7 @@ namespace Cork::Intersection
     const std::vector<IntersectionInfo> SelfIntersectionFinderImpl::CheckSelfIntersection()
     {
         Empty3d::ExactArithmeticContext localArithmeticContext;
-        std::vector<IntersectionInfo> self_intersecting_edges;
+        std::vector<IntersectionInfo> self_intersections;
 
         for (TopoTri& t : topo_cache_.triangles())
         {
@@ -100,6 +103,8 @@ namespace Cork::Intersection
                 if (t.intersectsEdge(edge, quantizer_, localArithmeticContext))
                 {
                     std::set<TopoTri*> topo_tris_with_se_vertex;
+
+                    std::cout << &edge.vert_0() << "    " << &edge.vert_1() << std::endl;
 
                     for (auto triangle_sharing_edge : edge.vert_0().triangles())
                     {
@@ -117,43 +122,89 @@ namespace Cork::Intersection
                     for (auto triangle_with_se_vertex : topo_tris_with_se_vertex)
                     {
                         triangles_with_se_vertex.insert(triangle_with_se_vertex->source_triangle_id());
+                    }
 
-                        for (auto touching_edge : triangle_with_se_vertex->edges())
+                    //  Check to see if we have to merge this self intersection with an existing self-intersection
+
+                    bool merged = false;
+
+                    for (auto& current_triangle : triangles_with_se_vertex)
+                    {
+                        for (auto current_se : self_intersections)
                         {
-                            for (auto triangle_touching : touching_edge->triangles())
+                            if (current_se.triangles_including_se_vertex().find(current_triangle) !=
+                                current_se.triangles_including_se_vertex().end())
                             {
-                                neighboring_triangles[0].insert(triangle_touching->source_triangle_id());
+                                std::cout << "ses overlap" << std::endl;
 
-                                for (auto next_edge_out : triangle_touching->edges())
+                                for (auto& triangle_to_merge : triangles_with_se_vertex)
                                 {
-                                    for (auto next_triangle_out : next_edge_out->triangles())
-                                    {
-                                        neighboring_triangles[1].insert(next_triangle_out->source_triangle_id());
-                                    }
+                                    current_se.triangles_including_se_vertex_.emplace(triangle_to_merge);
                                 }
+
+                                current_se.edges_.emplace_back(edge.source_triangle_id(), edge.edge_index(),
+                                                               t.source_triangle_id());
+
+                                merged = true;
+                                break;
                             }
+                        }
+
+                        if (merged)
+                        {
+                            break;
                         }
                     }
 
-                    for (auto triangle_to_remove : triangles_with_se_vertex)
+                    if (!merged)
                     {
-                        neighboring_triangles[0].erase(triangle_to_remove);
-                        neighboring_triangles[1].erase(triangle_to_remove);
-                    }
+                        std::vector<SelfIntersectingEdge>       edges;
 
-                    for (auto triangle_to_remove : neighboring_triangles[0])
-                    {
-                        neighboring_triangles[1].erase(triangle_to_remove);
-                    }
+                        edges.emplace_back( edge.source_triangle_id(), edge.edge_index(), t.source_triangle_id() );
 
-                    self_intersecting_edges.emplace_back(Intersection::IntersectionInfo(
-                        edge.source_triangle_id(), edge.edge_index(), t.source_triangle_id(),
-                        std::move(triangles_with_se_vertex), std::move(neighboring_triangles)));
+                        self_intersections.emplace_back(Intersection::IntersectionInfo( std::move(edges), std::move(triangles_with_se_vertex)));
+                    }
                 }
             }
         }
 
-        return self_intersecting_edges;
+        return self_intersections;
+    }
+
+    std::set<TriangleByIndicesIndex> SelfIntersectionFinderImpl::find_enclosing_triangles(
+        const std::set<TriangleByIndicesIndex>& triangles_patch)
+    {
+        std::map<TriangleByIndicesIndex, TopoTri*> topo_tris_by_index;
+
+        for (auto& next_topo_tri : topo_cache_.triangles())
+        {
+            topo_tris_by_index.insert(std::make_pair(next_topo_tri.source_triangle_id(), &next_topo_tri));
+        }
+
+        std::set<TopoTri*> topo_tris_in_patch;
+
+        for (auto& next_triangle : triangles_patch)
+        {
+            topo_tris_in_patch.insert(topo_tris_by_index[next_triangle]);
+        }
+
+        std::set<TriangleByIndicesIndex> enclosing_triangles;
+
+        for (auto next_topo_tri : topo_tris_in_patch)
+        {
+            for (auto touching_edge : next_topo_tri->edges())
+            {
+                for (auto triangle_touching : touching_edge->triangles())
+                {
+                    if (!triangles_patch.contains(triangle_touching->source_triangle_id()))
+                    {
+                        enclosing_triangles.emplace(triangle_touching->source_triangle_id());
+                    }
+                }
+            }
+        }
+
+        return enclosing_triangles;
     }
 
     std::unique_ptr<SelfIntersectionFinder> SelfIntersectionFinder::GetFinder(
