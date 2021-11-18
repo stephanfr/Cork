@@ -27,7 +27,7 @@
 
 #include "util/CachingFactory.h"
 #include "intersection/glue_and_generic_types.hpp"
-#include "accel/aabvh.h"
+#include "accel/aabvh.hpp"
 #include "mesh/TopoCache.h"
 
 namespace Cork::Intersection

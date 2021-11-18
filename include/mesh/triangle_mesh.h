@@ -30,62 +30,17 @@
 #include <deque>
 #include <vector>
 
-#include "CPPResult.hpp"
-#include "primitives/primitives.hpp"
-#include "statistics/statistics.h"
+#include "cork.hpp"
+
 
 namespace Cork::Meshes
 {
+    using TopologicalStatisticsResultCodes = Cork::TopologicalStatisticsResultCodes;
+    using TopologicalStatisticsResult = Cork::TopologicalStatisticsResult;
+    using HoleClosingResultCodes = Cork::HoleClosingResultCodes;
+    using HoleClosingResult = Cork::HoleClosingResult;
 
-        
-    enum class TopologicalStatisticsResultCodes
-    {
-        SUCCESS = 0,
-
-        ANALYSIS_FAILED
-    };
-
-    using TopologicalStatisticsResult = SEFUtility::ResultWithReturnValue<TopologicalStatisticsResultCodes,Statistics::TopologicalStatistics>;
-    
-    enum class HoleClosingResultCodes
-    {
-        SUCCESS = 0,
-
-        TRIANGULATION_FAILED
-    };
-
-    using HoleClosingResult = SEFUtility::Result<HoleClosingResultCodes>;
-
-
-    class TriangleMesh
-    {
-       public:
-        //	Methods follow
-
-        virtual ~TriangleMesh(){};
-
-        virtual size_t numTriangles() const = 0;
-        virtual size_t numVertices() const = 0;
-
-        virtual const Primitives::Vertex3DVector& vertices() const = 0;
-        virtual const Primitives::TriangleByIndicesVector& triangles() const = 0;
-
-        virtual Primitives::TriangleByVertices triangleByVertices(
-            const Primitives::TriangleByIndices& triangleByIndices) const = 0;
-
-        virtual void AddTriangle(const Primitives::TriangleByIndices& triangle_to_add) = 0;
-        virtual void remove_triangle(Primitives::TriangleByIndicesIndex triangle_index) = 0;
-
-        virtual const Primitives::BBox3D& boundingBox() const = 0;
-        virtual Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
-        virtual double max_vertex_magnitude() const = 0;
-
-        virtual Statistics::GeometricStatistics ComputeGeometricStatistics(Statistics::GeometricProperties props_to_compute ) const = 0;
-        virtual TopologicalStatisticsResult ComputeTopologicalStatistics(Statistics::TopologicalProperties     props_to_compute) const = 0;
-
-        virtual HoleClosingResult close_holes( const Statistics::TopologicalStatistics&     topo_stats ) = 0;
-        virtual void remove_self_intersections( const Statistics::TopologicalStatistics&     topo_stats ) = 0;
-    };
+    using TriangleMesh = Cork::TriangleMesh;
 
     enum class TriangleMeshBuilderResultCodes
     {
@@ -96,7 +51,8 @@ namespace Cork::Meshes
         MESH_NOT_2_MANIFOLD
     };
 
-    using TriangleMeshBuilderResult = SEFUtility::ResultWithReturnUniquePtr<TriangleMeshBuilderResultCodes, TriangleMesh>;
+    using TriangleMeshBuilderResult =
+        SEFUtility::ResultWithReturnUniquePtr<TriangleMeshBuilderResultCodes, TriangleMesh>;
 
     class IncrementalVertexIndexTriangleMeshBuilder
     {
@@ -109,7 +65,8 @@ namespace Cork::Meshes
         virtual size_t num_vertices() const = 0;
 
         virtual Primitives::VertexIndex AddVertex(const Primitives::Vertex3D& vertexToAdd) = 0;
-        virtual TriangleMeshBuilderResultCodes AddTriangle(Primitives::VertexIndex a, Primitives::VertexIndex b, Primitives::VertexIndex c) = 0;
+        virtual TriangleMeshBuilderResultCodes AddTriangle(Primitives::VertexIndex a, Primitives::VertexIndex b,
+                                                           Primitives::VertexIndex c) = 0;
 
         virtual std::unique_ptr<TriangleMesh> Mesh() = 0;
     };

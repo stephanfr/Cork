@@ -31,8 +31,6 @@ THE SOFTWARE.
 #include <atomic>
 #include <tuple>
 
-#include "CorkDefs.h"
-
 #include "Xoshiro256Plus.h"
 
 

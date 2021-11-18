@@ -193,7 +193,7 @@ TEST_CASE("Topology Tests", "[file io]")
 
         REQUIRE(read_result.succeeded());
 
-        auto* mesh(read_result.return_ptr().release());
+        std::unique_ptr<Cork::Meshes::TriangleMesh> mesh(read_result.return_ptr().release());
 
         auto topo_stats = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
@@ -226,7 +226,7 @@ TEST_CASE("Topology Tests", "[file io]")
 
         REQUIRE(read_result.succeeded());
 
-        auto* mesh(read_result.return_ptr().release());
+        std::unique_ptr<Cork::Meshes::TriangleMesh> mesh(read_result.return_ptr().release());
 
         auto topo_stats = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
@@ -259,7 +259,7 @@ TEST_CASE("Topology Tests", "[file io]")
 
         REQUIRE(read_result.succeeded());
 
-        auto* mesh(read_result.return_ptr().release());
+        std::unique_ptr<Cork::Meshes::TriangleMesh> mesh(read_result.return_ptr().release());
 
         auto topo_stats = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 

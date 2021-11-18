@@ -43,11 +43,63 @@
 #endif
 
 #include "CPPResult.hpp"
-#include "mesh/triangle_mesh.h"
+#include "statistics.hpp"
 
 namespace Cork
 {
-    using TriangleMesh = Cork::Meshes::TriangleMesh;
+//    using TriangleMesh = Meshes::TriangleMesh;
+
+    enum class TopologicalStatisticsResultCodes
+    {
+        SUCCESS = 0,
+
+        ANALYSIS_FAILED
+    };
+
+    using TopologicalStatisticsResult =
+        SEFUtility::ResultWithReturnValue<TopologicalStatisticsResultCodes, Statistics::TopologicalStatistics>;
+
+    enum class HoleClosingResultCodes
+    {
+        SUCCESS = 0,
+
+        TRIANGULATION_FAILED
+    };
+
+    using HoleClosingResult = SEFUtility::Result<HoleClosingResultCodes>;
+
+    class TriangleMesh
+    {
+       public:
+        //	Methods follow
+
+        virtual ~TriangleMesh(){};
+
+        virtual size_t numTriangles() const = 0;
+        virtual size_t numVertices() const = 0;
+
+        virtual const Primitives::Vertex3DVector& vertices() const = 0;
+        virtual const Primitives::TriangleByIndicesVector& triangles() const = 0;
+
+        virtual Primitives::TriangleByVertices triangleByVertices(
+            const Primitives::TriangleByIndices& triangleByIndices) const = 0;
+
+        virtual void AddTriangle(const Primitives::TriangleByIndices& triangle_to_add) = 0;
+        virtual void remove_triangle(Primitives::TriangleByIndicesIndex triangle_index) = 0;
+
+        virtual const Primitives::BBox3D& boundingBox() const = 0;
+        virtual Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
+        virtual double max_vertex_magnitude() const = 0;
+
+        virtual Statistics::GeometricStatistics ComputeGeometricStatistics(
+            Statistics::GeometricProperties props_to_compute) const = 0;
+        virtual TopologicalStatisticsResult ComputeTopologicalStatistics(
+            Statistics::TopologicalProperties props_to_compute) const = 0;
+
+        virtual HoleClosingResult close_holes(const Statistics::TopologicalStatistics& topo_stats) = 0;
+        virtual void remove_self_intersections(const Statistics::TopologicalStatistics& topo_stats) = 0;
+    };
+
 
     class SolverControlBlock
     {

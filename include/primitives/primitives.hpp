@@ -30,7 +30,7 @@
 
 //	Setup the numeric precision and the vector implementation for the build.
 
-#include "CorkDefs.h"
+#include "cork_defs.hpp"
 
 //  Include some basic templates and types we will use to create the primitives for Cork
 

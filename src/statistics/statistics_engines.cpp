@@ -29,9 +29,10 @@
 #include <boost/container/small_vector.hpp>
 #include <unordered_set>
 
-#include "CorkDefs.h"
-#include "cork.h"
+#include "cork_defs.hpp"
+#include "cork.hpp"
 #include "intersection/intersection_problem.hpp"
+#include "intersection/self_intersection_finder.hpp"
 #include "math/quantization.hpp"
 #include "mesh/mesh.h"
 
@@ -40,6 +41,10 @@ namespace Cork::Statistics
     using Vector3D = Primitives::Vector3D;
 
     using TriangleByVertices = Primitives::TriangleByVertices;
+
+    using TriangleMeshWithTopoCache = Meshes::TriangleMeshWithTopoCache;
+
+    using IntersectionInfo = Statistics::IntersectionInfo;
 
     GeometricStatisticsEngine::GeometricStatisticsEngine(const TriangleMesh& triangle_mesh,
                                                          GeometricProperties properties_to_compute)
@@ -92,7 +97,7 @@ namespace Cork::Statistics
         }
     }
 
-    TopologicalStatisticsEngine::TopologicalStatisticsEngine(const TriangleMesh& triangle_mesh)
+    TopologicalStatisticsEngine::TopologicalStatisticsEngine(const TriangleMeshWithTopoCache& triangle_mesh)
         : triangle_mesh_(triangle_mesh)
     {
         edges_.reserve((triangle_mesh.numTriangles() * 6) + 10);  //  Pad just a little bit
@@ -151,26 +156,9 @@ namespace Cork::Statistics
 
         if (props_to_compute & TopologicalProperties::TOPO_SELF_INTERSECTIONS)
         {
-//            std::unique_ptr<Meshes::Mesh> single_mesh(
-//                new Meshes::Mesh(triangle_mesh_, CorkService::get_default_control_block()));
+            Intersection::SelfIntersectionFinder se_finder(triangle_mesh_.topo_cache());
 
-//            Math::Quantizer::GetQuantizerResult get_quantizer_result = triangle_mesh_.getQuantizer();
-
-            auto get_quantizer_result = Math::Quantizer::get_quantizer(triangle_mesh_.max_vertex_magnitude(), triangle_mesh_.min_and_max_edge_lengths().min());
-
-            if (!get_quantizer_result.succeeded())
-            {
-                return TopologicalStatisticsEngineAnalyzeResult::failure(
-                    TopologicalStatisticsEngineAnalyzeResultCodes::UNABLE_TO_ACQUIRE_QUANTIZER,
-                    "Unable to Acquire Quntizer");
-            }
-
-            Math::Quantizer quantizer(get_quantizer_result.return_value());
-
-            std::unique_ptr<Intersection::SelfIntersectionFinder> se_finder(
-                Intersection::SelfIntersectionFinder::GetFinder(const_cast<Primitives::TriangleByIndicesVector&>(triangle_mesh_.triangles()), const_cast<Primitives::Vertex3DVector&>(triangle_mesh_.vertices()), triangle_mesh_.numTriangles() * 3, quantizer));
-
-            si_stats = se_finder->CheckSelfIntersection();
+            si_stats = se_finder.CheckSelfIntersection();
         }
 
         return TopologicalStatistics(num_edges, 0, num_non_2_manifold, holes, si_stats);

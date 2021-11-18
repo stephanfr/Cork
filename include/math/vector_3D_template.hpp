@@ -35,7 +35,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "../src/CorkDefs.h"
+#include "cork_defs.hpp"
 #include "vector_2D_template.hpp"
 #include "Xoshiro256Plus.h"
 

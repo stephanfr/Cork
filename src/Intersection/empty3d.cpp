@@ -113,17 +113,17 @@ namespace Cork::Empty3d
 
     HasIntersection TriangleEdgeIntersection::emptyFilter() const
     {
-        std::array<AbsExt4_1, 2> kep;
-        std::array<AbsExt4_1, 3> ktp;
+        std::array<AbsExt4_1, 2> kep{{ AbsExt4_1( edge_.p0() ), AbsExt4_1( edge_.p1() )}};
+        std::array<AbsExt4_1, 3> ktp{{ AbsExt4_1(tri_.p0()), AbsExt4_1(tri_.p1()), AbsExt4_1(tri_.p2()) }};
 
         // load the points
 
-        kep[0] = edge_.p0();
-        kep[1] = edge_.p1();
+//        kep[0] = edge_.p0();
+//        kep[1] = edge_.p1();
 
-        ktp[0] = tri_.p0();
-        ktp[1] = tri_.p1();
-        ktp[2] = tri_.p2();
+//        ktp[0] = tri_.p0();
+//        ktp[1] = tri_.p1();
+//        ktp[2] = tri_.p2();
 
         // form the edge and triangle
 

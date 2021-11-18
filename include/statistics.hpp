@@ -27,8 +27,8 @@
 #pragma once
 
 #include <memory>
+#include <set>
 
-#include "intersection/self_intersections.hpp"
 #include "primitives/hole.hpp"
 #include "primitives/primitives.hpp"
 
@@ -48,8 +48,6 @@ namespace Cork::Statistics
         TOPO_HOLES = 2,
         TOPO_SELF_INTERSECTIONS = 4
     };
-
-    using IntersectionInfo = Intersection::IntersectionInfo;
 
     class GeometricStatistics
     {
@@ -88,6 +86,73 @@ namespace Cork::Statistics
         double min_edge_length_;
         double max_edge_length_;
         const Primitives::BBox3D bounding_box_;
+    };
+
+    class SelfIntersectingEdge
+    {
+       public:
+        SelfIntersectingEdge() = delete;
+
+        SelfIntersectingEdge(const SelfIntersectingEdge& ) = default;
+        SelfIntersectingEdge(SelfIntersectingEdge&& ) = default;
+
+        SelfIntersectingEdge(Primitives::TriangleByIndicesIndex edge_triangle_id, Primitives::TriangleEdgeId edge_index,
+                             Primitives::TriangleByIndicesIndex triangle_instersected_id)
+            : edge_triangle_id_(edge_triangle_id),
+              edge_index_(edge_index),
+              triangle_instersected_id_(triangle_instersected_id)
+        {
+        }
+
+        SelfIntersectingEdge&   operator=(const SelfIntersectingEdge&) = default;
+        SelfIntersectingEdge&   operator=(SelfIntersectingEdge&&) = default;
+
+        Primitives::TriangleByIndicesIndex edge_triangle_id() const { return edge_triangle_id_; }
+        Primitives::TriangleEdgeId edge_index() const { return edge_index_; }
+        Primitives::TriangleByIndicesIndex triangle_instersected_id() const { return triangle_instersected_id_; }
+
+       private:
+        Primitives::TriangleByIndicesIndex edge_triangle_id_;
+        Primitives::TriangleEdgeId edge_index_;
+        Primitives::TriangleByIndicesIndex triangle_instersected_id_;
+    };
+
+    class IntersectionInfo
+    {
+       public:
+        IntersectionInfo() = delete;
+
+        IntersectionInfo(std::vector<SelfIntersectingEdge>&& edges,
+                         std::set<Primitives::TriangleByIndicesIndex>&& triangles_including_se_vertex)
+            : edges_(edges), triangles_including_se_vertex_(triangles_including_se_vertex)
+        {
+        }
+
+        IntersectionInfo(const IntersectionInfo&) = default;
+
+        ~IntersectionInfo() = default;
+
+        const std::vector<SelfIntersectingEdge>& edges() const { return edges_; }
+
+        const std::set<Primitives::TriangleByIndicesIndex>& triangles_including_se_vertex() const
+        {
+            return triangles_including_se_vertex_;
+        }
+
+        void merge(const SelfIntersectingEdge& edge,
+                   const std::set<Primitives::TriangleByIndicesIndex>& triangles_including_se_vertex)
+        {
+            edges_.emplace_back(edge);
+
+            for (auto& triangle_to_add : triangles_including_se_vertex)
+            {
+                triangles_including_se_vertex_.emplace(triangle_to_add);
+            }
+        }
+
+       private:
+        std::vector<SelfIntersectingEdge> edges_;
+        std::set<Primitives::TriangleByIndicesIndex> triangles_including_se_vertex_;
     };
 
     class TopologicalStatistics

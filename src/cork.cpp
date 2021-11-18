@@ -1,6 +1,6 @@
 #include "util/ThreadPool.h"
 
-#include "cork.h"
+#include "cork.hpp"
 #include "mesh/mesh.h"
 
 namespace Cork

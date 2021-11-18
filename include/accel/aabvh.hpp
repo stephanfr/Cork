@@ -32,7 +32,7 @@
 #include <deque>
 #include <vector>
 
-#include "CorkDefs.h"
+#include "cork_defs.hpp"
 #include "Xoshiro256Plus.h"
 #include "mesh/TopoCache.h"
 #include "oneapi/tbb/spin_mutex.h"

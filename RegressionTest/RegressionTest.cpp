@@ -37,8 +37,8 @@
 #include <iostream>
 #include <list>
 
-#include "cork.h"
-#include "file_formats/files.h"
+#include "cork.hpp"
+#include "file_formats/files.hpp"
 
 constexpr double NUM_NANOSECONDS_PER_SECOND = 1E09;
 

@@ -37,13 +37,13 @@
 #include "util/performance_stringstream.h"
 #endif
 
-#include "file_formats/files.h"
+#include "file_formats/files.hpp"
 #include "util/file_helpers.h"
 
 namespace Cork::Files
 {
     //  Define some local symbols to cur through some of the namespacing
-    
+
     using VertexIndex = Primitives::VertexIndex;
     using TriangleByIndices = Primitives::TriangleByIndices;
     using IncrementalVertexIndexTriangleMeshBuilder = Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilder;
@@ -59,7 +59,8 @@ namespace Cork::Files
     inline SEFUtility::PerformanceOStringStream& operator<<(SEFUtility::PerformanceOStringStream& out_stream,
                                                             const Primitives::TriangleByIndices& triToWrite)
     {
-        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("3 {:d} {:d} {:d}"), VertexIndex::integer_type(triToWrite[0]), VertexIndex::integer_type(triToWrite[1]),
+        fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("3 {:d} {:d} {:d}"),
+                       VertexIndex::integer_type(triToWrite[0]), VertexIndex::integer_type(triToWrite[1]),
                        VertexIndex::integer_type(triToWrite[2]));
 
         return (out_stream);
@@ -195,9 +196,9 @@ namespace Cork::Files
             {
                 uint32_t poly_sides(0);
 
-                VertexIndex x_index(0u);
-                VertexIndex y_index(0u);
-                VertexIndex z_index(0u);
+                VertexIndex::integer_type x_index(0U);
+                VertexIndex::integer_type y_index(0U);
+                VertexIndex::integer_type z_index(0U);
 
                 //  We cannot use read_line_exactly as we want to detect non-triangular polygons
 
@@ -210,8 +211,8 @@ namespace Cork::Files
                 }
 
                 //  NOLINTNEXTLINE(cert-err34-c, cppcoreguidelines-pro-type-vararg, hicpp-vararg)
-                items_processed = std::sscanf(next_line.c_str(), "%u %u %u %u %n", &poly_sides, reinterpret_cast<uint32_t*>(&x_index), reinterpret_cast<uint32_t*>(&y_index),
-                                              reinterpret_cast<uint32_t*>(&z_index), &chars_processed);
+                items_processed = std::sscanf(next_line.c_str(), "%u %u %u %u %n", &poly_sides, &x_index, &y_index,
+                                              &z_index, &chars_processed);
 
                 if ((items_processed >= 1) && (poly_sides != 3))
                 {
@@ -226,8 +227,7 @@ namespace Cork::Files
                                                    "Error reading faces.");
                 }
 
-                if (meshBuilder->AddTriangle( x_index, y_index, z_index ) !=
-                    TriangleMeshBuilderResultCodes::SUCCESS)
+                if (meshBuilder->AddTriangle(x_index, y_index, z_index) != TriangleMeshBuilderResultCodes::SUCCESS)
                 {
                     return ReadFileResult::failure(
                         ReadFileResultCodes::OFF_ERROR_ADDING_FACE_TO_MESH,

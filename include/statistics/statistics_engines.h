@@ -27,9 +27,9 @@
 #include <boost/container/small_vector.hpp>
 #include <unordered_set>
 
-#include "CorkDefs.h"
-#include "cork.h"
-#include "statistics/statistics.h"
+#include "cork_defs.hpp"
+#include "mesh/triangle_mesh_with_topo_cache.hpp"
+#include "statistics.hpp"
 
 namespace Cork::Statistics
 {
@@ -39,15 +39,15 @@ namespace Cork::Statistics
         explicit GeometricStatisticsEngine(const Cork::TriangleMesh& triangle_mesh,
                                            GeometricProperties propertiesToCompute = GeometricProperties::GEOM_ALL);
 
-        GeometricStatistics     statistics() const
+        GeometricStatistics statistics() const
         {
-            return GeometricStatistics( num_triangles_, num_vertices_, area_, volume_, min_edge_length_, max_edge_length_, bounding_box_ );
+            return GeometricStatistics(num_triangles_, num_vertices_, area_, volume_, min_edge_length_,
+                                       max_edge_length_, bounding_box_);
         }
 
        private:
-
-        uint32_t    num_triangles_;
-        uint32_t    num_vertices_;
+        uint32_t num_triangles_;
+        uint32_t num_vertices_;
 
         double area_;
         double volume_;
@@ -55,7 +55,7 @@ namespace Cork::Statistics
         double min_edge_length_;
         double max_edge_length_;
 
-        Primitives::BBox3D      bounding_box_;
+        Primitives::BBox3D bounding_box_;
 
         void AddTriangle(const Primitives::TriangleByVertices& nextTriangle);
     };
@@ -73,14 +73,14 @@ namespace Cork::Statistics
     class TopologicalStatisticsEngine
     {
        public:
-        TopologicalStatisticsEngine(const Cork::TriangleMesh& triangle_mesh);
+        TopologicalStatisticsEngine(const Cork::Meshes::TriangleMeshWithTopoCache& triangle_mesh);
 
         ~TopologicalStatisticsEngine() = default;
 
         TopologicalStatisticsEngineAnalyzeResult Analyze(TopologicalProperties props_to_compute);
 
        private:
-        const Cork::TriangleMesh& triangle_mesh_;
+        const Cork::Meshes::TriangleMeshWithTopoCache& triangle_mesh_;
 
         class EdgeAndIncidence : public Primitives::EdgeByIndices
         {

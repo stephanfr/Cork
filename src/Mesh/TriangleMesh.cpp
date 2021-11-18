@@ -28,8 +28,9 @@
 #include <set>
 #include <unordered_map>
 
+#include "intersection/self_intersection_finder.hpp"
 #include "intersection/triangulator.hpp"
-#include "mesh/triangle_mesh.h"
+#include "mesh/triangle_mesh_with_topo_cache.hpp"
 #include "primitives/hole.hpp"
 #include "primitives/index_remapper.hpp"
 #include "statistics/statistics_engines.h"
@@ -59,7 +60,7 @@ namespace Cork::Meshes
     //		of vertices and triangles defined as 3-tuples of indices into the vertex set.
     //
 
-    class TriangleMeshImpl : public TriangleMesh
+    class TriangleMeshImpl : public TriangleMeshWithTopoCache
     {
        public:
         TriangleMeshImpl(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>& vertices,
@@ -101,6 +102,21 @@ namespace Cork::Meshes
         }
         [[nodiscard]] double max_vertex_magnitude() const final { return max_vertex_magnitude_; }
 
+        [[nodiscard]] Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>& topo_cache() const
+        {
+            if (!topo_cache_)
+            {
+                auto get_quantizer_result =
+                    Math::Quantizer::get_quantizer(max_vertex_magnitude(), min_and_max_edge_lengths().min());
+
+                const_cast<std::unique_ptr<Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>>&>(topo_cache_)
+                    .reset(new Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>(
+                        *m_triangles, *m_vertices, m_triangles->size() * 4, get_quantizer_result.return_value()));
+            }
+
+            return *topo_cache_;
+        }
+
         [[nodiscard]] Statistics::GeometricStatistics ComputeGeometricStatistics(
             Statistics::GeometricProperties props_to_compute) const final
         {
@@ -132,9 +148,9 @@ namespace Cork::Meshes
             //      by having the vector compress with removals and then having the wrong element removed by index.
 
             std::set<TriangleByIndicesIndex, std::greater<TriangleByIndicesIndex>> all_triangles_to_remove;
-            std::vector<TriangleByIndices>                                         all_triangles_to_add;
+            std::vector<TriangleByIndices> all_triangles_to_add;
 
-            all_triangles_to_add.reserve( 1000 );
+            all_triangles_to_add.reserve(1000);
 
             for (auto& record : topo_stats.self_intersections())
             {
@@ -145,7 +161,7 @@ namespace Cork::Meshes
                     triangles_to_remove.insert(triangle_id);
                 }
 
-                std::vector<Hole>   holes_for_se = get_hole_for_self_intersection( triangles_to_remove );
+                std::vector<Hole> holes_for_se = get_hole_for_self_intersection(triangles_to_remove);
 
                 auto get_hole_closing_triangles_result = get_hole_closing_triangles(holes_for_se[0]);
 
@@ -155,31 +171,18 @@ namespace Cork::Meshes
                     continue;
                 }
 
-                auto get_quantizer_result =
-                    Math::Quantizer::get_quantizer(max_vertex_magnitude(), min_and_max_edge_lengths().min());
+                Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>      minimal_cache( *(get_hole_closing_triangles_result.return_ptr()), const_cast<Primitives::Vertex3DVector&>(vertices()),
+                        get_hole_closing_triangles_result.return_ptr()->size() * 4, topo_cache().quantizer() );
 
-                //            if (!get_quantizer_result.succeeded())
-                //            {
-                //                return TopologicalStatisticsEngineAnalyzeResult::failure(
-                //                    TopologicalStatisticsEngineAnalyzeResultCodes::UNABLE_TO_ACQUIRE_QUANTIZER,
-                //                    "Unable to Acquire Quntizer");
-                //            }
+                Intersection::SelfIntersectionFinder se_finder( minimal_cache );
 
-                Math::Quantizer quantizer(get_quantizer_result.return_value());
-
-                std::unique_ptr<Intersection::SelfIntersectionFinder> se_finder(
-                    Intersection::SelfIntersectionFinder::GetFinder(
-                        *(get_hole_closing_triangles_result.return_ptr()),
-                        const_cast<Primitives::Vertex3DVector&>(vertices()),
-                        get_hole_closing_triangles_result.return_ptr()->size() * 4, quantizer));
-
-                auto si_stats = se_finder->CheckSelfIntersection();
+                auto si_stats = se_finder.CheckSelfIntersection();
 
                 if (si_stats.size() == 0)
                 {
                     for (auto tri_to_remove_index : triangles_to_remove)
                     {
-                        all_triangles_to_remove.emplace( tri_to_remove_index);
+                        all_triangles_to_remove.emplace(tri_to_remove_index);
                     }
 
                     for (auto tri_to_add : *(get_hole_closing_triangles_result.return_ptr()))
@@ -202,6 +205,8 @@ namespace Cork::Meshes
             {
                 AddTriangle(tri_to_add);
             }
+
+            topo_cache_.release();
         }
 
         std::vector<Hole> get_hole_for_self_intersection(
@@ -345,6 +350,8 @@ namespace Cork::Meshes
         const Primitives::BBox3D m_boundingBox;
         const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths_;
         double max_vertex_magnitude_;
+
+        std::unique_ptr<Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>> topo_cache_;
     };
 
     //

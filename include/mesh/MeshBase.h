@@ -29,10 +29,10 @@
 #include <optional>
 #include <vector>
 
-#include "cork.h"
 #include "math/quantization.hpp"
 #include "primitives/primitives.hpp"
 #include "triangle_mesh.h"
+#include "cork.hpp"
 
 namespace Cork::Meshes
 {

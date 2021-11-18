@@ -31,7 +31,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "CorkDefs.h"
+#include "cork_defs.hpp"
 
 namespace Cork::Math
 {

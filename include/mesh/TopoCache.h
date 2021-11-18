@@ -642,6 +642,8 @@ namespace Cork::Meshes
 
         TopoVertexList& vertices() { return (m_topoVertexList); }
 
+        const Math::Quantizer   quantizer() const { return quantizer_; }
+
        private:
         TopoCacheBase() = delete;
 
@@ -656,7 +658,7 @@ namespace Cork::Meshes
        protected:
         SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr m_workspace;
 
-        const Math::Quantizer& quantizer_;
+        const Math::Quantizer quantizer_;
 
         T& mesh_triangles_;
         Primitives::Vertex3DVector& mesh_vertices_;

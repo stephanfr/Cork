@@ -1,5 +1,5 @@
 // +-------------------------------------------------------------------------
-// | IntersectionProblem.h
+// | triangle_mesh_with_topo_cache.h
 // |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
@@ -26,33 +26,18 @@
 
 #pragma once
 
-#include "mesh/MeshBase.h"
+#include "mesh/TopoCache.h"
+#include "triangle_mesh.h"
 
-namespace Cork::Intersection
+namespace Cork::Meshes
 {
-    enum class IntersectionProblemResultCodes
-    {
-        SUCCESS = 0,
-        OUT_OF_MEMORY,
-        SUBDIVIDE_FAILED,
-        EXHAUSTED_PURTURBATION_RETRIES,
-        SELF_INTERSECTING_MESH,
-        CONSOLIDATE_FAILED
-    };
-
-    using IntersectionProblemResult = SEFUtility::Result<IntersectionProblemResultCodes>;
-
-    class IntersectionSolver
+    class TriangleMeshWithTopoCache : public TriangleMesh
     {
        public:
-        static std::unique_ptr<IntersectionSolver> GetSolver(Meshes::MeshBase& owner, const Math::Quantizer& quantizer);
+        //	Methods follow
 
-        virtual ~IntersectionSolver() {}
+        virtual ~TriangleMeshWithTopoCache(){};
 
-        virtual IntersectionProblemResult FindIntersections() = 0;
-        virtual IntersectionProblemResult ResolveAllIntersections() = 0;
-
-        virtual void commit() = 0;
+        virtual Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>& topo_cache() const = 0;
     };
-
-}  // namespace Cork::Intersection
+}  // namespace Cork::Meshes
