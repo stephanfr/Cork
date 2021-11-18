@@ -41,9 +41,9 @@ namespace Cork::Intersection
     {
        public:
         explicit PerturbationEpsilon(const Math::Quantizer& quantizer)
-            : m_bitsOfPurturbationRange(quantizer.bitsOfPurturbationRange()),
-              m_quantum(quantizer.purturbationQuantum()),
-              m_numAdjustments(0)
+            : bits_of_purturbation_range_(quantizer.bitsOfPurturbationRange()),
+              quantum_(quantizer.purturbationQuantum()),
+              num_adjustments_(0)
         {
         }
 
@@ -58,19 +58,19 @@ namespace Cork::Intersection
 
         bool sufficientRange() const
         {
-            return ((m_bitsOfPurturbationRange - m_numAdjustments) >=
+            return ((bits_of_purturbation_range_ - num_adjustments_) >=
                     PERTURBATION_BUFFER_BITS + MINIMUM_PERTURBATION_RANGE_BITS);
         }
 
-        NUMERIC_PRECISION quantum() const { return (m_quantum); }
+        NUMERIC_PRECISION quantum() const { return (quantum_); }
 
-        int numAdjustments() const { return (m_numAdjustments); }
+        int numAdjustments() const { return (num_adjustments_); }
 
         AdjustPerturbationResult adjust()
         {
-            m_numAdjustments++;
+            num_adjustments_++;
 
-            m_randomRange <<= 1;
+            random_range_ <<= 1;
 
             if (!sufficientRange())
             {
@@ -78,17 +78,17 @@ namespace Cork::Intersection
                                                           "Maximum Perturbation reached"));
             }
 
-            return (AdjustPerturbationResult(m_numAdjustments));
+            return (AdjustPerturbationResult(num_adjustments_));
         }
 
         Primitives::Vector3D getPerturbation() const;
 
        private:
-        int m_bitsOfPurturbationRange;
-        double m_quantum;
+        int bits_of_purturbation_range_;
+        double quantum_;
 
-        int m_numAdjustments;
+        int num_adjustments_;
 
-        int m_randomRange;
+        int random_range_;
     };
 }  // namespace Cork::Intersection

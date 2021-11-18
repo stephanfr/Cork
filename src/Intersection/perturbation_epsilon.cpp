@@ -38,68 +38,71 @@ namespace Cork::Intersection
     class PerturbationRandomizationMatrix
     {
        public:
-        PerturbationRandomizationMatrix() : m_mersenneTwister(time(0))  //  NOLINT(cert-msc32-c, cert-msc51-cpp)
+        PerturbationRandomizationMatrix() : mersenne_twister_(time(nullptr))  //  NOLINT(cert-msc32-c, cert-msc51-cpp)
         {
-            for (int numPermutations = 4; numPermutations <= 32;
-                 numPermutations <<= 1)  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            constexpr int32_t MIN_NUM_PERMUTATIONS = 4;
+            constexpr int32_t MAX_NUM_PERMUTATIONS = 32;
+
+            for (uint32_t num_permutations = MIN_NUM_PERMUTATIONS; num_permutations <= MAX_NUM_PERMUTATIONS;
+                 num_permutations <<= 1U)
             {
-                m_randomizationMatrix.push_back(std::vector<std::tuple<long, long, long>>());
+                randomization_matrix_.emplace_back(std::vector<std::tuple<int32_t, int32_t, int32_t>>());
 
-                auto& currentVec = m_randomizationMatrix.back();
+                auto& current_vec = randomization_matrix_.back();
 
-                for (int i = 0; i <= numPermutations; i++)
+                for (int32_t i = 0; i <= num_permutations; i++)
                 {
-                    for (int j = 0; j <= numPermutations; j++)
+                    for (int32_t j = 0; j <= num_permutations; j++)
                     {
-                        for (int k = 0; k <= numPermutations; k++)
+                        for (int32_t k = 0; k <= num_permutations; k++)
                         {
-                            currentVec.push_back(std::tuple<long, long, long>(i, j, k));
+                            current_vec.emplace_back(std::tuple<int32_t, int32_t, int32_t>(i, j, k));
 
                             if (i > 0)
                             {
-                                currentVec.push_back(std::tuple<long, long, long>(-i, j, k));
+                                current_vec.emplace_back(std::tuple<int32_t, int32_t, int32_t>(-i, j, k));
                             }
 
                             if (j > 0)
                             {
-                                currentVec.push_back(std::tuple<long, long, long>(i, -j, k));
+                                current_vec.emplace_back(std::tuple<int32_t, int32_t, int32_t>(i, -j, k));
                             }
 
                             if (k > 0)
                             {
-                                currentVec.push_back(std::tuple<long, long, long>(i, j, -k));
+                                current_vec.emplace_back(std::tuple<int32_t, int32_t, int32_t>(i, j, -k));
                             }
 
                             if ((i > 0) && (j > 0))
                             {
-                                currentVec.push_back(std::tuple<long, long, long>(-i, -j, k));
+                                current_vec.emplace_back(std::tuple<int32_t, int32_t, int32_t>(-i, -j, k));
                             }
 
                             if ((i > 0) && (k > 0))
                             {
-                                currentVec.push_back(std::tuple<long, long, long>(-i, j, -k));
+                                current_vec.emplace_back(std::tuple<int32_t, int32_t, int32_t>(-i, j, -k));
                             }
 
                             if ((j > 0) && (k > 0))
                             {
-                                currentVec.push_back(std::tuple<long, long, long>(i, -j, -k));
+                                current_vec.emplace_back(std::tuple<int32_t, int32_t, int32_t>(i, -j, -k));
                             }
 
                             if ((i > 0) && (j > 0) && (k > 0))
                             {
-                                currentVec.push_back(std::tuple<long, long, long>(-i, -j, -k));
+                                current_vec.emplace_back(std::tuple<int32_t, int32_t, int32_t>(-i, -j, -k));
                             }
                         }
                     }
                 }
 
-                m_numEntries.push_back(currentVec.size());
+                num_entries_.emplace_back(current_vec.size());
             }
         }
 
         Vector3D getPerturbation(int index, double quantum)
         {
-            if (index >= m_numEntries.size())
+            if (index >= num_entries_.size())
             {
                 return (getBruteForcePerturbation(index, quantum));
             }
@@ -112,60 +115,60 @@ namespace Cork::Intersection
             //		the prior method of generating random values for each offset but with std::rand() there
             //		were certainly problems.
 
-            long arrayIndex(m_mersenneTwister() % m_numEntries[index]);
+            size_t array_index(mersenne_twister_() % num_entries_[index]);
 
-            const std::tuple<long, long, long>& randEntry = m_randomizationMatrix[index][arrayIndex];
+            const std::tuple<int32_t, int32_t, int32_t>& rand_entry = randomization_matrix_[index][array_index];
 
-            return (Vector3D(std::get<0>(randEntry) * quantum, std::get<1>(randEntry) * quantum,
-                             std::get<2>(randEntry) * quantum));
+            return (Vector3D(std::get<0>(rand_entry) * quantum, std::get<1>(rand_entry) * quantum,
+                             std::get<2>(rand_entry) * quantum));
         }
 
        private:
-        std::vector<size_t> m_numEntries;
+        std::vector<size_t> num_entries_;
 
-        std::vector<std::vector<std::tuple<long, long, long>>> m_randomizationMatrix;
+        std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> randomization_matrix_;
 
-        std::mt19937 m_mersenneTwister;
+        std::mt19937 mersenne_twister_;
 
-        Vector3D getBruteForcePerturbation(int index, double quantum)
+        Vector3D getBruteForcePerturbation(uint32_t index, double quantum)
         {
             //	We have overrun the size of the randomization table so compute the perturbation
             //		brute force with lots of random calls.
 
-            int perturbRange = 1 << (index + 2);
+            uint32_t perturb_range = 1U << (index + 2);
 
             Vector3D perturbation;
 
             perturbation =
-                Vector3D((m_mersenneTwister() % perturbRange) * quantum, (m_mersenneTwister() % perturbRange) * quantum,
-                         (m_mersenneTwister() % perturbRange) * quantum);
+                Vector3D(double(mersenne_twister_() % perturb_range) * quantum, double(mersenne_twister_() % perturb_range) * quantum,
+                         double(mersenne_twister_() % perturb_range) * quantum);
 
-            if ((m_mersenneTwister() % 2) == 1)
+            if ((mersenne_twister_() % 2) == 1)
             {
                 perturbation[0] = -perturbation[0];
             }
 
-            if ((m_mersenneTwister() % 2) == 1)
+            if ((mersenne_twister_() % 2) == 1)
             {
                 perturbation[1] = -perturbation[1];
             }
 
-            if ((m_mersenneTwister() % 2) == 1)
+            if ((mersenne_twister_() % 2) == 1)
             {
                 perturbation[2] = -perturbation[2];
             }
 
-            return (perturbation);
+            return perturbation;
         }
     };
 
     //	Define the static global so it is initialized
 
-    static PerturbationRandomizationMatrix m_randMatrix;  //  NOLINT(cert-err58-cpp)
+    static PerturbationRandomizationMatrix rand_matrix_;  //  NOLINT(cert-err58-cpp)
 
     Vector3D PerturbationEpsilon::getPerturbation() const
     {
-        return (m_randMatrix.getPerturbation(m_numAdjustments, m_quantum));
+        return (rand_matrix_.getPerturbation(num_adjustments_, quantum_));
     }
 
 }  // namespace Cork::Intersection

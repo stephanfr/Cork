@@ -25,15 +25,13 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-//#include <boost/container/small_vector.hpp>
-#include "mesh/mesh.h"
+#include "mesh/mesh.hpp"
 
 #include <boost/timer/timer.hpp>
 #include <sstream>
 
 #include "intersection/intersection_problem.hpp"
 #include "intersection/unsafe_ray_triangle_intersection.hpp"
-#include "mesh/EGraphCache.h"
 #include "mesh/TopoCache.h"
 #include "primitives/primitives.hpp"
 #include "util/ThreadPool.h"
@@ -43,11 +41,6 @@ namespace Cork::Meshes
 {
     using namespace Intersection;
 
-    using IndexType = Primitives::IndexType;
-    using VertexIndex = Primitives::VertexIndex;
-
-    using TriangleByIndices = Primitives::TriangleByIndices;
-    using TriangleByIndicesIndex = Primitives::TriangleByIndicesIndex;
     using IncrementalVertexIndexTriangleMeshBuilder = Meshes::IncrementalVertexIndexTriangleMeshBuilder;
 
     inline double triArea(const Primitives::Vector3D& a, const Primitives::Vector3D& b, const Primitives::Vector3D& c)
@@ -61,8 +54,9 @@ namespace Cork::Meshes
         return ((b - a).cross(c - a).len_squared());
     }
 
-    inline void Mesh::for_ecache(EGraphCache& ecache, int numThreads,
-                                 std::function<void(const EGraphEntryTIDVector& tids)> action) const
+
+    inline void Mesh::for_ecache(EGraphCache& ecache,
+                                 std::function<void(const EGraphEntryTIDVector& tids)> action, int numThreads ) const
     {
         //		ThreadPool::getPool().parallel_for(numThreads, ecache.columns().begin(), ecache.columns().end(),
         //[&](BlockRange<EGraphCache::SkeletonColumnVector::iterator>	partitionedCloumns )
@@ -518,7 +512,7 @@ namespace Cork::Meshes
 
         RandomWeightedParallelUnionFind uf(m_tris.size());
 
-        for_ecache(ecache, 3, [&uf](const EGraphEntryTIDVector& tids) {
+        for_ecache(ecache, [&uf](const EGraphEntryTIDVector& tids) {
             size_t tid0 = tids[0];
 
             for (size_t k = 1; k < tids.size(); k++)
@@ -576,9 +570,6 @@ namespace Cork::Meshes
         std::unique_ptr<EGraphCache> ecache(std::move(ecacheResult.return_ptr()));
 
         std::unique_ptr<ComponentList> components(std::move(FindComponents(*ecache)));
-
-        //        SEFUtility::CachingFactory<TopoCacheWorkspace>::UniquePtr topoCacheWorkspace(
-        //            SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance());
 
         std::vector<std::set<VertexIndex>> bodies;
 

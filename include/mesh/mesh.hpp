@@ -1,5 +1,5 @@
 // +-------------------------------------------------------------------------
-// | Mesh.h
+// | mesh.hpp
 // |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
@@ -25,11 +25,9 @@
 // +-------------------------------------------------------------------------
 #pragma once
 
+#include "mesh/edge_graph_cache.hpp"
+#include "mesh_base.hpp"
 #include "tbb/tbb.h"
-
-#include "MeshBase.h"
-#include "mesh/EGraphCache.h"
-
 
 namespace Cork::Meshes
 {
@@ -124,10 +122,10 @@ namespace Cork::Meshes
 
         void doDeleteAndFlip(std::function<TriCode(uint32_t bool_alg_data)> classify);
 
-        void for_ecache(EGraphCache& ecache, int numThreads,
-                        std::function<void(const EGraphEntryTIDVector& tids)> action) const;
+        void for_ecache(EGraphCache& ecache, std::function<void(const EGraphEntryTIDVector& tids)> action,
+                        int numThreads = 1) const;
 
-        bool isInside(Primitives::IndexType tid, uint32_t operand);
+        bool isInside(IndexType tid, uint32_t operand);
 
         void RayTriangleIntersection(const CorkTriangle& tri, Primitives::Ray3D& ray, long& winding);
     };

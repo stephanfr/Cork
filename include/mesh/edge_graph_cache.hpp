@@ -42,14 +42,14 @@ namespace Cork::Meshes
 
     static constexpr int EGRAPH_ENTRY_TIDS_VEC_LENGTH = 8;
 
-    using EGraphEntryTIDVector = boost::container::static_vector<Primitives::IndexType, EGRAPH_ENTRY_TIDS_VEC_LENGTH>;
+    using EGraphEntryTIDVector = boost::container::static_vector<IndexType, EGRAPH_ENTRY_TIDS_VEC_LENGTH>;
 
     class EGraphEntry : public SEFUtility::SparseVectorEntry
     {
        public:
-        EGraphEntry(Primitives::IndexType index) : SEFUtility::SparseVectorEntry(index), m_vid(index) {}
+        EGraphEntry(IndexType index) : SEFUtility::SparseVectorEntry(index), m_vid(index) {}
 
-        Primitives::IndexType vid() const { return (m_vid); }
+        IndexType vid() const { return (m_vid); }
 
         const EGraphEntryTIDVector& tids() const { return (m_tids); }
 
@@ -60,7 +60,7 @@ namespace Cork::Meshes
         void setIsIsct(bool newValue) { m_isIsct = newValue; }
 
        private:
-        Primitives::IndexType m_vid;
+        IndexType m_vid;
         EGraphEntryTIDVector m_tids;
         bool m_isIsct;
     };
@@ -84,9 +84,9 @@ namespace Cork::Meshes
 
         SkeletonColumnVector& columns() { return (m_skeleton); }
 
-        EGraphSkeletonColumn& operator[](Primitives::IndexType index) { return (m_skeleton[index]); }
+        EGraphSkeletonColumn& operator[](IndexType index) { return (m_skeleton[index]); }
 
-        const EGraphSkeletonColumn& operator[](Primitives::IndexType index) const { return (m_skeleton[index]); }
+        const EGraphSkeletonColumn& operator[](IndexType index) const { return (m_skeleton[index]); }
 
        private:
         SkeletonColumnVectorUniquePtr m_skeletonPtr;

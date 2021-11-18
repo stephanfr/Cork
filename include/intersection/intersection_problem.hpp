@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "mesh/MeshBase.h"
+#include "mesh/mesh_base.hpp"
 
 namespace Cork::Intersection
 {

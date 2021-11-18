@@ -36,7 +36,7 @@
 #include <type_traits>
 #include <unordered_set>
 
-#include "MeshBase.h"
+#include "mesh_base.hpp"
 #include "intersection/empty3d.hpp"
 #include "math/quantization.hpp"
 #include "primitives/primitives.hpp"

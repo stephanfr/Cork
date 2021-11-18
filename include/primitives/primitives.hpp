@@ -502,3 +502,20 @@ namespace Cork::Primitives
     }
 
 }  // namespace Cork::Primitives
+
+namespace Cork
+{
+    using IndexType = Primitives::IndexType;
+    using VertexIndex = Primitives::VertexIndex;
+    using TriangleByIndicesIndex = Primitives::TriangleByIndicesIndex;
+
+    using Ray3D = Primitives::Ray3D;
+    using BBox3D = Primitives::BBox3D;
+    using MinAndMaxEdgeLengths = Primitives::MinAndMaxEdgeLengths;
+    
+    using TriangleByVertices = Primitives::TriangleByVertices;
+    using TriangleByIndices = Primitives::TriangleByIndices;
+
+    using Vertex3DVector = Primitives::Vertex3DVector;
+    using TriangleByIndicesVector = Primitives::TriangleByIndicesVector;
+}

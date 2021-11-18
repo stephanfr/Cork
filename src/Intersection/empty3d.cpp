@@ -351,7 +351,7 @@ namespace Cork::Empty3d
         context.add_call_count();
 
         // construct the triangles
-        std::array<Ext4_3, 3> t_ext3s;
+        std::array<Ext4_3, 3> t_ext3s;              //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
 
         for (uint ti = 0; ti < 3; ti++)
         {
@@ -402,7 +402,7 @@ namespace Cork::Empty3d
     Primitives::Vector3D TriangleTriangleTriangleIntersection::coords() const
     {
         // construct the triangles
-        std::array<Ext4_3, 3> t_ext3s;
+        std::array<Ext4_3, 3> t_ext3s;                  //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
 
         for (uint ti = 0; ti < 3; ti++)
         {
@@ -428,9 +428,9 @@ namespace Cork::Empty3d
 
     HasIntersection TriangleTriangleTriangleIntersection::emptyFilter() const
     {
-        std::array<std::array<AbsExt4_1, 3>, 3> kp;
-        std::array<Ext4_3, 3> t;
-        std::array<AbsExt4_3, 3> kt;
+        std::array<std::array<AbsExt4_1, 3>, 3> kp;                 //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
+        std::array<Ext4_3, 3> t;                                    //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
+        std::array<AbsExt4_3, 3> kt;                                //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
 
         // load the points and form triangles
 
@@ -522,8 +522,8 @@ namespace Cork::Empty3d
         constexpr int EXT3_TA_BITS = EXT2_TA_BITS + FIXED_INTEGER_BITS + 2;
         constexpr int INNER_BITS = EXT3_TA_BITS + EXT3_UP_BITS + 2;
 
-        std::array<std::array<FixExt4_1<FIXED_INTEGER_BITS>, 3>, 3> p;
-        std::array<FixExt4_3<EXT3_UP_BITS>, 3> t;
+        std::array<std::array<FixExt4_1<FIXED_INTEGER_BITS>, 3>, 3> p;          //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
+        std::array<FixExt4_3<EXT3_UP_BITS>, 3> t;                               //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
 
         for (uint i = 0; i < 3; i++)
         {

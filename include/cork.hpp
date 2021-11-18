@@ -47,7 +47,6 @@
 
 namespace Cork
 {
-//    using TriangleMesh = Meshes::TriangleMesh;
 
     enum class TopologicalStatisticsResultCodes
     {
@@ -71,6 +70,12 @@ namespace Cork
     class TriangleMesh
     {
        public:
+
+        using GeometricStatistics = Statistics::GeometricStatistics;
+        using GeometricProperties = Statistics::GeometricProperties;
+        using TopologicalStatistics = Statistics::TopologicalStatistics;
+        using TopologicalProperties = Statistics::TopologicalProperties;
+
         //	Methods follow
 
         virtual ~TriangleMesh(){};
@@ -78,26 +83,26 @@ namespace Cork
         virtual size_t numTriangles() const = 0;
         virtual size_t numVertices() const = 0;
 
-        virtual const Primitives::Vertex3DVector& vertices() const = 0;
-        virtual const Primitives::TriangleByIndicesVector& triangles() const = 0;
+        virtual const Vertex3DVector& vertices() const = 0;
+        virtual const TriangleByIndicesVector& triangles() const = 0;
 
-        virtual Primitives::TriangleByVertices triangleByVertices(
-            const Primitives::TriangleByIndices& triangleByIndices) const = 0;
+        virtual TriangleByVertices triangleByVertices(
+            const TriangleByIndices& triangleByIndices) const = 0;
 
-        virtual void AddTriangle(const Primitives::TriangleByIndices& triangle_to_add) = 0;
-        virtual void remove_triangle(Primitives::TriangleByIndicesIndex triangle_index) = 0;
+        virtual void AddTriangle(const TriangleByIndices& triangle_to_add) = 0;
+        virtual void remove_triangle(TriangleByIndicesIndex triangle_index) = 0;
 
-        virtual const Primitives::BBox3D& boundingBox() const = 0;
-        virtual Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
+        virtual const BBox3D& boundingBox() const = 0;
+        virtual MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
         virtual double max_vertex_magnitude() const = 0;
 
-        virtual Statistics::GeometricStatistics ComputeGeometricStatistics(
-            Statistics::GeometricProperties props_to_compute) const = 0;
+        virtual GeometricStatistics ComputeGeometricStatistics(
+            GeometricProperties props_to_compute) const = 0;
         virtual TopologicalStatisticsResult ComputeTopologicalStatistics(
-            Statistics::TopologicalProperties props_to_compute) const = 0;
+            TopologicalProperties props_to_compute) const = 0;
 
-        virtual HoleClosingResult close_holes(const Statistics::TopologicalStatistics& topo_stats) = 0;
-        virtual void remove_self_intersections(const Statistics::TopologicalStatistics& topo_stats) = 0;
+        virtual HoleClosingResult close_holes(const TopologicalStatistics& topo_stats) = 0;
+        virtual void remove_self_intersections(const TopologicalStatistics& topo_stats) = 0;
     };
 
 

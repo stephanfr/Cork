@@ -34,7 +34,7 @@
 #include "intersection/intersection_problem.hpp"
 #include "intersection/self_intersection_finder.hpp"
 #include "math/quantization.hpp"
-#include "mesh/mesh.h"
+#include "mesh/mesh.hpp"
 
 namespace Cork::Statistics
 {

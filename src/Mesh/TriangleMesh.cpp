@@ -168,13 +168,17 @@ namespace Cork::Meshes
                 if (!get_hole_closing_triangles_result.succeeded())
                 {
                     std::cout << "closing hole failed" << std::endl;
+
+                    auto next_ring_of_tris = find_enclosing_triangles(triangles_to_remove);
                     continue;
                 }
 
-                Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>      minimal_cache( *(get_hole_closing_triangles_result.return_ptr()), const_cast<Primitives::Vertex3DVector&>(vertices()),
-                        get_hole_closing_triangles_result.return_ptr()->size() * 4, topo_cache().quantizer() );
+                Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector> minimal_cache(
+                    *(get_hole_closing_triangles_result.return_ptr()),
+                    const_cast<Primitives::Vertex3DVector&>(vertices()),
+                    get_hole_closing_triangles_result.return_ptr()->size() * 4, topo_cache().quantizer());
 
-                Intersection::SelfIntersectionFinder se_finder( minimal_cache );
+                Intersection::SelfIntersectionFinder se_finder(minimal_cache);
 
                 auto si_stats = se_finder.CheckSelfIntersection();
 
@@ -341,6 +345,42 @@ namespace Cork::Meshes
             //  Finished with success
 
             return HoleClosingResult::success();
+        }
+
+        std::set<TriangleByIndicesIndex> find_enclosing_triangles(
+            const std::set<TriangleByIndicesIndex>& triangles_patch)
+        {
+            std::map<TriangleByIndicesIndex, const TopoTri*> topo_tris_by_index;
+
+            for (auto& next_topo_tri : topo_cache_->triangles())
+            {
+                topo_tris_by_index.insert(std::make_pair(next_topo_tri.source_triangle_id(), &next_topo_tri));
+            }
+
+            std::set<const TopoTri*> topo_tris_in_patch;
+
+            for (auto& next_triangle : triangles_patch)
+            {
+                topo_tris_in_patch.emplace(topo_tris_by_index[next_triangle]);
+            }
+
+            std::set<TriangleByIndicesIndex> enclosing_triangles;
+
+            for (auto next_topo_tri : topo_tris_in_patch)
+            {
+                for (auto touching_edge : next_topo_tri->edges())
+                {
+                    for (auto triangle_touching : touching_edge->triangles())
+                    {
+                        if (!triangles_patch.contains(triangle_touching->source_triangle_id()))
+                        {
+                            enclosing_triangles.emplace(triangle_touching->source_triangle_id());
+                        }
+                    }
+                }
+            }
+
+            return enclosing_triangles;
         }
 
        private:

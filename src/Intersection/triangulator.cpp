@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 
+//  NOLINTNEXTLINE( cppcoreguidelines-macro-usage )
 #define REAL double  //	This define is for triangle.h below
 
 extern "C"
@@ -25,13 +26,14 @@ namespace Cork::Triangulator
 
     TriangulateResult Triangulator::compute_triangulation()
     {
-        struct triangulateio in, out;
+        struct triangulateio in;                    //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
+        struct triangulateio out;                   //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
 
         in.numberofpoints = (int)number_of_points_;
         in.numberofpointattributes = 0;
 
-        in.pointlist = reinterpret_cast<double*>(&points_);
-        in.pointmarkerlist = reinterpret_cast<int*>(&point_markers_);
+        in.pointlist = reinterpret_cast<double*>(&points_);                     //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        in.pointmarkerlist = reinterpret_cast<int*>(&point_markers_);           //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         in.pointattributelist = nullptr;
 
         //  Define the segments linking the points into the edge of the region to be meshed
@@ -40,8 +42,8 @@ namespace Cork::Triangulator
         in.numberofholes = 0;    // No holes
         in.numberofregions = 0;  // Not using regions
 
-        in.segmentlist = reinterpret_cast<int*>(&segments_);
-        in.segmentmarkerlist = reinterpret_cast<int*>(&segment_markers_);
+        in.segmentlist = reinterpret_cast<int*>(&segments_);                    //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        in.segmentmarkerlist = reinterpret_cast<int*>(&segment_markers_);       //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
         //  No number of triangles so also no triangle attributes
 
@@ -64,7 +66,7 @@ namespace Cork::Triangulator
         //		which is usually the result of duplicated input vertices for our specific case in Cork.
         //		If extra points appear, then something has gone wrong
 
-        char* params = (char*)("jpzQYY");
+        char* params = const_cast<char*>("jpzQYY");                 //  NOLINT( cppcoreguidelines-pro-type-const-cast )
 
         triangulate(params, &in, &out, nullptr);
 
@@ -91,8 +93,8 @@ namespace Cork::Triangulator
 
         for (int k = 0; k < out.numberoftriangles; k++)
         {
-            result->emplace_back(out.trianglelist[(k * 3) + 0], out.trianglelist[(k * 3) + 1],
-                                 out.trianglelist[(k * 3) + 2]);
+            //  NOLINTNEXTLINE( cppcoreguidelines-pro-bounds-pointer-arithmetic )
+            result->emplace_back(out.trianglelist[(k * 3) + 0], out.trianglelist[(k * 3) + 1], out.trianglelist[(k * 3) + 2]);
         }
 
         return TriangulateResult::success(std::move(result));
