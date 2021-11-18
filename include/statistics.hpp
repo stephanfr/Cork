@@ -26,11 +26,9 @@
 
 #pragma once
 
-#include <memory>
 #include <set>
 
 #include "primitives/hole.hpp"
-#include "primitives/primitives.hpp"
 
 namespace Cork::Statistics
 {
@@ -53,7 +51,7 @@ namespace Cork::Statistics
     {
        public:
         GeometricStatistics(uint32_t num_triangles, uint32_t num_vertices, double area, double volume,
-                            double min_edge_length, double max_edge_length, const Primitives::BBox3D& bounding_box)
+                            double min_edge_length, double max_edge_length, const BBox3D& bounding_box)
             : num_triangles_(num_triangles),
               num_vertices_(num_vertices),
               area_(area),
@@ -68,7 +66,7 @@ namespace Cork::Statistics
 
         size_t num_triangles() const { return (num_triangles_); }
 
-        const Primitives::BBox3D& bounding_box() const { return bounding_box_; }
+        const BBox3D& bounding_box() const { return bounding_box_; }
 
         double area() const { return (area_); }
 
@@ -85,7 +83,7 @@ namespace Cork::Statistics
         double volume_;
         double min_edge_length_;
         double max_edge_length_;
-        const Primitives::BBox3D bounding_box_;
+        const BBox3D bounding_box_;
     };
 
     class SelfIntersectingEdge
@@ -96,8 +94,8 @@ namespace Cork::Statistics
         SelfIntersectingEdge(const SelfIntersectingEdge& ) = default;
         SelfIntersectingEdge(SelfIntersectingEdge&& ) = default;
 
-        SelfIntersectingEdge(Primitives::TriangleByIndicesIndex edge_triangle_id, Primitives::TriangleEdgeId edge_index,
-                             Primitives::TriangleByIndicesIndex triangle_instersected_id)
+        SelfIntersectingEdge(TriangleByIndicesIndex edge_triangle_id, TriangleEdgeId edge_index,
+                             TriangleByIndicesIndex triangle_instersected_id)
             : edge_triangle_id_(edge_triangle_id),
               edge_index_(edge_index),
               triangle_instersected_id_(triangle_instersected_id)
@@ -107,14 +105,14 @@ namespace Cork::Statistics
         SelfIntersectingEdge&   operator=(const SelfIntersectingEdge&) = default;
         SelfIntersectingEdge&   operator=(SelfIntersectingEdge&&) = default;
 
-        Primitives::TriangleByIndicesIndex edge_triangle_id() const { return edge_triangle_id_; }
-        Primitives::TriangleEdgeId edge_index() const { return edge_index_; }
-        Primitives::TriangleByIndicesIndex triangle_instersected_id() const { return triangle_instersected_id_; }
+        TriangleByIndicesIndex edge_triangle_id() const { return edge_triangle_id_; }
+        TriangleEdgeId edge_index() const { return edge_index_; }
+        TriangleByIndicesIndex triangle_instersected_id() const { return triangle_instersected_id_; }
 
        private:
-        Primitives::TriangleByIndicesIndex edge_triangle_id_;
-        Primitives::TriangleEdgeId edge_index_;
-        Primitives::TriangleByIndicesIndex triangle_instersected_id_;
+        TriangleByIndicesIndex edge_triangle_id_;
+        TriangleEdgeId edge_index_;
+        TriangleByIndicesIndex triangle_instersected_id_;
     };
 
     class IntersectionInfo
@@ -123,7 +121,7 @@ namespace Cork::Statistics
         IntersectionInfo() = delete;
 
         IntersectionInfo(std::vector<SelfIntersectingEdge>&& edges,
-                         std::set<Primitives::TriangleByIndicesIndex>&& triangles_including_se_vertex)
+                         std::set<TriangleByIndicesIndex>&& triangles_including_se_vertex)
             : edges_(edges), triangles_including_se_vertex_(triangles_including_se_vertex)
         {
         }
@@ -134,13 +132,13 @@ namespace Cork::Statistics
 
         const std::vector<SelfIntersectingEdge>& edges() const { return edges_; }
 
-        const std::set<Primitives::TriangleByIndicesIndex>& triangles_including_se_vertex() const
+        const std::set<TriangleByIndicesIndex>& triangles_including_se_vertex() const
         {
             return triangles_including_se_vertex_;
         }
 
         void merge(const SelfIntersectingEdge& edge,
-                   const std::set<Primitives::TriangleByIndicesIndex>& triangles_including_se_vertex)
+                   const std::set<TriangleByIndicesIndex>& triangles_including_se_vertex)
         {
             edges_.emplace_back(edge);
 
@@ -152,7 +150,7 @@ namespace Cork::Statistics
 
        private:
         std::vector<SelfIntersectingEdge> edges_;
-        std::set<Primitives::TriangleByIndicesIndex> triangles_including_se_vertex_;
+        std::set<TriangleByIndicesIndex> triangles_including_se_vertex_;
     };
 
     class TopologicalStatistics

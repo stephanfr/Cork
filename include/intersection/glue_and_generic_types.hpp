@@ -28,7 +28,7 @@
 #include <boost/container/small_vector.hpp>
 #include <optional>
 
-#include "mesh/TopoCache.h"
+#include "mesh/topo_cache.hpp"
 #include "util/ManagedIntrusiveList.h"
 
 namespace Cork::Intersection

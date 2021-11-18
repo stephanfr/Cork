@@ -44,8 +44,6 @@ namespace Cork::Files
 {
     //  Define some local symbols to cur through some of the namespacing
 
-    using VertexIndex = Primitives::VertexIndex;
-    using TriangleByIndices = Primitives::TriangleByIndices;
     using IncrementalVertexIndexTriangleMeshBuilder = Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilder;
     using TriangleMeshBuilderResultCodes = Cork::Meshes::TriangleMeshBuilderResultCodes;
 

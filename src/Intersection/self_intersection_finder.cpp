@@ -28,16 +28,13 @@
 
 namespace Cork::Intersection
 {
-    using TriangleByIndicesIndex = Primitives::TriangleByIndicesIndex;
-    using VertexIndex = Primitives::VertexIndex;
-
     using TopoEdge = Meshes::TopoEdge;
     using TopoTri = Meshes::TopoTri;
     using TopoEdgePointerVector = Meshes::TopoEdgePointerVector;
 
     using IntersectionInfo = Statistics::IntersectionInfo;
 
-    SelfIntersectionFinder::SelfIntersectionFinder(const Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>&   topo_cache)
+    SelfIntersectionFinder::SelfIntersectionFinder(const Meshes::TriangleByIndicesVectorTopoCache&   topo_cache)
         : m_intersection_workspace(std::move(SEFUtility::CachingFactory<IntersectionWorkspace>::GetInstance())),
           topo_cache_(topo_cache)
     {

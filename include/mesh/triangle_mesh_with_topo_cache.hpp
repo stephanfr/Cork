@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "mesh/TopoCache.h"
+#include "mesh/topo_cache.hpp"
 #include "triangle_mesh.h"
 
 namespace Cork::Meshes
@@ -38,6 +38,6 @@ namespace Cork::Meshes
 
         virtual ~TriangleMeshWithTopoCache(){};
 
-        virtual Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>& topo_cache() const = 0;
+        virtual Meshes::TriangleByIndicesVectorTopoCache& topo_cache() const = 0;
     };
 }  // namespace Cork::Meshes

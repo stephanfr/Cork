@@ -27,7 +27,7 @@
 
 #include "mesh/edge_graph_cache.hpp"
 #include "mesh_base.hpp"
-#include "tbb/tbb.h"
+#include "tbb/concurrent_vector.h"
 
 namespace Cork::Meshes
 {
@@ -74,7 +74,7 @@ namespace Cork::Meshes
 
         std::unique_ptr<TriangleMesh> ToTriangleMesh() const;
 
-        const SolverPerformanceStatisticsIfx& GetPerformanceStats() const final { return (m_performanceStats); }
+        const SolverPerformanceStatisticsIfx& GetPerformanceStats() const final { return (performance_stats_); }
 
         size_t CountComponents() const final;
 

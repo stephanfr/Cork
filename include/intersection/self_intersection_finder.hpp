@@ -25,26 +25,26 @@
 // +-------------------------------------------------------------------------
 
 #include "edge_cache.hpp"
-#include "mesh/TopoCache.h"
+#include "mesh/topo_cache.hpp"
 
 namespace Cork::Intersection
 {
     class SelfIntersectionFinder
     {
        public:
-        SelfIntersectionFinder(const Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>&   topo_cache);
+        SelfIntersectionFinder(const Meshes::TriangleByIndicesVectorTopoCache&   topo_cache);
 
         virtual ~SelfIntersectionFinder() { reset(); }
 
         const std::vector<Statistics::IntersectionInfo> CheckSelfIntersection();
 
-        std::set<Primitives::TriangleByIndicesIndex> find_enclosing_triangles(
-            const std::set<Primitives::TriangleByIndicesIndex>& triangles_patch);
+        std::set<TriangleByIndicesIndex> find_enclosing_triangles(
+            const std::set<TriangleByIndicesIndex>& triangles_patch);
 
        private:
         SEFUtility::CachingFactory<IntersectionWorkspace>::UniquePtr m_intersection_workspace;
 
-        const Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>& topo_cache_;
+        const Meshes::TriangleByIndicesVectorTopoCache& topo_cache_;
 
         std::unique_ptr<AABVH::AxisAlignedBoundingVolumeHierarchy> m_edgeBVH;
 

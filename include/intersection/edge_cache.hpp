@@ -31,8 +31,6 @@ namespace Cork::Intersection
 {
     class EdgeCache
     {
-        using IndexType = Primitives::IndexType;
-        using VertexIndex = Primitives::VertexIndex;
 
         using TopoVert = Meshes::TopoVert;
         using TopoEdge = Meshes::TopoEdge;

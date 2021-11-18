@@ -24,7 +24,7 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "mesh/TopoCache.h"
+#include "mesh/topo_cache.hpp"
 
 #include <tbb/spin_mutex.h>
 #include <tbb/task_group.h>
@@ -33,18 +33,14 @@
 
 namespace Cork::Meshes
 {
-    using VertexIndex = Primitives::VertexIndex;
-    using TriangleVertexId = Primitives::TriangleVertexId;
-    using TriangleByIndices = Primitives::TriangleByIndices;
-
-    TopoCache::TopoCache(MeshBase& owner, const Math::Quantizer& quantizer)
+    CorkTriangleVectorTopoCache::CorkTriangleVectorTopoCache(MeshBase& owner, const Math::Quantizer& quantizer)
         : TopoCacheBase( owner.triangles(), owner.vertices(), owner.triangles().size() * 3, quantizer ),
           m_mesh(owner)
     {}
 
-    TopoCache::~TopoCache() {}
+    CorkTriangleVectorTopoCache::~CorkTriangleVectorTopoCache() {}
 
-    void TopoCache::commit()
+    void CorkTriangleVectorTopoCache::commit()
     {
         // record which vertices are live
 
@@ -182,7 +178,7 @@ namespace Cork::Meshes
         return out;
     }
 
-    void TopoCache::print()
+    void CorkTriangleVectorTopoCache::print()
     {
         using std::cout;
         using std::endl;
@@ -226,24 +222,5 @@ namespace Cork::Meshes
 
         cout << "There were " << vert_count << " VERTS" << endl;
     }
-
-/*
-    // support functions for validity check
-
-    template <class T, class Container>
-    inline bool count(const Container& contain, const T& val)
-    {
-        uint c = 0;
-        for (const T& t : contain)
-        {
-            if (t == val)
-            {
-                c++;
-            }
-        }
-
-        return (c);
-    }
-*/
 
 }  // namespace Cork::Meshes

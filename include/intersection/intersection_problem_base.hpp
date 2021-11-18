@@ -52,7 +52,7 @@ namespace Cork::Intersection
     {
         protected :
 
-        using TopoCache = Meshes::TopoCache;
+        using CorkTriangleVectorTopoCache = Meshes::CorkTriangleVectorTopoCache;
         using TopoVert = Meshes::TopoVert;
         using TopoEdge = Meshes::TopoEdge;
         using TopoTri = Meshes::TopoTri;
@@ -123,7 +123,7 @@ namespace Cork::Intersection
 
         const MeshBase& owner_mesh() const { return owner_mesh_; }
 
-        TopoCache&      topo_cache() { return topo_cache_; }
+        CorkTriangleVectorTopoCache&      topo_cache() { return topo_cache_; }
 
         IsctVertType* newIsctVert(const TopoEdge& e, const TopoTri& t, bool boundary, GluePointMarker& glue)
         {
@@ -314,7 +314,7 @@ namespace Cork::Intersection
 
         MeshBase& owner_mesh_;
 
-        Meshes::TopoCache   topo_cache_;
+        Meshes::CorkTriangleVectorTopoCache   topo_cache_;
 
         std::unique_ptr<AABVH::AxisAlignedBoundingVolumeHierarchy> edge_bvh_;
 

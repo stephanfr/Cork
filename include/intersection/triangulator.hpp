@@ -27,9 +27,6 @@
 
 #include <stdint.h>
 
-#include <memory>
-#include <vector>
-
 #include "CPPResult.hpp"
 #include "primitives/primitives.hpp"
 

@@ -26,22 +26,12 @@
 
 #include "statistics/statistics_engines.h"
 
-#include <boost/container/small_vector.hpp>
-#include <unordered_set>
-
-#include "cork_defs.hpp"
-#include "cork.hpp"
-#include "intersection/intersection_problem.hpp"
 #include "intersection/self_intersection_finder.hpp"
-#include "math/quantization.hpp"
-#include "mesh/mesh.hpp"
+
+
 
 namespace Cork::Statistics
 {
-    using Vector3D = Primitives::Vector3D;
-
-    using TriangleByVertices = Primitives::TriangleByVertices;
-
     using TriangleMeshWithTopoCache = Meshes::TriangleMeshWithTopoCache;
 
     using IntersectionInfo = Statistics::IntersectionInfo;

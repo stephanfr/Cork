@@ -1,6 +1,6 @@
 
+#include "intersection/triangulator.hpp"
 
-#include <array>
 #include <cstddef>
 
 //  NOLINTNEXTLINE( cppcoreguidelines-macro-usage )
@@ -11,7 +11,7 @@ extern "C"
 #include "intersection/triangle.h"
 }
 
-#include "intersection/triangulator.hpp"
+
 
 namespace Cork::Triangulator
 {

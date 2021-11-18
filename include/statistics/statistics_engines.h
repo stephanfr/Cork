@@ -24,10 +24,8 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include <boost/container/small_vector.hpp>
 #include <unordered_set>
 
-#include "cork_defs.hpp"
 #include "mesh/triangle_mesh_with_topo_cache.hpp"
 #include "statistics.hpp"
 

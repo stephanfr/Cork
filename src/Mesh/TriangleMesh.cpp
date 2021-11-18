@@ -24,37 +24,20 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
+#include "mesh/triangle_mesh_with_topo_cache.hpp"
+
 #include <map>
 #include <set>
-#include <unordered_map>
 
 #include "intersection/self_intersection_finder.hpp"
 #include "intersection/triangulator.hpp"
-#include "mesh/triangle_mesh_with_topo_cache.hpp"
-#include "primitives/hole.hpp"
+
 #include "primitives/index_remapper.hpp"
+
 #include "statistics/statistics_engines.h"
 
 namespace Cork::Meshes
 {
-    using Vertex3D = Primitives::Vertex3D;
-    using Vertex3DVector = Primitives::Vertex3DVector;
-
-    using IndexType = Primitives::IndexType;
-    using VertexIndex = Primitives::VertexIndex;
-
-    using EdgeByVertices = Primitives::EdgeByVertices;
-    using EdgeByIndices = Primitives::EdgeByIndices;
-    using EdgeByIndicesVector = Primitives::EdgeByIndicesVector;
-
-    using TriangleByIndices = Primitives::TriangleByIndices;
-    using TriangleByIndicesVector = Primitives::TriangleByIndicesVector;
-    using TriangleByIndicesIndex = Primitives::TriangleByIndicesIndex;
-
-    using TriangleEdgeId = Primitives::TriangleEdgeId;
-
-    using TriangleByVertices = Primitives::TriangleByVertices;
-
     //
     //	TriangleMeshImpl is a straightforward implementation of a triangularized solid expressed as a set
     //		of vertices and triangles defined as 3-tuples of indices into the vertex set.
@@ -102,15 +85,15 @@ namespace Cork::Meshes
         }
         [[nodiscard]] double max_vertex_magnitude() const final { return max_vertex_magnitude_; }
 
-        [[nodiscard]] Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>& topo_cache() const
+        [[nodiscard]] Meshes::TriangleByIndicesVectorTopoCache& topo_cache() const
         {
             if (!topo_cache_)
             {
                 auto get_quantizer_result =
                     Math::Quantizer::get_quantizer(max_vertex_magnitude(), min_and_max_edge_lengths().min());
 
-                const_cast<std::unique_ptr<Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>>&>(topo_cache_)
-                    .reset(new Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>(
+                const_cast<std::unique_ptr<Meshes::TriangleByIndicesVectorTopoCache>&>(topo_cache_)
+                    .reset(new Meshes::TriangleByIndicesVectorTopoCache(
                         *m_triangles, *m_vertices, m_triangles->size() * 4, get_quantizer_result.return_value()));
             }
 
@@ -173,7 +156,7 @@ namespace Cork::Meshes
                     continue;
                 }
 
-                Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector> minimal_cache(
+                Meshes::TriangleByIndicesVectorTopoCache minimal_cache(
                     *(get_hole_closing_triangles_result.return_ptr()),
                     const_cast<Primitives::Vertex3DVector&>(vertices()),
                     get_hole_closing_triangles_result.return_ptr()->size() * 4, topo_cache().quantizer());
@@ -391,7 +374,7 @@ namespace Cork::Meshes
         const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths_;
         double max_vertex_magnitude_;
 
-        std::unique_ptr<Meshes::TopoCacheBase<Primitives::TriangleByIndicesVector>> topo_cache_;
+        std::unique_ptr<Meshes::TriangleByIndicesVectorTopoCache> topo_cache_;
     };
 
     //

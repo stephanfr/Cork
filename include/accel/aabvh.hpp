@@ -32,12 +32,12 @@
 #include <deque>
 #include <vector>
 
-#include "cork_defs.hpp"
-#include "Xoshiro256Plus.h"
-#include "mesh/TopoCache.h"
 #include "oneapi/tbb/spin_mutex.h"
 #include "oneapi/tbb/task_group.h"
-#include "primitives/primitives.hpp"
+
+#include "cork_defs.hpp"
+#include "Xoshiro256Plus.h"
+#include "mesh/topo_cache.hpp"
 #include "util/FastStack.h"
 #include "util/ManagedIntrusiveList.h"
 
@@ -64,18 +64,18 @@ namespace Cork::AABVH
        public:
         explicit GeomBlob(const Meshes::TopoEdge& idx) : m_id(idx)
         {
-            const Primitives::Vector3D& p0 = (idx.verts()[0])->quantizedValue();
-            const Primitives::Vector3D& p1 = (idx.verts()[1])->quantizedValue();
+            const Vector3D& p0 = (idx.verts()[0])->quantizedValue();
+            const Vector3D& p1 = (idx.verts()[1])->quantizedValue();
 
-            m_bbox = Primitives::BBox3D(p0.min(p1), p0.max(p1));
+            m_bbox = BBox3D(p0.min(p1), p0.max(p1));
         }
 
         const Meshes::TopoEdge& index() const { return (m_id); }
 
-        const Primitives::BBox3D& boundingBox() const { return (m_bbox); }
+        const BBox3D& boundingBox() const { return (m_bbox); }
 
        private:
-        Primitives::BBox3D m_bbox;
+        BBox3D m_bbox;
 
         const Meshes::TopoEdge& m_id;
     };
@@ -84,7 +84,7 @@ namespace Cork::AABVH
 
     //	A BlobIDList will never be larger than LEAF_SIZE so a static vector is OK
 
-    using BlobIDList = boost::container::static_vector<Primitives::IndexType, LEAF_SIZE>;
+    using BlobIDList = boost::container::static_vector<IndexType, LEAF_SIZE>;
 
     class alignas(SIMD_MEMORY_ALIGNMENT) AABVHNode  // : public IntrusiveListHook
     {
@@ -99,13 +99,13 @@ namespace Cork::AABVH
 
         AABVHNode* right() const { return (m_right); }
 
-        const Primitives::BBox3D& boundingBox() const { return (m_bbox); }
+        const BBox3D& boundingBox() const { return (m_bbox); }
 
-        Primitives::BBox3D& boundingBox() { return (m_bbox); }
+        BBox3D& boundingBox() { return (m_bbox); }
 
         const std::array<BlobIDList, 2>& blobIDLists() const { return (m_blobids); }
 
-        void AddBlobID(Primitives::IndexType listIndex, Primitives::IndexType blobID)
+        void AddBlobID(IndexType listIndex, IndexType blobID)
         {
             m_blobids[listIndex].emplace_back(blobID);
         }
@@ -114,7 +114,7 @@ namespace Cork::AABVH
         AABVHNode* m_left;
         AABVHNode* m_right;
 
-        Primitives::BBox3D m_bbox;
+        BBox3D m_bbox;
         std::array<BlobIDList, 2> m_blobids;
     };
 
@@ -218,7 +218,7 @@ namespace Cork::AABVH
 
             for (auto& blob : *blobs_)
             {
-                Primitives::Vector3D repPoint(
+                Vector3D repPoint(
                     blob.boundingBox().minima() +
                     ((blob.boundingBox().maxima() - blob.boundingBox().minima()) / (NUMERIC_PRECISION)2.0));
 
@@ -275,7 +275,7 @@ namespace Cork::AABVH
                 {
                     const BlobIDList& blobIds = node->blobIDLists()[blobIDListSelector];
 
-                    for (Primitives::IndexType bid : blobIds)
+                    for (IndexType bid : blobIds)
                     {
                         auto& currentBlob = (*blobs_)[bid];
 
@@ -305,7 +305,7 @@ namespace Cork::AABVH
 
         std::vector<NUMERIC_PRECISION> representative_points_[3];
 
-        std::vector<Primitives::IndexType> tmpids_;
+        std::vector<IndexType> tmpids_;
 
         Xoshiro256Plus random_number_generator_;
 

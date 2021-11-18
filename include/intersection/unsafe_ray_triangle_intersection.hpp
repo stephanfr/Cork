@@ -122,8 +122,8 @@ namespace Cork::Intersection
             return (false);
         }
 
-        *bary = Primitives::Vector3D((NUMERIC_PRECISION)(volBC / edgeSum), (NUMERIC_PRECISION)(volCA / edgeSum),
-                                     (NUMERIC_PRECISION)(volAB / edgeSum));
+        *bary = Vector3D((NUMERIC_PRECISION)(volBC / edgeSum), (NUMERIC_PRECISION)(volCA / edgeSum),
+                         (NUMERIC_PRECISION)(volAB / edgeSum));
 
         return (true);
     }

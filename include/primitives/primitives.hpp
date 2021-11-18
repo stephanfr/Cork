@@ -509,13 +509,23 @@ namespace Cork
     using VertexIndex = Primitives::VertexIndex;
     using TriangleByIndicesIndex = Primitives::TriangleByIndicesIndex;
 
+    using TriangleVertexId = Primitives::TriangleVertexId;
+    using TriangleEdgeId = Primitives::TriangleEdgeId;
+
+    using Vector3D = Primitives::Vector3D;
+    using Vertex3D = Primitives::Vertex3D;
+
     using Ray3D = Primitives::Ray3D;
+    using Ray3DWithInverseDirection = Primitives::Ray3DWithInverseDirection;
     using BBox3D = Primitives::BBox3D;
     using MinAndMaxEdgeLengths = Primitives::MinAndMaxEdgeLengths;
     
+    using EdgeByIndices = Primitives::EdgeByIndices;
+
     using TriangleByVertices = Primitives::TriangleByVertices;
     using TriangleByIndices = Primitives::TriangleByIndices;
 
     using Vertex3DVector = Primitives::Vertex3DVector;
     using TriangleByIndicesVector = Primitives::TriangleByIndicesVector;
+    using EdgeByIndicesVector = Primitives::EdgeByIndicesVector;
 }

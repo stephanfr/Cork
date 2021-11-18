@@ -82,7 +82,7 @@ namespace Cork::Intersection
         }
 
         edge_bvh_.reset(new AABVH::AxisAlignedBoundingVolumeHierarchy(edge_geoms, workspace(),
-                                                                      owner_mesh_.solverControlBlock()));
+                                                                      owner_mesh_.solver_control_block()));
     }
 
     void IntersectionProblemBase::FindEdgeAndTriangleIntersections(AABVH::IntersectionType selfOrBooleanIntersection,

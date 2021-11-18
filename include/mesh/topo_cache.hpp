@@ -25,27 +25,22 @@
 // +-------------------------------------------------------------------------
 #pragma once
 
-#include <tbb/spin_mutex.h>
-
 #include <array>
 #include <boost/container/small_vector.hpp>
-#include <boost/container/static_vector.hpp>
-#include <boost/dynamic_bitset.hpp>
 #include <limits>
-#include <optional>
 #include <type_traits>
 #include <unordered_set>
 
 #include "mesh_base.hpp"
 #include "intersection/empty3d.hpp"
 #include "math/quantization.hpp"
-#include "primitives/primitives.hpp"
 #include "util/CachingFactory.h"
 #include "util/ManagedIntrusiveList.h"
 #include "util/Resettable.h"
 #include "util/SparseVector.h"
 
 //  Forward declare the TriangleProblem class
+//      I do not like doing this but the alternative gets messy wrt includes.
 
 namespace Cork::Intersection
 {
@@ -78,7 +73,7 @@ namespace Cork::Meshes
     {
        public:
 
-        explicit TopoVert(Primitives::VertexIndex index, Primitives::Vertex3D quantized_coordinates,
+        explicit TopoVert(VertexIndex index, Vertex3D quantized_coordinates,
                           TopoTrianglePointerList::SetPoolType& tri_ptr_set_pool,
                           TopoEdgePointerList::SetPoolType& edge_ptr_set_pool)
             : index_(index),
@@ -96,12 +91,12 @@ namespace Cork::Meshes
         TopoVert& operator=(const TopoVert&) = delete;
         TopoVert& operator=(TopoVert&&) = delete;
 
-        Primitives::VertexIndex index() const { return (index_); }
+        VertexIndex index() const { return (index_); }
 
-        void set_index(Primitives::VertexIndex newValue) { index_ = newValue; }
+        void set_index(VertexIndex newValue) { index_ = newValue; }
 
-        const Primitives::Vertex3D& quantizedValue() const { return (quantized_coordinates_); }
-        void perturb(const Primitives::Vertex3D& perturbation) { quantized_coordinates_ += perturbation; }
+        const Vertex3D& quantizedValue() const { return (quantized_coordinates_); }
+        void perturb(const Vertex3D& perturbation) { quantized_coordinates_ += perturbation; }
 
         void addTriangle(TopoTri& triangle) { tris_.insert(&triangle); }
 
@@ -114,14 +109,14 @@ namespace Cork::Meshes
         TopoEdgePointerList& edges() { return edges_; }
 
        private:
-        Primitives::VertexIndex index_;  // index to actual data
-        Primitives::Vertex3D quantized_coordinates_;
+        VertexIndex index_;  // index to actual data
+        Vertex3D quantized_coordinates_;
 
         TopoTrianglePointerList tris_;  // triangles this vertex is incident on
         TopoEdgePointerList edges_;     // edges this vertex is incident on
     };
 
-    typedef ManagedIntrusiveValueList<TopoVert, Primitives::VertexIndex> TopoVertexList;
+    typedef ManagedIntrusiveValueList<TopoVert, VertexIndex> TopoVertexList;
 
     class TopoEdge final : public IntrusiveListHookNoDestructorOnElements
     {
@@ -134,7 +129,7 @@ namespace Cork::Meshes
             vertex1.edges().insert(this);
         }
 
-        TopoEdge(Primitives::TriangleByIndicesIndex source_triangle_id, Primitives::TriangleEdgeId tri_edge_id,
+        TopoEdge(TriangleByIndicesIndex source_triangle_id, TriangleEdgeId tri_edge_id,
                  TopoVert& vertex0, TopoVert& vertex1, TopoTrianglePointerList::SetPoolType& tri_ptr_set_pool)
             : source_triangle_id_(source_triangle_id),
               tri_edge_id_(tri_edge_id),
@@ -147,8 +142,8 @@ namespace Cork::Meshes
 
         ~TopoEdge() {}
 
-        Primitives::TriangleByIndicesIndex source_triangle_id() const { return source_triangle_id_; }
-        Primitives::TriangleEdgeId edge_index() const { return tri_edge_id_; }
+        TriangleByIndicesIndex source_triangle_id() const { return source_triangle_id_; }
+        TriangleEdgeId edge_index() const { return tri_edge_id_; }
 
         uint32_t boolean_algorithm_data() const { return (boolean_algorithm_data_); }
 
@@ -165,18 +160,18 @@ namespace Cork::Meshes
 
         TopoTrianglePointerList& triangles() { return triangles_; }
 
-        Primitives::BBox3D boundingBox() const
+        BBox3D boundingBox() const
         {
-            const Primitives::Vector3D& p0 = vertices_[0]->quantizedValue();
-            const Primitives::Vector3D& p1 = vertices_[1]->quantizedValue();
+            const Vector3D& p0 = vertices_[0]->quantizedValue();
+            const Vector3D& p1 = vertices_[1]->quantizedValue();
 
-            return Primitives::BBox3D(p0.min(p1), p0.max(p1));
+            return BBox3D(p0.min(p1), p0.max(p1));
         }
 
         NUMERIC_PRECISION length() const
         {
-            const Primitives::Vector3D& p0 = vertices_[0]->quantizedValue();
-            const Primitives::Vector3D& p1 = vertices_[1]->quantizedValue();
+            const Vector3D& p0 = vertices_[0]->quantizedValue();
+            const Vector3D& p1 = vertices_[1]->quantizedValue();
 
             return ((p0 - p1).len());
         }
@@ -197,8 +192,8 @@ namespace Cork::Meshes
         }
 
        private:
-        Primitives::TriangleByIndicesIndex source_triangle_id_;
-        Primitives::TriangleEdgeId tri_edge_id_;
+        TriangleByIndicesIndex source_triangle_id_;
+        TriangleEdgeId tri_edge_id_;
 
         uint32_t boolean_algorithm_data_;
 
@@ -216,9 +211,9 @@ namespace Cork::Meshes
     class TopoEdgePrototype : public SEFUtility::SparseVectorEntry
     {
        public:
-        TopoEdgePrototype(Primitives::IndexType v) : SparseVectorEntry(v), m_edge(nullptr) {}
+        TopoEdgePrototype(IndexType v) : SparseVectorEntry(v), m_edge(nullptr) {}
 
-        Primitives::IndexType vid() const { return (index()); }
+        IndexType vid() const { return (index()); }
 
         TopoEdge* edge() { return (m_edge); }
 
@@ -239,9 +234,9 @@ namespace Cork::Meshes
     {
        public:
 
-        explicit TopoTri(Primitives::IndexType ref) : ref_(ref) {}
+        explicit TopoTri(IndexType ref) : ref_(ref) {}
 
-        TopoTri(uint32_t source_triangle_id, Primitives::IndexType ref, TopoVert& vertex0, TopoVert& vertex1,
+        TopoTri(uint32_t source_triangle_id, IndexType ref, TopoVert& vertex0, TopoVert& vertex1,
                 TopoVert& vertex2)
             : source_triangle_id_(source_triangle_id), ref_(ref)
         {
@@ -258,11 +253,11 @@ namespace Cork::Meshes
 
         ~TopoTri() {}
 
-        Primitives::IndexType ref() const { return ref_; }
+        IndexType ref() const { return ref_; }
 
         uint32_t source_triangle_id() const { return source_triangle_id_; }
 
-        void setRef(Primitives::IndexType newValue) { ref_ = newValue; }
+        void setRef(IndexType newValue) { ref_ = newValue; }
 
         const std::optional<std::reference_wrapper<Intersection::TriangleProblem>>& get_associated_triangle_problem()
             const
@@ -280,18 +275,18 @@ namespace Cork::Meshes
 #ifndef __AVX_AVAILABLE__
         //	Without SSE, the min/max computations as slow enough that caching the computed value is most efficient
 
-        const Primitives::BBox3D& boundingBox() const
+        const BBox3D& boundingBox() const
         {
             if (m_boundingBox.has_value())
             {
                 return (m_boundingBox.value());
             }
 
-            const Primitives::Vector3D& p0 = m_verts[0]->quantizedValue();
-            const Primitives::Vector3D& p1 = m_verts[1]->quantizedValue();
-            const Primitives::Vector3D& p2 = m_verts[2]->quantizedValue();
+            const Vector3D& p0 = m_verts[0]->quantizedValue();
+            const Vector3D& p1 = m_verts[1]->quantizedValue();
+            const Vector3D& p2 = m_verts[2]->quantizedValue();
 
-            const_cast<std::optional<Primitives::BBox3D>&>(m_boundingBox).emplace(p0.min(p1, p2), p0.max(p1, p2));
+            const_cast<std::optional<BBox3D>&>(m_boundingBox).emplace(p0.min(p1, p2), p0.max(p1, p2));
 
             return (m_boundingBox.value());
         }
@@ -299,13 +294,13 @@ namespace Cork::Meshes
         //	With SSE, the min/max functions and bounding box computation is quick enough that computing the
         //		value every time is actually most efficient.
 
-        const Primitives::BBox3D boundingBox() const
+        const BBox3D boundingBox() const
         {
-            const Primitives::Vector3D& p0 = m_verts[0]->quantizedValue();
-            const Primitives::Vector3D& p1 = m_verts[1]->quantizedValue();
-            const Primitives::Vector3D& p2 = m_verts[2]->quantizedValue();
+            const Vector3D& p0 = m_verts[0]->quantizedValue();
+            const Vector3D& p1 = m_verts[1]->quantizedValue();
+            const Vector3D& p2 = m_verts[2]->quantizedValue();
 
-            return (Primitives::BBox3D(p0.min(p1, p2), p0.max(p1, p2)));
+            return (BBox3D(p0.min(p1, p2), p0.max(p1, p2)));
         }
 #endif
 
@@ -472,7 +467,7 @@ namespace Cork::Meshes
         }
 
        private:
-        Primitives::IndexType ref_;  // index to actual data
+        IndexType ref_;  // index to actual data
                                      //        void* m_data;                 // algorithm specific handle
 
         std::optional<std::reference_wrapper<Intersection::TriangleProblem>> associated_triangle_problem_;
@@ -485,7 +480,7 @@ namespace Cork::Meshes
         std::array<TopoEdge*, 3> m_edges;  // edges of this triangle opposite to the given vertex
 
 #ifndef __AVX_AVAILABLE__
-        std::optional<Primitives::BBox3D> m_boundingBox;
+        std::optional<BBox3D> m_boundingBox;
 #endif
     };
 
@@ -612,7 +607,7 @@ namespace Cork::Meshes
     class TopoCacheBase
     {
        public:
-        TopoCacheBase(T& triangles, Primitives::Vertex3DVector& vertices, uint32_t num_edges,
+        TopoCacheBase(T& triangles, Vertex3DVector& vertices, uint32_t num_edges,
                       const Math::Quantizer& quantizer)
             : m_workspace(SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance()),
               quantizer_(quantizer),
@@ -661,7 +656,7 @@ namespace Cork::Meshes
         const Math::Quantizer quantizer_;
 
         T& mesh_triangles_;
-        Primitives::Vertex3DVector& mesh_vertices_;
+        Vertex3DVector& mesh_vertices_;
 
         const uint32_t num_edges_;
 
@@ -673,12 +668,6 @@ namespace Cork::Meshes
 
         void init()
         {
-            using TriangleByIndices = Primitives::TriangleByIndices;
-            using VertexIndex = Primitives::VertexIndex;
-            using TriangleVertexId = Primitives::TriangleVertexId;
-            using TriangleByIndicesIndex = Primitives::TriangleByIndicesIndex;
-            using TriangleByIndicesVector = Primitives::TriangleByIndicesVector;
-
             //	First lay out vertices
 
             for (uint i = 0; i < mesh_vertices_.size(); i++)
@@ -804,12 +793,12 @@ namespace Cork::Meshes
         }
     };
 
-    class TopoCache : public TopoCacheBase<MeshBase::TriangleVector>
+    class CorkTriangleVectorTopoCache : public TopoCacheBase<MeshBase::CorkTriangleVector>
     {
        public:
-        TopoCache(MeshBase& owner, const Math::Quantizer& quantizer);
+        CorkTriangleVectorTopoCache(MeshBase& owner, const Math::Quantizer& quantizer);
 
-        virtual ~TopoCache();
+        virtual ~CorkTriangleVectorTopoCache();
 
         // until commit() is called, the Mesh::verts and Mesh::tris
         // arrays will still contain garbage entries
@@ -826,7 +815,7 @@ namespace Cork::Meshes
 
         TopoVert* newVert()
         {
-            Primitives::VertexIndex::integer_type ref = mesh_vertices_.size();
+            VertexIndex::integer_type ref = mesh_vertices_.size();
 
             mesh_vertices_.emplace_back();
 
@@ -840,7 +829,7 @@ namespace Cork::Meshes
 
         TopoTri* newTri()
         {
-            Primitives::IndexType ref = mesh_triangles_.size();
+            IndexType ref = mesh_triangles_.size();
 
             mesh_triangles_.push_back(CorkTriangle());
 
@@ -910,13 +899,13 @@ namespace Cork::Meshes
         }
 
        private:
-        TopoCache() = delete;
+        CorkTriangleVectorTopoCache() = delete;
 
-        TopoCache(const TopoCache&) = delete;
-        TopoCache(TopoCache&&) = delete;
+        CorkTriangleVectorTopoCache(const CorkTriangleVectorTopoCache&) = delete;
+        CorkTriangleVectorTopoCache(CorkTriangleVectorTopoCache&&) = delete;
 
-        TopoCache& operator=(const TopoCache&) = delete;
-        TopoCache& operator=(TopoCache&&) = delete;
+        CorkTriangleVectorTopoCache& operator=(const CorkTriangleVectorTopoCache&) = delete;
+        CorkTriangleVectorTopoCache& operator=(CorkTriangleVectorTopoCache&&) = delete;
 
         //	Data Members
 
@@ -926,5 +915,7 @@ namespace Cork::Meshes
     std::ostream& operator<<(std::ostream& out, const TopoVert& vertex);
     std::ostream& operator<<(std::ostream& out, const TopoEdge& edge);
     std::ostream& operator<<(std::ostream& out, const TopoTri& tri);
+
+    using TriangleByIndicesVectorTopoCache = Meshes::TopoCacheBase<TriangleByIndicesVector>;
 
 }  // namespace Cork::Meshes

@@ -31,8 +31,6 @@
 
 namespace Cork::AABVH
 {
-    using IndexType = Primitives::IndexType;
-
     // precondition: begin <= select < end
 
     inline void AxisAlignedBoundingVolumeHierarchy::QuickSelect(size_t select, size_t begin, size_t end, size_t dim)
@@ -44,21 +42,19 @@ namespace Cork::AABVH
             return;
         }
 
-        const NUMERIC_PRECISION* representativePoints(
-            representative_points_[dim].data());  //	NOLINT(cppcoreguidelines-init-variables)
+        const NUMERIC_PRECISION* representativePoints(representative_points_[dim].data());
 
-        size_t pivotIndex((random_number_generator_.next() % (end - begin)) +
-                          begin);  //	NOLINT(cppcoreguidelines-init-variables)
-        NUMERIC_PRECISION pivotValue(
-            representativePoints[tmpids_[pivotIndex]]);  //	NOLINT(cppcoreguidelines-init-variables)
+        size_t pivotIndex((random_number_generator_.next() % (end - begin)) + begin);
+
+        NUMERIC_PRECISION pivotValue(representativePoints[tmpids_[pivotIndex]]);
 
         //	I don't usually care for pointer arithmetic but it makes a substantive difference here.
         //
         //	When multi-threaded, the changes to the indices front and back are OK as the tasks are working on
         //		separate parts of the tree so there is no risk of hitting the same tmpids at the same time.
 
-        IndexType* front(&tmpids_[begin]);   //	NOLINT(cppcoreguidelines-init-variables)
-        IndexType* back(&tmpids_[end - 1]);  //	NOLINT(cppcoreguidelines-init-variables)
+        IndexType* front(&tmpids_[begin]);
+        IndexType* back(&tmpids_[end - 1]);
 
         while (front < back)
         {

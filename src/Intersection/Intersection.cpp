@@ -34,8 +34,6 @@
 
 namespace Cork::Intersection
 {
-    using TriangleByIndicesIndex = Primitives::TriangleByIndicesIndex;
-
     using TopoVert = Meshes::TopoVert;
     using TopoEdge = Meshes::TopoEdge;
     using TopoTri = Meshes::TopoTri;

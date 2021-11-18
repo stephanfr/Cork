@@ -29,12 +29,9 @@
 #include <random>
 #include <vector>
 
-#include "primitives/primitives.hpp"
 
 namespace Cork::Intersection
 {
-    using Vector3D = Primitives::Vector3D;
-
     class PerturbationRandomizationMatrix
     {
        public:
