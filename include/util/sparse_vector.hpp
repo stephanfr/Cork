@@ -26,29 +26,28 @@ THE SOFTWARE.
 
 #pragma once
 
-#include <tbb/concurrent_unordered_map.h>
-#include <tbb/concurrent_unordered_set.h>
-
-#include <boost/container/static_vector.hpp>
-#include <boost/integer/static_min_max.hpp>
-#include <boost/iterator/iterator_facade.hpp>
+#include <memory>
 #include <functional>
 #include <set>
 #include <unordered_map>
 
-#include "Resettable.h"
+#include <boost/container/static_vector.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/integer/static_min_max.hpp>
+
+#include "resettable.hpp"
 
 namespace SEFUtility
 {
     class SparseVectorEntry
     {
        public:
-        SparseVectorEntry(size_t index) : m_index(index) {}
+        SparseVectorEntry(size_t index) : index_(index) {}
 
-        size_t index() const { return (m_index); }
+        size_t index() const { return (index_); }
 
        private:
-        size_t m_index;
+        size_t index_;
     };
 
     template <class T>
@@ -89,55 +88,55 @@ namespace SEFUtility
            protected:
             friend class SparseVector;
 
-            iterator(const EntryVectorIterator& vectorIterator) : m_cutOver(false)
+            iterator(const EntryVectorIterator& vectorIterator) : cut_over_(false)
             {
-                m_vectorIterator = vectorIterator;
+                vector_iterator_ = vectorIterator;
             }
 
-            iterator(const EntryMapIterator& setIterator) : m_cutOver(true) { m_setIterator = setIterator; }
+            iterator(const EntryMapIterator& setIterator) : cut_over_(true) { set_iterator_ = setIterator; }
 
             friend class boost::iterator_core_access;
 
             void increment()
             {
-                if (m_cutOver)
+                if (cut_over_)
                 {
-                    m_setIterator++;
+                    set_iterator_++;
                 }
                 else
                 {
-                    m_vectorIterator++;
+                    vector_iterator_++;
                 }
             }
 
             bool equal(iterator const& other) const
             {
-                if (m_cutOver)
+                if (cut_over_)
                 {
-                    return (m_setIterator == other.m_setIterator);
+                    return (set_iterator_ == other.set_iterator_);
                 }
                 else
                 {
-                    return (m_vectorIterator == other.m_vectorIterator);
+                    return (vector_iterator_ == other.vector_iterator_);
                 }
             }
 
             T* dereference() const
             {
-                if (m_cutOver)
+                if (cut_over_)
                 {
-                    return (&(m_setIterator->second));
+                    return (&(set_iterator_->second));
                 }
                 else
                 {
-                    return (&*m_vectorIterator);
+                    return (&*vector_iterator_);
                 }
             }
 
-            bool m_cutOver;
+            bool cut_over_;
 
-            EntryVectorIterator m_vectorIterator;
-            EntryMapIterator m_setIterator;
+            EntryVectorIterator vector_iterator_;
+            EntryMapIterator set_iterator_;
         };
 
         class const_iterator : public boost::iterator_facade<const_iterator, T*, boost::forward_traversal_tag, const T*>
@@ -145,72 +144,72 @@ namespace SEFUtility
            protected:
             friend class SparseVector;
 
-            const_iterator(const EntryVectorIterator& vectorIterator) : m_cutOver(false)
+            const_iterator(const EntryVectorIterator& vectorIterator) : cut_over_(false)
             {
-                m_vectorIterator = vectorIterator;
+                vector_iterator_ = vectorIterator;
             }
 
-            const_iterator(const EntryMapIterator& setIterator) : m_cutOver(true) { m_setIterator = setIterator; }
+            const_iterator(const EntryMapIterator& setIterator) : cut_over_(true) { set_iterator_ = setIterator; }
 
             friend class boost::iterator_core_access;
 
             void increment()
             {
-                if (m_cutOver)
+                if (cut_over_)
                 {
-                    m_setIterator++;
+                    set_iterator_++;
                 }
                 else
                 {
-                    m_vectorIterator++;
+                    vector_iterator_++;
                 }
             }
 
             bool equal(iterator const& other) const
             {
-                if (m_cutOver)
+                if (cut_over_)
                 {
-                    return (m_setIterator == other.m_setIterator);
+                    return (set_iterator_ == other.m_setIterator);
                 }
                 else
                 {
-                    return (m_vectorIterator == other.m_vectorIterator);
+                    return (vector_iterator_ == other.m_vectorIterator);
                 }
             }
 
             T* dereference() const
             {
-                if (m_cutOver)
+                if (cut_over_)
                 {
-                    return (&(m_setIterator->second));
+                    return (&(set_iterator_->second));
                 }
                 else
                 {
-                    return (m_vectorIterator);
+                    return (vector_iterator_);
                 }
             }
 
-            bool m_cutOver;
+            bool cut_over_;
 
-            EntryVectorIterator m_vectorIterator;
-            EntryMapIterator m_setIterator;
+            EntryVectorIterator vector_iterator_;
+            EntryMapIterator set_iterator_;
         };
 
         SparseVector()
-            : m_cutover(false),
-              m_inserter(&SparseVector<T, CUTOVER_SIZE>::insertIntoArray),
-              m_findOrAdd(&SparseVector<T, CUTOVER_SIZE>::findOrAddArray),
+            : cut_over_(false),
+              inserter_(&SparseVector<T, CUTOVER_SIZE>::insertIntoArray),
+              find_or_add_(&SparseVector<T, CUTOVER_SIZE>::findOrAddArray),
               map_pool_(*(default_pool_.get())),
-              m_map(NULL)
+              map_(NULL)
         {
         }
 
         SparseVector(MapPoolType& map_pool)
-            : m_cutover(false),
-              m_inserter(&SparseVector<T, CUTOVER_SIZE>::insertIntoArray),
-              m_findOrAdd(&SparseVector<T, CUTOVER_SIZE>::findOrAddArray),
+            : cut_over_(false),
+              inserter_(&SparseVector<T, CUTOVER_SIZE>::insertIntoArray),
+              find_or_add_(&SparseVector<T, CUTOVER_SIZE>::findOrAddArray),
               map_pool_(map_pool),
-              m_map(NULL)
+              map_(NULL)
         {
         }
 
@@ -221,9 +220,9 @@ namespace SEFUtility
 
         ~SparseVector()
         {
-            if (m_map != NULL)
+            if (map_ != NULL)
             {
-                map_pool_.release_map(m_map);
+                map_pool_.release_map(map_);
             }
         }
 
@@ -234,87 +233,87 @@ namespace SEFUtility
 
         void reset()
         {
-            if (m_map != NULL)
+            if (map_ != NULL)
             {
-                map_pool_.release_map(m_map);
+                map_pool_.release_map(map_);
             }
 
-            m_cutover = false;
-            m_array.clear();
-            m_inserter = &SparseVector<T, CUTOVER_SIZE>::insertIntoArray;
-            m_findOrAdd = &SparseVector<T, CUTOVER_SIZE>::findOrAddArray;
-            m_map = NULL;
+            cut_over_ = false;
+            array_.clear();
+            inserter_ = &SparseVector<T, CUTOVER_SIZE>::insertIntoArray;
+            find_or_add_ = &SparseVector<T, CUTOVER_SIZE>::findOrAddArray;
+            map_ = NULL;
         }
 
         size_t size() const
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (m_array.size());
+                return (array_.size());
             }
 
-            return (m_map->size());
+            return (map_->size());
         }
 
         bool empty() const
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (m_array.size() == 0);
+                return (array_.size() == 0);
             }
 
-            return (m_map->empty());
+            return (map_->empty());
         }
 
         iterator begin()
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (iterator(m_array.begin()));
+                return (iterator(array_.begin()));
             }
 
-            return (iterator(m_map->begin()));
+            return (iterator(map_->begin()));
         }
 
         const_iterator begin() const
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (const_iterator(m_array.begin()));
+                return (const_iterator(array_.begin()));
             }
 
-            return (const_iterator(m_map->begin()));
+            return (const_iterator(map_->begin()));
         }
 
         iterator end()
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (iterator(m_array.end()));
+                return (iterator(array_.end()));
             }
 
-            return (iterator(m_map->end()));
+            return (iterator(map_->end()));
         }
 
         const_iterator end() const
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (const_iterator(m_array.end()));
+                return (const_iterator(array_.end()));
             }
 
-            return (const_iterator(m_map->end()));
+            return (const_iterator(map_->end()));
         }
 
         T& operator[](size_t index)
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                for (unsigned int i = 0; i < m_array.size(); i++)
+                for (unsigned int i = 0; i < array_.size(); i++)
                 {
-                    if (m_array[i].index() == index)
+                    if (array_[i].index() == index)
                     {
-                        return (m_array[i]);
+                        return (array_[i]);
                     }
                 }
 
@@ -325,9 +324,9 @@ namespace SEFUtility
 
             EntryMapIterator itrEntry;
 
-            itrEntry = m_map->find(index);
+            itrEntry = map_->find(index);
 
-            if (itrEntry == m_map->end())
+            if (itrEntry == map_->end())
             {
                 //	We did not find the entry so there is no choice but assert
 
@@ -339,13 +338,13 @@ namespace SEFUtility
 
         const T& operator[](size_t index) const
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                for (unsigned int i = 0; i < m_array.size(); i++)
+                for (unsigned int i = 0; i < array_.size(); i++)
                 {
-                    if (m_array[i].index() == index)
+                    if (array_[i].index() == index)
                     {
-                        return (m_array[i]);
+                        return (array_[i]);
                     }
                 }
 
@@ -356,9 +355,9 @@ namespace SEFUtility
 
             EntryMapIterator itrEntry;
 
-            itrEntry = m_map->find(index);
+            itrEntry = map_->find(index);
 
-            if (itrEntry == m_map->end())
+            if (itrEntry == map_->end())
             {
                 //	We did not find the entry so there is no choice but assert
 
@@ -368,20 +367,20 @@ namespace SEFUtility
             return (itrEntry->second);
         }
 
-        T& find_or_add(size_t index) { return ((this->*m_findOrAdd)(index)); }
+        T& find_or_add(size_t index) { return ((this->*find_or_add_)(index)); }
 
         inline void for_each(std::function<void(T& entry)> action)
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                for (unsigned int i = 0; i < m_array.size(); i++)
+                for (unsigned int i = 0; i < array_.size(); i++)
                 {
-                    action(m_array[i]);
+                    action(array_[i]);
                 }
             }
             else
             {
-                for (auto& currentEntry : *m_map)
+                for (auto& currentEntry : *map_)
                 {
                     action(currentEntry.second);
                 }
@@ -390,16 +389,16 @@ namespace SEFUtility
 
         void elements(std::vector<T*>& elementVector)
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                for (unsigned int i = 0; i < m_array.size(); i++)
+                for (unsigned int i = 0; i < array_.size(); i++)
                 {
-                    elementVector.push_back(m_array + i);
+                    elementVector.push_back(array_ + i);
                 }
             }
             else
             {
-                for (auto& currentEntry : *m_map)
+                for (auto& currentEntry : *map_)
                 {
                     elementVector.push_back(&(currentEntry.second));
                 }
@@ -412,69 +411,68 @@ namespace SEFUtility
         typedef T& (SparseVector<T, CUTOVER_SIZE>::*InsertFunctionPointer)(size_t);
         typedef T& (SparseVector<T, CUTOVER_SIZE>::*FindOrAddFunctionPointer)(size_t);
 
-        bool m_cutover;
+        bool cut_over_;
 
-        InsertFunctionPointer m_inserter;
-        FindOrAddFunctionPointer m_findOrAdd;
+        InsertFunctionPointer inserter_;
+        FindOrAddFunctionPointer find_or_add_;
 
-        EntryVector m_array;
+        EntryVector array_;
 
-        EntryMap* m_map;
+        EntryMap* map_;
 
         MapPoolType& map_pool_;
 
         T& insertIntoArray(size_t index)
         {
-            if (m_array.size() < CUTOVER_SIZE)
+            if (array_.size() < CUTOVER_SIZE)
             {
-                m_array.emplace_back(index);
+                array_.emplace_back(index);
 
-                return (m_array.back());
+                return (array_.back());
             }
 
-            //            m_map = new EntryMap(CUTOVER_SIZE * 4);
-            m_map = map_pool_.new_map(CUTOVER_SIZE * 4);
+            map_ = map_pool_.new_map(CUTOVER_SIZE * 4);
 
-            for (unsigned int i = 0; i < m_array.size(); i++)
+            for (unsigned int i = 0; i < array_.size(); i++)
             {
-                m_map->emplace(m_array[i].index(), m_array[i]);
+                map_->emplace(array_[i].index(), array_[i]);
             }
 
-            m_cutover = true;
+            cut_over_ = true;
 
-            m_inserter = &SparseVector<T, CUTOVER_SIZE>::insertIntoMap;
-            m_findOrAdd = &SparseVector<T, CUTOVER_SIZE>::findOrAddMap;
+            inserter_ = &SparseVector<T, CUTOVER_SIZE>::insertIntoMap;
+            find_or_add_ = &SparseVector<T, CUTOVER_SIZE>::findOrAddMap;
 
-            return (m_map->emplace(index, index).first->second);
+            return (map_->emplace(index, index).first->second);
         }
 
-        T& insertIntoMap(size_t index) { return (m_map->emplace(index, index).first->second); }
+        T& insertIntoMap(size_t index) { return (map_->emplace(index, index).first->second); }
 
         T& findOrAddArray(size_t index)
         {
-            for (unsigned int i = 0; i < m_array.size(); i++)
+            for (unsigned int i = 0; i < array_.size(); i++)
             {
-                if (m_array[i].index() == index)
+                if (array_[i].index() == index)
                 {
-                    return (m_array[i]);
+                    return (array_[i]);
                 }
             }
 
-            return ((this->*m_inserter)(index));
+            return ((this->*inserter_)(index));
         }
 
         T& findOrAddMap(size_t index)
         {
             EntryMapIterator itrEntry;
 
-            itrEntry = m_map->find(index);
+            itrEntry = map_->find(index);
 
-            if (itrEntry != m_map->end())
+            if (itrEntry != map_->end())
             {
                 return (itrEntry->second);
             }
 
-            return ((this->*m_inserter)(index));
+            return ((this->*inserter_)(index));
         }
     };
 
@@ -517,63 +515,63 @@ namespace SEFUtility
            protected:
             friend class SearchablePointerList;
 
-            iterator(const EntryVectorIterator& vectorIterator) : m_cutOver(false)
+            iterator(const EntryVectorIterator& vectorIterator) : cut_over_(false)
             {
-                m_vectorIterator = new (m_buffer) EntryVectorIterator(vectorIterator);
+                vector_iterator_ = new (buffer_) EntryVectorIterator(vectorIterator);
             }
 
-            iterator(const EntrySetIterator& setIterator) : m_cutOver(true)
+            iterator(const EntrySetIterator& setIterator) : cut_over_(true)
             {
-                m_setIterator = new (m_buffer) EntrySetIterator(setIterator);
+                set_iterator_ = new (buffer_) EntrySetIterator(setIterator);
             }
 
             friend class boost::iterator_core_access;
 
             void increment()
             {
-                if (m_cutOver)
+                if (cut_over_)
                 {
-                    (*m_setIterator)++;
+                    (*set_iterator_)++;
                 }
                 else
                 {
-                    (*m_vectorIterator)++;
+                    (*vector_iterator_)++;
                 }
             }
 
             bool equal(iterator const& other) const
             {
-                if (m_cutOver)
+                if (cut_over_)
                 {
-                    return (*m_setIterator == *(other.m_setIterator));
+                    return (*set_iterator_ == *(other.set_iterator_));
                 }
                 else
                 {
-                    return (*m_vectorIterator == *(other.m_vectorIterator));
+                    return (*vector_iterator_ == *(other.vector_iterator_));
                 }
             }
 
             T* dereference() const
             {
-                if (m_cutOver)
+                if (cut_over_)
                 {
-                    return (*(*m_setIterator));
+                    return (*(*set_iterator_));
                 }
                 else
                 {
-                    return (*(*m_vectorIterator));
+                    return (*(*vector_iterator_));
                 }
             }
 
             unsigned char
-                m_buffer[boost::static_unsigned_max<sizeof(EntryVectorIterator), sizeof(EntrySetIterator)>::value];
+                buffer_[boost::static_unsigned_max<sizeof(EntryVectorIterator), sizeof(EntrySetIterator)>::value];
 
-            bool m_cutOver;
+            bool cut_over_;
 
             union
             {
-                EntryVectorIterator* m_vectorIterator;
-                EntrySetIterator* m_setIterator;
+                EntryVectorIterator* vector_iterator_;
+                EntrySetIterator* set_iterator_;
             };
         };
 
@@ -582,78 +580,78 @@ namespace SEFUtility
            protected:
             friend class SearchablePointerList;
 
-            const_iterator(const EntryVectorConstIterator& vectorIterator) : m_cutOver(false)
+            const_iterator(const EntryVectorConstIterator& vectorIterator) : cut_over_(false)
             {
-                m_vectorIterator = new (m_buffer) EntryVectorConstIterator(vectorIterator);
+                vector_iterator_ = new (buffer_) EntryVectorConstIterator(vectorIterator);
             }
 
-            const_iterator(const EntrySetConstIterator& setIterator) : m_cutOver(true)
+            const_iterator(const EntrySetConstIterator& setIterator) : cut_over_(true)
             {
-                m_setIterator = new (m_buffer) EntrySetConstIterator(setIterator);
+                set_iterator_ = new (buffer_) EntrySetConstIterator(setIterator);
             }
 
             friend class boost::iterator_core_access;
 
             void increment()
             {
-                if (m_cutOver)
+                if (cut_over_)
                 {
-                    (*m_setIterator)++;
+                    (*set_iterator_)++;
                 }
                 else
                 {
-                    (*m_vectorIterator)++;
+                    (*vector_iterator_)++;
                 }
             }
 
             bool equal(const_iterator const& other) const
             {
-                if (m_cutOver)
+                if (cut_over_)
                 {
-                    return (*m_setIterator == *(other.m_setIterator));
+                    return (*set_iterator_ == *(other.set_iterator_));
                 }
                 else
                 {
-                    return (*m_vectorIterator == *(other.m_vectorIterator));
+                    return (*vector_iterator_ == *(other.vector_iterator_));
                 }
             }
 
             T* dereference() const
             {
-                if (m_cutOver)
+                if (cut_over_)
                 {
-                    return (*(*m_setIterator));
+                    return (*(*set_iterator_));
                 }
                 else
                 {
-                    return (*(*m_vectorIterator));
+                    return (*(*vector_iterator_));
                 }
             }
 
-            unsigned char m_buffer[boost::static_unsigned_max<sizeof(EntryVectorConstIterator),
+            unsigned char buffer_[boost::static_unsigned_max<sizeof(EntryVectorConstIterator),
                                                               sizeof(EntrySetConstIterator)>::value];
 
-            bool m_cutOver;
+            bool cut_over_;
 
             union
             {
-                EntryVectorConstIterator* m_vectorIterator;
-                EntrySetConstIterator* m_setIterator;
+                EntryVectorConstIterator* vector_iterator_;
+                EntrySetConstIterator* set_iterator_;
             };
         };
 
         SearchablePointerList()
-            : m_cutover(false),
-              m_inserter(&SearchablePointerList<T, CUTOVER_SIZE>::insertIntoArray),
-              m_map(NULL),
+            : cut_over_(false),
+              inserter_(&SearchablePointerList<T, CUTOVER_SIZE>::insertIntoArray),
+              map_(NULL),
               set_pool_(*(default_pool_.get()))
         {
         }
 
         SearchablePointerList( SetPoolType&      set_pool )
-            : m_cutover(false),
-              m_inserter(&SearchablePointerList<T, CUTOVER_SIZE>::insertIntoArray),
-              m_map(NULL),
+            : cut_over_(false),
+              inserter_(&SearchablePointerList<T, CUTOVER_SIZE>::insertIntoArray),
+              map_(NULL),
               set_pool_(set_pool)
         {
         }
@@ -665,9 +663,9 @@ namespace SEFUtility
 
         ~SearchablePointerList()
         {
-            if (m_map != NULL)
+            if (map_ != NULL)
             {
-                set_pool_.release_set( m_map );
+                set_pool_.release_set( map_ );
             }
         }
 
@@ -678,79 +676,79 @@ namespace SEFUtility
 
         size_t size() const
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (m_array.size());
+                return (array_.size());
             }
 
-            return (m_map->size());
+            return (map_->size());
         }
 
         bool empty() const
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (m_array.empty());
+                return (array_.empty());
             }
 
-            return (m_map->empty());
+            return (map_->empty());
         }
 
         T* front() const
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (m_array.front());
+                return (array_.front());
             }
 
-            return (*(m_map->begin()));
+            return (*(map_->begin()));
         }
 
         iterator begin()
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (iterator(m_array.begin()));
+                return (iterator(array_.begin()));
             }
 
-            return (iterator(m_map->begin()));
+            return (iterator(map_->begin()));
         }
 
         const_iterator begin() const
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (const_iterator(m_array.begin()));
+                return (const_iterator(array_.begin()));
             }
 
-            return (const_iterator(m_map->begin()));
+            return (const_iterator(map_->begin()));
         }
 
         iterator end()
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (iterator(m_array.end()));
+                return (iterator(array_.end()));
             }
 
-            return (iterator(m_map->end()));
+            return (iterator(map_->end()));
         }
 
         const_iterator end() const
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                return (const_iterator(m_array.end()));
+                return (const_iterator(array_.end()));
             }
 
-            return (const_iterator(m_map->end()));
+            return (const_iterator(map_->end()));
         }
 
         T* operator[](unsigned int index)
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                for (T& entry : m_array)
+                for (T& entry : array_)
                 {
                     if (entry.index() == index)
                     {
@@ -761,9 +759,9 @@ namespace SEFUtility
 
             EntrySetIterator itrEntry;
 
-            itrEntry = m_map->find(index);
+            itrEntry = map_->find(index);
 
-            if (itrEntry != m_map->end())
+            if (itrEntry != map_->end())
             {
                 return (itrEntry);
             }
@@ -773,39 +771,39 @@ namespace SEFUtility
             assert(false);
         }
 
-        void insert(T* newValue) { (this->*m_inserter)(newValue); }
+        void insert(T* newValue) { (this->*inserter_)(newValue); }
 
         void erase(T* index)
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                for (EntryVectorIterator itrElement = m_array.begin(); itrElement != m_array.end(); itrElement++)
+                for (EntryVectorIterator itrElement = array_.begin(); itrElement != array_.end(); itrElement++)
                 {
                     if (*itrElement == index)
                     {
-                        m_array.erase(itrElement);
+                        array_.erase(itrElement);
                         break;
                     }
                 }
             }
             else
             {
-                m_map->erase(index);
+                map_->erase(index);
             }
         }
 
         inline void for_each(std::function<void(T& entry)> action)
         {
-            if (!m_cutover)
+            if (!cut_over_)
             {
-                for (auto& currentEntry : m_array)
+                for (auto& currentEntry : array_)
                 {
                     action(currentEntry);
                 }
             }
             else
             {
-                for (auto& currentEntry : *m_map)
+                for (auto& currentEntry : *map_)
                 {
                     action(currentEntry);
                 }
@@ -817,40 +815,40 @@ namespace SEFUtility
 
         static std::unique_ptr<DefaultPointerSetPool<T>> default_pool_;
 
-        bool m_cutover;
+        bool cut_over_;
 
-        InsertFunctionPointer m_inserter;
+        InsertFunctionPointer inserter_;
 
-        EntryVector m_array;
+        EntryVector array_;
 
-        EntrySet* m_map;
+        EntrySet* map_;
 
         SetPoolType& set_pool_;
 
         void insertIntoArray(T* newValue)
         {
-            if (m_array.size() < CUTOVER_SIZE)
+            if (array_.size() < CUTOVER_SIZE)
             {
-                m_array.push_back(newValue);
+                array_.push_back(newValue);
             }
             else
             {
-                m_map = set_pool_.new_set();
+                map_ = set_pool_.new_set();
 
-                for (T* value : m_array)
+                for (T* value : array_)
                 {
-                    m_map->insert(value);
+                    map_->insert(value);
                 }
 
-                m_map->insert(newValue);
+                map_->insert(newValue);
 
-                m_cutover = true;
+                cut_over_ = true;
 
-                m_inserter = &SearchablePointerList<T, CUTOVER_SIZE>::insertIntoMap;
+                inserter_ = &SearchablePointerList<T, CUTOVER_SIZE>::insertIntoMap;
             }
         }
 
-        void insertIntoMap(T* newValue) { m_map->insert(newValue); }
+        void insertIntoMap(T* newValue) { map_->insert(newValue); }
 
         friend class iterator;
     };

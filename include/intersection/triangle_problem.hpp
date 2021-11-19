@@ -27,7 +27,7 @@
 
 #include "tbb/tbb.h"
 
-#include "util/ManagedIntrusiveList.h"
+#include "util/managed_intrusive_list.hpp"
 #include "intersection/triangulator.hpp"
 
 

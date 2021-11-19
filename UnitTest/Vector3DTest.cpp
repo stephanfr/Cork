@@ -1,8 +1,6 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "../src/SIMDInstructionSet.h"
-
 #define __AVX_AVAILABLE__
 
 #include "math/vector_3D_template.hpp"

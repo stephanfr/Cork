@@ -38,8 +38,8 @@
 #include "cork_defs.hpp"
 #include "Xoshiro256Plus.h"
 #include "mesh/topo_cache.hpp"
-#include "util/FastStack.h"
-#include "util/ManagedIntrusiveList.h"
+#include "util/fast_stack.hpp"
+#include "util/managed_intrusive_list.hpp"
 
 //
 //	AABVH

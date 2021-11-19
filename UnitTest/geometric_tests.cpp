@@ -22,7 +22,7 @@
 #include <catch2/catch_all.hpp>
 #include <list>
 
-#include "file_formats/files.h"
+#include "file_formats/files.hpp"
 #include "intersection/triangulator.hpp"
 
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.

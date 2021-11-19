@@ -5,7 +5,7 @@
 #include <thread>
 
 #include "util/CachingFactory.h"
-#include "util/Resettable.h"
+#include "util/resettable.hpp"
 
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
 

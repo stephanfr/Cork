@@ -34,7 +34,7 @@
 
 #include "primitives/index_remapper.hpp"
 
-#include "statistics/statistics_engines.h"
+#include "statistics/statistics_engines.hpp"
 
 namespace Cork::Meshes
 {

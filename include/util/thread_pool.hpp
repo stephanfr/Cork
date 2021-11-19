@@ -15,15 +15,15 @@ template <class T>
 class BlockRange
 {
    public:
-    BlockRange(T begin, T end) : m_begin(begin), m_end(end) {}
+    BlockRange(T begin, T end) : begin_(begin), end_(end) {}
 
-    T begin() const { return (m_begin); }
+    T begin() const { return (begin_); }
 
-    T end() const { return (m_end); }
+    T end() const { return (end_); }
 
    private:
-    T m_begin;
-    T m_end;
+    T begin_;
+    T end_;
 };
 
 class ITask
@@ -39,24 +39,24 @@ class ParallelForBlock : public ITask
     typedef std::function<void(T, T)> ExecutableBody;
 
     ParallelForBlock(boost::latch& latch, T itrBegin, T itrEnd, ExecutableBody executable)
-        : m_executable(executable), m_itrBegin(itrBegin), m_itrEnd(itrEnd), m_latch(latch)
+        : m_executable(executable), itr_begin_(itrBegin), itr_end_(itrEnd), latch_(latch)
     {
     }
 
     void Execute(void)
     {
-        m_executable(m_itrBegin, m_itrEnd);
+        m_executable(itr_begin_, itr_end_);
 
-        m_latch.count_down();
+        latch_.count_down();
     }
 
    private:
     ExecutableBody m_executable;
 
-    T m_itrBegin;
-    T m_itrEnd;
+    T itr_begin_;
+    T itr_end_;
 
-    boost::latch& m_latch;
+    boost::latch& latch_;
 };
 
 template <typename T>
@@ -66,34 +66,34 @@ class ParallelForBlockRanged : public ITask
     typedef std::function<void(BlockRange<T>)> ExecutableBody;
 
     ParallelForBlockRanged(boost::latch& latch, T itrBegin, T itrEnd, ExecutableBody executable)
-        : m_executable(executable), m_itrBegin(itrBegin), m_itrEnd(itrEnd), m_latch(latch)
+        : executable_(executable), itr_begin_(itrBegin), itr_end_(itrEnd), latch_(latch)
     {
     }
 
     void Execute(void)
     {
-        m_executable(BlockRange<T>(m_itrBegin, m_itrEnd));
+        executable_(BlockRange<T>(itr_begin_, itr_end_));
 
-        m_latch.count_down();
+        latch_.count_down();
     }
 
    private:
-    ExecutableBody m_executable;
+    ExecutableBody executable_;
 
-    T m_itrBegin;
-    T m_itrEnd;
+    T itr_begin_;
+    T itr_end_;
 
-    boost::latch& m_latch;
+    boost::latch& latch_;
 };
 
 class ThreadPool
 {
    public:
-    ThreadPool() : running_(true), m_numCores(std::thread::hardware_concurrency() / 2)
+    ThreadPool() : running_(true), num_cores_(std::thread::hardware_concurrency() / 2)
     {
-        for (int i = 0; i < m_numCores; i++)
+        for (int i = 0; i < num_cores_; i++)
         {
-            m_workers.emplace_back(&ThreadPool::ThreadMain, this);
+            workers_.emplace_back(&ThreadPool::ThreadMain, this);
         }
     }
 
@@ -105,11 +105,11 @@ class ThreadPool
 
         running_ = false;
 
-        while (!m_workers.empty())
+        while (!workers_.empty())
         {
             std::shared_ptr<ITask> no_op_task(new NoOpTaskForShutdown());
 
-            m_taskQueue.push(no_op_task);
+            task_queue_.push(no_op_task);
 
             std::this_thread::sleep_for(1s);
 
@@ -119,12 +119,12 @@ class ThreadPool
             {
 				thread_joined = false;
 
-                for (auto itr_thread = m_workers.begin(); itr_thread != m_workers.end(); itr_thread++)
+                for (auto itr_thread = workers_.begin(); itr_thread != workers_.end(); itr_thread++)
                 {
                     if (itr_thread->joinable())
                     {
                         itr_thread->join();
-                        m_workers.erase(itr_thread);
+                        workers_.erase(itr_thread);
 
 						thread_joined = true;
 
@@ -142,7 +142,7 @@ class ThreadPool
             return;
         }
 
-        m_taskQueue.push(task);
+        task_queue_.push(task);
     }
 
     template <typename T>
@@ -158,7 +158,7 @@ class ThreadPool
             numTasks = 1;
         }
 
-        numTasks = std::min(numTasks, m_numCores);
+        numTasks = std::min(numTasks, num_cores_);
         numTasks = std::min((long)numTasks, (long)(end - begin));
 
         boost::latch completionLatch(numTasks - 1);
@@ -193,7 +193,7 @@ class ThreadPool
             numTasks = 1;
         }
 
-        numTasks = std::min(numTasks, m_numCores);
+        numTasks = std::min(numTasks, num_cores_);
         numTasks = std::min((long)numTasks, (long)(end - begin));
 
         boost::latch completionLatch(numTasks - 1);
@@ -216,13 +216,13 @@ class ThreadPool
     }
 
    private:
-    typedef tbb::concurrent_bounded_queue<std::shared_ptr<ITask>> TaskQueue;
+    using TaskQueue = tbb::concurrent_bounded_queue<std::shared_ptr<ITask>>;
 
-    const int m_numCores;
+    const int num_cores_;
 
-    TaskQueue m_taskQueue;
+    TaskQueue task_queue_;
 
-    std::vector<std::thread> m_workers;
+    std::vector<std::thread> workers_;
 
     std::atomic_bool running_;
 
@@ -238,7 +238,7 @@ class ThreadPool
         {
             std::shared_ptr<ITask> nextTask;
 
-            m_taskQueue.pop(nextTask);
+            task_queue_.pop(nextTask);
 
             nextTask->Execute();
         }

@@ -24,7 +24,7 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "statistics/statistics_engines.h"
+#include "statistics/statistics_engines.hpp"
 
 #include "intersection/self_intersection_finder.hpp"
 

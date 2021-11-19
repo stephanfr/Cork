@@ -4,7 +4,7 @@
 
 #include "primitives/primitives.hpp"
 
-#include "util/performance_stringstream.h"
+#include "util/performance_stringstream.hpp"
 
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
 

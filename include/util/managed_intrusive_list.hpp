@@ -41,19 +41,19 @@ namespace hidden
         : public boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::normal_link>>
     {
        public:
-        explicit PointerOnlyListElement(T* pointer) : m_pointer(pointer) {}
+        explicit PointerOnlyListElement(T* pointer) : pointer_(pointer) {}
 
-        operator T*() { return (m_pointer); }
+        operator T*() { return (pointer_); }
 
-        operator const T*() const { return (m_pointer); }
+        operator const T*() const { return (pointer_); }
 
-        T* operator->() { return (m_pointer); }
+        T* operator->() { return (pointer_); }
 
-        const T* operator->() const { return (m_pointer); }
+        const T* operator->() const { return (pointer_); }
 
-        T* pointer() { return (m_pointer); }
+        T* pointer() { return (pointer_); }
 
-        T* m_pointer;
+        T* pointer_;
     };
 
 }  // namespace hidden
@@ -136,7 +136,7 @@ class ManagedIntrusivePointerList : public boost::noncopyable,
    public:
     typedef tbb::concurrent_vector<hidden::PointerOnlyListElement<T>> PoolType;
 
-    explicit ManagedIntrusivePointerList(PoolType& pool) : m_pool(pool) {}
+    explicit ManagedIntrusivePointerList(PoolType& pool) : pool_(pool) {}
 
     ManagedIntrusivePointerList(const ManagedIntrusivePointerList&) = delete;
 
@@ -151,10 +151,10 @@ class ManagedIntrusivePointerList : public boost::noncopyable,
     using BaseType::erase;
     using BaseType::size;
 
-    void push_back(T* pointerToAdd) { BaseType::push_back(*(m_pool.emplace_back(pointerToAdd))); }
+    void push_back(T* pointerToAdd) { BaseType::push_back(*(pool_.emplace_back(pointerToAdd))); }
 
    protected:
-    PoolType& m_pool;
+    PoolType& pool_;
 };
 
 typedef boost::intrusive::list_base_hook<> IntrusiveListHook;
@@ -208,7 +208,7 @@ class ManagedIntrusiveValueList : public boost::noncopyable,
     //    typedef tbb::concurrent_vector<T> PoolType;
     using PoolType = TP;
 
-    explicit ManagedIntrusiveValueList(PoolType& pool) : m_pool(pool) {}
+    explicit ManagedIntrusiveValueList(PoolType& pool) : pool_(pool) {}
 
     using BaseType::begin;
     using BaseType::clear;
@@ -218,7 +218,7 @@ class ManagedIntrusiveValueList : public boost::noncopyable,
     template <class... _Valty>
     T* emplace_back(_Valty&&... _Val)
     {
-        T& newValue = *(m_pool.emplace_back(std::forward<_Valty>(_Val)...));
+        T& newValue = *(pool_.emplace_back(std::forward<_Valty>(_Val)...));
 
         BaseType::push_back(newValue);
 
@@ -228,20 +228,20 @@ class ManagedIntrusiveValueList : public boost::noncopyable,
     template <class... _Valty>
     T* emplace_back_unindexed(_Valty&&... _Val)
     {
-        T& newValue = *(m_pool.emplace_back(std::forward<_Valty>(_Val)...));
+        T& newValue = *(pool_.emplace_back(std::forward<_Valty>(_Val)...));
 
         return (&newValue);
     }
 
-    bool isCompact() const { return (m_pool.size() == size()); }
+    bool isCompact() const { return (pool_.size() == size()); }
 
-    PoolType& getPool() { return (m_pool); }
+    PoolType& getPool() { return (pool_); }
 
     void FixupList()
     {
         BaseType::clear();
 
-        for (auto itrElement = m_pool.begin(); itrElement != m_pool.end(); itrElement++)
+        for (auto itrElement = pool_.begin(); itrElement != pool_.end(); itrElement++)
         {
             BaseType::push_back(*itrElement);
         }
@@ -272,5 +272,5 @@ class ManagedIntrusiveValueList : public boost::noncopyable,
     }
 
    private:
-    PoolType& m_pool;
+    PoolType& pool_;
 };

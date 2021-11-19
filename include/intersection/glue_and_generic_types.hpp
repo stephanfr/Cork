@@ -29,7 +29,7 @@
 #include <optional>
 
 #include "mesh/topo_cache.hpp"
-#include "util/ManagedIntrusiveList.h"
+#include "util/managed_intrusive_list.hpp"
 
 namespace Cork::Intersection
 {

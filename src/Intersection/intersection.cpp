@@ -29,7 +29,7 @@
 #include "intersection/intersection_problem.hpp"
 #include "intersection/intersection_problem_base.hpp"
 #include "intersection/triangle_problem.hpp"
-#include "util/CachingFactory.h"
+#include "util/caching_factory.hpp"
 #include "util/optional_value_or_helper.hpp"
 
 namespace Cork::Intersection

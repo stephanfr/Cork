@@ -30,7 +30,7 @@ THE SOFTWARE.
 
 #include <boost/iterator/iterator_facade.hpp>
 
-#include "Resettable.h"
+#include "resettable.hpp"
 
 
 

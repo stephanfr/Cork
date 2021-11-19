@@ -34,10 +34,9 @@
 #include "mesh_base.hpp"
 #include "intersection/empty3d.hpp"
 #include "math/quantization.hpp"
-#include "util/CachingFactory.h"
-#include "util/ManagedIntrusiveList.h"
-#include "util/Resettable.h"
-#include "util/SparseVector.h"
+#include "util/caching_factory.hpp"
+#include "util/managed_intrusive_list.hpp"
+#include "util/sparse_vector.hpp"
 
 //  Forward declare the TriangleProblem class
 //      I do not like doing this but the alternative gets messy wrt includes.

@@ -25,7 +25,7 @@
 // +-------------------------------------------------------------------------
 #pragma once
 
-#include "util/CachingFactory.h"
+#include "util/caching_factory.hpp"
 #include "intersection/glue_and_generic_types.hpp"
 #include "accel/aabvh.hpp"
 #include "mesh/topo_cache.hpp"

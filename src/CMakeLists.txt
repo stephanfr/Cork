@@ -32,13 +32,13 @@ add_library(Corklib SHARED
     Intersection/perturbation_epsilon.cpp
     Intersection/triangle.c
     Intersection/triangulator.cpp
-    Intersection/Intersection.cpp
+    Intersection/intersection.cpp
     Intersection/self_intersection_finder.cpp
-    Mesh/Mesh.cpp
-    Mesh/TopoCache.cpp
-    Mesh/TriangleMesh.cpp
+    Mesh/mesh.cpp
+    Mesh/topo_cache.cpp
+    Mesh/triangle_mesh.cpp
     statistics/statistics_engines.cpp
-    util/ThreadPool.cpp
+    util/thread_pool.cpp
     cork.cpp
 )
 

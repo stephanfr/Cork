@@ -23,7 +23,7 @@
 
 #include "catch2_matchers.h"
 
-#include "file_formats/files.h"
+#include "file_formats/files.hpp"
 
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
 

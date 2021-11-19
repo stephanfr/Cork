@@ -36,8 +36,8 @@
 #include "intersection/unsafe_ray_triangle_intersection.hpp"
 #include "mesh/topo_cache.hpp"
 #include "mesh/triangle_mesh.h"
-#include "util/ThreadPool.h"
-#include "util/unionFind.h"
+#include "util/thread_pool.hpp"
+#include "util/union_find.hpp"
 
 namespace Cork::Meshes
 {
@@ -69,7 +69,7 @@ namespace Cork::Meshes
             for (auto& column : ecache.columns())
             {
                 column.for_each([this, &action](EGraphEntry& entry) {
-                    if (entry.isIsct())
+                    if (entry.intersects())
                     {
                         EGraphEntryTIDVector tid0s;
                         EGraphEntryTIDVector tid1s;
@@ -482,14 +482,14 @@ namespace Cork::Meshes
         for (auto& column : ecache.columns())
         {
             column.for_each([this](EGraphEntry& entry) {
-                entry.setIsIsct(false);
+                entry.set_intersects(false);
                 uint32_t operand = tris_[entry.tids()[0]].bool_alg_data();
 
                 for (uint k = 1; k < entry.tids().size(); k++)
                 {
                     if (tris_[entry.tids()[k]].bool_alg_data() != operand)
                     {
-                        entry.setIsIsct(true);
+                        entry.set_intersects(true);
                         break;
                     }
                 }
@@ -664,7 +664,7 @@ namespace Cork::Meshes
 
                 uint32_t inside_sig = tris_[curr_tid].boolAlgData() & 2;
 
-                if (entry.isIsct())
+                if (entry.intersects())
                 {
                     inside_sig ^= 2;
                 }

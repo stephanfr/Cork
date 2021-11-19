@@ -27,13 +27,12 @@
 #pragma once
 
 #include <boost/container/static_vector.hpp>
-#include <deque>
-#include <vector>
+
+#include "util/caching_factory.hpp"
+#include "util/construct_once_resizeable_vector.hpp"
+#include "util/sparse_vector.hpp"
 
 #include "primitives/primitives.hpp"
-#include "util/CachingFactory.h"
-#include "util/ConstuctOnceResizeableVector.h"
-#include "util/SparseVector.h"
 
 namespace Cork::Meshes
 {
@@ -47,22 +46,22 @@ namespace Cork::Meshes
     class EGraphEntry : public SEFUtility::SparseVectorEntry
     {
        public:
-        EGraphEntry(IndexType index) : SEFUtility::SparseVectorEntry(index), m_vid(index) {}
+        EGraphEntry(IndexType index) : SEFUtility::SparseVectorEntry(index), vertex_id_(index) {}
 
-        IndexType vid() const { return (m_vid); }
+        IndexType vid() const { return (vertex_id_); }
 
-        const EGraphEntryTIDVector& tids() const { return (m_tids); }
+        const EGraphEntryTIDVector& tids() const { return (triangle_ids_); }
 
-        EGraphEntryTIDVector& tids() { return (m_tids); }
+        EGraphEntryTIDVector& tids() { return (triangle_ids_); }
 
-        bool isIsct() const { return (m_isIsct); }
+        bool intersects() const { return (intersects_); }
 
-        void setIsIsct(bool newValue) { m_isIsct = newValue; }
+        void set_intersects(bool newValue) { intersects_ = newValue; }
 
        private:
-        IndexType m_vid;
-        EGraphEntryTIDVector m_tids;
-        bool m_isIsct;
+        IndexType vertex_id_;
+        EGraphEntryTIDVector triangle_ids_;
+        bool intersects_;
     };
 
     class EGraphCache
@@ -71,26 +70,26 @@ namespace Cork::Meshes
         using EGraphSkeletonColumn = SEFUtility::SparseVector<EGraphEntry, 10>;
         using SkeletonColumnVector = SEFUtility::ConstructOnceResizeableVector<EGraphSkeletonColumn>;
 
-        using SkeletonColumnVectorFactory = SEFUtility::CachingFactory<SkeletonColumnVector>;
-        using SkeletonColumnVectorUniquePtr = SEFUtility::CachingFactory<SkeletonColumnVector>::UniquePtr;
-
-        EGraphCache() : m_skeletonPtr(SkeletonColumnVectorFactory::GetInstance()), m_skeleton(*m_skeletonPtr) {}
+        EGraphCache() : skeleton_column_vector_(SEFUtility::CachingFactory<SkeletonColumnVector>::GetInstance()), skeleton_(*skeleton_column_vector_) {}
 
         ~EGraphCache() {}
 
-        void resize(size_t newSize) { m_skeleton.resize(newSize); }
+        void resize(size_t newSize) { skeleton_.resize(newSize); }
 
-        const SkeletonColumnVector& columns() const { return (m_skeleton); }
+        const SkeletonColumnVector& columns() const { return (skeleton_); }
 
-        SkeletonColumnVector& columns() { return (m_skeleton); }
+        SkeletonColumnVector& columns() { return (skeleton_); }
 
-        EGraphSkeletonColumn& operator[](IndexType index) { return (m_skeleton[index]); }
+        EGraphSkeletonColumn& operator[](IndexType index) { return (skeleton_[index]); }
 
-        const EGraphSkeletonColumn& operator[](IndexType index) const { return (m_skeleton[index]); }
+        const EGraphSkeletonColumn& operator[](IndexType index) const { return (skeleton_[index]); }
 
        private:
-        SkeletonColumnVectorUniquePtr m_skeletonPtr;
-        SkeletonColumnVector& m_skeleton;
+
+        //  The skeleton_ reference is here to make access to the re-used skeleton_column_vector_ cleaner.
+
+        SEFUtility::CachingFactory<SkeletonColumnVector>::UniquePtr skeleton_column_vector_;
+        SkeletonColumnVector& skeleton_;
     };
 
 }  // namespace Cork::Meshes

@@ -34,11 +34,11 @@
 #include <sstream>
 
 #ifdef __HAS_PERFORMANCE_STRINGSTREAM__
-#include "util/performance_stringstream.h"
+#include "util/performance_stringstream.hpp"
 #endif
 
 #include "file_formats/files.hpp"
-#include "util/file_helpers.h"
+#include "util/file_helpers.hpp"
 
 namespace Cork::Files
 {

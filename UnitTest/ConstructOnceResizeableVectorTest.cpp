@@ -1,7 +1,7 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "util/ConstuctOnceResizeableVector.h"
+#include "util/construct_once_resizeable_vector.hpp"
 
 constexpr int   DEFAULT_NUMBER_OF_ELEMENTS = 10;
 constexpr int   RESIZE_VALUE = 5;

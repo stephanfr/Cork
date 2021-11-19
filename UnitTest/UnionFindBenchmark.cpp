@@ -2,8 +2,10 @@
 #include <catch2/catch_all.hpp>
 #include <mutex>
 
+#include "primitives/primitives.hpp"
+
 #include "util/ThreadPool.h"
-#include "util/unionFind.h"
+#include "util/union_find.hpp"
 #include "RandomGraphGenerator.h"
 #include "tbb/tbb.h"
 
