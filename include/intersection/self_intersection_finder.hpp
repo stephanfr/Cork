@@ -36,10 +36,10 @@ namespace Cork::Intersection
 
         virtual ~SelfIntersectionFinder() { reset(); }
 
-        const std::vector<Statistics::IntersectionInfo> CheckSelfIntersection();
+        const std::vector<Statistics::SelfIntersectingEdge> CheckSelfIntersection();
 
-        std::set<TriangleByIndicesIndex> find_enclosing_triangles(
-            const std::set<TriangleByIndicesIndex>& triangles_patch);
+//        std::set<TriangleByIndicesIndex> find_enclosing_triangles(
+//            const std::set<TriangleByIndicesIndex>& triangles_patch);
 
        private:
         SEFUtility::CachingFactory<IntersectionWorkspace>::UniquePtr m_intersection_workspace;

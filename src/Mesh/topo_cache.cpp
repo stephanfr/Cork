@@ -35,7 +35,7 @@ namespace Cork::Meshes
 {
     CorkTriangleVectorTopoCache::CorkTriangleVectorTopoCache(MeshBase& owner, const Math::Quantizer& quantizer)
         : TopoCacheBase( owner.triangles(), owner.vertices(), owner.triangles().size() * 3, quantizer ),
-          m_mesh(owner)
+          mesh_(owner)
     {}
 
     CorkTriangleVectorTopoCache::~CorkTriangleVectorTopoCache() {}
@@ -131,6 +131,17 @@ namespace Cork::Meshes
             tri.setRef(tmap[tri.ref()]);
         }
     }
+
+
+
+    TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles, Vertex3DVector& vertices, uint32_t num_edges,
+                      const Math::Quantizer& quantizer)
+        : TopoCacheBase(triangles, vertices, num_edges, quantizer )
+    {}
+
+    TriangleByIndicesVectorTopoCache::~TriangleByIndicesVectorTopoCache() {}
+
+
 
     std::ostream& operator<<(std::ostream& out, const TopoVert& vertex)
     {

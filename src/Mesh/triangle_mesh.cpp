@@ -24,16 +24,14 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "mesh/triangle_mesh_with_topo_cache.hpp"
-
 #include <map>
 #include <set>
+#include <unordered_map>
 
 #include "intersection/self_intersection_finder.hpp"
 #include "intersection/triangulator.hpp"
-
+#include "mesh/triangle_mesh_with_topo_cache.hpp"
 #include "primitives/index_remapper.hpp"
-
 #include "statistics/statistics_engines.hpp"
 
 namespace Cork::Meshes
@@ -135,52 +133,244 @@ namespace Cork::Meshes
 
             all_triangles_to_add.reserve(1000);
 
-            for (auto& record : topo_stats.self_intersections())
+            for (auto& intersecting_edge : topo_stats.self_intersecting_edges())
             {
-                std::set<TriangleByIndicesIndex> triangles_to_remove;
+                auto& triangle_containing_edge = triangles()[intersecting_edge.edge_triangle_id()];
 
-                for (auto triangle_id : record.triangles_including_se_vertex())
+                VertexIndex vertex_1 = triangle_containing_edge.edge(intersecting_edge.edge_index()).first();
+                VertexIndex vertex_2 = triangle_containing_edge.edge(intersecting_edge.edge_index()).second();
+
+                //  Try to fix the self intersection by removing just one vertex
+
                 {
-                    triangles_to_remove.insert(triangle_id);
-                }
+                    auto triangles_containing_vertex_1 = find_triangles_containing_vertex(vertex_1);
+                    auto triangles_containing_vertex_2 = find_triangles_containing_vertex(vertex_2);
 
-                std::vector<Hole> holes_for_se = get_hole_for_self_intersection(triangles_to_remove);
+                    auto triangles_containing_vertex = triangles_containing_vertex_1;
 
-                auto get_hole_closing_triangles_result = get_hole_closing_triangles(holes_for_se[0]);
-
-                if (!get_hole_closing_triangles_result.succeeded())
-                {
-                    std::cout << "closing hole failed" << std::endl;
-
-                    auto next_ring_of_tris = find_enclosing_triangles(triangles_to_remove);
-                    continue;
-                }
-
-                Meshes::TriangleByIndicesVectorTopoCache minimal_cache(
-                    *(get_hole_closing_triangles_result.return_ptr()),
-                    const_cast<Primitives::Vertex3DVector&>(vertices()),
-                    get_hole_closing_triangles_result.return_ptr()->size() * 4, topo_cache().quantizer());
-
-                Intersection::SelfIntersectionFinder se_finder(minimal_cache);
-
-                auto si_stats = se_finder.CheckSelfIntersection();
-
-                if (si_stats.size() == 0)
-                {
-                    for (auto tri_to_remove_index : triangles_to_remove)
+                    for( const auto idx : triangles_containing_vertex_2 )
                     {
-                        all_triangles_to_remove.emplace(tri_to_remove_index);
+                        triangles_containing_vertex.emplace( idx );
+                    }
+                    
+
+//                    auto triangles_containing_vertex = find_triangles_containing_vertex(vertex_1);
+
+
+                    std::vector<Hole> holes_for_se = get_hole_for_self_intersection(triangles_containing_vertex);
+
+                    assert(holes_for_se.size() == 1);
+
+                    GetHoleClosingTrianglesResult get_hole_closing_triangles_result =
+                        get_hole_closing_triangles(holes_for_se[0]);
+
+                    auto next_ring_of_tris = find_enclosing_triangles(holes_for_se[0], triangles_containing_vertex);
+
+                    Vertex3DVector patch_vertices;
+                    TriangleByIndicesVector patch_triangles;
+
+                    std::unordered_map<VertexIndex, VertexIndex> vertex_index_remapper;
+
+                    vertex_index_remapper.reserve(get_hole_closing_triangles_result.return_ptr()->size() /*+ next_ring_of_tris.size()*/ + 16);
+
+                    for (const auto& tri : *(get_hole_closing_triangles_result.return_ptr()))
+                    {
+                        if (!vertex_index_remapper.contains(tri.a()))
+                        {
+                            vertex_index_remapper.emplace(tri.a(),
+                                                          VertexIndex(uint32_t(patch_vertices.size())));
+                            patch_vertices.emplace_back(vertices()[tri.a()]);
+                        }
+
+                        if (!vertex_index_remapper.contains(tri.b()))
+                        {
+                            vertex_index_remapper.emplace(tri.b(),
+                                                          VertexIndex(uint32_t(patch_vertices.size())));
+                            patch_vertices.emplace_back(vertices()[tri.b()]);
+                        }
+
+                        if (!vertex_index_remapper.contains(tri.c()))
+                        {
+                            vertex_index_remapper.emplace(tri.c(),
+                                                          VertexIndex(uint32_t(patch_vertices.size())));
+                            patch_vertices.emplace_back(vertices()[tri.c()]);
+                        }
+
+                        VertexIndex new_a = vertex_index_remapper.at(tri.a());
+                        VertexIndex new_b = vertex_index_remapper.at(tri.b());
+                        VertexIndex new_c = vertex_index_remapper.at(tri.c());
+
+                        patch_triangles.emplace_back(patch_triangles.size(), new_a, new_b, new_c);
                     }
 
-                    for (auto tri_to_add : *(get_hole_closing_triangles_result.return_ptr()))
+                    for (const auto& tri_index : next_ring_of_tris)
                     {
-                        all_triangles_to_add.emplace_back(tri_to_add);
+                        if (!vertex_index_remapper.contains(triangles()[tri_index].a()))
+                        {
+                            vertex_index_remapper.emplace(triangles()[tri_index].a(),
+                                                          VertexIndex(uint32_t(patch_vertices.size())));
+                            patch_vertices.emplace_back(vertices()[triangles()[tri_index].a()]);
+                        }
+
+                        if (!vertex_index_remapper.contains(triangles()[tri_index].b()))
+                        {
+                            vertex_index_remapper.emplace(triangles()[tri_index].b(),
+                                                          VertexIndex(uint32_t(patch_vertices.size())));
+                            patch_vertices.emplace_back(vertices()[triangles()[tri_index].b()]);
+                        }
+
+                        if (!vertex_index_remapper.contains(triangles()[tri_index].c()))
+                        {
+                            vertex_index_remapper.emplace(triangles()[tri_index].c(),
+                                                          VertexIndex(uint32_t(patch_vertices.size())));
+                            patch_vertices.emplace_back(vertices()[triangles()[tri_index].c()]);
+                        }
+
+                        patch_triangles.emplace_back(patch_triangles.size(),
+                                                     vertex_index_remapper.at(triangles()[tri_index].a()),
+                                                     vertex_index_remapper.at(triangles()[tri_index].b()),
+                                                     vertex_index_remapper.at(triangles()[tri_index].c()));
+                    }
+
+/*
+                    std::cout << "OFF" << std::endl;
+                    std::cout << patch_vertices.size() << " " << patch_triangles.size() << " 0" << std::endl;
+
+                    for( const auto& vert : patch_vertices )
+                    {
+                        std:: cout << vert << std::endl;
+                    }
+
+                    for( const auto& tri : patch_triangles )
+                    {
+                        std:: cout << tri << std::endl;
+                    }
+*/
+
+                    Meshes::TriangleByIndicesVectorTopoCache minimal_cache(
+                        patch_triangles, patch_vertices, patch_triangles.size() * 4, topo_cache().quantizer());
+
+                    Intersection::SelfIntersectionFinder se_finder(minimal_cache);
+
+                    auto si_stats = se_finder.CheckSelfIntersection();
+
+                    if (!si_stats.empty())
+                    {
+                        std::cout << "Self Intersections in Patch" << std::endl;
+                    }
+
+                    if (get_hole_closing_triangles_result.succeeded())
+                    {
+                        for (const auto triangle_index : triangles_containing_vertex)
+                        {
+                            all_triangles_to_remove.emplace(triangle_index);
+                        }
+
+                        for (const auto& triangle : *(get_hole_closing_triangles_result.return_ptr()))
+                        {
+                            all_triangles_to_add.emplace_back(triangle);
+                        }
+
+                        continue;
                     }
                 }
-                else
+
                 {
-                    std::cout << "Found self-intersection trying to close hole" << std::endl;
+                    auto triangles_containing_vertex = find_triangles_containing_vertex(vertex_2);
+
+                    std::vector<Hole> holes_for_se = get_hole_for_self_intersection(triangles_containing_vertex);
+
+                    assert(holes_for_se.size() == 1);
+
+                    GetHoleClosingTrianglesResult get_hole_closing_triangles_result =
+                        get_hole_closing_triangles(holes_for_se[0]);
+
+                    if (get_hole_closing_triangles_result.succeeded())
+                    {
+                        for (const auto triangle_index : triangles_containing_vertex)
+                        {
+                            all_triangles_to_remove.emplace(triangle_index);
+                        }
+
+                        for (const auto& triangle : *(get_hole_closing_triangles_result.return_ptr()))
+                        {
+                            all_triangles_to_add.emplace_back(triangle);
+                        }
+
+                        continue;
+                    }
                 }
+
+                std::cout << "Could not resolve self intersection removing only a single vertex" << std::endl;
+
+                /*
+                                std::set<TriangleByIndicesIndex> triangles_to_remove;
+
+                                for (auto triangle_id : record.triangles_including_se_vertex())
+                                {
+                                    triangles_to_remove.insert(triangle_id);
+                                }
+
+                                std::vector<Hole> holes_for_se = get_hole_for_self_intersection(triangles_to_remove);
+
+                                assert( holes_for_se.size() == 1 );
+
+                                GetHoleClosingTrianglesResult get_hole_closing_triangles_result =
+                   get_hole_closing_triangles(holes_for_se[0]);
+
+                                if (!get_hole_closing_triangles_result.succeeded())
+                                {
+                                    std::cout << "closing hole failed" << std::endl;
+
+                                    auto next_ring_of_tris =
+                   find_enclosing_triangles(holes_for_se[0],triangles_to_remove);
+
+                                    for (auto triangle_id : next_ring_of_tris)
+                                    {
+                                        triangles_to_remove.insert(triangle_id);
+                                    }
+
+                                    std::vector<Hole> holes_for_se =
+                   get_hole_for_self_intersection(triangles_to_remove);
+
+                                    auto get_hole_closing_triangles_result =
+                   get_hole_closing_triangles(holes_for_se[0]);
+
+                                    if (!get_hole_closing_triangles_result.succeeded())
+                                    {
+                                        std::cout << "Failed on second attempt to close hole left by se" << std::endl;
+                                    }
+
+                                    continue;
+                                }
+
+                                Meshes::TriangleByIndicesVectorTopoCache minimal_cache(
+                                    *(get_hole_closing_triangles_result.return_ptr()),
+                                    const_cast<Primitives::Vertex3DVector&>(vertices()),
+                                    get_hole_closing_triangles_result.return_ptr()->size() * 4,
+                   topo_cache().quantizer());
+
+                                Intersection::SelfIntersectionFinder se_finder(minimal_cache);
+
+                                auto si_stats = se_finder.CheckSelfIntersection();
+
+                                if (si_stats.size() == 0)
+                                {
+                                    for (auto tri_to_remove_index : triangles_to_remove)
+                                    {
+                                        all_triangles_to_remove.emplace(tri_to_remove_index);
+                                    }
+
+                                    for (auto tri_to_add : *(get_hole_closing_triangles_result.return_ptr()))
+                                    {
+                                        all_triangles_to_add.emplace_back(tri_to_add);
+                                    }
+                                }
+                                else
+                                {
+                                    std::cout << "Found self-intersection trying to close hole" << std::endl;
+                                }
+                */
             }
 
             for (auto tri_to_remove_index : all_triangles_to_remove)
@@ -262,7 +452,7 @@ namespace Cork::Meshes
             //      This is trivial as the vertices are ordered so segments are just one after the next.
             //      Holes must be closed, thus the last segment from the last vertex to the first.
 
-            Cork::Triangulator::Triangulator triangulator;
+            Triangulator::Triangulator triangulator;
 
             for (auto vertex_index : hole.vertices())
             {
@@ -273,6 +463,11 @@ namespace Cork::Meshes
             {
                 triangulator.add_segment(i, i + 1, true);
             }
+
+//            for( int i = 0; i < hole.vertices().size(); i++ )
+//            {
+//                std::cout << triangulator.points()[i].first << "  " << triangulator.points()[i].second << std::endl;
+//            }
 
             triangulator.add_segment(hole.vertices().size() - 1, 0, true);
 
@@ -330,34 +525,54 @@ namespace Cork::Meshes
             return HoleClosingResult::success();
         }
 
-        std::set<TriangleByIndicesIndex> find_enclosing_triangles(
-            const std::set<TriangleByIndicesIndex>& triangles_patch)
+        std::set<TriangleByIndicesIndex> find_triangles_containing_vertex(VertexIndex vertex_index)
         {
-            std::map<TriangleByIndicesIndex, const TopoTri*> topo_tris_by_index;
+            std::set<TriangleByIndicesIndex> triangles_including_vertex;
 
-            for (auto& next_topo_tri : topo_cache_->triangles())
+            for (const auto& triangle_to_add : topo_cache().vertices().getPool()[vertex_index].triangles())
             {
-                topo_tris_by_index.insert(std::make_pair(next_topo_tri.source_triangle_id(), &next_topo_tri));
+                triangles_including_vertex.insert(triangle_to_add->source_triangle_id());
             }
 
-            std::set<const TopoTri*> topo_tris_in_patch;
+            return (triangles_including_vertex);
+        }
 
-            for (auto& next_triangle : triangles_patch)
+        std::set<TriangleByIndicesIndex> find_enclosing_triangles(const TriangleByIndicesVector& triangles)
+        {
+            std::set<TriangleByIndicesIndex> triangle_set;
+
+            for (auto triangle : triangles)
             {
-                topo_tris_in_patch.emplace(topo_tris_by_index[next_triangle]);
+                triangle_set.insert(triangle.uid());
             }
 
+            return find_enclosing_triangles(triangle_set);
+        }
+
+        std::set<TriangleByIndicesIndex> find_enclosing_triangles(
+            const std::set<TriangleByIndicesIndex>& interior_triangles)
+        {
+            std::vector<Hole> holes_for_se = get_hole_for_self_intersection(interior_triangles);
+
+            assert(holes_for_se.size() == 1);
+
+            return find_enclosing_triangles(holes_for_se[0], interior_triangles);
+        }
+
+        std::set<TriangleByIndicesIndex> find_enclosing_triangles(
+            const Hole& hole, const std::set<TriangleByIndicesIndex>& interior_triangles)
+        {
             std::set<TriangleByIndicesIndex> enclosing_triangles;
 
-            for (auto next_topo_tri : topo_tris_in_patch)
+            for (auto vertex_index : hole.vertices())
             {
-                for (auto touching_edge : next_topo_tri->edges())
+                for (auto edge : topo_cache().vertices().getPool()[vertex_index].edges())
                 {
-                    for (auto triangle_touching : touching_edge->triangles())
+                    for (auto next_tri : edge->triangles())
                     {
-                        if (!triangles_patch.contains(triangle_touching->source_triangle_id()))
+                        if (!interior_triangles.contains(next_tri->source_triangle_id()))
                         {
-                            enclosing_triangles.emplace(triangle_touching->source_triangle_id());
+                            enclosing_triangles.insert(next_tri->source_triangle_id());
                         }
                     }
                 }

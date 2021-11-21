@@ -806,9 +806,9 @@ namespace Cork::Meshes
 
         void print();
 
-        MeshBase& ownerMesh() { return (m_mesh); }
+        MeshBase& ownerMesh() { return (mesh_); }
 
-        const MeshBase& ownerMesh() const { return (m_mesh); }
+        const MeshBase& ownerMesh() const { return (mesh_); }
 
         // helpers to create bits and pieces
 
@@ -908,13 +908,94 @@ namespace Cork::Meshes
 
         //	Data Members
 
-        MeshBase& m_mesh;
+        MeshBase& mesh_;
     };
+
+
+    class TriangleByIndicesVectorTopoCache : public TopoCacheBase<TriangleByIndicesVector>
+    {
+       public:
+        TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles, Vertex3DVector& vertices, uint32_t num_edges,
+                      const Math::Quantizer& quantizer);
+
+        virtual ~TriangleByIndicesVectorTopoCache();
+
+        //        TopoEdge* newEdge() { return (m_topoEdgeList.emplace_back()); }
+
+        TopoEdge* newEdge(TopoVert& v0, TopoVert& v1) { return m_topoEdgeList.emplace_back(v0, v1); }
+
+        TopoTri* newTri()
+        {
+            return (m_topoTriList.emplace_back(-1));
+        }
+
+        // helpers to release bits and pieces
+
+        void freeVert(TopoVert* v) { m_topoVertexList.free(v); }
+
+        void freeEdge(TopoEdge* e) { m_topoEdgeList.free(e); }
+
+        void freeTri(TopoTri* t) { m_topoTriList.free(t); }
+
+        // helper to delete geometry in a structured way
+
+        void deleteTri(TopoTri* tri)
+        {
+            // first, unhook the triangle from its faces
+
+            for (uint k = 0; k < 3; k++)
+            {
+                tri->verts()[k]->triangles().erase(tri);
+                tri->edges()[k]->triangles().erase(tri);
+            }
+
+            // now, let's check for any edges which no longer border triangles
+
+            for (uint k = 0; k < 3; k++)
+            {
+                TopoEdge* e = tri->edges()[k];
+
+                if (e->triangles().empty())
+                {
+                    //	Unhook the edge from its vertices and delete it
+
+                    e->verts()[0]->edges().erase(e);
+                    e->verts()[1]->edges().erase(e);
+
+                    freeEdge(e);
+                }
+            }
+
+            // now, let's check for any vertices which no longer border triangles
+
+            for (uint k = 0; k < 3; k++)
+            {
+                TopoVert* v = tri->verts()[k];
+
+                if (v->triangles().empty())
+                {
+                    freeVert(v);
+                }
+            }
+
+            // finally, release the triangle
+
+            freeTri(tri);
+        }
+
+       private:
+        TriangleByIndicesVectorTopoCache() = delete;
+
+        TriangleByIndicesVectorTopoCache(const TriangleByIndicesVectorTopoCache&) = delete;
+        TriangleByIndicesVectorTopoCache(TriangleByIndicesVectorTopoCache&&) = delete;
+
+        TriangleByIndicesVectorTopoCache& operator=(const TriangleByIndicesVectorTopoCache&) = delete;
+        TriangleByIndicesVectorTopoCache& operator=(TriangleByIndicesVectorTopoCache&&) = delete;
+    };
+
 
     std::ostream& operator<<(std::ostream& out, const TopoVert& vertex);
     std::ostream& operator<<(std::ostream& out, const TopoEdge& edge);
     std::ostream& operator<<(std::ostream& out, const TopoTri& tri);
-
-    using TriangleByIndicesVectorTopoCache = Meshes::TopoCacheBase<TriangleByIndicesVector>;
 
 }  // namespace Cork::Meshes

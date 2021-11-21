@@ -67,6 +67,8 @@ namespace Cork::Primitives
 
     using TriangleByIndicesIndex = type_safe::integer<uint32_t>;
 
+    using TriangleBooleanAlgData = uint32_t;
+
     //  Define some enums to track vertex and edge assignments
 
     enum class TriangleVertexId : uint8_t
@@ -268,24 +270,24 @@ namespace Cork::Primitives
         {
             //	Compare the smallest indices first and then the largest indices
 
-            if ( std::min( edge1.first(), edge1.second() ) < std::min( edge2.first(), edge2.second() ) )
+            if (std::min(edge1.first(), edge1.second()) < std::min(edge2.first(), edge2.second()))
             {
                 return (true);
             }
 
-            if ( std::min( edge1.first(), edge1.second() ) > std::min( edge2.first(), edge2.second() ) )
+            if (std::min(edge1.first(), edge1.second()) > std::min(edge2.first(), edge2.second()))
             {
                 return (false);
             }
 
             //	Smallest indices are equal - check the largest next
 
-            if ( std::max( edge1.first(), edge1.second() ) < std::max( edge2.first(), edge2.second() ) )
+            if (std::max(edge1.first(), edge1.second()) < std::max(edge2.first(), edge2.second()))
             {
                 return (true);
             }
 
-            if ( std::max( edge1.first(), edge1.second() ) > std::max( edge2.first(), edge2.second() ) )
+            if (std::max(edge1.first(), edge1.second()) > std::max(edge2.first(), edge2.second()))
             {
                 return (false);
             }
@@ -295,7 +297,6 @@ namespace Cork::Primitives
             return (false);
         }
     };
-
 
     class TriangleByIndices
     {
@@ -308,6 +309,21 @@ namespace Cork::Primitives
         }
 
         TriangleByIndices(UIDType uid, VertexIndex a, VertexIndex b, VertexIndex c) : uid_(uid), a_(a), b_(b), c_(c) {}
+
+        TriangleByIndices(UIDType uid, VertexIndex a, VertexIndex b, VertexIndex c,
+                          TriangleBooleanAlgData bool_alg_data)
+            : uid_(uid), a_(a), b_(b), c_(c), bool_alg_data_(bool_alg_data)
+        {
+        }
+
+        TriangleByIndices(const TriangleByIndices& tri_by_indices, TriangleBooleanAlgData bool_alg_data)
+            : uid_(tri_by_indices.uid_),
+              a_(tri_by_indices.a_),
+              b_(tri_by_indices.b_),
+              c_(tri_by_indices.c_),
+              bool_alg_data_(bool_alg_data)
+        {
+        }
 
         virtual ~TriangleByIndices() {}
 
@@ -353,7 +369,19 @@ namespace Cork::Primitives
             return EdgeByIndices(c_, a_);
         }
 
-        void flip() { std::swap(b_, c_); }
+        const TriangleBooleanAlgData bool_alg_data() const { return bool_alg_data_.value(); }
+
+//        std::optional<TriangleBooleanAlgData>& boolAlgData() { return bool_alg_data_; }
+        void    set_bool_alg_data( uint32_t     new_value ) { bool_alg_data_ = new_value; }
+
+        void flip() { std::swap(a_, b_); }
+
+        void offset_indices(uint32_t offset_value)
+        {
+            a_ += offset_value;
+            b_ += offset_value;
+            c_ += offset_value;
+        }
 
        protected:
         UIDType uid_;
@@ -361,6 +389,9 @@ namespace Cork::Primitives
         VertexIndex a_;
         VertexIndex b_;
         VertexIndex c_;
+
+        std::optional<TriangleBooleanAlgData>
+            bool_alg_data_;  // internal use by algorithm - value must be copied when the triangle is subdivided
     };
 
     inline std::ostream& operator<<(std::ostream& out, const TriangleByIndices& tri_by_indices)
@@ -519,7 +550,7 @@ namespace Cork
     using Ray3DWithInverseDirection = Primitives::Ray3DWithInverseDirection;
     using BBox3D = Primitives::BBox3D;
     using MinAndMaxEdgeLengths = Primitives::MinAndMaxEdgeLengths;
-    
+
     using EdgeByIndices = Primitives::EdgeByIndices;
 
     using TriangleByVertices = Primitives::TriangleByVertices;
@@ -528,4 +559,4 @@ namespace Cork
     using Vertex3DVector = Primitives::Vertex3DVector;
     using TriangleByIndicesVector = Primitives::TriangleByIndicesVector;
     using EdgeByIndicesVector = Primitives::EdgeByIndicesVector;
-}
+}  // namespace Cork

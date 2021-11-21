@@ -125,7 +125,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(stats.return_value().holes().size() == 1);
         REQUIRE(((stats.return_value().holes()[0].vertices()[0] == 21u) && (stats.return_value().holes()[0].vertices()[1] == 5u) &&
                  (stats.return_value().holes()[0].vertices()[2] == 11u)));
-        REQUIRE(stats.return_value().self_intersections().size() == 0);
+        REQUIRE(stats.return_value().self_intersecting_edges().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
     }
 
@@ -151,7 +151,7 @@ TEST_CASE("Topology Tests", "[file io]")
                  (stats.return_value().holes()[1].vertices()[2] == 8u)));
         REQUIRE(((stats.return_value().holes()[2].vertices()[0] == 16u) && (stats.return_value().holes()[2].vertices()[1] == 18u) &&
                  (stats.return_value().holes()[2].vertices()[2] == 12u)));
-        REQUIRE(stats.return_value().self_intersections().size() == 0);
+        REQUIRE(stats.return_value().self_intersecting_edges().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
     }
 
@@ -168,7 +168,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE( topo_stats.succeeded() );
         REQUIRE(topo_stats.return_value().is_two_manifold());
         REQUIRE(topo_stats.return_value().holes().size() == 0);
-        REQUIRE(topo_stats.return_value().self_intersections().size() == 1);
+        REQUIRE(topo_stats.return_value().self_intersecting_edges().size() == 1);
 
         mesh->remove_self_intersections( topo_stats.return_value() );
 
@@ -184,7 +184,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE( topo_stats_after_se_removal.succeeded() );
         REQUIRE(topo_stats_after_se_removal.return_value().is_two_manifold());
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
-        REQUIRE(topo_stats_after_se_removal.return_value().self_intersections().size() == 0);
+        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 0);
     }
 
     SECTION("Find and Fix Self Intersections - Medium")
@@ -200,7 +200,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats.succeeded() );
         REQUIRE(topo_stats.return_value().is_two_manifold());
         REQUIRE(topo_stats.return_value().holes().size() == 0);
-        REQUIRE(topo_stats.return_value().self_intersections().size() == 4);
+        REQUIRE(topo_stats.return_value().self_intersecting_edges().size() == 4);
 
         mesh->remove_self_intersections( topo_stats.return_value() );
 
@@ -209,7 +209,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats_after_se_removal.succeeded() );
         REQUIRE(topo_stats_after_se_removal.return_value().is_two_manifold());
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
-        REQUIRE(topo_stats_after_se_removal.return_value().self_intersections().size() == 0);
+        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 0);
 
         {
             auto write_result =
@@ -233,7 +233,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats.succeeded() );
         REQUIRE(topo_stats.return_value().is_two_manifold());
         REQUIRE(topo_stats.return_value().holes().size() == 0);
-        REQUIRE(topo_stats.return_value().self_intersections().size() == 22);
+        REQUIRE(topo_stats.return_value().self_intersecting_edges().size() == 22);
 
         mesh->remove_self_intersections( topo_stats.return_value() );
 
@@ -242,7 +242,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats_after_se_removal.succeeded());
         REQUIRE(!topo_stats_after_se_removal.return_value().is_two_manifold());
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
-        REQUIRE(topo_stats_after_se_removal.return_value().self_intersections().size() == 2);
+        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 2);
 
         {
             auto write_result =
@@ -266,7 +266,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats.succeeded());
         REQUIRE(topo_stats.return_value().is_two_manifold());
         REQUIRE(topo_stats.return_value().holes().size() == 0);
-        REQUIRE(topo_stats.return_value().self_intersections().size() == 178);
+        REQUIRE(topo_stats.return_value().self_intersecting_edges().size() == 178);
 
         mesh->remove_self_intersections( topo_stats.return_value() );
 
@@ -275,7 +275,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats_after_se_removal.succeeded());
         REQUIRE(!topo_stats_after_se_removal.return_value().is_two_manifold());
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
-        REQUIRE(topo_stats_after_se_removal.return_value().self_intersections().size() == 11);
+        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 11);
 
         {
             auto write_result =

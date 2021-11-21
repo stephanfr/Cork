@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
 
         if( topo_stats.succeeded() )
         {
-            std::cout << "Num holes: " << topo_stats.return_value().holes().size() << "    Num Self Intersections: " << topo_stats.return_value().self_intersections().size() << std::endl;
+            std::cout << "Num holes: " << topo_stats.return_value().holes().size() << "    Num Self Intersections: " << topo_stats.return_value().self_intersecting_edges().size() << std::endl;
         }
         else
         {

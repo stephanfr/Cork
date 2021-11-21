@@ -123,51 +123,51 @@ namespace Cork::AABVH
     class AABVHNodeListCollection
     {
        public:
-        AABVHNodeListCollection() : m_numCollectionsCheckedOut(0) { m_nodeCollections.reserve(16); }
+        AABVHNodeListCollection() : num_collections_checked_out_(0) { node_collections_.reserve(16); }
 
         void reset()
         {
-            for (auto& nodeVector : m_nodeCollections)
+            for (auto& nodeVector : node_collections_)
             {
                 nodeVector.clear();
             }
 
-            m_numCollectionsCheckedOut = 0;
+            num_collections_checked_out_ = 0;
         }
 
         AABVHNodeList& getPrimaryNodeList()
         {
-            if (m_nodeCollections.size() == 0)
+            if (node_collections_.size() == 0)
             {
                 return (getNodeList(1024));
             }
 
-            return (m_nodeCollections[0]);
+            return (node_collections_[0]);
         }
 
         AABVHNodeList& getNodeList(size_t reservation)
         {
-            m_collectionsMutex.lock();
+            collections_mutex_.lock();
 
-            if (m_nodeCollections.size() <= m_numCollectionsCheckedOut)
+            if (node_collections_.size() <= num_collections_checked_out_)
             {
-                m_nodeCollections.push_back(new AABVHNodeList());
+                node_collections_.push_back(new AABVHNodeList());
             }
 
-            m_nodeCollections[m_numCollectionsCheckedOut].reserve(reservation);
+            node_collections_[num_collections_checked_out_].reserve(reservation);
 
-            AABVHNodeList& listToReturn = m_nodeCollections[m_numCollectionsCheckedOut++];
+            AABVHNodeList& listToReturn = node_collections_[num_collections_checked_out_++];
 
-            m_collectionsMutex.unlock();
+            collections_mutex_.unlock();
 
             return (listToReturn);
         }
 
        private:
-        boost::ptr_vector<AABVHNodeList> m_nodeCollections;
-        oneapi::tbb::spin_mutex m_collectionsMutex;
+        boost::ptr_vector<AABVHNodeList> node_collections_;
+        oneapi::tbb::spin_mutex collections_mutex_;
 
-        size_t m_numCollectionsCheckedOut;
+        size_t num_collections_checked_out_;
     };
 
     class Workspace
@@ -177,12 +177,12 @@ namespace Cork::AABVH
 
         ~Workspace() {}
 
-        void reset() { m_nodeListCollection.reset(); }
+        void reset() { nodeList_collection_.reset(); }
 
-        AABVHNodeListCollection& getAABVHNodeListCollection() { return (m_nodeListCollection); }
+        AABVHNodeListCollection& getAABVHNodeListCollection() { return (nodeList_collection_); }
 
        private:
-        AABVHNodeListCollection m_nodeListCollection;
+        AABVHNodeListCollection nodeList_collection_;
     };
 
     enum class IntersectionType
@@ -233,26 +233,26 @@ namespace Cork::AABVH
         ~AxisAlignedBoundingVolumeHierarchy() { node_collections_.reset(); }
 
         Meshes::TopoEdgeReferenceVector EdgesIntersectingTriangle(const Meshes::TopoTri& triangle,
-                                                                IntersectionType intersectionType)
+                                                                IntersectionType intersection_type) const
         {
             Meshes::TopoEdgeReferenceVector edges;
 
             //	Set the boolAlgData index for intersections between two bodies or for self-intersections.
 
-            unsigned int blobIDListSelector =
-                (intersectionType == IntersectionType::BOOLEAN_INTERSECTION ? triangle.boolAlgData() ^ 1
+            unsigned int blob_id_list_selector =
+                (intersection_type == IntersectionType::BOOLEAN_INTERSECTION ? triangle.boolAlgData() ^ 1
                                                                             : triangle.boolAlgData());
 
             //	Use a recursive search and save edges that intersect the triangle
 
-            FastStack<AABVHNode*, 256> nodeStack;
+            FastStack<AABVHNode*, 256> node_stack;
 
-            nodeStack.reset();
-            nodeStack.push(root_);
+            node_stack.reset();
+            node_stack.push(root_);
 
             AABVHNode* node;
 
-            while (nodeStack.pop(node))
+            while (node_stack.pop(node))
             {
                 //	Move on to the next node if there is no intersection between with node and the bounding box
 
@@ -273,7 +273,7 @@ namespace Cork::AABVH
 
                 if (node->isLeaf())
                 {
-                    const BlobIDList& blobIds = node->blobIDLists()[blobIDListSelector];
+                    const BlobIDList& blobIds = node->blobIDLists()[blob_id_list_selector];
 
                     for (IndexType bid : blobIds)
                     {
@@ -287,7 +287,7 @@ namespace Cork::AABVH
                 }
                 else
                 {
-                    nodeStack.push2(node->left(), node->right());
+                    node_stack.push2(node->left(), node->right());
                 }
             }
 
@@ -316,8 +316,8 @@ namespace Cork::AABVH
 
         void QuickSelect(size_t select, size_t begin, size_t end, size_t dim);
 
-        AABVHNode* ConstructTree(size_t begin, size_t end, size_t lastDim);
+        AABVHNode* ConstructTree(size_t begin, size_t end, size_t last_dim);
 
-        AABVHNode* ConstructTreeRecursive(AABVHNodeList& nodeStorage, size_t begin, size_t end, size_t lastDim);
+        AABVHNode* ConstructTreeRecursive(AABVHNodeList& nod_storage, size_t begin, size_t end, size_t last_dim);
     };
 }  // namespace Cork::AABVH

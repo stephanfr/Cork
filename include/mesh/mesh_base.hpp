@@ -100,6 +100,7 @@ namespace Cork::Meshes
         uint64_t ending_virtual_memory_size_in_MB_;
     };
 
+/*
     class CorkTriangle : public TriangleByIndices
     {
        public:
@@ -126,6 +127,9 @@ namespace Cork::Meshes
        private:
         uint32_t bool_alg_data_;  // internal use by algorithm - value must be copied when the triangle is subdivided
     };
+*/
+
+    using CorkTriangle = Primitives::TriangleByIndices;
 
     class MeshBase
     {

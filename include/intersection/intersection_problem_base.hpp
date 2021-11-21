@@ -48,6 +48,32 @@ namespace Cork::Intersection
                                      t2.triangleExactCoordinates(quantizer), quantizer));
     }
 
+
+    class TriTripleTemp
+    {
+       public:
+
+       TriTripleTemp() = delete;
+       TriTripleTemp( const TriTripleTemp& ) = delete;
+       TriTripleTemp( TriTripleTemp&& ) = default;
+
+        TriTripleTemp(const Meshes::TopoTri& tp0, const Meshes::TopoTri& tp1, const Meshes::TopoTri& tp2) : t0_(tp0), t1_(tp1), t2_(tp2) {}
+
+        TriTripleTemp&      operator=( const TriTripleTemp& ) = delete;
+        TriTripleTemp&      operator=( TriTripleTemp&& ) = delete;
+
+        const Meshes::TopoTri& t0() const { return t0_; }
+        const Meshes::TopoTri& t1() const { return t0_; };
+        const Meshes::TopoTri& t2() const { return t0_; };
+
+        private :
+
+        const Meshes::TopoTri& t0_;
+        const Meshes::TopoTri& t1_;
+        const Meshes::TopoTri& t2_;
+    };
+
+
     class IntersectionProblemBase
     {
         protected :
@@ -263,7 +289,7 @@ namespace Cork::Intersection
 
         void killOrigEdge(OrigEdgeType* oe) { m_origEdgeTypeList.free(oe); }
 
-        bool checkIsct(const TopoTri& t0, const TopoTri& t1, const TopoTri& t2)
+        bool checkIsct(const TriTripleTemp& triangles)
         {
             // This function should only be called if we've already
             // identified that the intersection edges
@@ -282,11 +308,11 @@ namespace Cork::Intersection
 
             TopoVert* common;
 
-            if (t0.findCommonVertex(t1, common))
+            if (triangles.t0().findCommonVertex(triangles.t1(), common))
             {
                 for (uint i = 0; i < 3; i++)
                 {
-                    if (common == t2.verts()[i])
+                    if (common == triangles.t2().verts()[i])
                     {
                         return (false);
                     }
@@ -295,16 +321,16 @@ namespace Cork::Intersection
 
             //	Visual Studio's IDE gripes about the following when the explicit operator call is omitted
 
-            Empty3d::TriangleTriangleTriangleIntersection input(t0.operator Empty3d::IntersectingTriangle(), t1.operator Empty3d::IntersectingTriangle(),
-                                       t2.operator Empty3d::IntersectingTriangle());
+            Empty3d::TriangleTriangleTriangleIntersection input(triangles.t0().operator Empty3d::IntersectingTriangle(), triangles.t1().operator Empty3d::IntersectingTriangle(),
+                                       triangles.t2().operator Empty3d::IntersectingTriangle());
 
             return input.emptyExact(quantizer_, exact_arithmetic_context_) != Empty3d::HasIntersection::YES;
         }
 
         void fillOutTriData(const TopoTri& piece, const TopoTri& parent)
         {
-            topo_cache_.ownerMesh().triangles()[piece.ref()].boolAlgData() =
-                topo_cache_.ownerMesh().triangles()[parent.ref()].boolAlgData();
+            topo_cache_.ownerMesh().triangles()[piece.ref()].set_bool_alg_data(
+                topo_cache_.ownerMesh().triangles()[parent.ref()].bool_alg_data() );
         }
 
         std::unique_ptr<std::vector<Primitives::Vector3D>> dumpIsctPoints();

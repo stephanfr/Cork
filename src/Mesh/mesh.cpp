@@ -123,7 +123,7 @@ namespace Cork::Meshes
         {
             // ignore triangles from the same operand surface
 
-            if ((tri.boolAlgData() & 1) == operand)
+            if ((tri.bool_alg_data() & 1) == operand)
             {
                 continue;
             }
@@ -269,7 +269,7 @@ namespace Cork::Meshes
 
         for (auto& t : tris_)
         {
-            t.boolAlgData() = 0;
+            t.set_bool_alg_data( 0 );
         }
 
         uint32_t oldVsize = verts_.size();
@@ -292,7 +292,7 @@ namespace Cork::Meshes
             auto& tri = tris_[oldTsize + i];
 
             tri = meshToMerge.tris_[i];
-            tri.boolAlgData() = 1;  //	These triangles are part of the RHS so label them as such
+            tri.set_bool_alg_data( 1 );  //	These triangles are part of the RHS so label them as such
             tri.offset_indices(oldVsize);
         }
     }
@@ -634,7 +634,7 @@ namespace Cork::Meshes
 
         //	Do the 'inside' test
 
-        uint32_t operand = tris_[best_tid].boolAlgData();
+        uint32_t operand = tris_[best_tid].bool_alg_data();
         bool inside = isInside(best_tid, operand);
 
         //	Do a breadth first propagation of classification throughout the component.
@@ -646,7 +646,7 @@ namespace Cork::Meshes
 
         // begin by tagging the first triangle
 
-        tris_[best_tid].boolAlgData() |= (inside) ? 2 : 0;
+        tris_[best_tid].set_bool_alg_data( tris_[best_tid].bool_alg_data() | (inside) ? 2 : 0 );
         visited[best_tid] = true;
         work.push_back(best_tid);
 
@@ -662,7 +662,7 @@ namespace Cork::Meshes
 
                 auto& entry = ecache[VertexIndex::integer_type(a)][VertexIndex::integer_type(b)];
 
-                uint32_t inside_sig = tris_[curr_tid].boolAlgData() & 2;
+                uint32_t inside_sig = tris_[curr_tid].bool_alg_data() & 2;
 
                 if (entry.intersects())
                 {
@@ -676,12 +676,12 @@ namespace Cork::Meshes
                         continue;
                     }
 
-                    if ((tris_[tid].boolAlgData() & 1) != operand)
+                    if ((tris_[tid].bool_alg_data() & 1) != operand)
                     {
                         continue;
                     }
 
-                    tris_[tid].boolAlgData() |= inside_sig;
+                    tris_[tid].set_bool_alg_data( tris_[tid].bool_alg_data() | inside_sig );
                     visited[tid] = true;
                     work.push_back(tid);
                 }
@@ -755,7 +755,7 @@ namespace Cork::Meshes
 
         for (auto& currentTriangle : topocache.triangles())
         {
-            TriCode code = classify(tris_[currentTriangle.ref()].boolAlgData());
+            TriCode code = classify(tris_[currentTriangle.ref()].bool_alg_data());
 
             switch (code)
             {

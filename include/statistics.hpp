@@ -115,43 +115,6 @@ namespace Cork::Statistics
         TriangleByIndicesIndex triangle_instersected_id_;
     };
 
-    class IntersectionInfo
-    {
-       public:
-        IntersectionInfo() = delete;
-
-        IntersectionInfo(std::vector<SelfIntersectingEdge>&& edges,
-                         std::set<TriangleByIndicesIndex>&& triangles_including_se_vertex)
-            : edges_(edges), triangles_including_se_vertex_(triangles_including_se_vertex)
-        {
-        }
-
-        IntersectionInfo(const IntersectionInfo&) = default;
-
-        ~IntersectionInfo() = default;
-
-        const std::vector<SelfIntersectingEdge>& edges() const { return edges_; }
-
-        const std::set<TriangleByIndicesIndex>& triangles_including_se_vertex() const
-        {
-            return triangles_including_se_vertex_;
-        }
-
-        void merge(const SelfIntersectingEdge& edge,
-                   const std::set<TriangleByIndicesIndex>& triangles_including_se_vertex)
-        {
-            edges_.emplace_back(edge);
-
-            for (auto& triangle_to_add : triangles_including_se_vertex)
-            {
-                triangles_including_se_vertex_.emplace(triangle_to_add);
-            }
-        }
-
-       private:
-        std::vector<SelfIntersectingEdge> edges_;
-        std::set<TriangleByIndicesIndex> triangles_including_se_vertex_;
-    };
 
     class TopologicalStatistics
     {
@@ -159,12 +122,12 @@ namespace Cork::Statistics
         TopologicalStatistics() = delete;
 
         TopologicalStatistics(size_t num_edges, size_t num_bodies, size_t non_2_manifold_edges,
-                              const std::vector<Hole>& holes, const std::vector<IntersectionInfo>& self_intersections)
+                              const std::vector<Hole>& holes, const std::vector<SelfIntersectingEdge>& self_intersecting_edges)
             : num_edges_(num_edges),
               num_bodies_(num_bodies),
               non_2_manifold_edges_(non_2_manifold_edges),
               holes_(holes),
-              self_intersections_(self_intersections)
+              self_intersecting_edges_(self_intersecting_edges)
         {
         }
 
@@ -173,7 +136,7 @@ namespace Cork::Statistics
               num_bodies_(stats_to_copy.num_bodies_),
               non_2_manifold_edges_(stats_to_copy.non_2_manifold_edges_),
               holes_(stats_to_copy.holes_),
-              self_intersections_(stats_to_copy.self_intersections_)
+              self_intersecting_edges_(stats_to_copy.self_intersecting_edges_)
         {
         }
 
@@ -191,7 +154,7 @@ namespace Cork::Statistics
         bool is_two_manifold() const { return (non_2_manifold_edges_ == 0); }
 
         const std::vector<Hole>& holes() const { return holes_; }
-        const std::vector<IntersectionInfo>& self_intersections() const { return self_intersections_; }
+        const std::vector<SelfIntersectingEdge>& self_intersecting_edges() const { return self_intersecting_edges_; }
 
        private:
         size_t num_edges_;
@@ -199,7 +162,7 @@ namespace Cork::Statistics
         size_t non_2_manifold_edges_;
 
         const std::vector<Hole> holes_;
-        const std::vector<IntersectionInfo> self_intersections_;
+        const std::vector<SelfIntersectingEdge> self_intersecting_edges_;
     };
 
 }  // namespace Cork::Statistics

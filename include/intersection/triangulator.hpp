@@ -204,6 +204,8 @@ namespace Cork::Triangulator
             segment_markers_[number_of_segments_++] = boundary ? 1 : 0;
         }
 
+        const std::array<std::pair<double, double>, MAX_POINTS + 1>&    points() const { return points_; }       
+
         [[nodiscard]] TriangulateResult compute_triangulation();
 
        private:

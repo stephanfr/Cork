@@ -58,29 +58,27 @@ namespace Cork::Intersection
         void operator()(T* pointer) { free(pointer); }
     };
 
-    class TriTripleTemp
-    {
-       public:
-        TriTripleTemp(const TopoTri& tp0, const TopoTri& tp1, const TopoTri& tp2) : t0(tp0), t1(tp1), t2(tp2) {}
-
-        const TopoTri& t0;
-        const TopoTri& t1;
-        const TopoTri& t2;
-    };
-
     class IntersectionSolverImpl : public IntersectionProblemBase, public IntersectionSolver
     {
        public:
+
+       IntersectionSolverImpl() = delete;
         IntersectionSolverImpl(MeshBase& owner, const Math::Quantizer& quantizer);
 
-        virtual ~IntersectionSolverImpl() { reset(); }
+        IntersectionSolverImpl( const IntersectionSolverImpl& ) = delete;
+        IntersectionSolverImpl( IntersectionSolverImpl&& ) = delete;
+
+        IntersectionSolverImpl&     operator=( const IntersectionSolverImpl& ) = delete;
+        IntersectionSolverImpl&     operator=( IntersectionSolverImpl&& ) = delete;
+
+        virtual ~IntersectionSolverImpl() final { reset(); }
 
         //	Implementation of IntersectionProblemIfx
 
         IntersectionProblemResult FindIntersections() final;
         IntersectionProblemResult ResolveAllIntersections() final;
 
-        void commit() { topo_cache_.commit(); }
+        void commit() final { topo_cache_.commit(); };
 
         //	Other IntersectionProblem methods
 
@@ -189,7 +187,7 @@ namespace Cork::Intersection
 
         while (true)
         {
-            TriAndEdgeQueueMessage* msg;
+            TriAndEdgeQueueMessage* msg(nullptr);
 
             trianglesAndEdges.pop(msg);
 
@@ -290,7 +288,7 @@ namespace Cork::Intersection
                             if (&(ie->otherTriKey()) == &t2)
                             {
                                 // ADD THE TRIPLE
-                                triples.emplace_back(TriTripleTemp(t0, t1, t2));
+                                triples.emplace_back(t0, t1, t2);
                             }
                         }
                     }
@@ -303,7 +301,7 @@ namespace Cork::Intersection
 
         for (TriTripleTemp& t : triples)
         {
-            if (!checkIsct(t.t0, t.t1, t.t2))
+            if (!checkIsct(t))
             {
                 continue;
             }
@@ -316,11 +314,11 @@ namespace Cork::Intersection
             }
 
             GluePointMarker* glue = m_gluePointMarkerList.emplace_back(
-                GluePointMarker::IntersectionType::TRIANGLE_TRIANGLE_TRIANGLE, t.t0, t.t1, t.t2);
+                GluePointMarker::IntersectionType::TRIANGLE_TRIANGLE_TRIANGLE, t.t0(), t.t1(), t.t2());
 
-            getTprob(t.t0).addInteriorPoint(t.t1, t.t2, *glue);
-            getTprob(t.t1).addInteriorPoint(t.t0, t.t2, *glue);
-            getTprob(t.t2).addInteriorPoint(t.t0, t.t1, *glue);
+            getTprob(t.t0()).addInteriorPoint(t.t1(), t.t2(), *glue);
+            getTprob(t.t1()).addInteriorPoint(t.t0(), t.t2(), *glue);
+            getTprob(t.t2()).addInteriorPoint(t.t0(), t.t1(), *glue);
         }
 
         if (exact_arithmetic_context_.has_degeneracies())

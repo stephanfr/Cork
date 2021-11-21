@@ -34,7 +34,7 @@ namespace Cork::Statistics
 {
     using TriangleMeshWithTopoCache = Meshes::TriangleMeshWithTopoCache;
 
-    using IntersectionInfo = Statistics::IntersectionInfo;
+    using SelfIntersectingEdge = Statistics::SelfIntersectingEdge;
 
     GeometricStatisticsEngine::GeometricStatisticsEngine(const TriangleMesh& triangle_mesh,
                                                          GeometricProperties properties_to_compute)
@@ -112,7 +112,7 @@ namespace Cork::Statistics
         int num_non_2_manifold = 0;
         int num_edges = 0;
         std::vector<Hole> holes;
-        std::vector<IntersectionInfo> si_stats;
+        std::vector<SelfIntersectingEdge> si_stats;
 
         if (props_to_compute & TopologicalProperties::TOPO_BASE)
         {

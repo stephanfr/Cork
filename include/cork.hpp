@@ -67,7 +67,41 @@ namespace Cork
 
     using HoleClosingResult = SEFUtility::Result<HoleClosingResultCodes>;
 
-    class TriangleMesh
+    class TriangleMeshBase
+    {
+       public:
+
+        //	Methods follow
+
+        virtual ~TriangleMeshBase(){};
+
+        virtual size_t numTriangles() const = 0;
+        virtual size_t numVertices() const = 0;
+
+        virtual const Vertex3DVector& vertices() const = 0;
+        virtual const TriangleByIndicesVector& triangles() const = 0;
+
+        virtual TriangleByVertices triangleByVertices(
+            const TriangleByIndices& triangleByIndices) const = 0;
+
+//        virtual void AddTriangle(const TriangleByIndices& triangle_to_add) = 0;
+//        virtual void remove_triangle(TriangleByIndicesIndex triangle_index) = 0;
+
+        virtual const BBox3D& boundingBox() const = 0;
+        virtual MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
+        virtual double max_vertex_magnitude() const = 0;
+
+//        virtual GeometricStatistics ComputeGeometricStatistics(
+//            GeometricProperties props_to_compute) const = 0;
+//        virtual TopologicalStatisticsResult ComputeTopologicalStatistics(
+//            TopologicalProperties props_to_compute) const = 0;
+
+//        virtual HoleClosingResult close_holes(const TopologicalStatistics& topo_stats) = 0;
+//        virtual void remove_self_intersections(const TopologicalStatistics& topo_stats) = 0;
+    };
+
+
+    class TriangleMesh : public TriangleMeshBase
     {
        public:
 
@@ -80,21 +114,21 @@ namespace Cork
 
         virtual ~TriangleMesh(){};
 
-        virtual size_t numTriangles() const = 0;
-        virtual size_t numVertices() const = 0;
+//        virtual size_t numTriangles() const = 0;
+//        virtual size_t numVertices() const = 0;
 
-        virtual const Vertex3DVector& vertices() const = 0;
-        virtual const TriangleByIndicesVector& triangles() const = 0;
+//        virtual const Vertex3DVector& vertices() const = 0;
+//        virtual const TriangleByIndicesVector& triangles() const = 0;
 
-        virtual TriangleByVertices triangleByVertices(
-            const TriangleByIndices& triangleByIndices) const = 0;
+//        virtual TriangleByVertices triangleByVertices(
+//            const TriangleByIndices& triangleByIndices) const = 0;
 
         virtual void AddTriangle(const TriangleByIndices& triangle_to_add) = 0;
         virtual void remove_triangle(TriangleByIndicesIndex triangle_index) = 0;
 
-        virtual const BBox3D& boundingBox() const = 0;
-        virtual MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
-        virtual double max_vertex_magnitude() const = 0;
+//        virtual const BBox3D& boundingBox() const = 0;
+//        virtual MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
+//        virtual double max_vertex_magnitude() const = 0;
 
         virtual GeometricStatistics ComputeGeometricStatistics(
             GeometricProperties props_to_compute) const = 0;
