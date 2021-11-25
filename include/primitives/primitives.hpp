@@ -532,6 +532,36 @@ namespace Cork::Primitives
         return out;
     }
 
+
+
+    template <typename IndexType>
+    class BooleanVector
+    {
+        public:
+        BooleanVector(std::size_t size) : vector_(size, false) {}
+        BooleanVector(std::size_t size, bool initial_value) : vector_(size, initial_value) {}
+
+        void resize( IndexType  new_size )
+        {
+            vector_.resize( size_t( new_size ) );
+        }
+
+        unsigned char& operator[](IndexType index)
+        {
+            unsigned char&  return_value = vector_[TriangleByIndicesIndex::integer_type(index)];
+            return return_value;
+        }        
+
+        bool operator[] (IndexType index) const
+        {
+            return vector_[TriangleByIndicesIndex::integer_type(index)];
+        }
+
+        private :
+
+        std::vector<unsigned char>          vector_;
+    };
+
 }  // namespace Cork::Primitives
 
 namespace Cork

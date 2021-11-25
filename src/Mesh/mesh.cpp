@@ -27,15 +27,14 @@
 
 #include "mesh/mesh.hpp"
 
-#include <sstream>
-
 #include <boost/timer/timer.hpp>
-#include "tbb/parallel_for.h"
+#include <sstream>
 
 #include "intersection/intersection_problem.hpp"
 #include "intersection/unsafe_ray_triangle_intersection.hpp"
 #include "mesh/topo_cache.hpp"
 #include "mesh/triangle_mesh.h"
+#include "tbb/parallel_for.h"
 #include "util/thread_pool.hpp"
 #include "util/union_find.hpp"
 
@@ -74,7 +73,7 @@ namespace Cork::Meshes
                         EGraphEntryTIDVector tid0s;
                         EGraphEntryTIDVector tid1s;
 
-                        for (IndexType tid : entry.tids())
+                        for (TriangleByIndicesIndex tid : entry.tids())
                         {
                             if (tris_[tid].bool_alg_data() & 1)
                             {
@@ -98,7 +97,7 @@ namespace Cork::Meshes
         }
     }
 
-    inline bool Mesh::isInside(IndexType tid, uint32_t operand)
+    inline bool Mesh::isInside(TriangleByIndicesIndex tid, uint32_t operand)
     {
         // find the point to trace outward from...
 
@@ -147,7 +146,7 @@ namespace Cork::Meshes
         return (winding > 0);
     }
 
-    inline void Mesh::RayTriangleIntersection(const CorkTriangle& tri, Ray3D& r, long& winding)
+    inline void Mesh::RayTriangleIntersection(const TriangleByIndices& tri, Ray3D& r, long& winding)
     {
         NUMERIC_PRECISION flip = 1.0;
 
@@ -247,7 +246,7 @@ namespace Cork::Meshes
             }
         }
 
-        for (unsigned int i = 0; i < tris_.size(); i++)
+        for (TriangleByIndicesIndex i = 0U; i < tris_.size(); i++)
         {
             if (tris_[i].a() >= verts_.size() || tris_[i].b() >= verts_.size() || tris_[i].c() >= verts_.size())
             {
@@ -269,7 +268,7 @@ namespace Cork::Meshes
 
         for (auto& t : tris_)
         {
-            t.set_bool_alg_data( 0 );
+            t.set_bool_alg_data(0);
         }
 
         uint32_t oldVsize = verts_.size();
@@ -287,12 +286,12 @@ namespace Cork::Meshes
             verts_[oldVsize + i] = meshToMerge.verts_[i];
         }
 
-        for (unsigned int i = 0; i < cpTsize; i++)
+        for (TriangleByIndicesIndex i = 0U; i < cpTsize; i++)
         {
             auto& tri = tris_[oldTsize + i];
 
             tri = meshToMerge.tris_[i];
-            tri.set_bool_alg_data( 1 );  //	These triangles are part of the RHS so label them as such
+            tri.set_bool_alg_data(1);  //	These triangles are part of the RHS so label them as such
             tri.offset_indices(oldVsize);
         }
     }
@@ -445,9 +444,9 @@ namespace Cork::Meshes
 
         EGraphCache& ecache = *ecachePtr;
 
-        for (uint tid = 0; tid < tris_.size(); tid++)
+        for (TriangleByIndicesIndex tid = 0U; tid < tris_.size(); tid++)
         {
-            const CorkTriangle& tri = tris_[tid];
+            const TriangleByIndices& tri = tris_[tid];
 
             ecache[VertexIndex::integer_type(tri.a())]
                 .find_or_add(VertexIndex::integer_type(tri.b()))
@@ -512,11 +511,11 @@ namespace Cork::Meshes
         RandomWeightedParallelUnionFind uf(tris_.size());
 
         for_ecache(ecache, [&uf](const EGraphEntryTIDVector& tids) {
-            size_t tid0 = tids[0];
+            TriangleByIndicesIndex tid0 = tids[0];
 
-            for (size_t k = 1; k < tids.size(); k++)
+            for (size_t k = 1U; k < tids.size(); k++)
             {
-                uf.unite(tid0, tids[k]);
+                uf.unite(TriangleByIndicesIndex::integer_type(tid0), TriangleByIndicesIndex::integer_type(tids[k]));
             }
         });
 
@@ -584,9 +583,9 @@ namespace Cork::Meshes
 
             for (auto triIndex : component)
             {
-                bodyByVerts.insert(tris_[triIndex].a());
-                bodyByVerts.insert(tris_[triIndex].b());
-                bodyByVerts.insert(tris_[triIndex].c());
+                bodyByVerts.insert(tris_[TriangleByIndicesIndex(uint32_t(triIndex))].a());
+                bodyByVerts.insert(tris_[TriangleByIndicesIndex(uint32_t(triIndex))].b());
+                bodyByVerts.insert(tris_[TriangleByIndicesIndex(uint32_t(triIndex))].c());
             }
         }
 
@@ -630,7 +629,7 @@ namespace Cork::Meshes
         // find the "best" triangle in each component,
         // and ray cast to determine inside-ness vs. outside-ness
 
-        size_t best_tid = FindTriForInsideTest(trisInComponent);
+        TriangleByIndicesIndex best_tid = FindTriForInsideTest(trisInComponent);
 
         //	Do the 'inside' test
 
@@ -639,20 +638,20 @@ namespace Cork::Meshes
 
         //	Do a breadth first propagation of classification throughout the component.
 
-        std::vector<size_t> work;
+        std::vector<TriangleByIndicesIndex> work;
         work.reserve(trisInComponent.size());
 
-        std::vector<bool> visited(tris_.size(), false);
+        Primitives::BooleanVector<TriangleByIndicesIndex>      visited(tris_.size());
 
         // begin by tagging the first triangle
 
-        tris_[best_tid].set_bool_alg_data( tris_[best_tid].bool_alg_data() | (inside) ? 2 : 0 );
+        tris_[best_tid].set_bool_alg_data(tris_[best_tid].bool_alg_data() | (inside) ? 2 : 0);
         visited[best_tid] = true;
         work.push_back(best_tid);
 
         while (!work.empty())
         {
-            size_t curr_tid = work.back();
+            TriangleByIndicesIndex curr_tid = work.back();
             work.pop_back();
 
             for (size_t k = 0; k < 3; k++)
@@ -669,9 +668,9 @@ namespace Cork::Meshes
                     inside_sig ^= 2;
                 }
 
-                for (IndexType tid : entry.tids())
+                for (TriangleByIndicesIndex tid : entry.tids())
                 {
-                    if (visited[tid])
+                    if (visited[TriangleByIndicesIndex::integer_type(tid)])
                     {
                         continue;
                     }
@@ -681,18 +680,18 @@ namespace Cork::Meshes
                         continue;
                     }
 
-                    tris_[tid].set_bool_alg_data( tris_[tid].bool_alg_data() | inside_sig );
-                    visited[tid] = true;
+                    tris_[tid].set_bool_alg_data(tris_[tid].bool_alg_data() | inside_sig);
+                    visited[TriangleByIndicesIndex::integer_type(tid)] = true;
                     work.push_back(tid);
                 }
             }
         }
     }
 
-    size_t Mesh::FindTriForInsideTest(const ComponentType& trisInComponent)
+    TriangleByIndicesIndex Mesh::FindTriForInsideTest(const ComponentType& trisInComponent)
     {
-        size_t currentTid;
-        size_t best_tid = trisInComponent[0];
+        TriangleByIndicesIndex current_tid{0U};
+        TriangleByIndicesIndex best_tid = TriangleByIndicesIndex::integer_type( trisInComponent[0] );
         double best_area = 0.0;
 
         size_t searchIncrement = 1;
@@ -724,11 +723,11 @@ namespace Cork::Meshes
 
         for (size_t i = 0; i < trisInComponent.size(); i += searchIncrement)
         {
-            currentTid = trisInComponent[i];
+            current_tid = TriangleByIndicesIndex( TriangleByIndicesIndex::integer_type( trisInComponent[i] ));
 
-            const Vector3D& va = verts_[tris_[currentTid].a()];
-            const Vector3D& vb = verts_[tris_[currentTid].b()];
-            const Vector3D& vc = verts_[tris_[currentTid].c()];
+            const Vector3D& va = verts_[tris_[current_tid].a()];
+            const Vector3D& vb = verts_[tris_[current_tid].b()];
+            const Vector3D& vc = verts_[tris_[current_tid].c()];
 
             double area =
                 tri_area_squared(va, vb, vc);  //	We don't need the square root, we just want the biggest surface area
@@ -736,7 +735,7 @@ namespace Cork::Meshes
             if (area > best_area)
             {
                 best_area = area;
-                best_tid = currentTid;
+                best_tid = current_tid;
             }
         }
 
@@ -747,7 +746,7 @@ namespace Cork::Meshes
     {
         Math::Quantizer::GetQuantizerResult get_quantizer_result = quantizer();
 
-        CorkTriangleVectorTopoCache topocache(*this, get_quantizer_result.return_value());
+        MeshTopoCache topocache(*this, get_quantizer_result.return_value());
 
         std::vector<TopoTri*> toDelete;
 
@@ -755,7 +754,7 @@ namespace Cork::Meshes
 
         for (auto& currentTriangle : topocache.triangles())
         {
-            TriCode code = classify(tris_[currentTriangle.ref()].bool_alg_data());
+            TriCode code = classify(tris_[TriangleByIndicesIndex( currentTriangle.ref() )].bool_alg_data());
 
             switch (code)
             {

@@ -78,12 +78,12 @@ namespace Cork::Intersection
     {
         protected :
 
-        using CorkTriangleVectorTopoCache = Meshes::CorkTriangleVectorTopoCache;
         using TopoVert = Meshes::TopoVert;
         using TopoEdge = Meshes::TopoEdge;
         using TopoTri = Meshes::TopoTri;
         using TopoEdgeReferenceVector = Meshes::TopoEdgeReferenceVector;
         using MeshBase = Meshes::MeshBase;
+        using MeshTopoCache = Meshes::MeshTopoCache;
 
        public:
         class TriAndEdgeQueueMessage
@@ -149,7 +149,7 @@ namespace Cork::Intersection
 
         const MeshBase& owner_mesh() const { return owner_mesh_; }
 
-        CorkTriangleVectorTopoCache&      topo_cache() { return topo_cache_; }
+        MeshTopoCache&      topo_cache() { return topo_cache_; }
 
         IsctVertType* newIsctVert(const TopoEdge& e, const TopoTri& t, bool boundary, GluePointMarker& glue)
         {
@@ -329,8 +329,8 @@ namespace Cork::Intersection
 
         void fillOutTriData(const TopoTri& piece, const TopoTri& parent)
         {
-            topo_cache_.ownerMesh().triangles()[piece.ref()].set_bool_alg_data(
-                topo_cache_.ownerMesh().triangles()[parent.ref()].bool_alg_data() );
+            topo_cache_.ownerMesh().triangles()[TriangleByIndicesIndex(piece.ref())].set_bool_alg_data(
+                topo_cache_.ownerMesh().triangles()[TriangleByIndicesIndex(parent.ref())].bool_alg_data() );
         }
 
         std::unique_ptr<std::vector<Primitives::Vector3D>> dumpIsctPoints();
@@ -340,7 +340,7 @@ namespace Cork::Intersection
 
         MeshBase& owner_mesh_;
 
-        Meshes::CorkTriangleVectorTopoCache   topo_cache_;
+        MeshTopoCache   topo_cache_;
 
         std::unique_ptr<AABVH::AxisAlignedBoundingVolumeHierarchy> edge_bvh_;
 

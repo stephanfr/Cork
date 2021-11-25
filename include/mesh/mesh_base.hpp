@@ -100,42 +100,13 @@ namespace Cork::Meshes
         uint64_t ending_virtual_memory_size_in_MB_;
     };
 
-/*
-    class CorkTriangle : public TriangleByIndices
-    {
-       public:
-        CorkTriangle() {}
-
-        CorkTriangle(const TriangleByIndices& triangle_to_copy, uint32_t bool_alg_data)
-            : TriangleByIndices(triangle_to_copy), bool_alg_data_(bool_alg_data)
-        {
-        }
-
-        const uint32_t bool_alg_data() const { return (bool_alg_data_); }
-
-        uint32_t& boolAlgData() { return (bool_alg_data_); }
-
-        void flip() { std::swap(a_, b_); }
-
-        void offset_indices(uint32_t offset_value)
-        {
-            a_ += offset_value;
-            b_ += offset_value;
-            c_ += offset_value;
-        }
-
-       private:
-        uint32_t bool_alg_data_;  // internal use by algorithm - value must be copied when the triangle is subdivided
-    };
-*/
-
-    using CorkTriangle = Primitives::TriangleByIndices;
+//    using CorkTriangle = Primitives::TriangleByIndices;
 
     class MeshBase
     {
        public:
 
-        using CorkTriangleVector = std::vector<CorkTriangle>;
+//        using CorkTriangleVector = std::vector<CorkTriangle>;
         using CorkVertex = Primitives::Vector3D;
 
         MeshBase() = delete;
@@ -158,9 +129,9 @@ namespace Cork::Meshes
 
         const SolverControlBlock& solver_control_block() const { return (*control_block_); }
 
-        CorkTriangleVector& triangles() { return (tris_); }
+        TriangleByIndicesVector& triangles() { return (tris_); }
 
-        const CorkTriangleVector& triangles() const { return (tris_); }
+        const TriangleByIndicesVector& triangles() const { return (tris_); }
 
         Vertex3DVector& vertices() { return (verts_); }
 
@@ -196,7 +167,7 @@ namespace Cork::Meshes
         }
 
        protected:
-        CorkTriangleVector tris_;
+        TriangleByIndicesVector tris_;
         Vertex3DVector verts_;
 
         BBox3D bounding_box_;

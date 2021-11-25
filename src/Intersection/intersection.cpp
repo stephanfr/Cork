@@ -39,8 +39,6 @@ namespace Cork::Intersection
     using TopoTri = Meshes::TopoTri;
     using TopoEdgePointerVector = Meshes::TopoEdgePointerVector;
 
-    using CorkTriangle = Meshes::CorkTriangle;
-
     using MeshBase = Meshes::MeshBase;
 
     //  The following template classes are needed to insure the correct delete function is associated
@@ -144,7 +142,7 @@ namespace Cork::Intersection
 
                 genericTri->set_concrete_triangle(t);
 
-                CorkTriangle& tri = topo_cache_.ownerMesh().triangles()[t->ref()];
+                TriangleByIndices& tri = topo_cache_.ownerMesh().triangles()[TriangleByIndicesIndex(t->ref())];     //  TODO fix
 
                 for (uint k = 0; k < 3; k++)
                 {

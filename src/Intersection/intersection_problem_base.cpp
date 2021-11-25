@@ -49,7 +49,7 @@ namespace Cork::Intersection
         for (TopoTri& t : topo_cache_.triangles())
         {
             t.clear_triangle_problem_association();
-            t.setBoolAlgData(owner_mesh_.triangles()[t.ref()].bool_alg_data());
+            t.setBoolAlgData(owner_mesh_.triangles()[TriangleByIndicesIndex(t.ref())].bool_alg_data());   //  TODO fix ref()
         }
 
         //	Initialize all of the edge solid IDs

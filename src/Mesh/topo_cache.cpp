@@ -33,14 +33,24 @@
 
 namespace Cork::Meshes
 {
-    CorkTriangleVectorTopoCache::CorkTriangleVectorTopoCache(MeshBase& owner, const Math::Quantizer& quantizer)
-        : TopoCacheBase( owner.triangles(), owner.vertices(), owner.triangles().size() * 3, quantizer ),
+
+    TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles, Vertex3DVector& vertices, uint32_t num_edges,
+                      const Math::Quantizer& quantizer)
+        : TopoCacheBase(triangles, vertices, num_edges, quantizer )
+    {}
+
+    TriangleByIndicesVectorTopoCache::~TriangleByIndicesVectorTopoCache() {}
+
+
+
+    MeshTopoCache::MeshTopoCache(MeshBase& owner, const Math::Quantizer& quantizer)
+        : TriangleByIndicesVectorTopoCache( owner.triangles(), owner.vertices(), owner.triangles().size() * 3, quantizer ),
           mesh_(owner)
     {}
 
-    CorkTriangleVectorTopoCache::~CorkTriangleVectorTopoCache() {}
+    MeshTopoCache::~MeshTopoCache() {}
 
-    void CorkTriangleVectorTopoCache::commit()
+    void MeshTopoCache::commit()
     {
         // record which vertices are live
 
@@ -53,15 +63,17 @@ namespace Cork::Meshes
 
         // record which triangles are live, and record connectivity
 
-        std::vector<bool> live_tris(mesh_triangles_.size(), false);  //	All initialized to zero
+//        std::vector<bool> live_tris(mesh_triangles_.size(), false);  //	All initialized to zero
+
+        Primitives::BooleanVector<TriangleByIndicesIndex>   live_tris(mesh_triangles_.size());
 
         for (auto& tri : m_topoTriList)
         {
-            live_tris[tri.ref()] = true;
+            live_tris[TriangleByIndicesIndex(tri.ref())] = true;        //  TODO Fix ref()
 
             for (size_t k = 0; k < 3; k++)
             {
-                mesh_triangles_[tri.ref()][k] = tri.verts()[k]->index();
+                mesh_triangles_[TriangleByIndicesIndex(tri.ref())][k] = tri.verts()[k]->index();
             }
         }
 
@@ -96,12 +108,12 @@ namespace Cork::Meshes
             vert.set_index(vertex_map[VertexIndex::integer_type(vert.index())]);
         }
 
-        std::vector<size_t> tmap;
+        std::vector<TriangleByIndicesIndex> tmap;
         tmap.reserve(mesh_triangles_.size());
 
-        size_t tri_write = 0;
+        TriangleByIndicesIndex tri_write = 0U;
 
-        for (size_t read = 0; read < mesh_triangles_.size(); read++)
+        for (TriangleByIndicesIndex read = 0U; read < mesh_triangles_.size(); read++)
         {
             if (live_tris[read])
             {
@@ -122,24 +134,16 @@ namespace Cork::Meshes
             }
         }
 
-        mesh_triangles_.resize(tri_write);
+        mesh_triangles_.resize(TriangleByIndicesIndex::integer_type( tri_write));
 
         // rewrite the triangle reference ids
 
         for (auto& tri : triangles())
         {
-            tri.setRef(tmap[tri.ref()]);
+            tri.setRef(TriangleByIndicesIndex::integer_type(tmap[TriangleByIndicesIndex::integer_type(tri.ref())]));    //  TODO fix
         }
     }
 
-
-
-    TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles, Vertex3DVector& vertices, uint32_t num_edges,
-                      const Math::Quantizer& quantizer)
-        : TopoCacheBase(triangles, vertices, num_edges, quantizer )
-    {}
-
-    TriangleByIndicesVectorTopoCache::~TriangleByIndicesVectorTopoCache() {}
 
 
 
@@ -189,7 +193,7 @@ namespace Cork::Meshes
         return out;
     }
 
-    void CorkTriangleVectorTopoCache::print()
+    void TriangleByIndicesVectorTopoCache::print()
     {
         using std::cout;
         using std::endl;

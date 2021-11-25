@@ -118,15 +118,15 @@ namespace Cork::Meshes
 
         void ProcessComponent(const EGraphCache& ecache, const ComponentType& trisInComponent);
 
-        size_t FindTriForInsideTest(const ComponentType& trisInComponent);
+        TriangleByIndicesIndex FindTriForInsideTest(const ComponentType& trisInComponent);
 
         void doDeleteAndFlip(std::function<TriCode(uint32_t bool_alg_data)> classify);
 
         void for_ecache(EGraphCache& ecache, std::function<void(const EGraphEntryTIDVector& tids)> action,
                         int numThreads = 1) const;
 
-        bool isInside(IndexType tid, uint32_t operand);
+        bool isInside(TriangleByIndicesIndex tid, uint32_t operand);
 
-        void RayTriangleIntersection(const CorkTriangle& tri, Primitives::Ray3D& ray, long& winding);
+        void RayTriangleIntersection(const TriangleByIndices& tri, Primitives::Ray3D& ray, long& winding);
     };
 }  // namespace Cork::Meshes

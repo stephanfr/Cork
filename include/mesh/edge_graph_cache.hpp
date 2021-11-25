@@ -41,7 +41,7 @@ namespace Cork::Meshes
 
     static constexpr int EGRAPH_ENTRY_TIDS_VEC_LENGTH = 8;
 
-    using EGraphEntryTIDVector = boost::container::static_vector<IndexType, EGRAPH_ENTRY_TIDS_VEC_LENGTH>;
+    using EGraphEntryTIDVector = boost::container::static_vector<TriangleByIndicesIndex, EGRAPH_ENTRY_TIDS_VEC_LENGTH>;
 
     class EGraphEntry : public SEFUtility::SparseVectorEntry
     {

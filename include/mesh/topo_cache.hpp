@@ -792,48 +792,17 @@ namespace Cork::Meshes
         }
     };
 
-    class CorkTriangleVectorTopoCache : public TopoCacheBase<MeshBase::CorkTriangleVector>
+    class TriangleByIndicesVectorTopoCache : public TopoCacheBase<TriangleByIndicesVector>
     {
        public:
-        CorkTriangleVectorTopoCache(MeshBase& owner, const Math::Quantizer& quantizer);
 
-        virtual ~CorkTriangleVectorTopoCache();
+        TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles, Vertex3DVector& vertices, uint32_t num_edges,
+                      const Math::Quantizer& quantizer);
 
-        // until commit() is called, the Mesh::verts and Mesh::tris
-        // arrays will still contain garbage entries
+        virtual ~TriangleByIndicesVectorTopoCache();
 
-        void commit();
 
         void print();
-
-        MeshBase& ownerMesh() { return (mesh_); }
-
-        const MeshBase& ownerMesh() const { return (mesh_); }
-
-        // helpers to create bits and pieces
-
-        TopoVert* newVert()
-        {
-            VertexIndex::integer_type ref = mesh_vertices_.size();
-
-            mesh_vertices_.emplace_back();
-
-            return (
-                m_topoVertexList.emplace_back(ref, mesh_vertices_.back(), *(m_workspace.get()), *(m_workspace.get())));
-        }
-
-        //        TopoEdge* newEdge() { return (m_topoEdgeList.emplace_back()); }
-
-        TopoEdge* newEdge(TopoVert& v0, TopoVert& v1) { return m_topoEdgeList.emplace_back(v0, v1); }
-
-        TopoTri* newTri()
-        {
-            IndexType ref = mesh_triangles_.size();
-
-            mesh_triangles_.push_back(CorkTriangle());
-
-            return (m_topoTriList.emplace_back(ref));
-        }
 
         // helpers to release bits and pieces
 
@@ -889,22 +858,75 @@ namespace Cork::Meshes
             freeTri(tri);
         }
 
+
+       private:
+        TriangleByIndicesVectorTopoCache() = delete;
+
+        TriangleByIndicesVectorTopoCache(const TriangleByIndicesVectorTopoCache&) = delete;
+        TriangleByIndicesVectorTopoCache(TriangleByIndicesVectorTopoCache&&) = delete;
+
+        TriangleByIndicesVectorTopoCache& operator=(const TriangleByIndicesVectorTopoCache&) = delete;
+        TriangleByIndicesVectorTopoCache& operator=(TriangleByIndicesVectorTopoCache&&) = delete;
+    };
+
+
+    class MeshTopoCache : public TriangleByIndicesVectorTopoCache
+    {
+       public:
+        MeshTopoCache(MeshBase& owner, const Math::Quantizer& quantizer);
+
+        virtual ~MeshTopoCache();
+
+        // until commit() is called, the Mesh::verts and Mesh::tris
+        // arrays will still contain garbage entries
+
+        void commit();
+
+        MeshBase& ownerMesh() { return (mesh_); }
+
+        const MeshBase& ownerMesh() const { return (mesh_); }
+
+        // helpers to create bits and pieces
+
+        TopoVert* newVert()
+        {
+            VertexIndex::integer_type ref = mesh_vertices_.size();
+
+            mesh_vertices_.emplace_back();
+
+            return (
+                m_topoVertexList.emplace_back(ref, mesh_vertices_.back(), *(m_workspace.get()), *(m_workspace.get())));
+        }
+
+        //        TopoEdge* newEdge() { return (m_topoEdgeList.emplace_back()); }
+
+        TopoEdge* newEdge(TopoVert& v0, TopoVert& v1) { return m_topoEdgeList.emplace_back(v0, v1); }
+
+        TopoTri* newTri()
+        {
+            IndexType ref = mesh_triangles_.size();
+
+            mesh_triangles_.push_back(TriangleByIndices());
+
+            return (m_topoTriList.emplace_back(ref));
+        }
+
         // helper to flip triangle orientation
 
         void flipTri(TopoTri* t)
         {
             t->flip();
-            mesh_triangles_[t->ref()].flip();
+            mesh_triangles_[TriangleByIndicesIndex(t->ref())].flip();
         }
 
        private:
-        CorkTriangleVectorTopoCache() = delete;
+        MeshTopoCache() = delete;
 
-        CorkTriangleVectorTopoCache(const CorkTriangleVectorTopoCache&) = delete;
-        CorkTriangleVectorTopoCache(CorkTriangleVectorTopoCache&&) = delete;
+        MeshTopoCache(const MeshTopoCache&) = delete;
+        MeshTopoCache(MeshTopoCache&&) = delete;
 
-        CorkTriangleVectorTopoCache& operator=(const CorkTriangleVectorTopoCache&) = delete;
-        CorkTriangleVectorTopoCache& operator=(CorkTriangleVectorTopoCache&&) = delete;
+        MeshTopoCache& operator=(const MeshTopoCache&) = delete;
+        MeshTopoCache& operator=(MeshTopoCache&&) = delete;
 
         //	Data Members
 
@@ -912,6 +934,7 @@ namespace Cork::Meshes
     };
 
 
+/*
     class TriangleByIndicesVectorTopoCache : public TopoCacheBase<TriangleByIndicesVector>
     {
        public:
@@ -992,7 +1015,7 @@ namespace Cork::Meshes
         TriangleByIndicesVectorTopoCache& operator=(const TriangleByIndicesVectorTopoCache&) = delete;
         TriangleByIndicesVectorTopoCache& operator=(TriangleByIndicesVectorTopoCache&&) = delete;
     };
-
+*/
 
     std::ostream& operator<<(std::ostream& out, const TopoVert& vertex);
     std::ostream& operator<<(std::ostream& out, const TopoEdge& edge);
