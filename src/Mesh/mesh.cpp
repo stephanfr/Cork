@@ -448,32 +448,14 @@ namespace Cork::Meshes
         {
             const TriangleByIndices& tri = tris_[tid];
 
-            ecache[VertexIndex::integer_type(tri.a())]
-                .find_or_add(VertexIndex::integer_type(tri.b()))
-                .tids()
-                .push_back(tid);
-            ecache[VertexIndex::integer_type(tri.a())]
-                .find_or_add(VertexIndex::integer_type(tri.c()))
-                .tids()
-                .push_back(tid);
+            ecache[tri.a()].find_or_add(VertexIndex::integer_type(tri.b())).tids().push_back(tid);
+            ecache[tri.a()].find_or_add(VertexIndex::integer_type(tri.c())).tids().push_back(tid);
 
-            ecache[VertexIndex::integer_type(tri.b())]
-                .find_or_add(VertexIndex::integer_type(tri.a()))
-                .tids()
-                .push_back(tid);
-            ecache[VertexIndex::integer_type(tri.b())]
-                .find_or_add(VertexIndex::integer_type(tri.c()))
-                .tids()
-                .push_back(tid);
+            ecache[tri.b()].find_or_add(VertexIndex::integer_type(tri.a())).tids().push_back(tid);
+            ecache[tri.b()].find_or_add(VertexIndex::integer_type(tri.c())).tids().push_back(tid);
 
-            ecache[VertexIndex::integer_type(tri.c())]
-                .find_or_add(VertexIndex::integer_type(tri.a()))
-                .tids()
-                .push_back(tid);
-            ecache[VertexIndex::integer_type(tri.c())]
-                .find_or_add(VertexIndex::integer_type(tri.b()))
-                .tids()
-                .push_back(tid);
+            ecache[tri.c()].find_or_add(VertexIndex::integer_type(tri.a())).tids().push_back(tid);
+            ecache[tri.c()].find_or_add(VertexIndex::integer_type(tri.b())).tids().push_back(tid);
         }
 
         //	Label some of the edges as intersection edges and others as not
@@ -531,7 +513,7 @@ namespace Cork::Meshes
         ThreadPool::getPool().parallel_for(4, (size_t)0, tris_.size(), [&](size_t blockBegin, size_t blockEnd) {
             size_t ufid;
 
-            for (size_t i = blockBegin; i < blockEnd; i++)
+            for (uint32_t i = blockBegin; i < blockEnd; i++)
             {
                 ufid = uf.find(i);
 
@@ -583,9 +565,9 @@ namespace Cork::Meshes
 
             for (auto triIndex : component)
             {
-                bodyByVerts.insert(tris_[TriangleByIndicesIndex(uint32_t(triIndex))].a());
-                bodyByVerts.insert(tris_[TriangleByIndicesIndex(uint32_t(triIndex))].b());
-                bodyByVerts.insert(tris_[TriangleByIndicesIndex(uint32_t(triIndex))].c());
+                bodyByVerts.insert(tris_[triIndex].a());
+                bodyByVerts.insert(tris_[triIndex].b());
+                bodyByVerts.insert(tris_[triIndex].c());
             }
         }
 
@@ -641,7 +623,7 @@ namespace Cork::Meshes
         std::vector<TriangleByIndicesIndex> work;
         work.reserve(trisInComponent.size());
 
-        Primitives::BooleanVector<TriangleByIndicesIndex>      visited(tris_.size());
+        Primitives::BooleanVector<TriangleByIndicesIndex> visited(tris_.size());
 
         // begin by tagging the first triangle
 
@@ -691,7 +673,7 @@ namespace Cork::Meshes
     TriangleByIndicesIndex Mesh::FindTriForInsideTest(const ComponentType& trisInComponent)
     {
         TriangleByIndicesIndex current_tid{0U};
-        TriangleByIndicesIndex best_tid = TriangleByIndicesIndex::integer_type( trisInComponent[0] );
+        TriangleByIndicesIndex best_tid = TriangleByIndicesIndex::integer_type(trisInComponent[0]);
         double best_area = 0.0;
 
         size_t searchIncrement = 1;
@@ -723,7 +705,7 @@ namespace Cork::Meshes
 
         for (size_t i = 0; i < trisInComponent.size(); i += searchIncrement)
         {
-            current_tid = TriangleByIndicesIndex( TriangleByIndicesIndex::integer_type( trisInComponent[i] ));
+            current_tid = trisInComponent[i];
 
             const Vector3D& va = verts_[tris_[current_tid].a()];
             const Vector3D& vb = verts_[tris_[current_tid].b()];
@@ -754,7 +736,7 @@ namespace Cork::Meshes
 
         for (auto& currentTriangle : topocache.triangles())
         {
-            TriCode code = classify(tris_[TriangleByIndicesIndex( currentTriangle.ref() )].bool_alg_data());
+            TriCode code = classify(tris_[currentTriangle.ref()].bool_alg_data());
 
             switch (code)
             {

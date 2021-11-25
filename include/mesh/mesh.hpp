@@ -107,7 +107,7 @@ namespace Cork::Meshes
 
         typedef SEFUtility::ResultWithReturnUniquePtr<BuildEGraphCacheResultCodes, EGraphCache> BuildEGraphCacheResult;
 
-        using ComponentType = tbb::concurrent_vector<size_t>;
+        using ComponentType = tbb::concurrent_vector<TriangleByIndicesIndex>;
         using ComponentList = tbb::concurrent_vector<ComponentType>;
 
         SetupBooleanProblemResult SetupBooleanProblem(const Mesh& rhs);

@@ -329,8 +329,8 @@ namespace Cork::Intersection
 
         void fillOutTriData(const TopoTri& piece, const TopoTri& parent)
         {
-            topo_cache_.ownerMesh().triangles()[TriangleByIndicesIndex(piece.ref())].set_bool_alg_data(
-                topo_cache_.ownerMesh().triangles()[TriangleByIndicesIndex(parent.ref())].bool_alg_data() );
+            topo_cache_.ownerMesh().triangles()[piece.ref()].set_bool_alg_data(
+                topo_cache_.ownerMesh().triangles()[parent.ref()].bool_alg_data() );
         }
 
         std::unique_ptr<std::vector<Primitives::Vector3D>> dumpIsctPoints();

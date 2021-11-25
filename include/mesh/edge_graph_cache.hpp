@@ -80,9 +80,9 @@ namespace Cork::Meshes
 
         SkeletonColumnVector& columns() { return (skeleton_); }
 
-        EGraphSkeletonColumn& operator[](IndexType index) { return (skeleton_[index]); }
+        EGraphSkeletonColumn& operator[](VertexIndex index) { return (skeleton_[VertexIndex::integer_type(index)]); }
 
-        const EGraphSkeletonColumn& operator[](IndexType index) const { return (skeleton_[index]); }
+        const EGraphSkeletonColumn& operator[](VertexIndex index) const { return (skeleton_[VertexIndex::integer_type(index)]); }
 
        private:
 

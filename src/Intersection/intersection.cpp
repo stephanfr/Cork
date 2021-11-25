@@ -142,7 +142,7 @@ namespace Cork::Intersection
 
                 genericTri->set_concrete_triangle(t);
 
-                TriangleByIndices& tri = topo_cache_.ownerMesh().triangles()[TriangleByIndicesIndex(t->ref())];     //  TODO fix
+                TriangleByIndices& tri = topo_cache_.ownerMesh().triangles()[t->ref()];
 
                 for (uint k = 0; k < 3; k++)
                 {

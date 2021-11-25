@@ -252,11 +252,11 @@ namespace Cork::Meshes
 
         ~TopoTri() {}
 
-        IndexType ref() const { return ref_; }
-
         uint32_t source_triangle_id() const { return source_triangle_id_; }
 
-        void setRef(IndexType newValue) { ref_ = newValue; }
+        TriangleByIndicesIndex ref() const { return ref_; }
+
+        void set_ref(TriangleByIndicesIndex new_value) { ref_ = new_value; }
 
         const std::optional<std::reference_wrapper<Intersection::TriangleProblem>>& get_associated_triangle_problem()
             const
@@ -466,8 +466,7 @@ namespace Cork::Meshes
         }
 
        private:
-        IndexType ref_;  // index to actual data
-                                     //        void* m_data;                 // algorithm specific handle
+        TriangleByIndicesIndex ref_;  // index to actual data
 
         std::optional<std::reference_wrapper<Intersection::TriangleProblem>> associated_triangle_problem_;
 
@@ -916,7 +915,7 @@ namespace Cork::Meshes
         void flipTri(TopoTri* t)
         {
             t->flip();
-            mesh_triangles_[TriangleByIndicesIndex(t->ref())].flip();
+            mesh_triangles_[t->ref()].flip();
         }
 
        private:

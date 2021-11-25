@@ -98,8 +98,8 @@ namespace Cork::Statistics
             {
                 std::size_t operator()(const Primitives::EdgeByIndices& k) const
                 {
-                    return (Primitives::VertexIndex::integer_type(k.first()) * 10000019 ^
-                            Primitives::VertexIndex::integer_type(k.second()));
+                    return (VertexIndex::integer_type(k.first()) * 10000019 ^
+                            VertexIndex::integer_type(k.second()));
                 }
             };
 

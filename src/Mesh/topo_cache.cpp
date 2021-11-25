@@ -54,26 +54,24 @@ namespace Cork::Meshes
     {
         // record which vertices are live
 
-        std::vector<bool> live_verts(mesh_vertices_.size(), false);  //	All initialized to zero
+        BooleanVector<VertexIndex> live_verts(mesh_vertices_.size(), false);  //	All initialized to zero
 
         for (auto& vert : m_topoVertexList)
         {
-            live_verts[VertexIndex::integer_type(vert.index())] = true;
+            live_verts[vert.index()] = true;
         }
 
         // record which triangles are live, and record connectivity
 
-//        std::vector<bool> live_tris(mesh_triangles_.size(), false);  //	All initialized to zero
-
-        Primitives::BooleanVector<TriangleByIndicesIndex>   live_tris(mesh_triangles_.size());
+        BooleanVector<TriangleByIndicesIndex>   live_tris(mesh_triangles_.size());
 
         for (auto& tri : m_topoTriList)
         {
-            live_tris[TriangleByIndicesIndex(tri.ref())] = true;        //  TODO Fix ref()
+            live_tris[tri.ref()] = true;
 
             for (size_t k = 0; k < 3; k++)
             {
-                mesh_triangles_[TriangleByIndicesIndex(tri.ref())][k] = tri.verts()[k]->index();
+                mesh_triangles_[tri.ref()][k] = tri.verts()[k]->index();
             }
         }
 
@@ -140,7 +138,7 @@ namespace Cork::Meshes
 
         for (auto& tri : triangles())
         {
-            tri.setRef(TriangleByIndicesIndex::integer_type(tmap[TriangleByIndicesIndex::integer_type(tri.ref())]));    //  TODO fix
+            tri.set_ref(tmap[TriangleByIndicesIndex::integer_type(tri.ref())]);
         }
     }
 

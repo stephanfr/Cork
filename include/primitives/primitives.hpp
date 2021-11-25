@@ -406,13 +406,14 @@ namespace Cork::Primitives
         const TriangleByIndices& operator[](size_t) const = delete;
         TriangleByIndices& operator[](size_t) = delete;
 
-        const TriangleByIndices& operator[](Primitives::TriangleByIndicesIndex idx) const
+        const TriangleByIndices& operator[](TriangleByIndicesIndex idx) const
         {
-            return data()[Primitives::TriangleByIndicesIndex::integer_type(idx)];
+            return data()[TriangleByIndicesIndex::integer_type(idx)];
         }
-        TriangleByIndices& operator[](Primitives::TriangleByIndicesIndex idx)
+
+        TriangleByIndices& operator[](TriangleByIndicesIndex idx)
         {
-            return data()[Primitives::TriangleByIndicesIndex::integer_type(idx)];
+            return data()[TriangleByIndicesIndex::integer_type(idx)];
         }
     };
 
@@ -589,4 +590,6 @@ namespace Cork
     using Vertex3DVector = Primitives::Vertex3DVector;
     using TriangleByIndicesVector = Primitives::TriangleByIndicesVector;
     using EdgeByIndicesVector = Primitives::EdgeByIndicesVector;
+
+    template <typename IndexType> using BooleanVector = Primitives::BooleanVector<IndexType>;
 }  // namespace Cork
