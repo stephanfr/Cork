@@ -41,47 +41,31 @@ namespace Cork::Meshes
     //		of vertices and triangles defined as 3-tuples of indices into the vertex set.
     //
 
-    class TriangleMeshImpl : public TriangleMeshWithTopoCache
+    class TriangleMeshImpl : public MeshBaseImpl, public TriangleMeshWithTopoCache
     {
        public:
-        TriangleMeshImpl(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>& vertices,
-                         const Primitives::BBox3D& boundingBox,
-                         const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths, double max_vertex_magnitude)
-            : m_triangles(triangles),
-              m_vertices(vertices),
-              m_boundingBox(boundingBox),
-              min_and_max_edge_lengths_(min_and_max_edge_lengths),
-              max_vertex_magnitude_(max_vertex_magnitude)
-        {
-        }
+        TriangleMeshImpl() : MeshBaseImpl(CorkService::get_default_control_block()){};
 
-        [[nodiscard]] size_t numTriangles() const final { return (m_triangles->size()); }
+        TriangleMeshImpl( MeshBaseImpl&&     mesh_base )
+            : MeshBaseImpl( std::move( mesh_base ))
+            {}
 
-        [[nodiscard]] size_t numVertices() const final { return (m_vertices->size()); }
+        //        TriangleMeshImpl(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>&
+        //        vertices,
+        //                         const Primitives::BBox3D& bounding_box,
+        //                         const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths, double
+        //                         max_vertex_magnitude)
+        //              : MeshBaseImpl( triangles, vertices, bounding_box, min_and_max_edge_lengths,
+        //              max_vertex_magnitude )
+        //        {
+        //        }
 
-        [[nodiscard]] const Vertex3DVector& vertices() const final { return (*m_vertices); }
-
-        [[nodiscard]] const TriangleByIndicesVector& triangles() const final { return (*m_triangles); }
-
-        [[nodiscard]] TriangleByVertices triangleByVertices(const TriangleByIndices& triangleByIndices) const final
-        {
-            return (TriangleByVertices((*m_vertices)[triangleByIndices.a()], (*m_vertices)[triangleByIndices.b()],
-                                       (*m_vertices)[triangleByIndices.c()]));
-        }
-
-        void AddTriangle(const TriangleByIndices& triangle_to_add) final { m_triangles->emplace_back(triangle_to_add); }
+        void add_triangle(const TriangleByIndices& triangle_to_add) { tris_->emplace_back(triangle_to_add); }
 
         void remove_triangle(TriangleByIndicesIndex triangle_index)
         {
-            m_triangles->erase(m_triangles->begin() + TriangleByIndicesIndex::integer_type(triangle_index));
+            tris_->erase(tris_->begin() + TriangleByIndicesIndex::integer_type(triangle_index));
         }
-
-        [[nodiscard]] const Primitives::BBox3D& boundingBox() const final { return m_boundingBox; }
-        [[nodiscard]] Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths() const final
-        {
-            return min_and_max_edge_lengths_;
-        }
-        [[nodiscard]] double max_vertex_magnitude() const final { return max_vertex_magnitude_; }
 
         [[nodiscard]] Meshes::TriangleByIndicesVectorTopoCache& topo_cache() const
         {
@@ -91,8 +75,8 @@ namespace Cork::Meshes
                     Math::Quantizer::get_quantizer(max_vertex_magnitude(), min_and_max_edge_lengths().min());
 
                 const_cast<std::unique_ptr<Meshes::TriangleByIndicesVectorTopoCache>&>(topo_cache_)
-                    .reset(new Meshes::TriangleByIndicesVectorTopoCache(
-                        *m_triangles, *m_vertices, m_triangles->size() * 4, get_quantizer_result.return_value()));
+                    .reset(new Meshes::TriangleByIndicesVectorTopoCache(*tris_, *verts_, tris_->size() * 4,
+                                                                        get_quantizer_result.return_value()));
             }
 
             return *topo_cache_;
@@ -148,14 +132,12 @@ namespace Cork::Meshes
 
                     auto triangles_containing_vertex = triangles_containing_vertex_1;
 
-                    for( const auto idx : triangles_containing_vertex_2 )
+                    for (const auto idx : triangles_containing_vertex_2)
                     {
-                        triangles_containing_vertex.emplace( idx );
+                        triangles_containing_vertex.emplace(idx);
                     }
-                    
 
-//                    auto triangles_containing_vertex = find_triangles_containing_vertex(vertex_1);
-
+                    //                    auto triangles_containing_vertex = find_triangles_containing_vertex(vertex_1);
 
                     std::vector<Hole> holes_for_se = get_hole_for_self_intersection(triangles_containing_vertex);
 
@@ -171,28 +153,26 @@ namespace Cork::Meshes
 
                     std::unordered_map<VertexIndex, VertexIndex> vertex_index_remapper;
 
-                    vertex_index_remapper.reserve(get_hole_closing_triangles_result.return_ptr()->size() /*+ next_ring_of_tris.size()*/ + 16);
+                    vertex_index_remapper.reserve(
+                        get_hole_closing_triangles_result.return_ptr()->size() /*+ next_ring_of_tris.size()*/ + 16);
 
                     for (const auto& tri : *(get_hole_closing_triangles_result.return_ptr()))
                     {
                         if (!vertex_index_remapper.contains(tri.a()))
                         {
-                            vertex_index_remapper.emplace(tri.a(),
-                                                          VertexIndex(uint32_t(patch_vertices.size())));
+                            vertex_index_remapper.emplace(tri.a(), VertexIndex(uint32_t(patch_vertices.size())));
                             patch_vertices.emplace_back(vertices()[tri.a()]);
                         }
 
                         if (!vertex_index_remapper.contains(tri.b()))
                         {
-                            vertex_index_remapper.emplace(tri.b(),
-                                                          VertexIndex(uint32_t(patch_vertices.size())));
+                            vertex_index_remapper.emplace(tri.b(), VertexIndex(uint32_t(patch_vertices.size())));
                             patch_vertices.emplace_back(vertices()[tri.b()]);
                         }
 
                         if (!vertex_index_remapper.contains(tri.c()))
                         {
-                            vertex_index_remapper.emplace(tri.c(),
-                                                          VertexIndex(uint32_t(patch_vertices.size())));
+                            vertex_index_remapper.emplace(tri.c(), VertexIndex(uint32_t(patch_vertices.size())));
                             patch_vertices.emplace_back(vertices()[tri.c()]);
                         }
 
@@ -232,20 +212,21 @@ namespace Cork::Meshes
                                                      vertex_index_remapper.at(triangles()[tri_index].c()));
                     }
 
-/*
-                    std::cout << "OFF" << std::endl;
-                    std::cout << patch_vertices.size() << " " << patch_triangles.size() << " 0" << std::endl;
+                    /*
+                                        std::cout << "OFF" << std::endl;
+                                        std::cout << patch_vertices.size() << " " << patch_triangles.size() << " 0" <<
+                       std::endl;
 
-                    for( const auto& vert : patch_vertices )
-                    {
-                        std:: cout << vert << std::endl;
-                    }
+                                        for( const auto& vert : patch_vertices )
+                                        {
+                                            std:: cout << vert << std::endl;
+                                        }
 
-                    for( const auto& tri : patch_triangles )
-                    {
-                        std:: cout << tri << std::endl;
-                    }
-*/
+                                        for( const auto& tri : patch_triangles )
+                                        {
+                                            std:: cout << tri << std::endl;
+                                        }
+                    */
 
                     Meshes::TriangleByIndicesVectorTopoCache minimal_cache(
                         patch_triangles, patch_vertices, patch_triangles.size() * 4, topo_cache().quantizer());
@@ -380,7 +361,7 @@ namespace Cork::Meshes
 
             for (auto& tri_to_add : all_triangles_to_add)
             {
-                AddTriangle(tri_to_add);
+                add_triangle(tri_to_add);
             }
 
             topo_cache_.release();
@@ -464,10 +445,11 @@ namespace Cork::Meshes
                 triangulator.add_segment(i, i + 1, true);
             }
 
-//            for( int i = 0; i < hole.vertices().size(); i++ )
-//            {
-//                std::cout << triangulator.points()[i].first << "  " << triangulator.points()[i].second << std::endl;
-//            }
+            //            for( int i = 0; i < hole.vertices().size(); i++ )
+            //            {
+            //                std::cout << triangulator.points()[i].first << "  " << triangulator.points()[i].second <<
+            //                std::endl;
+            //            }
 
             triangulator.add_segment(hole.vertices().size() - 1, 0, true);
 
@@ -516,7 +498,7 @@ namespace Cork::Meshes
 
                 for (auto tri_to_add : *(result.return_ptr()))
                 {
-                    AddTriangle(tri_to_add);
+                    add_triangle(tri_to_add);
                 }
             }
 
@@ -582,13 +564,6 @@ namespace Cork::Meshes
         }
 
        private:
-        std::shared_ptr<TriangleByIndicesVector> m_triangles;
-        std::shared_ptr<Vertex3DVector> m_vertices;
-
-        const Primitives::BBox3D m_boundingBox;
-        const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths_;
-        double max_vertex_magnitude_;
-
         std::unique_ptr<Meshes::TriangleByIndicesVectorTopoCache> topo_cache_;
     };
 
@@ -608,23 +583,10 @@ namespace Cork::Meshes
     class IncrementalVertexIndexTriangleMeshBuilderImpl : public IncrementalVertexIndexTriangleMeshBuilder
     {
        public:
-        IncrementalVertexIndexTriangleMeshBuilderImpl(size_t numVertices, size_t numTriangles)
-            : m_indexedVertices(new Vertex3DVector()),
-              m_triangles(new TriangleByIndicesVector()),
-              m_boundingBox(Primitives::Vector3D(NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX, NUMERIC_PRECISION_MAX),
-                            Primitives::Vector3D(NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN, NUMERIC_PRECISION_MIN)),
-              max_vertex_magnitude_(NUMERIC_PRECISION_MIN)
+        IncrementalVertexIndexTriangleMeshBuilderImpl(size_t num_vertices, size_t num_triangles)
+            : mesh_( num_vertices, num_triangles )
         {
-            if (numVertices > 0)
-            {
-                m_indexedVertices->reserve(numVertices);
-                m_vertexIndexRemapper.reserve(numVertices);
-            }
-
-            if (numTriangles > 0)
-            {
-                m_triangles->reserve(numTriangles);
-            }
+            vertex_index_remapper_.reserve(num_vertices);
         };
 
         ~IncrementalVertexIndexTriangleMeshBuilderImpl() = default;  //	NOLINT
@@ -638,114 +600,82 @@ namespace Cork::Meshes
         IncrementalVertexIndexTriangleMeshBuilderImpl& operator=(
             const IncrementalVertexIndexTriangleMeshBuilderImpl&&) = delete;
 
-        [[nodiscard]] size_t num_vertices() const final { return m_indexedVertices->size(); }
+        [[nodiscard]] size_t num_vertices() const final { return mesh_.num_vertices(); }
 
-        [[nodiscard]] const Primitives::BBox3D& boundingBox() const { return m_boundingBox; }
+        [[nodiscard]] const Primitives::BBox3D& boundingBox() const { return mesh_.bounding_box(); }
 
-        [[nodiscard]] double max_vertex_magnitude() const { return max_vertex_magnitude_; }
+        [[nodiscard]] double max_vertex_magnitude() const { return mesh_.max_vertex_magnitude(); }
         [[nodiscard]] Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths() const
         {
-            return min_and_max_edge_lengths_;
+            return mesh_.min_and_max_edge_lengths();
         }
 
-        VertexIndex AddVertex(const Primitives::Vertex3D& vertexToAdd) final
+        VertexIndex add_vertex(const Primitives::Vertex3D& vertexToAdd) final
         {
-            //	Copy on write for the vertex structure.  We need to duplicate the vector if we no longer hold the
-            // pointer uniquely.
-
-            if (!m_indexedVertices.unique())
-            {
-                m_indexedVertices = std::make_shared<Vertex3DVector>(*m_indexedVertices);
-            }
-
             //	Add the vertex, de-duplicate on the fly.
 
-            VertexIndexLookupMap::const_iterator vertexLoc = m_vertexIndices.find(vertexToAdd);  //	NOLINT
+            VertexIndexLookupMap::const_iterator vertexLoc = vertex_indices_.find(vertexToAdd);  //	NOLINT
 
-            if (vertexLoc == m_vertexIndices.end())
+            if (vertexLoc == vertex_indices_.end())
             {
                 //	Vertex is new, update all data structures
 
-                m_vertexIndices[vertexToAdd] = m_indexedVertices->size();
-                m_vertexIndexRemapper.push_back(VertexIndex::integer_type(m_indexedVertices->size()));
-                m_indexedVertices->push_back(vertexToAdd);
+                vertex_indices_[vertexToAdd] = mesh_.vertices().size();
+                vertex_index_remapper_.push_back(VertexIndex::integer_type(mesh_.vertices().size()));
+                mesh_.vertices().push_back(vertexToAdd);
             }
             else
             {
                 //	Vertex is a duplicate, so remap to it
 
-                m_vertexIndexRemapper.push_back(vertexLoc->second);
+                vertex_index_remapper_.push_back(vertexLoc->second);
             }
 
             //	The index we return should always be the remapper size minus 1
 
-            return (VertexIndex::integer_type(m_vertexIndexRemapper.size()) - 1u);
+            return (VertexIndex::integer_type(vertex_index_remapper_.size()) - 1u);
         }
 
-        TriangleMeshBuilderResultCodes AddTriangle(VertexIndex a, VertexIndex b, VertexIndex c) final
+        TriangleMeshBuilderResultCodes add_triangle(VertexIndex a, VertexIndex b, VertexIndex c) final
         {
             //	Insure the indices are in bounds
 
-            if ((a >= m_vertexIndexRemapper.size()) || (b >= m_vertexIndexRemapper.size()) ||
-                (c >= m_vertexIndexRemapper.size()))
+            if ((a >= vertex_index_remapper_.size()) || (b >= vertex_index_remapper_.size()) ||
+                (c >= vertex_index_remapper_.size()))
             {
                 return (TriangleMeshBuilderResultCodes::VERTEX_INDEX_OUT_OF_BOUNDS);
             }
 
-            //	Copy on write for the triangle and edge incidence structures.
-            //      We need to duplicate them if we no longer hold the pointers uniquely.
-
-            if (!m_triangles.unique())
-            {
-                m_triangles = std::make_shared<TriangleByIndicesVector>(*m_triangles);
-            }
-
             //	Remap the triangle indices
 
-            TriangleByIndices remappedTriangle(m_triangles->size(), m_vertexIndexRemapper[a], m_vertexIndexRemapper[b],
-                                               m_vertexIndexRemapper[c]);
+            TriangleByIndices remappedTriangle(mesh_.triangles().size(), vertex_index_remapper_[a], vertex_index_remapper_[b],
+                                               vertex_index_remapper_[c]);
 
             //	Add the triangle to the vector
 
-            m_triangles->push_back(remappedTriangle);
-
-            //  Compute a few metrics
-
-            TriangleByVertices tri_by_verts((*m_indexedVertices)[remappedTriangle[0]],
-                                            (*m_indexedVertices)[remappedTriangle[1]],
-                                            (*m_indexedVertices)[remappedTriangle[2]]);
-
-            m_boundingBox.convex(tri_by_verts.bounding_box());
-
-            max_vertex_magnitude_ = std::max(max_vertex_magnitude_, tri_by_verts.max_magnitude_vertex());
-
-            min_and_max_edge_lengths_.update(tri_by_verts.min_and_max_edge_lengths());
+            mesh_.add_triangle_and_update_metrics(remappedTriangle);
 
             //	All is well if we made it here
 
             return (TriangleMeshBuilderResultCodes::SUCCESS);
         }
 
-        std::unique_ptr<TriangleMesh> Mesh() final
+        std::unique_ptr<TriangleMesh> mesh() final
         {
-            std::shared_ptr<TriangleByIndicesVector> triangles = m_triangles;
+            auto return_value = std::unique_ptr<TriangleMesh>(new TriangleMeshImpl( std::move( mesh_ )));
 
-            return (std::unique_ptr<TriangleMesh>(new TriangleMeshImpl(
-                triangles, m_indexedVertices, boundingBox(), min_and_max_edge_lengths(), max_vertex_magnitude())));
+            mesh_.clear();
+
+            return return_value;
         }
 
        private:
-        typedef std::map<Primitives::Vertex3D, IndexType, Primitives::Vertex3DMapCompare> VertexIndexLookupMap;
+        using VertexIndexLookupMap = std::map<Primitives::Vertex3D, IndexType, Primitives::Vertex3DMapCompare>;
 
-        VertexIndexLookupMap m_vertexIndices;
-        std::shared_ptr<Vertex3DVector> m_indexedVertices;
-        Primitives::IndexRemapper<VertexIndex> m_vertexIndexRemapper;
+        MeshBaseImpl mesh_;
 
-        std::shared_ptr<TriangleByIndicesVector> m_triangles;
-
-        Primitives::BBox3D m_boundingBox;
-        Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths_;
-        double max_vertex_magnitude_;
+        VertexIndexLookupMap vertex_indices_;
+        Primitives::IndexRemapper<VertexIndex> vertex_index_remapper_;
     };
 
     //

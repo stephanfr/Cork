@@ -872,7 +872,7 @@ namespace Cork::Meshes
     class MeshTopoCache : public TriangleByIndicesVectorTopoCache
     {
        public:
-        MeshTopoCache(MeshBase& owner, const Math::Quantizer& quantizer);
+        MeshTopoCache(MeshBaseImpl& owner, const Math::Quantizer& quantizer);
 
         virtual ~MeshTopoCache();
 
@@ -881,9 +881,9 @@ namespace Cork::Meshes
 
         void commit();
 
-        MeshBase& ownerMesh() { return (mesh_); }
+        MeshBaseImpl& ownerMesh() { return (mesh_); }
 
-        const MeshBase& ownerMesh() const { return (mesh_); }
+        const MeshBaseImpl& ownerMesh() const { return (mesh_); }
 
         // helpers to create bits and pieces
 
@@ -929,7 +929,7 @@ namespace Cork::Meshes
 
         //	Data Members
 
-        MeshBase& mesh_;
+        MeshBaseImpl& mesh_;
     };
 
 

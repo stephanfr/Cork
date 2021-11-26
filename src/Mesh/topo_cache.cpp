@@ -43,7 +43,7 @@ namespace Cork::Meshes
 
 
 
-    MeshTopoCache::MeshTopoCache(MeshBase& owner, const Math::Quantizer& quantizer)
+    MeshTopoCache::MeshTopoCache(MeshBaseImpl& owner, const Math::Quantizer& quantizer)
         : TriangleByIndicesVectorTopoCache( owner.triangles(), owner.vertices(), owner.triangles().size() * 3, quantizer ),
           mesh_(owner)
     {}

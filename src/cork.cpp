@@ -7,9 +7,9 @@ namespace Cork
 {
     CorkService::~CorkService() { ThreadPool::getPool().Shutdown(); }
 
-    std::unique_ptr<CorkMesh> CorkService::from_triangle_mesh(const TriangleMesh& triangleMesh)
+    std::unique_ptr<SolidObjectMesh> CorkService::from_triangle_mesh(const TriangleMesh& triangleMesh)
     {
-        return (std::unique_ptr<CorkMesh>(new Meshes::Mesh(triangleMesh,CorkService::get_default_control_block())));
+        return (std::unique_ptr<SolidObjectMesh>(new Meshes::Mesh(triangleMesh,CorkService::get_default_control_block())));
     }
 
     const SolverControlBlock& CorkService::get_default_control_block()

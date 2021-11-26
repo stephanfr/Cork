@@ -59,10 +59,10 @@ namespace Cork::Meshes
 
         virtual size_t num_vertices() const = 0;
 
-        virtual VertexIndex AddVertex(const Vertex3D& vertexToAdd) = 0;
-        virtual TriangleMeshBuilderResultCodes AddTriangle(VertexIndex a, VertexIndex b, VertexIndex c) = 0;
+        virtual VertexIndex add_vertex(const Vertex3D& vertexToAdd) = 0;
+        virtual TriangleMeshBuilderResultCodes add_triangle(VertexIndex a, VertexIndex b, VertexIndex c) = 0;
 
-        virtual std::unique_ptr<TriangleMesh> Mesh() = 0;
+        virtual std::unique_ptr<TriangleMesh> mesh() = 0;
     };
 
 }  // namespace Cork::Meshes

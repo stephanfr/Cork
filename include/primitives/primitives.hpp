@@ -371,8 +371,7 @@ namespace Cork::Primitives
 
         const TriangleBooleanAlgData bool_alg_data() const { return bool_alg_data_.value(); }
 
-//        std::optional<TriangleBooleanAlgData>& boolAlgData() { return bool_alg_data_; }
-        void    set_bool_alg_data( uint32_t     new_value ) { bool_alg_data_ = new_value; }
+        void set_bool_alg_data(uint32_t new_value) { bool_alg_data_ = new_value; }
 
         void flip() { std::swap(a_, b_); }
 
@@ -520,6 +519,10 @@ namespace Cork::Primitives
 
         Vector3D normal() const { return (b_ - a_).cross(c_ - a_); }
 
+        double tri_area() const { return ((b_ - a_).cross(c_ - a_).len()); }
+
+        double tri_area_squared() const { return ((b_ - a_).cross(c_ - a_).len_squared()); }
+
        private:
         Vertex3D a_;
         Vertex3D b_;
@@ -533,34 +536,25 @@ namespace Cork::Primitives
         return out;
     }
 
-
-
     template <typename IndexType>
     class BooleanVector
     {
-        public:
+       public:
         BooleanVector(std::size_t size) : vector_(size, false) {}
         BooleanVector(std::size_t size, bool initial_value) : vector_(size, initial_value) {}
 
-        void resize( IndexType  new_size )
-        {
-            vector_.resize( size_t( new_size ) );
-        }
+        void resize(IndexType new_size) { vector_.resize(size_t(new_size)); }
 
         unsigned char& operator[](IndexType index)
         {
-            unsigned char&  return_value = vector_[TriangleByIndicesIndex::integer_type(index)];
+            unsigned char& return_value = vector_[TriangleByIndicesIndex::integer_type(index)];
             return return_value;
-        }        
-
-        bool operator[] (IndexType index) const
-        {
-            return vector_[TriangleByIndicesIndex::integer_type(index)];
         }
 
-        private :
+        bool operator[](IndexType index) const { return vector_[TriangleByIndicesIndex::integer_type(index)]; }
 
-        std::vector<unsigned char>          vector_;
+       private:
+        std::vector<unsigned char> vector_;
     };
 
 }  // namespace Cork::Primitives
@@ -591,5 +585,6 @@ namespace Cork
     using TriangleByIndicesVector = Primitives::TriangleByIndicesVector;
     using EdgeByIndicesVector = Primitives::EdgeByIndicesVector;
 
-    template <typename IndexType> using BooleanVector = Primitives::BooleanVector<IndexType>;
+    template <typename IndexType>
+    using BooleanVector = Primitives::BooleanVector<IndexType>;
 }  // namespace Cork

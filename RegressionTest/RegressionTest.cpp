@@ -264,12 +264,12 @@ int main(int argc, char* argv[])
 
             std::cout << first_model.first.filename() << "    " << second_model.first.filename() << std::endl;
 
-            std::unique_ptr<Cork::CorkMesh> first_mesh = Cork::CorkService::from_triangle_mesh(*first_model.second);
-            std::unique_ptr<Cork::CorkMesh> second_mesh = Cork::CorkService::from_triangle_mesh(*second_model.second);
+            std::unique_ptr<Cork::SolidObjectMesh> first_mesh = Cork::CorkService::from_triangle_mesh(*first_model.second);
+            std::unique_ptr<Cork::SolidObjectMesh> second_mesh = Cork::CorkService::from_triangle_mesh(*second_model.second);
 
             if (compute_union)
             {
-                Cork::CorkMesh::BooleanOperationResult boolean_op_result = first_mesh->Union(*second_mesh, control_block);
+                Cork::SolidObjectMesh::BooleanOperationResult boolean_op_result = first_mesh->Union(*second_mesh, control_block);
 
                 std::string filename = first_model.first.filename().stem().string() + "_" +
                                        second_model.first.filename().stem().string() + "_union";
@@ -284,7 +284,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    std::unique_ptr<Cork::CorkMesh> unioned_mesh(boolean_op_result.return_ptr().release());
+                    std::unique_ptr<Cork::SolidObjectMesh> unioned_mesh(boolean_op_result.return_ptr().release());
 
                     //					std::cout << "Components in finished Mesh: " << unionedMesh->CountComponents()
                     //<< std::endl;
@@ -324,7 +324,7 @@ int main(int argc, char* argv[])
 
             if (compute_difference)
             {
-                Cork::CorkMesh::BooleanOperationResult boolean_op_result =
+                Cork::SolidObjectMesh::BooleanOperationResult boolean_op_result =
                     first_mesh->Difference(*second_mesh, control_block);
 
                 std::string filename = first_model.first.filename().stem().string() + "_" +
@@ -340,7 +340,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    std::unique_ptr<Cork::CorkMesh> difference_mesh(boolean_op_result.return_ptr().release());
+                    std::unique_ptr<Cork::SolidObjectMesh> difference_mesh(boolean_op_result.return_ptr().release());
 
                     cumulative_CPU_time += difference_mesh->GetPerformanceStats().elapsed_cpu_time_in_nanoseconds();
                     cumulative_wall_time += difference_mesh->GetPerformanceStats().elapsed_wall_time_in_nanoseconds();
@@ -378,7 +378,7 @@ int main(int argc, char* argv[])
 
             if (compute_intersection)
             {
-                Cork::CorkMesh::BooleanOperationResult boolean_op_result =
+                Cork::SolidObjectMesh::BooleanOperationResult boolean_op_result =
                     first_mesh->Intersection(*second_mesh, control_block);
 
                 std::string filename = first_model.first.filename().stem().string() + "_" +
@@ -394,7 +394,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    std::unique_ptr<Cork::CorkMesh> intersection_mesh(boolean_op_result.return_ptr().release());
+                    std::unique_ptr<Cork::SolidObjectMesh> intersection_mesh(boolean_op_result.return_ptr().release());
 
                     //					std::cout << "Components in finished Mesh: " <<
                     //intersectionMesh->CountComponents()
@@ -436,7 +436,7 @@ int main(int argc, char* argv[])
 
             if (compute_XOR)
             {
-                Cork::CorkMesh::BooleanOperationResult boolean_op_result =
+                Cork::SolidObjectMesh::BooleanOperationResult boolean_op_result =
                     first_mesh->SymmetricDifference(*second_mesh, control_block);
 
                 std::string filename = first_model.first.filename().stem().string() + "_" +
@@ -452,7 +452,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    std::unique_ptr<Cork::CorkMesh> XOR_mesh(boolean_op_result.return_ptr().release());
+                    std::unique_ptr<Cork::SolidObjectMesh> XOR_mesh(boolean_op_result.return_ptr().release());
 
                     cumulative_CPU_time += XOR_mesh->GetPerformanceStats().elapsed_cpu_time_in_nanoseconds();
                     cumulative_wall_time += XOR_mesh->GetPerformanceStats().elapsed_wall_time_in_nanoseconds();

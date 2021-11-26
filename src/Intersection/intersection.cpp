@@ -39,7 +39,7 @@ namespace Cork::Intersection
     using TopoTri = Meshes::TopoTri;
     using TopoEdgePointerVector = Meshes::TopoEdgePointerVector;
 
-    using MeshBase = Meshes::MeshBase;
+    using MeshBase = Meshes::MeshBaseImpl;
 
     //  The following template classes are needed to insure the correct delete function is associated
     //      with the allocation function used for elements passed to the Triangle library.

@@ -35,12 +35,15 @@ namespace Cork::Meshes
     //	The Mesh class brings together the functionality needed for the boolean operations
     //
 
-    class Mesh : public MeshBase, public CorkMesh
+    class Mesh : public MeshBaseImpl, public SolidObjectMesh
     {
        public:
         Mesh() = delete;
 
-        Mesh(const Mesh& src, const SolverControlBlock& controlBlock) : MeshBase(src, controlBlock){};
+        Mesh( Mesh&& src)
+            : MeshBaseImpl( std::move(src)){};
+
+        Mesh( MeshBaseImpl&& src, const SolverControlBlock& controlBlock) : MeshBaseImpl( std::move( src ), controlBlock){};
 
         explicit Mesh(const TriangleMesh& inputMesh, const SolverControlBlock& controlBlock);
 
@@ -62,12 +65,13 @@ namespace Cork::Meshes
 
         // NOLINTBEGIN(google-default-arguments)
 
-        BooleanOperationResult Union(const CorkMesh& rhs, const SolverControlBlock& solverControlBlock) const final;
-        BooleanOperationResult Difference(const CorkMesh& rhs,
+        BooleanOperationResult Union(const SolidObjectMesh& rhs,
+                                     const SolverControlBlock& solverControlBlock) const final;
+        BooleanOperationResult Difference(const SolidObjectMesh& rhs,
                                           const SolverControlBlock& solverControlBlock) const final;
-        BooleanOperationResult Intersection(const CorkMesh& rhs,
+        BooleanOperationResult Intersection(const SolidObjectMesh& rhs,
                                             const SolverControlBlock& solverControlBlock) const final;
-        BooleanOperationResult SymmetricDifference(const CorkMesh& rhs,
+        BooleanOperationResult SymmetricDifference(const SolidObjectMesh& rhs,
                                                    const SolverControlBlock& solverControlBlock) const final;
 
         // NOLINTEND(google-default-arguments)

@@ -45,7 +45,7 @@ namespace Cork::Intersection
     class IntersectionSolver
     {
        public:
-        static std::unique_ptr<IntersectionSolver> GetSolver(Meshes::MeshBase& owner, const Math::Quantizer& quantizer);
+        static std::unique_ptr<IntersectionSolver> GetSolver(Meshes::MeshBaseImpl& owner, const Math::Quantizer& quantizer);
 
         virtual ~IntersectionSolver() {}
 

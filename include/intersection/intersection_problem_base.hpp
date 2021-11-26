@@ -82,7 +82,7 @@ namespace Cork::Intersection
         using TopoEdge = Meshes::TopoEdge;
         using TopoTri = Meshes::TopoTri;
         using TopoEdgeReferenceVector = Meshes::TopoEdgeReferenceVector;
-        using MeshBase = Meshes::MeshBase;
+        using MeshBase = Meshes::MeshBaseImpl;
         using MeshTopoCache = Meshes::MeshTopoCache;
 
        public:

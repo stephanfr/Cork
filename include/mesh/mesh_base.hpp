@@ -100,42 +100,82 @@ namespace Cork::Meshes
         uint64_t ending_virtual_memory_size_in_MB_;
     };
 
-//    using CorkTriangle = Primitives::TriangleByIndices;
-
-    class MeshBase
+    class MeshBaseImpl : public virtual TriangleMeshBase  //  NOTE Virtual Inheritance !
     {
        public:
-
-//        using CorkTriangleVector = std::vector<CorkTriangle>;
         using CorkVertex = Primitives::Vector3D;
 
-        MeshBase() = delete;
+        MeshBaseImpl() = delete;
 
-        MeshBase(const SolverControlBlock& control_block) : control_block_(control_block) {}
+        MeshBaseImpl(MeshBaseImpl&& mesh_base_to_move)
+            : MeshBaseImpl(std::move( mesh_base_to_move ),
+                           mesh_base_to_move.control_block_.value_or(CorkService::get_default_control_block()))
+        {}
 
-        MeshBase(const MeshBase& mesh_base_to_copy, const SolverControlBlock& control_block)
-            : bounding_box_(mesh_base_to_copy.bounding_box_),
-              min_and_max_edge_lengths_(mesh_base_to_copy.min_and_max_edge_lengths_),
-              max_vertex_magnitude_(mesh_base_to_copy.max_vertex_magnitude_),
-              tris_(mesh_base_to_copy.tris_),
-              verts_(mesh_base_to_copy.verts_),
+        MeshBaseImpl(const SolverControlBlock& control_block)
+            : tris_(new TriangleByIndicesVector()),
+              verts_(new Vertex3DVector()),
+              max_vertex_magnitude_(NUMERIC_PRECISION_MIN),
               control_block_(control_block)
         {
         }
 
-        virtual ~MeshBase() {}
+        MeshBaseImpl(MeshBaseImpl&& mesh_base_to_move, const SolverControlBlock& control_block)
+            : bounding_box_(mesh_base_to_move.bounding_box_),
+              min_and_max_edge_lengths_(mesh_base_to_move.min_and_max_edge_lengths_),
+              max_vertex_magnitude_(mesh_base_to_move.max_vertex_magnitude_),
+              tris_(std::move(mesh_base_to_move.tris_)),
+              verts_(std::move(mesh_base_to_move.verts_)),
+              control_block_(control_block)
+        {
+            mesh_base_to_move.clear();
+        }
 
-        MeshBase& operator=(const MeshBase&) = delete;
+        MeshBaseImpl(size_t num_vertices, size_t num_triangles,
+                     const SolverControlBlock& control_block = CorkService::get_default_control_block())
+            : MeshBaseImpl(control_block)
+        {
+            verts_->reserve(num_vertices);
+            tris_->reserve(num_triangles);
+        }
+
+        virtual ~MeshBaseImpl() {}
+
+        void clear()
+        {
+            tris_.reset();
+            verts_.reset();
+
+            bounding_box_ = BBox3D();
+            max_vertex_magnitude_ = NUMERIC_PRECISION_MIN;
+            min_and_max_edge_lengths_ = MinAndMaxEdgeLengths();
+
+            control_block_ = CorkService::get_default_control_block();
+        }
+
+        MeshBaseImpl clone() const
+        {
+            auto copy_of_tris{std::make_shared<TriangleByIndicesVector>(*tris_)};
+            auto copy_of_verts{std::make_shared<Vertex3DVector>(*verts_)};
+
+            return MeshBaseImpl(copy_of_tris, copy_of_verts, bounding_box_, min_and_max_edge_lengths_,
+                                max_vertex_magnitude_);
+        }
+
+        MeshBaseImpl& operator=(const MeshBaseImpl&) = delete;
 
         const SolverControlBlock& solver_control_block() const { return (*control_block_); }
 
-        TriangleByIndicesVector& triangles() { return (tris_); }
+        size_t num_triangles() const { return tris_->size(); }
+        size_t num_vertices() const { return verts_->size(); }
 
-        const TriangleByIndicesVector& triangles() const { return (tris_); }
+        TriangleByIndicesVector& triangles() { return (*tris_); }
 
-        Vertex3DVector& vertices() { return (verts_); }
+        const TriangleByIndicesVector& triangles() const { return (*tris_); }
 
-        const Vertex3DVector& vertices() const { return (verts_); }
+        Vertex3DVector& vertices() { return (*verts_); }
+
+        const Vertex3DVector& vertices() const { return (*verts_); }
 
         const BBox3D& bounding_box() const { return bounding_box_; }
 
@@ -143,32 +183,51 @@ namespace Cork::Meshes
 
         double max_vertex_magnitude() const { return max_vertex_magnitude_; }
 
+        [[nodiscard]] TriangleByVertices triangle_by_vertices(const TriangleByIndices& triangle_by_indices) const final
+        {
+            return (TriangleByVertices((*verts_)[triangle_by_indices.a()], (*verts_)[triangle_by_indices.b()],
+                                       (*verts_)[triangle_by_indices.c()]));
+        }
+
+        void add_triangle_and_update_metrics(const TriangleByIndices& new_triangle)
+        {
+            tris_->push_back(new_triangle);
+
+            //  Compute a few metrics
+
+            TriangleByVertices tri_by_verts{triangle_by_vertices(new_triangle)};
+
+            bounding_box_.convex(tri_by_verts.bounding_box());
+
+            max_vertex_magnitude_ = std::max(max_vertex_magnitude_, tri_by_verts.max_magnitude_vertex());
+
+            min_and_max_edge_lengths_.update(tri_by_verts.min_and_max_edge_lengths());
+        }
+
         const Math::Quantizer::GetQuantizerResult quantizer() const
         {
             return Math::Quantizer::get_quantizer(max_vertex_magnitude_, min_and_max_edge_lengths_.min());
         }
 
-        void for_raw_tris(
-            std::function<void(VertexIndex, VertexIndex, VertexIndex)> func)
+        void for_raw_tris(std::function<void(VertexIndex, VertexIndex, VertexIndex)> func)
         {
-            for (auto& tri : tris_)
+            for (auto& tri : *tris_)
             {
                 func(tri.a(), tri.b(), tri.c());
             }
         }
 
-        void for_raw_tris(
-            std::function<void(VertexIndex, VertexIndex, VertexIndex)> func) const
+        void for_raw_tris(std::function<void(VertexIndex, VertexIndex, VertexIndex)> func) const
         {
-            for (auto& tri : tris_)
+            for (auto& tri : *tris_)
             {
                 func(tri.a(), tri.b(), tri.c());
             }
         }
 
        protected:
-        TriangleByIndicesVector tris_;
-        Vertex3DVector verts_;
+        std::shared_ptr<TriangleByIndicesVector> tris_;
+        std::shared_ptr<Vertex3DVector> verts_;
 
         BBox3D bounding_box_;
 
@@ -178,6 +237,18 @@ namespace Cork::Meshes
         std::optional<SolverControlBlock> control_block_;
 
         SolverPerfStats performance_stats_;
+
+       private:
+        MeshBaseImpl(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>& vertices,
+                     const Primitives::BBox3D& boundingBox,
+                     const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths, double max_vertex_magnitude)
+            : tris_(triangles),
+              verts_(vertices),
+              bounding_box_(boundingBox),
+              min_and_max_edge_lengths_(min_and_max_edge_lengths),
+              max_vertex_magnitude_(max_vertex_magnitude)
+        {
+        }
     };
 
 }  // namespace Cork::Meshes

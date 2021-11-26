@@ -38,17 +38,17 @@ namespace Cork::Statistics
 
     GeometricStatisticsEngine::GeometricStatisticsEngine(const TriangleMesh& triangle_mesh,
                                                          GeometricProperties properties_to_compute)
-        : num_triangles_(triangle_mesh.numTriangles()),
-          num_vertices_(triangle_mesh.numVertices()),
+        : num_triangles_(triangle_mesh.num_triangles()),
+          num_vertices_(triangle_mesh.num_vertices()),
           area_(0.0),
           volume_(0.0),
           min_edge_length_(DBL_MAX),
           max_edge_length_(DBL_MIN),
-          bounding_box_(triangle_mesh.boundingBox())
+          bounding_box_(triangle_mesh.bounding_box())
     {
         for (const auto& currentTriangle : triangle_mesh.triangles())
         {
-            auto tri_by_verts = triangle_mesh.triangleByVertices(currentTriangle);
+            auto tri_by_verts = triangle_mesh.triangle_by_vertices(currentTriangle);
 
             //	Get the edges
 
@@ -90,7 +90,7 @@ namespace Cork::Statistics
     TopologicalStatisticsEngine::TopologicalStatisticsEngine(const TriangleMeshWithTopoCache& triangle_mesh)
         : triangle_mesh_(triangle_mesh)
     {
-        edges_.reserve((triangle_mesh.numTriangles() * 6) + 10);  //  Pad just a little bit
+        edges_.reserve((triangle_mesh.num_triangles() * 6) + 10);  //  Pad just a little bit
 
         for (const auto& current_triangle : triangle_mesh_.triangles())
         {

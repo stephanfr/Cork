@@ -54,15 +54,15 @@ namespace Cork
 
         virtual ~TriangleMeshBase(){};
 
-        virtual size_t numTriangles() const = 0;
-        virtual size_t numVertices() const = 0;
+        virtual size_t num_triangles() const = 0;
+        virtual size_t num_vertices() const = 0;
 
         virtual const Vertex3DVector& vertices() const = 0;
         virtual const TriangleByIndicesVector& triangles() const = 0;
 
-        virtual TriangleByVertices triangleByVertices(const TriangleByIndices& triangleByIndices) const = 0;
+        virtual TriangleByVertices triangle_by_vertices(const TriangleByIndices& triangle_by_indices) const = 0;
 
-        virtual const BBox3D& boundingBox() const = 0;
+        virtual const BBox3D& bounding_box() const = 0;
         virtual MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
         virtual double max_vertex_magnitude() const = 0;
     };
@@ -86,7 +86,7 @@ namespace Cork
 
     using HoleClosingResult = SEFUtility::Result<HoleClosingResultCodes>;
 
-    class TriangleMesh : public TriangleMeshBase
+    class TriangleMesh : public virtual TriangleMeshBase                //  NOTE Virtual Inheritance !
     {
        public:
         using GeometricStatistics = Statistics::GeometricStatistics;
@@ -97,22 +97,6 @@ namespace Cork
         //	Methods follow
 
         virtual ~TriangleMesh(){};
-
-        //        virtual size_t numTriangles() const = 0;
-        //        virtual size_t numVertices() const = 0;
-
-        //        virtual const Vertex3DVector& vertices() const = 0;
-        //        virtual const TriangleByIndicesVector& triangles() const = 0;
-
-        //        virtual TriangleByVertices triangleByVertices(
-        //            const TriangleByIndices& triangleByIndices) const = 0;
-
-        virtual void AddTriangle(const TriangleByIndices& triangle_to_add) = 0;
-        virtual void remove_triangle(TriangleByIndicesIndex triangle_index) = 0;
-
-        //        virtual const BBox3D& boundingBox() const = 0;
-        //        virtual MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
-        //        virtual double max_vertex_magnitude() const = 0;
 
         virtual GeometricStatistics ComputeGeometricStatistics(GeometricProperties props_to_compute) const = 0;
         virtual TopologicalStatisticsResult ComputeTopologicalStatistics(
@@ -185,7 +169,7 @@ namespace Cork
         [[nodiscard]] virtual uint64_t ending_virtual_memory_size_in_MB() const = 0;
     };
 
-    class CorkMesh;
+    class SolidObjectMesh;
 
     class CorkService
     {
@@ -198,7 +182,7 @@ namespace Cork
 
         CorkService& operator=(const CorkService&) = delete;
 
-        static std::unique_ptr<CorkMesh> from_triangle_mesh(const TriangleMesh& triangleMesh);
+        static std::unique_ptr<SolidObjectMesh> from_triangle_mesh(const TriangleMesh& triangleMesh);
 
         static const SolverControlBlock& get_default_control_block();
     };
@@ -210,37 +194,37 @@ namespace Cork
         ERROR_DURING_BOOLEAN_PROBLEM_SETUP
     };
 
-    class CorkMesh
+    class SolidObjectMesh
     {
        public:
-        typedef SEFUtility::ResultWithReturnUniquePtr<BooleanOperationResultCodes, CorkMesh> BooleanOperationResult;
+        typedef SEFUtility::ResultWithReturnUniquePtr<BooleanOperationResultCodes, SolidObjectMesh> BooleanOperationResult;
 
-        CorkMesh() = default;
+        SolidObjectMesh() = default;
 
-        CorkMesh(const CorkMesh&) = delete;
-        CorkMesh(const CorkMesh&&) = delete;
+        SolidObjectMesh(const SolidObjectMesh&) = delete;
+        SolidObjectMesh(const SolidObjectMesh&&) = delete;
 
-        virtual ~CorkMesh() = default;
+        virtual ~SolidObjectMesh() = default;
 
-        CorkMesh& operator=(const CorkMesh&) = delete;
-        CorkMesh& operator=(const CorkMesh&&) = delete;
+        SolidObjectMesh& operator=(const SolidObjectMesh&) = delete;
+        SolidObjectMesh& operator=(const SolidObjectMesh&&) = delete;
 
         // NOLINTBEGIN(google-default-arguments)
 
         [[nodiscard]] virtual BooleanOperationResult Union(
-            const CorkMesh& rhs,
+            const SolidObjectMesh& rhs,
             const SolverControlBlock& solverControlBlock = CorkService::get_default_control_block()) const = 0;
 
         [[nodiscard]] virtual BooleanOperationResult Difference(
-            const CorkMesh& rhs,
+            const SolidObjectMesh& rhs,
             const SolverControlBlock& solverControlBlock = CorkService::get_default_control_block()) const = 0;
 
         [[nodiscard]] virtual BooleanOperationResult Intersection(
-            const CorkMesh& rhs,
+            const SolidObjectMesh& rhs,
             const SolverControlBlock& solverControlBlock = CorkService::get_default_control_block()) const = 0;
 
         [[nodiscard]] virtual BooleanOperationResult SymmetricDifference(
-            const CorkMesh& rhs,
+            const SolidObjectMesh& rhs,
             const SolverControlBlock& solverControlBlock = CorkService::get_default_control_block()) const = 0;
 
         // NOLINTEND(google-default-arguments)
