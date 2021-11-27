@@ -41,8 +41,8 @@ TEST_CASE("OFF File Tests", "[file io]")
 
         auto* mesh( read_result.return_ptr().release() );
 
-        REQUIRE( mesh->numVertices() == 26 );
-        REQUIRE( mesh->numTriangles() == 48 );
+        REQUIRE( mesh->num_vertices() == 26 );
+        REQUIRE( mesh->num_triangles() == 48 );
         
         auto write_result = Cork::Files::writeOFF("../../UnitTest/Test Results/Quadrilateral1.off", *mesh );
 

@@ -26,7 +26,7 @@
 
 #include <unordered_set>
 
-#include "mesh/triangle_mesh_with_topo_cache.hpp"
+#include "mesh/mesh_base.hpp"
 #include "statistics.hpp"
 
 namespace Cork::Statistics
@@ -34,7 +34,7 @@ namespace Cork::Statistics
     class GeometricStatisticsEngine
     {
        public:
-        explicit GeometricStatisticsEngine(const Cork::TriangleMesh& triangle_mesh,
+        explicit GeometricStatisticsEngine(const Meshes::MeshBase& triangle_mesh,
                                            GeometricProperties propertiesToCompute = GeometricProperties::GEOM_ALL);
 
         GeometricStatistics statistics() const
@@ -71,14 +71,14 @@ namespace Cork::Statistics
     class TopologicalStatisticsEngine
     {
        public:
-        TopologicalStatisticsEngine(const Cork::Meshes::TriangleMeshWithTopoCache& triangle_mesh);
+        TopologicalStatisticsEngine(const Cork::Meshes::MeshBase& triangle_mesh);
 
         ~TopologicalStatisticsEngine() = default;
 
         TopologicalStatisticsEngineAnalyzeResult Analyze(TopologicalProperties props_to_compute);
 
        private:
-        const Cork::Meshes::TriangleMeshWithTopoCache& triangle_mesh_;
+        const Cork::Meshes::MeshBase& triangle_mesh_;
 
         class EdgeAndIncidence : public Primitives::EdgeByIndices
         {

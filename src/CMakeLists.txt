@@ -37,6 +37,7 @@ add_library(Corklib SHARED
     Mesh/mesh.cpp
     Mesh/topo_cache.cpp
     Mesh/triangle_mesh.cpp
+    Mesh/mesh_base.cpp
     statistics/statistics_engines.cpp
     util/thread_pool.cpp
     cork.cpp

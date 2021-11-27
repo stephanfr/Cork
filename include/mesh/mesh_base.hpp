@@ -29,142 +29,25 @@
 #include <optional>
 #include <vector>
 
-#include "cork.hpp"
 #include "math/quantization.hpp"
+#include "mesh/topo_cache.hpp"
 
 namespace Cork::Meshes
 {
-    class SolverPerfStats : public SolverPerformanceStatisticsIfx
+    class MeshBase
     {
        public:
-        SolverPerfStats()
-            : number_of_triangles_in_disjoint_union_(0),
-              number_of_triangles_in_final_mesh_(0),
-              elapsed_cpu_time_in_nanoseconds_(0),
-              elapsed_wall_time_in_nanoseconds_(0),
-              starting_virtual_memory_size_in_MB_(0),
-              ending_virtual_memory_size_in_MB_(0)
-        {
-        }
+        MeshBase(MeshBase&& mesh_base_to_move);
 
-        uint64_t number_of_triangles_in_disjoint_union() const { return (number_of_triangles_in_disjoint_union_); }
+        MeshBase(size_t num_vertices, size_t num_triangles );
 
-        uint64_t number_of_triangles_in_final_mesh() const { return (number_of_triangles_in_final_mesh_); }
+        virtual ~MeshBase() {}
 
-        uint64_t elapsed_cpu_time_in_nanoseconds() const { return (elapsed_cpu_time_in_nanoseconds_); }
+        void clear();
 
-        uint64_t elapsed_wall_time_in_nanoseconds() const { return (elapsed_wall_time_in_nanoseconds_); }
+        MeshBase clone() const;
 
-        uint64_t starting_virtual_memory_size_in_MB() const { return (starting_virtual_memory_size_in_MB_); }
-
-        uint64_t ending_virtual_memory_size_in_MB() const { return (ending_virtual_memory_size_in_MB_); }
-
-        void set_number_of_triangles_in_disjoint_union(uint64_t number_of_triangles_in_disjoint_union)
-        {
-            number_of_triangles_in_disjoint_union_ = number_of_triangles_in_disjoint_union;
-        }
-
-        void set_number_of_triangles_in_final_mesh(uint64_t number_of_triangles_in_final_mesh)
-        {
-            number_of_triangles_in_final_mesh_ = number_of_triangles_in_final_mesh;
-        }
-
-        void set_elapsed_cpu_time_in_nano_seconds(uint64_t elapsed_cpu_time_in_nano_seconds)
-        {
-            elapsed_cpu_time_in_nanoseconds_ = elapsed_cpu_time_in_nano_seconds;
-        }
-
-        void set_elapsed_wall_time_in_nano_seconds(uint64_t elapsed_wall_time_in_nano_seconds)
-        {
-            elapsed_wall_time_in_nanoseconds_ = elapsed_wall_time_in_nano_seconds;
-        }
-
-        void set_starting_virtual_memory_size_in_MB(uint64_t starting_virtual_memory_size_in_MB)
-        {
-            starting_virtual_memory_size_in_MB_ = starting_virtual_memory_size_in_MB;
-        }
-
-        void set_ending_virtual_memory_size_in_MB(uint64_t ending_virtual_memory_size_in_MB)
-        {
-            ending_virtual_memory_size_in_MB_ = ending_virtual_memory_size_in_MB;
-        }
-
-       private:
-        uint64_t number_of_triangles_in_disjoint_union_;
-        uint64_t number_of_triangles_in_final_mesh_;
-
-        uint64_t elapsed_cpu_time_in_nanoseconds_;
-        uint64_t elapsed_wall_time_in_nanoseconds_;
-
-        uint64_t starting_virtual_memory_size_in_MB_;
-        uint64_t ending_virtual_memory_size_in_MB_;
-    };
-
-    class MeshBaseImpl : public virtual TriangleMeshBase  //  NOTE Virtual Inheritance !
-    {
-       public:
-        using CorkVertex = Primitives::Vector3D;
-
-        MeshBaseImpl() = delete;
-
-        MeshBaseImpl(MeshBaseImpl&& mesh_base_to_move)
-            : MeshBaseImpl(std::move( mesh_base_to_move ),
-                           mesh_base_to_move.control_block_.value_or(CorkService::get_default_control_block()))
-        {}
-
-        MeshBaseImpl(const SolverControlBlock& control_block)
-            : tris_(new TriangleByIndicesVector()),
-              verts_(new Vertex3DVector()),
-              max_vertex_magnitude_(NUMERIC_PRECISION_MIN),
-              control_block_(control_block)
-        {
-        }
-
-        MeshBaseImpl(MeshBaseImpl&& mesh_base_to_move, const SolverControlBlock& control_block)
-            : bounding_box_(mesh_base_to_move.bounding_box_),
-              min_and_max_edge_lengths_(mesh_base_to_move.min_and_max_edge_lengths_),
-              max_vertex_magnitude_(mesh_base_to_move.max_vertex_magnitude_),
-              tris_(std::move(mesh_base_to_move.tris_)),
-              verts_(std::move(mesh_base_to_move.verts_)),
-              control_block_(control_block)
-        {
-            mesh_base_to_move.clear();
-        }
-
-        MeshBaseImpl(size_t num_vertices, size_t num_triangles,
-                     const SolverControlBlock& control_block = CorkService::get_default_control_block())
-            : MeshBaseImpl(control_block)
-        {
-            verts_->reserve(num_vertices);
-            tris_->reserve(num_triangles);
-        }
-
-        virtual ~MeshBaseImpl() {}
-
-        void clear()
-        {
-            tris_.reset();
-            verts_.reset();
-
-            bounding_box_ = BBox3D();
-            max_vertex_magnitude_ = NUMERIC_PRECISION_MIN;
-            min_and_max_edge_lengths_ = MinAndMaxEdgeLengths();
-
-            control_block_ = CorkService::get_default_control_block();
-        }
-
-        MeshBaseImpl clone() const
-        {
-            auto copy_of_tris{std::make_shared<TriangleByIndicesVector>(*tris_)};
-            auto copy_of_verts{std::make_shared<Vertex3DVector>(*verts_)};
-
-            return MeshBaseImpl(copy_of_tris, copy_of_verts, bounding_box_, min_and_max_edge_lengths_,
-                                max_vertex_magnitude_);
-        }
-
-        MeshBaseImpl& operator=(const MeshBaseImpl&) = delete;
-
-        const SolverControlBlock& solver_control_block() const { return (*control_block_); }
+        MeshBase& operator=(const MeshBase&) = delete;
 
         size_t num_triangles() const { return tris_->size(); }
         size_t num_vertices() const { return verts_->size(); }
@@ -183,7 +66,7 @@ namespace Cork::Meshes
 
         double max_vertex_magnitude() const { return max_vertex_magnitude_; }
 
-        [[nodiscard]] TriangleByVertices triangle_by_vertices(const TriangleByIndices& triangle_by_indices) const final
+        [[nodiscard]] TriangleByVertices triangle_by_vertices(const TriangleByIndices& triangle_by_indices) const
         {
             return (TriangleByVertices((*verts_)[triangle_by_indices.a()], (*verts_)[triangle_by_indices.b()],
                                        (*verts_)[triangle_by_indices.c()]));
@@ -207,6 +90,34 @@ namespace Cork::Meshes
         const Math::Quantizer::GetQuantizerResult quantizer() const
         {
             return Math::Quantizer::get_quantizer(max_vertex_magnitude_, min_and_max_edge_lengths_.min());
+        }
+
+        [[nodiscard]] MeshTopoCache& topo_cache()
+        {
+            if (!topo_cache_)
+            {
+                auto get_quantizer_result =
+                    Math::Quantizer::get_quantizer(max_vertex_magnitude(), min_and_max_edge_lengths().min());
+
+                const_cast<std::unique_ptr<MeshTopoCache>&>(topo_cache_)
+                    .reset(new MeshTopoCache(*this, get_quantizer_result.return_value()));
+            }
+
+            return *topo_cache_;
+        }
+
+        [[nodiscard]] const MeshTopoCache& topo_cache() const
+        {
+            if (!topo_cache_)
+            {
+                auto get_quantizer_result =
+                    Math::Quantizer::get_quantizer(max_vertex_magnitude(), min_and_max_edge_lengths().min());
+
+                const_cast<std::unique_ptr<MeshTopoCache>&>(topo_cache_)
+                    .reset(new MeshTopoCache(const_cast<MeshBase&>(*this), get_quantizer_result.return_value()));
+            }
+
+            return *topo_cache_;
         }
 
         void for_raw_tris(std::function<void(VertexIndex, VertexIndex, VertexIndex)> func)
@@ -234,21 +145,14 @@ namespace Cork::Meshes
         MinAndMaxEdgeLengths min_and_max_edge_lengths_;
         double max_vertex_magnitude_;
 
-        std::optional<SolverControlBlock> control_block_;
-
-        SolverPerfStats performance_stats_;
+        std::unique_ptr<MeshTopoCache> topo_cache_;
 
        private:
-        MeshBaseImpl(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>& vertices,
+        MeshBase() = default;
+
+        MeshBase(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>& vertices,
                      const Primitives::BBox3D& boundingBox,
-                     const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths, double max_vertex_magnitude)
-            : tris_(triangles),
-              verts_(vertices),
-              bounding_box_(boundingBox),
-              min_and_max_edge_lengths_(min_and_max_edge_lengths),
-              max_vertex_magnitude_(max_vertex_magnitude)
-        {
-        }
+                     const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths, double max_vertex_magnitude);
     };
 
 }  // namespace Cork::Meshes

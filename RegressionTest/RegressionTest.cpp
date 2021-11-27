@@ -60,7 +60,7 @@ void WriteMeshStatistics(const Cork::TriangleMesh& mesh, const std::string& file
                          std::ofstream& geotopoResults)
 {
     Cork::Statistics::GeometricStatistics stats = mesh.ComputeGeometricStatistics( Cork::Statistics::GeometricProperties::GEOM_ALL );
-    Cork::Meshes::TopologicalStatisticsResult topo_stats = mesh.ComputeTopologicalStatistics( Cork::Statistics::TopologicalProperties::TOPO_BASE );
+    Cork::TopologicalStatisticsResult topo_stats = mesh.ComputeTopologicalStatistics( Cork::Statistics::TopologicalProperties::TOPO_BASE );
 
     geotopoResults << filename << "\t" << topo_stats.return_value().is_two_manifold() << "\t";
     geotopoResults << stats.num_vertices() << "\t" << topo_stats.return_value().num_edges() << "\t" << stats.num_triangles() << "\t";
@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
     bool write_results = vm.count("write-results") > 0;
     bool write_stats = vm.count("write-statistics") > 0;
 
-    Cork::SolverControlBlock control_block = Cork::CorkService::get_default_control_block();
+    Cork::SolverControlBlock control_block = Cork::SolverControlBlock::get_default_control_block();
 
     control_block.set_use_multiple_threads(true);
 
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
 
         std::cout << "Read: " << current_model.filename().string() << std::endl;
 
-        Cork::Meshes::TopologicalStatisticsResult topo_stats = read_model_result.return_ptr()->ComputeTopologicalStatistics( Cork::Statistics::TopologicalProperties::TOPO_ALL );
+        Cork::TopologicalStatisticsResult topo_stats = read_model_result.return_ptr()->ComputeTopologicalStatistics( Cork::Statistics::TopologicalProperties::TOPO_ALL );
 
         if( topo_stats.succeeded() )
         {

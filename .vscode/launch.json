@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/RegressionTest/CorkCLI",
-            "args": ["--union", "--input-directory", "/home/steve/dev/Cork/RegressionTest/TestSet/", "--output-directory", "/home/steve/dev/Cork/RegressionTest/Results/", "--write-results", "--write-statistics"],
+            "args": ["--union", "--input-directory", "/home/steve/dev/Cork/RegressionTest/TestSet/", "--output-directory", "/home/steve/dev/Cork/RegressionTest/Results/", "--write-statistics"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build/RegressionTest/",
             "environment": [],

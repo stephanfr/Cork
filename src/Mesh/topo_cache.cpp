@@ -1,5 +1,5 @@
 // +-------------------------------------------------------------------------
-// | TopoCache.cpp
+// | topo_cache.cpp
 // |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
@@ -31,6 +31,8 @@
 
 #include "math/gmpext4.hpp"
 
+#include "mesh/mesh_base.hpp"
+
 namespace Cork::Meshes
 {
 
@@ -43,7 +45,7 @@ namespace Cork::Meshes
 
 
 
-    MeshTopoCache::MeshTopoCache(MeshBaseImpl& owner, const Math::Quantizer& quantizer)
+    MeshTopoCache::MeshTopoCache(MeshBase& owner, const Math::Quantizer& quantizer)
         : TriangleByIndicesVectorTopoCache( owner.triangles(), owner.vertices(), owner.triangles().size() * 3, quantizer ),
           mesh_(owner)
     {}

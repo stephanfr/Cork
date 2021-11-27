@@ -33,7 +33,7 @@
 #include "intersection/intersection_problem.hpp"
 #include "intersection/unsafe_ray_triangle_intersection.hpp"
 #include "mesh/topo_cache.hpp"
-#include "mesh/triangle_mesh.h"
+#include "mesh/triangle_mesh_builder.hpp"
 #include "tbb/parallel_for.h"
 #include "util/thread_pool.hpp"
 #include "util/union_find.hpp"
@@ -45,7 +45,6 @@ namespace Cork::Meshes
     using IntersectionProblemResultCodes = Intersection::IntersectionProblemResultCodes;
 
     using IncrementalVertexIndexTriangleMeshBuilder = Meshes::IncrementalVertexIndexTriangleMeshBuilder;
-
 
     inline void Mesh::for_ecache(EGraphCache& ecache, std::function<void(const EGraphEntryTIDVector& tids)> action,
                                  int numThreads) const
@@ -191,13 +190,14 @@ namespace Cork::Meshes
     //	Constructors and assignment operators
     //
 
-    Mesh::Mesh(const TriangleMesh& inputMesh, const SolverControlBlock& controlBlock) : MeshBaseImpl(controlBlock)
+    Mesh::Mesh(const TriangleMesh& inputMesh, const SolverControlBlock& control_block)
+        : MeshBase(inputMesh.num_vertices(), inputMesh.num_triangles()), control_block_(control_block)
     {
         min_and_max_edge_lengths_ = inputMesh.min_and_max_edge_lengths();
         max_vertex_magnitude_ = inputMesh.max_vertex_magnitude();
 
-        tris_->reserve(inputMesh.num_triangles());
-        verts_->reserve(inputMesh.num_vertices());
+        //        tris_->reserve(inputMesh.num_triangles());
+        //        verts_->reserve(inputMesh.num_vertices());
 
         //	Start by copying the vertices.
 
@@ -228,7 +228,8 @@ namespace Cork::Meshes
     {
         for (VertexIndex i = 0u; i < verts_->size(); i++)
         {
-            if (!std::isfinite((*verts_)[i].x()) || !std::isfinite((*verts_)[i].y()) || !std::isfinite((*verts_)[i].z()))
+            if (!std::isfinite((*verts_)[i].x()) || !std::isfinite((*verts_)[i].y()) ||
+                !std::isfinite((*verts_)[i].z()))
             {
                 std::ostringstream message;
                 message << "vertex #" << i << " has non-finite coordinates: " << (*verts_)[i];
@@ -239,12 +240,14 @@ namespace Cork::Meshes
 
         for (TriangleByIndicesIndex i = 0U; i < tris_->size(); i++)
         {
-            if ((*tris_)[i].a() >= verts_->size() || (*tris_)[i].b() >= verts_->size() || (*tris_)[i].c() >= verts_->size())
+            if ((*tris_)[i].a() >= verts_->size() || (*tris_)[i].b() >= verts_->size() ||
+                (*tris_)[i].c() >= verts_->size())
             {
                 std::ostringstream message;
                 message << "triangle #" << i << " should have indices in "
-                        << "the range 0 to " << (verts_->size() - 1) << ", but it has invalid indices: " << (*tris_)[i].a()
-                        << ", " << (*tris_)[i].b() << ", " << (*tris_)[i].c();
+                        << "the range 0 to " << (verts_->size() - 1)
+                        << ", but it has invalid indices: " << (*tris_)[i].a() << ", " << (*tris_)[i].b() << ", "
+                        << (*tris_)[i].c();
                 std::cerr << message.str();
                 return false;
             }
@@ -296,7 +299,7 @@ namespace Cork::Meshes
         DisjointUnion(rhs);
 
         performance_stats_.set_number_of_triangles_in_disjoint_union((unsigned long)this->tris_->size());
-        control_block_->set_num_triangles((unsigned long)this->tris_->size());
+        control_block_.set_num_triangles((unsigned long)this->tris_->size());
 
         if (this->tris_->size() >= MAX_TRIANGLES_IN_DISJOINT_UNION)
         {
@@ -322,7 +325,7 @@ namespace Cork::Meshes
         //	Find intersections and then resolve them.  We might have to repurturb if finding and resolving fails.
         //		We can repurturb until we run out of perturbation resolution.
 
-        std::unique_ptr<IntersectionSolver> iproblem(IntersectionSolver::GetSolver(*this, quantizer));
+        std::unique_ptr<IntersectionSolver> iproblem(IntersectionSolver::GetSolver(*this, quantizer, control_block_));
 
         while (true)
         {
@@ -698,14 +701,7 @@ namespace Cork::Meshes
         {
             current_tid = trisInComponent[i];
 
-//            const Vector3D& va = (*verts_)[(*tris_)[current_tid].a()];
-//            const Vector3D& vb = (*verts_)[(*tris_)[current_tid].b()];
-//            const Vector3D& vc = (*verts_)[(*tris_)[current_tid].c()];
-
-//            double area =
-//                tri_area_squared(va, vb, vc);  //	We don't need the square root, we just want the biggest surface area
-
-            double area = triangle_by_vertices( (*tris_)[current_tid] ).tri_area_squared();
+            double area = triangle_by_vertices((*tris_)[current_tid]).tri_area_squared();
 
             if (area > best_area)
             {
@@ -756,7 +752,8 @@ namespace Cork::Meshes
         topocache.commit();
     }
 
-    Mesh::BooleanOperationResult Mesh::Union(const SolidObjectMesh& rhs, const SolverControlBlock& solverControlBlock) const
+    Mesh::BooleanOperationResult Mesh::Union(const SolidObjectMesh& rhs,
+                                             const SolverControlBlock& solverControlBlock) const
     {
         //	Collect some starting statistics
 
@@ -768,9 +765,9 @@ namespace Cork::Meshes
 
         //	Duplicate the mesh
 
-        MeshBaseImpl    cloned_mesh{ this->clone() };
+        MeshBase cloned_mesh{this->clone()};
 
-        std::unique_ptr<Mesh> resultMesh = std::make_unique<Mesh>(std::move( cloned_mesh ), solverControlBlock);
+        std::unique_ptr<Mesh> resultMesh = std::make_unique<Mesh>(std::move(cloned_mesh), solverControlBlock);
 
         //		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
 
@@ -823,9 +820,9 @@ namespace Cork::Meshes
 
         //	Duplicate the mesh
 
-        MeshBaseImpl    cloned_mesh{ this->clone() };
+        MeshBase cloned_mesh{this->clone()};
 
-        std::unique_ptr<Mesh> resultMesh = std::make_unique<Mesh>( std::move( cloned_mesh ), solverControlBlock);
+        std::unique_ptr<Mesh> resultMesh = std::make_unique<Mesh>(std::move(cloned_mesh), solverControlBlock);
 
         //		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
 
@@ -882,9 +879,9 @@ namespace Cork::Meshes
 
         //	Duplicate the mesh
 
-        MeshBaseImpl    cloned_mesh{ this->clone() };
+        MeshBase cloned_mesh{this->clone()};
 
-        std::unique_ptr<Mesh> resultMesh = std::make_unique<Mesh>( std::move( cloned_mesh ), solverControlBlock);
+        std::unique_ptr<Mesh> resultMesh = std::make_unique<Mesh>(std::move(cloned_mesh), solverControlBlock);
 
         //		resultMesh->m_performanceStats.setStartingVirtualMemorySizeInMB( startingVirtualMemory );
 
@@ -939,9 +936,9 @@ namespace Cork::Meshes
 
         //	Duplicate the mesh
 
-        MeshBaseImpl    cloned_mesh{ this->clone() };
+        MeshBase cloned_mesh{this->clone()};
 
-        std::unique_ptr<Mesh> resultMesh = std::make_unique<Mesh>( std::move( cloned_mesh ), solverControlBlock);
+        std::unique_ptr<Mesh> resultMesh = std::make_unique<Mesh>(std::move(cloned_mesh), solverControlBlock);
 
         SetupBooleanProblemResult result = resultMesh->SetupBooleanProblem(dynamic_cast<const Mesh&>(rhs));
 
@@ -993,8 +990,8 @@ namespace Cork::Meshes
         for (auto& currentVertex : vertices())
         {
             triangleMeshBuilder->add_vertex(Vertex3D((NUMERIC_PRECISION)currentVertex.x(),
-                                                    (NUMERIC_PRECISION)currentVertex.y(),
-                                                    (NUMERIC_PRECISION)currentVertex.z()));
+                                                     (NUMERIC_PRECISION)currentVertex.y(),
+                                                     (NUMERIC_PRECISION)currentVertex.z()));
         }
 
         for_raw_tris([&](VertexIndex a, VertexIndex b, VertexIndex c) { triangleMeshBuilder->add_triangle(a, b, c); });

@@ -39,7 +39,7 @@ namespace Cork::Intersection
     using TopoTri = Meshes::TopoTri;
     using TopoEdgePointerVector = Meshes::TopoEdgePointerVector;
 
-    using MeshBase = Meshes::MeshBaseImpl;
+    using MeshBase = Meshes::MeshBase;
 
     //  The following template classes are needed to insure the correct delete function is associated
     //      with the allocation function used for elements passed to the Triangle library.
@@ -59,15 +59,15 @@ namespace Cork::Intersection
     class IntersectionSolverImpl : public IntersectionProblemBase, public IntersectionSolver
     {
        public:
+        IntersectionSolverImpl() = delete;
+        IntersectionSolverImpl(MeshBase& owner, const Math::Quantizer& quantizer,
+                               const SolverControlBlock& solver_control_block);
 
-       IntersectionSolverImpl() = delete;
-        IntersectionSolverImpl(MeshBase& owner, const Math::Quantizer& quantizer);
+        IntersectionSolverImpl(const IntersectionSolverImpl&) = delete;
+        IntersectionSolverImpl(IntersectionSolverImpl&&) = delete;
 
-        IntersectionSolverImpl( const IntersectionSolverImpl& ) = delete;
-        IntersectionSolverImpl( IntersectionSolverImpl&& ) = delete;
-
-        IntersectionSolverImpl&     operator=( const IntersectionSolverImpl& ) = delete;
-        IntersectionSolverImpl&     operator=( IntersectionSolverImpl&& ) = delete;
+        IntersectionSolverImpl& operator=(const IntersectionSolverImpl&) = delete;
+        IntersectionSolverImpl& operator=(IntersectionSolverImpl&&) = delete;
 
         virtual ~IntersectionSolverImpl() final { reset(); }
 
@@ -76,7 +76,7 @@ namespace Cork::Intersection
         IntersectionProblemResult FindIntersections() final;
         IntersectionProblemResult ResolveAllIntersections() final;
 
-        void commit() final { topo_cache_.commit(); };
+        void commit() final { topo_cache().commit(); };
 
         //	Other IntersectionProblem methods
 
@@ -133,7 +133,7 @@ namespace Cork::Intersection
         {
             for (auto& gt : tprob.gtris())
             {
-                TopoTri* t = topo_cache_.newTri();
+                TopoTri* t = topo_cache().newTri();
 
                 std::array<TopoVert*, 3> vertices;
                 std::array<TopoEdge*, 3> edges;
@@ -142,7 +142,7 @@ namespace Cork::Intersection
 
                 genericTri->set_concrete_triangle(t);
 
-                TriangleByIndices& tri = topo_cache_.ownerMesh().triangles()[t->ref()];
+                TriangleByIndices& tri = owner_mesh_.triangles()[t->ref()];
 
                 for (uint k = 0; k < 3; k++)
                 {
@@ -162,12 +162,13 @@ namespace Cork::Intersection
             //	Once all the pieces are hooked up, let's kill the old triangle!
             //		We need to cast away the const here as well...
 
-            topo_cache_.deleteTri(&(const_cast<TopoTri&>(tprob.triangle())));
+            topo_cache().deleteTri(&(const_cast<TopoTri&>(tprob.triangle())));
         }
     };
 
-    IntersectionSolverImpl::IntersectionSolverImpl(MeshBase& owner, const Math::Quantizer& quantizer)
-        : IntersectionProblemBase(owner, quantizer)
+    IntersectionSolverImpl::IntersectionSolverImpl(MeshBase& owner, const Math::Quantizer& quantizer,
+                                                   const SolverControlBlock& solver_control_block)
+        : IntersectionProblemBase(owner, quantizer, solver_control_block)
     {
     }
 
@@ -202,7 +203,7 @@ namespace Cork::Intersection
             {
                 if (triangle.intersectsEdge(edge, quantizer_, exact_arithmetic_context_))
                 {
-                    GluePointMarker* glue = m_gluePointMarkerList.emplace_back(
+                    GluePointMarker* glue = glue_point_marker_list_.emplace_back(
                         GluePointMarker::IntersectionType::EDGE_TRIANGLE, edge, triangle);
 
                     // first add point and edges to the pierced triangle
@@ -311,7 +312,7 @@ namespace Cork::Intersection
                 break;
             }
 
-            GluePointMarker* glue = m_gluePointMarkerList.emplace_back(
+            GluePointMarker* glue = glue_point_marker_list_.emplace_back(
                 GluePointMarker::IntersectionType::TRIANGLE_TRIANGLE_TRIANGLE, t.t0(), t.t1(), t.t2());
 
             getTprob(t.t0()).addInteriorPoint(t.t1(), t.t2(), *glue);
@@ -338,16 +339,16 @@ namespace Cork::Intersection
             tprob.ResetTopoTriLink();
         }
 
-        m_gluePointMarkerList.clear();
+        glue_point_marker_list_.clear();
 
-        m_isctVertTypeList.clear();
-        m_origVertTypeList.clear();
+        isct_vert_type_list_.clear();
+        orig_vert_type_list_.clear();
 
-        m_isctEdgeTypeList.clear();
-        m_origEdgeTypeList.clear();
-        m_splitEdgeTypeList.clear();
+        isct_edge_type_list_.clear();
+        orig_edge_type_list_.clear();
+        split_edge_type_list_.clear();
 
-        m_genericTriTypeList.clear();
+        generic_tri_type_list_.clear();
 
         m_triangleProblemList.clear();
 
@@ -443,7 +444,8 @@ namespace Cork::Intersection
                               << ")" << std::endl;
                     std::cout.flush();
 
-                    TopoEdgeReferenceVector edges( std::move( edge_bvh_->EdgesIntersectingTriangle(*tri, AABVH::IntersectionType::SELF_INTERSECTION )));
+                    TopoEdgeReferenceVector edges(std::move(
+                        edge_bvh_->EdgesIntersectingTriangle(*tri, AABVH::IntersectionType::SELF_INTERSECTION)));
 
                     for (const TopoEdge& edge : edges)
                     {
@@ -471,7 +473,7 @@ namespace Cork::Intersection
         // Let's go through the glue points and create a new concrete
         // vertex object for each of these.
 
-        for (auto& glue : m_gluePointMarkerList)
+        for (auto& glue : glue_point_marker_list_)
         {
             createRealPtFromGluePt(glue);
         }
@@ -494,10 +496,8 @@ namespace Cork::Intersection
         return (IntersectionProblemResult::success());
     }
 
-    std::unique_ptr<IntersectionSolver> IntersectionSolver::GetSolver(MeshBase& owner, const Math::Quantizer& quantizer)
+    std::unique_ptr<IntersectionSolver> IntersectionSolver::GetSolver(MeshBase& owner, const Math::Quantizer& quantizer, const SolverControlBlock& solver_control_block)
     {
-        //        IntersectionWorkspaceFactory::UniquePtr workspace(IntersectionWorkspaceFactory::GetInstance());
-
-        return (std::unique_ptr<IntersectionSolver>(new IntersectionSolverImpl(owner, quantizer)));
+        return (std::unique_ptr<IntersectionSolver>(new IntersectionSolverImpl(owner, quantizer, solver_control_block)));
     }
 }  // namespace Cork::Intersection

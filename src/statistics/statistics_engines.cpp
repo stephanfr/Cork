@@ -32,11 +32,11 @@
 
 namespace Cork::Statistics
 {
-    using TriangleMeshWithTopoCache = Meshes::TriangleMeshWithTopoCache;
+    using MeshBaseImpl = Meshes::MeshBase;
 
     using SelfIntersectingEdge = Statistics::SelfIntersectingEdge;
 
-    GeometricStatisticsEngine::GeometricStatisticsEngine(const TriangleMesh& triangle_mesh,
+    GeometricStatisticsEngine::GeometricStatisticsEngine(const Meshes::MeshBase& triangle_mesh,
                                                          GeometricProperties properties_to_compute)
         : num_triangles_(triangle_mesh.num_triangles()),
           num_vertices_(triangle_mesh.num_vertices()),
@@ -87,7 +87,7 @@ namespace Cork::Statistics
         }
     }
 
-    TopologicalStatisticsEngine::TopologicalStatisticsEngine(const TriangleMeshWithTopoCache& triangle_mesh)
+    TopologicalStatisticsEngine::TopologicalStatisticsEngine(const MeshBaseImpl& triangle_mesh)
         : triangle_mesh_(triangle_mesh)
     {
         edges_.reserve((triangle_mesh.num_triangles() * 6) + 10);  //  Pad just a little bit

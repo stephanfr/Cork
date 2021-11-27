@@ -35,7 +35,7 @@
 #include "oneapi/tbb/spin_mutex.h"
 #include "oneapi/tbb/task_group.h"
 
-#include "cork_defs.hpp"
+#include "cork.hpp"
 #include "Xoshiro256Plus.h"
 #include "mesh/topo_cache.hpp"
 #include "util/fast_stack.hpp"

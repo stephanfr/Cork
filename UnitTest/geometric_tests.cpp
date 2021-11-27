@@ -31,7 +31,7 @@
 #pragma diag_suppress 2486
 #endif
 
-TEST_CASE("Geometry Tests", "[file io]")
+TEST_CASE("Geometry Tests", "[stats]")
 {
     SECTION("Simple Quadrilateral")
     {
@@ -41,8 +41,8 @@ TEST_CASE("Geometry Tests", "[file io]")
 
         auto* mesh(read_result.return_ptr().release());
 
-        REQUIRE(mesh->numVertices() == 26);
-        REQUIRE(mesh->numTriangles() == 48);
+        REQUIRE(mesh->num_vertices() == 26);
+        REQUIRE(mesh->num_triangles() == 48);
 
         auto stats = mesh->ComputeGeometricStatistics( Cork::Statistics::GeometricProperties::GEOM_ALL  );
 

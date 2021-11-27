@@ -27,6 +27,7 @@
 
 #include "mesh/edge_graph_cache.hpp"
 #include "mesh_base.hpp"
+#include "solver_perf_stats.hpp"
 #include "tbb/concurrent_vector.h"
 
 namespace Cork::Meshes
@@ -35,15 +36,16 @@ namespace Cork::Meshes
     //	The Mesh class brings together the functionality needed for the boolean operations
     //
 
-    class Mesh : public MeshBaseImpl, public SolidObjectMesh
+    class Mesh : public MeshBase, public SolidObjectMesh
     {
        public:
         Mesh() = delete;
 
-        Mesh( Mesh&& src)
-            : MeshBaseImpl( std::move(src)){};
+        Mesh(Mesh&& src)
+            : MeshBase(std::move(src)), control_block_(SolverControlBlock::get_default_control_block()){};
 
-        Mesh( MeshBaseImpl&& src, const SolverControlBlock& controlBlock) : MeshBaseImpl( std::move( src ), controlBlock){};
+        Mesh(MeshBase&& src, const SolverControlBlock& control_block)
+            : MeshBase(std::move(src)), control_block_(control_block){};
 
         explicit Mesh(const TriangleMesh& inputMesh, const SolverControlBlock& controlBlock);
 
@@ -78,11 +80,15 @@ namespace Cork::Meshes
 
         std::unique_ptr<TriangleMesh> ToTriangleMesh() const;
 
-        const SolverPerformanceStatisticsIfx& GetPerformanceStats() const final { return (performance_stats_); }
+        const SolverControlBlock& solver_control_block() const { return control_block_; }
+        const SolverPerformanceStatistics& GetPerformanceStats() const final { return performance_stats_; }
 
         size_t CountComponents() const final;
 
        private:
+        SolverControlBlock control_block_;
+        SolverPerfStats performance_stats_;
+
         enum class TriCode
         {
             KEEP_TRI,
@@ -101,15 +107,15 @@ namespace Cork::Meshes
             SELF_INTERSECTING_MESH
         };
 
-        using SetupBooleanProblemResult = SEFUtility::Result<SetupBooleanProblemResultCodes>;
-
         enum class BuildEGraphCacheResultCodes
         {
             SUCCESS = 0,
             OUT_OF_MEMORY
         };
 
-        typedef SEFUtility::ResultWithReturnUniquePtr<BuildEGraphCacheResultCodes, EGraphCache> BuildEGraphCacheResult;
+        using SetupBooleanProblemResult = SEFUtility::Result<SetupBooleanProblemResultCodes>;
+
+        using BuildEGraphCacheResult = SEFUtility::ResultWithReturnUniquePtr<BuildEGraphCacheResultCodes, EGraphCache>;
 
         using ComponentType = tbb::concurrent_vector<TriangleByIndicesIndex>;
         using ComponentList = tbb::concurrent_vector<ComponentType>;

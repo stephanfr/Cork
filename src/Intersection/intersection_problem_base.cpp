@@ -29,24 +29,25 @@
 namespace Cork::Intersection
 {
 
-    IntersectionProblemBase::IntersectionProblemBase(MeshBase& owner_mesh, const Math::Quantizer& quantizer)
+    IntersectionProblemBase::IntersectionProblemBase(MeshBaseImpl& owner_mesh, const Math::Quantizer& quantizer, const SolverControlBlock& solver_control_block)
         : workspace_(std::move(IntersectionWorkspaceFactory::GetInstance())),
           owner_mesh_(owner_mesh),
-          topo_cache_(owner_mesh, quantizer),
+//          topo_cache_(owner_mesh, quantizer),
           quantizer_(quantizer),
           perturbation_(quantizer_),
-          m_gluePointMarkerList(*(workspace_.get())),
-          m_isctVertTypeList(*(workspace_.get())),
-          m_origVertTypeList(*(workspace_.get())),
-          m_isctEdgeTypeList(*(workspace_.get())),
-          m_origEdgeTypeList(*(workspace_.get())),
-          m_splitEdgeTypeList(*(workspace_.get())),
-          m_genericTriTypeList(*(workspace_.get()))
+          solver_control_block_(solver_control_block),
+          glue_point_marker_list_(*(workspace_.get())),
+          isct_vert_type_list_(*(workspace_.get())),
+          orig_vert_type_list_(*(workspace_.get())),
+          isct_edge_type_list_(*(workspace_.get())),
+          orig_edge_type_list_(*(workspace_.get())),
+          split_edge_type_list_(*(workspace_.get())),
+          generic_tri_type_list_(*(workspace_.get()))
     {
         //	Initialize all the triangles to NOT have an associated tprob
         //		and set the boolAlgData value based on the input triangle
 
-        for (TopoTri& t : topo_cache_.triangles())
+        for (TopoTri& t : topo_cache().triangles())
         {
             t.clear_triangle_problem_association();
             t.setBoolAlgData(owner_mesh_.triangles()[t.ref()].bool_alg_data());
@@ -54,7 +55,7 @@ namespace Cork::Intersection
 
         //	Initialize all of the edge solid IDs
 
-        for (TopoEdge& e : topo_cache_.edges())
+        for (TopoEdge& e : topo_cache().edges())
         {
             e.set_boolean_algorithm_data(e.triangles().front()->boolAlgData());
         }
@@ -62,7 +63,7 @@ namespace Cork::Intersection
 
     void IntersectionProblemBase::perturbPositions()
     {
-        for (auto& vertex : topo_cache_.vertices())
+        for (auto& vertex : topo_cache().vertices())
         {
             Primitives::Vector3D perturbation = perturbation_.getPerturbation();
 
@@ -74,15 +75,15 @@ namespace Cork::Intersection
     {
         std::unique_ptr<AABVH::GeomBlobVector> edge_geoms(new AABVH::GeomBlobVector());
 
-        edge_geoms->reserve(topo_cache_.edges().size());
+        edge_geoms->reserve(topo_cache().edges().size());
 
-        for (auto& e : topo_cache_.edges())
+        for (auto& e : topo_cache().edges())
         {
             edge_geoms->emplace_back(e);
         }
 
         edge_bvh_.reset(new AABVH::AxisAlignedBoundingVolumeHierarchy(edge_geoms, workspace(),
-                                                                      owner_mesh_.solver_control_block()));
+                                                                      solver_control_block_));
     }
 
     void IntersectionProblemBase::FindEdgeAndTriangleIntersections(AABVH::IntersectionType selfOrBooleanIntersection,
@@ -124,7 +125,7 @@ namespace Cork::Intersection
                         */
         //	Single threaded search
 
-        for (TopoTri& tri : topo_cache_.triangles())
+        for (TopoTri& tri : topo_cache().triangles())
         {
             TopoEdgeReferenceVector edges( std::move( edge_bvh_->EdgesIntersectingTriangle(tri, selfOrBooleanIntersection)));
 
@@ -144,11 +145,11 @@ namespace Cork::Intersection
     {
         auto points = std::make_unique<std::vector<Primitives::Vector3D>>();
 
-        points->resize(m_gluePointMarkerList.size());
+        points->resize(glue_point_marker_list_.size());
 
         uint write = 0;
 
-        for (auto& glue : m_gluePointMarkerList)
+        for (auto& glue : glue_point_marker_list_)
         {
             assert(glue.vertices_to_be_glued().size() > 0);
             IsctVertType* iv = glue.vertices_to_be_glued()[0];

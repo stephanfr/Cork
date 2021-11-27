@@ -29,6 +29,7 @@
 
 #include "intersection/intersection_workspace.hpp"
 #include "perturbation_epsilon.hpp"
+#include "mesh/mesh_base.hpp"
 
 namespace Cork::Intersection
 {
@@ -82,7 +83,7 @@ namespace Cork::Intersection
         using TopoEdge = Meshes::TopoEdge;
         using TopoTri = Meshes::TopoTri;
         using TopoEdgeReferenceVector = Meshes::TopoEdgeReferenceVector;
-        using MeshBase = Meshes::MeshBaseImpl;
+        using MeshBaseImpl = Meshes::MeshBase;
         using MeshTopoCache = Meshes::MeshTopoCache;
 
        public:
@@ -135,7 +136,7 @@ namespace Cork::Intersection
 
         using TriangleAndIntersectingEdgesQueue = tbb::concurrent_bounded_queue<TriAndEdgeQueueMessage*>;
 
-        IntersectionProblemBase(MeshBase& owner_mesh, const Math::Quantizer& quantizer);
+        IntersectionProblemBase(MeshBaseImpl& owner_mesh, const Math::Quantizer& quantizer, const SolverControlBlock& solver_control_block);
 
         IntersectionProblemBase(const IntersectionProblemBase& isctProblemToCopy) = delete;
 
@@ -145,60 +146,60 @@ namespace Cork::Intersection
 
         IntersectionWorkspace& workspace() { return *(workspace_.get()); }
 
-        MeshBase& owner_mesh() { return owner_mesh_; }
+        MeshBaseImpl& owner_mesh() { return owner_mesh_; }
 
-        const MeshBase& owner_mesh() const { return owner_mesh_; }
+        const MeshBaseImpl& owner_mesh() const { return owner_mesh_; }
 
-        MeshTopoCache&      topo_cache() { return topo_cache_; }
+        MeshTopoCache&      topo_cache() { return owner_mesh_.topo_cache(); }
 
         IsctVertType* newIsctVert(const TopoEdge& e, const TopoTri& t, bool boundary, GluePointMarker& glue)
         {
-            return (m_isctVertTypeList.emplace_back(GenericVertType::VertexType::INTERSECTION,
+            return (isct_vert_type_list_.emplace_back(GenericVertType::VertexType::INTERSECTION,
                                                     computeCoords(e, t, quantizer_), boundary, glue));
         }
 
         IsctVertType* newIsctVert(const TopoTri& t0, const TopoTri& t1, const TopoTri& t2, bool boundary,
                                   GluePointMarker& glue)
         {
-            return (m_isctVertTypeList.emplace_back(GenericVertType::VertexType::INTERSECTION,
+            return (isct_vert_type_list_.emplace_back(GenericVertType::VertexType::INTERSECTION,
                                                     computeCoords(t0, t1, t2, quantizer_), boundary, glue));
         }
 
         IsctVertType* newSplitIsctVert(const Primitives::Vector3D& coords, GluePointMarker& glue)
         {
-            return (m_isctVertTypeList.emplace_back(GenericVertType::VertexType::INTERSECTION, coords, false, glue));
+            return (isct_vert_type_list_.emplace_back(GenericVertType::VertexType::INTERSECTION, coords, false, glue));
         }
 
         IsctVertType* copyIsctVert(IsctVertType* orig)
         {
-            return (m_isctVertTypeList.emplace_back(GenericVertType::VertexType::INTERSECTION, orig->coordinate(),
+            return (isct_vert_type_list_.emplace_back(GenericVertType::VertexType::INTERSECTION, orig->coordinate(),
                                                     orig->is_boundary(), orig->glueMarker()));
         }
 
         IsctEdgeType* newIsctEdge(IsctVertType* endpoint, const TopoTri& tri_key)
         {
-            return (m_isctEdgeTypeList.emplace_back(GenericEdgeType::EdgeType::INTERSECTION, false, endpoint, tri_key));
+            return (isct_edge_type_list_.emplace_back(GenericEdgeType::EdgeType::INTERSECTION, false, endpoint, tri_key));
         }
 
         OrigVertType* newOrigVert(TopoVert* v)
         {
             return (
-                m_origVertTypeList.emplace_back(GenericVertType::VertexType::ORIGINAL, *v, v->quantizedValue(), true));
+                orig_vert_type_list_.emplace_back(GenericVertType::VertexType::ORIGINAL, *v, v->quantizedValue(), true));
         }
 
         OrigEdgeType* newOrigEdge(const TopoEdge& e, OrigVertType* v0, OrigVertType* v1)
         {
-            return (m_origEdgeTypeList.emplace_back(GenericEdgeType::EdgeType::ORIGINAL, e, true, v0, v1));
+            return (orig_edge_type_list_.emplace_back(GenericEdgeType::EdgeType::ORIGINAL, e, true, v0, v1));
         }
 
         SplitEdgeType* newSplitEdge(GenericVertType* v0, GenericVertType* v1, bool boundary)
         {
-            return (m_splitEdgeTypeList.emplace_back(GenericEdgeType::EdgeType::SPLIT, boundary, v0, v1));
+            return (split_edge_type_list_.emplace_back(GenericEdgeType::EdgeType::SPLIT, boundary, v0, v1));
         }
 
         GenericTriType* newGenericTri(GenericVertType* v0, GenericVertType* v1, GenericVertType* v2)
         {
-            return (m_genericTriTypeList.emplace_back(v0, v1, v2));
+            return (generic_tri_type_list_.emplace_back(v0, v1, v2));
         }
 
         void perturbPositions();
@@ -212,9 +213,9 @@ namespace Cork::Intersection
         {
             assert(glue.vertices_to_be_glued().size() > 0);
 
-            TopoVert* v = topo_cache_.newVert();
+            TopoVert* v = topo_cache().newVert();
 
-            topo_cache_.ownerMesh().vertices()[v->index()] = glue.vertices_to_be_glued()[0]->coordinate();
+            topo_cache().ownerMesh().vertices()[v->index()] = glue.vertices_to_be_glued()[0]->coordinate();
 
             for (IsctVertType* iv : glue.vertices_to_be_glued())
             {
@@ -231,15 +232,15 @@ namespace Cork::Intersection
             switch (ge->edgeType())
             {
                 case GenericEdgeType::EdgeType::INTERSECTION:
-                    m_isctEdgeTypeList.free(ie);
+                    isct_edge_type_list_.free(ie);
                     break;
 
                 case GenericEdgeType::EdgeType::ORIGINAL:
-                    m_origEdgeTypeList.free(ie);
+                    orig_edge_type_list_.free(ie);
                     break;
 
                 case GenericEdgeType::EdgeType::SPLIT:
-                    m_splitEdgeTypeList.free(ie);
+                    split_edge_type_list_.free(ie);
                     break;
             }
         }
@@ -250,7 +251,7 @@ namespace Cork::Intersection
 
             if (iv->glueMarker().vertices_to_be_glued().size() == 0)
             {
-                m_gluePointMarkerList.free(iv->glueMarker());
+                glue_point_marker_list_.free(iv->glueMarker());
             }
 
             for (GenericEdgeType* ge : iv->edges())
@@ -269,7 +270,7 @@ namespace Cork::Intersection
                 }
             }
 
-            m_isctVertTypeList.free(iv);
+            isct_vert_type_list_.free(iv);
         }
 
         void killIsctEdge(IsctEdgeType* ie)
@@ -282,12 +283,12 @@ namespace Cork::Intersection
                     std::find(ie->ends()[1]->edges().begin(), ie->ends()[1]->edges().end(), ie));
             }
 
-            m_isctEdgeTypeList.free(ie);
+            isct_edge_type_list_.free(ie);
         }
 
-        void killOrigVert(OrigVertType* ov) { m_origVertTypeList.free(ov); }
+        void killOrigVert(OrigVertType* ov) { orig_vert_type_list_.free(ov); }
 
-        void killOrigEdge(OrigEdgeType* oe) { m_origEdgeTypeList.free(oe); }
+        void killOrigEdge(OrigEdgeType* oe) { orig_edge_type_list_.free(oe); }
 
         bool checkIsct(const TriTripleTemp& triangles)
         {
@@ -329,8 +330,8 @@ namespace Cork::Intersection
 
         void fillOutTriData(const TopoTri& piece, const TopoTri& parent)
         {
-            topo_cache_.ownerMesh().triangles()[piece.ref()].set_bool_alg_data(
-                topo_cache_.ownerMesh().triangles()[parent.ref()].bool_alg_data() );
+            owner_mesh_.triangles()[piece.ref()].set_bool_alg_data(
+                owner_mesh_.triangles()[parent.ref()].bool_alg_data() );
         }
 
         std::unique_ptr<std::vector<Primitives::Vector3D>> dumpIsctPoints();
@@ -338,9 +339,9 @@ namespace Cork::Intersection
        protected:
         SEFUtility::CachingFactory<IntersectionWorkspace>::UniquePtr workspace_;
 
-        MeshBase& owner_mesh_;
+        const SolverControlBlock& solver_control_block_;
 
-        MeshTopoCache   topo_cache_;
+        MeshBaseImpl& owner_mesh_;
 
         std::unique_ptr<AABVH::AxisAlignedBoundingVolumeHierarchy> edge_bvh_;
 
@@ -351,12 +352,12 @@ namespace Cork::Intersection
         Math::Quantizer quantizer_;
         PerturbationEpsilon perturbation_;
 
-        GluePointMarkerList m_gluePointMarkerList;
-        IsctVertTypeList m_isctVertTypeList;
-        OrigVertTypeList m_origVertTypeList;
-        IsctEdgeTypeList m_isctEdgeTypeList;
-        OrigEdgeTypeList m_origEdgeTypeList;
-        SplitEdgeTypeList m_splitEdgeTypeList;
-        GenericTriTypeList m_genericTriTypeList;
+        GluePointMarkerList glue_point_marker_list_;
+        IsctVertTypeList isct_vert_type_list_;
+        OrigVertTypeList orig_vert_type_list_;
+        IsctEdgeTypeList isct_edge_type_list_;
+        OrigEdgeTypeList orig_edge_type_list_;
+        SplitEdgeTypeList split_edge_type_list_;
+        GenericTriTypeList generic_tri_type_list_;
     };
 }  // namespace Cork::Intersection

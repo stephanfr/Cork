@@ -30,13 +30,6 @@
 
 namespace Cork::Meshes
 {
-    using TopologicalStatisticsResultCodes = Cork::TopologicalStatisticsResultCodes;
-    using TopologicalStatisticsResult = Cork::TopologicalStatisticsResult;
-    using HoleClosingResultCodes = Cork::HoleClosingResultCodes;
-    using HoleClosingResult = Cork::HoleClosingResult;
-
-    using TriangleMesh = Cork::TriangleMesh;
-
     enum class TriangleMeshBuilderResultCodes
     {
         SUCCESS = 0,

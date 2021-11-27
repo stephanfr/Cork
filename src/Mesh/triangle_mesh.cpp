@@ -1,5 +1,5 @@
 // +-------------------------------------------------------------------------
-// | TriangleMesh.cpp
+// | triangle_mesh.cpp
 // |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
@@ -30,7 +30,7 @@
 
 #include "intersection/self_intersection_finder.hpp"
 #include "intersection/triangulator.hpp"
-#include "mesh/triangle_mesh_with_topo_cache.hpp"
+#include "mesh/triangle_mesh_builder.hpp"
 #include "primitives/index_remapper.hpp"
 #include "statistics/statistics_engines.hpp"
 
@@ -41,24 +41,11 @@ namespace Cork::Meshes
     //		of vertices and triangles defined as 3-tuples of indices into the vertex set.
     //
 
-    class TriangleMeshImpl : public MeshBaseImpl, public TriangleMeshWithTopoCache
+    class TriangleMeshImpl : public MeshBase
     {
        public:
-        TriangleMeshImpl() : MeshBaseImpl(CorkService::get_default_control_block()){};
 
-        TriangleMeshImpl( MeshBaseImpl&&     mesh_base )
-            : MeshBaseImpl( std::move( mesh_base ))
-            {}
-
-        //        TriangleMeshImpl(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>&
-        //        vertices,
-        //                         const Primitives::BBox3D& bounding_box,
-        //                         const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths, double
-        //                         max_vertex_magnitude)
-        //              : MeshBaseImpl( triangles, vertices, bounding_box, min_and_max_edge_lengths,
-        //              max_vertex_magnitude )
-        //        {
-        //        }
+        TriangleMeshImpl(MeshBase&& mesh_base) : MeshBase(std::move(mesh_base)) {}
 
         void add_triangle(const TriangleByIndices& triangle_to_add) { tris_->emplace_back(triangle_to_add); }
 
@@ -67,23 +54,8 @@ namespace Cork::Meshes
             tris_->erase(tris_->begin() + TriangleByIndicesIndex::integer_type(triangle_index));
         }
 
-        [[nodiscard]] Meshes::TriangleByIndicesVectorTopoCache& topo_cache() const
-        {
-            if (!topo_cache_)
-            {
-                auto get_quantizer_result =
-                    Math::Quantizer::get_quantizer(max_vertex_magnitude(), min_and_max_edge_lengths().min());
-
-                const_cast<std::unique_ptr<Meshes::TriangleByIndicesVectorTopoCache>&>(topo_cache_)
-                    .reset(new Meshes::TriangleByIndicesVectorTopoCache(*tris_, *verts_, tris_->size() * 4,
-                                                                        get_quantizer_result.return_value()));
-            }
-
-            return *topo_cache_;
-        }
-
         [[nodiscard]] Statistics::GeometricStatistics ComputeGeometricStatistics(
-            Statistics::GeometricProperties props_to_compute) const final
+            Statistics::GeometricProperties props_to_compute) const
         {
             Statistics::GeometricStatisticsEngine geometricStatsEngine(*this, props_to_compute);
 
@@ -91,7 +63,7 @@ namespace Cork::Meshes
         }
 
         [[nodiscard]] TopologicalStatisticsResult ComputeTopologicalStatistics(
-            Statistics::TopologicalProperties props_to_compute) const final
+            Statistics::TopologicalProperties props_to_compute) const
         {
             Statistics::TopologicalStatisticsEngine statsEngine(*this);
 
@@ -567,29 +539,79 @@ namespace Cork::Meshes
         std::unique_ptr<Meshes::TriangleByIndicesVectorTopoCache> topo_cache_;
     };
 
+    class TriangleMeshWrapper : public TriangleMesh
+    {
+       public:
+        using GeometricStatistics = Statistics::GeometricStatistics;
+        using GeometricProperties = Statistics::GeometricProperties;
+        using TopologicalStatistics = Statistics::TopologicalStatistics;
+        using TopologicalProperties = Statistics::TopologicalProperties;
+
+        //  Constructor/Destructor
+
+        TriangleMeshWrapper( MeshBase&& mesh_base)
+            : mesh_( new TriangleMeshImpl( std::move( mesh_base )))
+            {}
+
+        ~TriangleMeshWrapper(){};
+
+        //	Methods follow
+
+        size_t num_triangles() const { return mesh_->num_triangles(); }
+        size_t num_vertices() const { return mesh_->num_vertices(); }
+
+        const Vertex3DVector& vertices() const { return mesh_->vertices(); }
+        const TriangleByIndicesVector& triangles() const { return mesh_->triangles(); }
+
+        TriangleByVertices triangle_by_vertices(const TriangleByIndices& triangle_by_indices) const
+        {
+            return mesh_->triangle_by_vertices(triangle_by_indices);
+        }
+
+        const BBox3D& bounding_box() const { return mesh_->bounding_box(); }
+        MinAndMaxEdgeLengths min_and_max_edge_lengths() const { return mesh_->min_and_max_edge_lengths(); }
+        double max_vertex_magnitude() const { return mesh_->max_vertex_magnitude(); }
+
+        GeometricStatistics ComputeGeometricStatistics(GeometricProperties props_to_compute) const
+        {
+            return mesh_->ComputeGeometricStatistics(props_to_compute);
+        }
+
+        TopologicalStatisticsResult ComputeTopologicalStatistics(TopologicalProperties props_to_compute) const
+        {
+            return mesh_->ComputeTopologicalStatistics(props_to_compute);
+        }
+
+        HoleClosingResult close_holes(const TopologicalStatistics& topo_stats)
+        {
+            return mesh_->close_holes(topo_stats);
+        }
+
+        void remove_self_intersections(const TopologicalStatistics& topo_stats)
+        {
+            return mesh_->remove_self_intersections(topo_stats);
+        }
+
+       private:
+        std::unique_ptr<TriangleMeshImpl> mesh_;
+    };
+
     //
     //	IncrementalVertexIndexTriangleMeshBuilderImpl implements an incremental triangle mesh builder
     //		which can be used to construct a triangle mesh from a list of vertices and
     //		triangles assembled from those vertices.
-    //
-    //	This class also uses copy-on-write semantics for the internal data structures that are eventually
-    //		shared with the TriangleMeshImpl class.  If additional vertices or triangles are added after
-    //		generating a mesh, then the internal data structures are cloned such that the TriangleMeshImpl
-    //		will then have a std::shared_ptr to the original data structures and this class will have new
-    //		data structures that it uniquely owns.  This permits the TriangleMesh instances to be const without
-    //		incurring the overhead of copying the data structures for the majority of use cases.
     //
 
     class IncrementalVertexIndexTriangleMeshBuilderImpl : public IncrementalVertexIndexTriangleMeshBuilder
     {
        public:
         IncrementalVertexIndexTriangleMeshBuilderImpl(size_t num_vertices, size_t num_triangles)
-            : mesh_( num_vertices, num_triangles )
+            : mesh_(num_vertices, num_triangles)
         {
             vertex_index_remapper_.reserve(num_vertices);
         };
 
-        ~IncrementalVertexIndexTriangleMeshBuilderImpl() = default;  //	NOLINT
+        ~IncrementalVertexIndexTriangleMeshBuilderImpl() = default;
 
         IncrementalVertexIndexTriangleMeshBuilderImpl() = delete;
         IncrementalVertexIndexTriangleMeshBuilderImpl(const IncrementalVertexIndexTriangleMeshBuilderImpl&) = delete;
@@ -648,8 +670,8 @@ namespace Cork::Meshes
 
             //	Remap the triangle indices
 
-            TriangleByIndices remappedTriangle(mesh_.triangles().size(), vertex_index_remapper_[a], vertex_index_remapper_[b],
-                                               vertex_index_remapper_[c]);
+            TriangleByIndices remappedTriangle(mesh_.triangles().size(), vertex_index_remapper_[a],
+                                               vertex_index_remapper_[b], vertex_index_remapper_[c]);
 
             //	Add the triangle to the vector
 
@@ -662,7 +684,8 @@ namespace Cork::Meshes
 
         std::unique_ptr<TriangleMesh> mesh() final
         {
-            auto return_value = std::unique_ptr<TriangleMesh>(new TriangleMeshImpl( std::move( mesh_ )));
+            std::unique_ptr<TriangleMesh> return_value =
+                std::unique_ptr<TriangleMesh>(new TriangleMeshWrapper( std::move(mesh_)));
 
             mesh_.clear();
 
@@ -672,7 +695,7 @@ namespace Cork::Meshes
        private:
         using VertexIndexLookupMap = std::map<Primitives::Vertex3D, IndexType, Primitives::Vertex3DMapCompare>;
 
-        MeshBaseImpl mesh_;
+        MeshBase mesh_;
 
         VertexIndexLookupMap vertex_indices_;
         Primitives::IndexRemapper<VertexIndex> vertex_index_remapper_;
