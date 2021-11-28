@@ -1,5 +1,5 @@
 // +-------------------------------------------------------------------------
-// | files.h
+// | writeable_mesh.hpp
 // |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
@@ -23,6 +23,7 @@
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
+
 #pragma once
 
 // The following ifdef block is the standard way of creating macros which make exporting
@@ -41,61 +42,17 @@
 #define CORKLIB_API
 #endif
 
-#include <filesystem>
-#include <string>
+#include "primitives/primitives.hpp"
 
-#include "mesh/triangle_mesh_builder.hpp"
-
-/*
- *  Files provides a wrapper for different file types and a common
- *  data view for the rest of the program.  This wrapper was introduced
- *  to make it easier to support multiple file types using other people's
- *  file importer/exporter code
- */
-
-namespace Cork::Files
+namespace Cork
 {
-    enum class ReadFileResultCodes
+    class WriteableMesh
     {
-        SUCCESS = 0,
-        UNABLE_TO_OPEN_FILE,
-        UNABLE_TO_FIND_FILE_EXTENSION,
-        ERROR_READING_FILE_TYPE,
-        UNSUPPORTED_FILE_TYPE,
+       public:
+        virtual size_t num_triangles() const = 0;
+        virtual size_t num_vertices() const = 0;
 
-        IFS_UNRECOGNIZED_HEADER,
-        IFS_FILE_FORMAT_ERROR,
-        IFS_NO_VERSION_FOUND,
-        IFS_UNSUPPORTED_VERSION,
-        IFS_ERROR_READING_MODEL_NAME,
-        IFS_ERROR_READING_VERTEX,
-        IFS_ERROR_READING_TRIANGLE,
-
-        OFF_UNRECOGNIZED_HEADER,
-        OFF_ERROR_READING_COUNTS,
-        OFF_ERROR_READING_VERTICES,
-        OFF_READ_DUPLICATE_VERTICES,
-        OFF_ERROR_STRIPPING_VERTEX_COLOR,
-        OFF_NON_TRIANGULAR_FACE,
-        OFF_ERROR_ADDING_FACE_TO_MESH,
-        OFF_ERROR_READING_FACES
+        virtual const TriangleByIndicesVector& triangles() const = 0;
+        virtual const Vertex3DVector& vertices() const = 0;
     };
-
-    enum class WriteFileResultCodes
-    {
-        SUCCESS = 0,
-        UNABLE_TO_FIND_FILE_EXTENSION,
-        UNSUPPORTED_FILE_TYPE,
-        UNABLE_TO_OPEN_FILE,
-
-        ERROR_WRITING_TO_OFS_FILE,
-        ERROR_WRITING_TO_IFS_FILE
-    };
-
-    using ReadFileResult = SEFUtility::ResultWithReturnUniquePtr<ReadFileResultCodes, TriangleMesh>;
-    using WriteFileResult = SEFUtility::Result<WriteFileResultCodes>;
-
-    CORKLIB_API ReadFileResult readOFF(const std::filesystem::path& file_path);
-    CORKLIB_API WriteFileResult writeOFF(const std::filesystem::path& file_path, const WriteableMesh& mesh_to_write);
-
-}  // namespace Cork::Files
+}  // namespace Cork

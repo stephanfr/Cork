@@ -240,9 +240,9 @@ TEST_CASE("Topology Tests", "[file io]")
         auto topo_stats_after_se_removal = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
         REQUIRE(topo_stats_after_se_removal.succeeded());
-        REQUIRE(!topo_stats_after_se_removal.return_value().is_two_manifold());
+        REQUIRE(topo_stats_after_se_removal.return_value().is_two_manifold());
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
-        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 2);
+        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 0);
 
         {
             auto write_result =
@@ -275,7 +275,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats_after_se_removal.succeeded());
         REQUIRE(!topo_stats_after_se_removal.return_value().is_two_manifold());
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
-        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 11);
+        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 108);
 
         {
             auto write_result =

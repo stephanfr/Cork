@@ -26,10 +26,11 @@
 
 #include "mesh/mesh_base.hpp"
 
+#include "primitives/index_remapper.hpp"
+
 namespace Cork::Meshes
 {
-
-    MeshBase::MeshBase(MeshBase&& mesh_base_to_move )
+    MeshBase::MeshBase(MeshBase&& mesh_base_to_move)
         : bounding_box_(mesh_base_to_move.bounding_box_),
           min_and_max_edge_lengths_(mesh_base_to_move.min_and_max_edge_lengths_),
           max_vertex_magnitude_(mesh_base_to_move.max_vertex_magnitude_),
@@ -39,13 +40,13 @@ namespace Cork::Meshes
         mesh_base_to_move.clear();
     }
 
-    MeshBase::MeshBase(size_t num_vertices, size_t num_triangles )
+    MeshBase::MeshBase(size_t num_vertices, size_t num_triangles)
         : tris_(new TriangleByIndicesVector()),
           verts_(new Vertex3DVector()),
           max_vertex_magnitude_(NUMERIC_PRECISION_MIN)
     {
-        tris_->reserve( num_triangles );
-        verts_->reserve( num_vertices );
+        tris_->reserve(num_triangles);
+        verts_->reserve(num_vertices);
     }
 
     void MeshBase::clear()
@@ -63,20 +64,72 @@ namespace Cork::Meshes
         auto copy_of_tris{std::make_shared<TriangleByIndicesVector>(*tris_)};
         auto copy_of_verts{std::make_shared<Vertex3DVector>(*verts_)};
 
-        return MeshBase(copy_of_tris, copy_of_verts, bounding_box_, min_and_max_edge_lengths_,
-                            max_vertex_magnitude_);
+        return MeshBase(copy_of_tris, copy_of_verts, bounding_box_, min_and_max_edge_lengths_, max_vertex_magnitude_);
     }
 
-    MeshBase::MeshBase(std::shared_ptr<TriangleByIndicesVector>& triangles,
-                               std::shared_ptr<Vertex3DVector>& vertices, const Primitives::BBox3D& boundingBox,
-                               const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths,
-                               double max_vertex_magnitude)
+    MeshBase::MeshBase(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>& vertices,
+                       const Primitives::BBox3D& boundingBox,
+                       const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths, double max_vertex_magnitude)
         : tris_(triangles),
           verts_(vertices),
           bounding_box_(boundingBox),
           min_and_max_edge_lengths_(min_and_max_edge_lengths),
           max_vertex_magnitude_(max_vertex_magnitude)
     {
+    }
+
+    void MeshBase::compact()
+    {
+        //  Removes unreferenced vertices and remaps triangles
+
+        //  Start by identifying the vertices that are still in use
+
+        BooleanVector<VertexIndex> live_verts(verts_->size(), false);
+
+        for (const auto& tri : *tris_)
+        {
+            live_verts[tri.a()] = true;
+            live_verts[tri.b()] = true;
+            live_verts[tri.c()] = true;
+        }
+
+        //  Next, remap those verts - this will end up with vertices getting smaller indices as unused
+        //      vertices are skipped.
+
+        Primitives::IndexRemapper<VertexIndex>      vertex_remapper;
+        
+        vertex_remapper.reserve( verts_->size() );
+
+        VertexIndex     new_index = 0U;
+
+        for( VertexIndex i = 0U; i < live_verts.size(); i++ )
+        {
+            if( live_verts[i] )
+            {
+                vertex_remapper[i] = new_index;
+                (*verts_)[new_index] = (*verts_)[i];
+                new_index++;
+            }
+        }
+
+        std::cout << verts_->size() << "    " << new_index << std::endl;
+
+        verts_->resize( VertexIndex::integer_type( new_index ) );
+
+        //  Remap the triangles
+
+        TriangleByIndices::UIDType     tri_uid = 0U;
+
+        for( auto& tri : *tris_ )
+        {
+            tri = TriangleByIndices( tri_uid++, vertex_remapper[tri.a()], vertex_remapper[tri.b()], vertex_remapper[tri.c()] );
+        }
+
+        //  Invalidate the topo cache
+
+        topo_cache_.release();
+
+        //  Done
     }
 
 }  // namespace Cork::Meshes

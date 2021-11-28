@@ -29,12 +29,14 @@
 #include <optional>
 #include <vector>
 
+#include "writeable_mesh.hpp"
+
 #include "math/quantization.hpp"
 #include "mesh/topo_cache.hpp"
 
 namespace Cork::Meshes
 {
-    class MeshBase
+    class MeshBase : public WriteableMesh
     {
        public:
         MeshBase(MeshBase&& mesh_base_to_move);
@@ -119,6 +121,8 @@ namespace Cork::Meshes
 
             return *topo_cache_;
         }
+
+        void    compact();
 
         void for_raw_tris(std::function<void(VertexIndex, VertexIndex, VertexIndex)> func)
         {

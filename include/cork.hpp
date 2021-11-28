@@ -43,10 +43,12 @@
 #endif
 
 #include "CPPResult.hpp"
+#include "writeable_mesh.hpp"
 #include "statistics.hpp"
 
 namespace Cork
 {
+
     enum class TopologicalStatisticsResultCodes
     {
         SUCCESS = 0,
@@ -66,7 +68,40 @@ namespace Cork
 
     using HoleClosingResult = SEFUtility::Result<HoleClosingResultCodes>;
 
-    class TriangleMesh
+    class SelfIntersectionResolutionResults
+    {
+        public :
+
+        SelfIntersectionResolutionResults() = delete;
+
+        SelfIntersectionResolutionResults( uint32_t        num_self_intersections_resolved,
+                                           uint32_t        num_self_intersections_abandoned,
+                                           uint32_t        num_failures_on_final_resolution )
+            : num_self_intersections_resolved_( num_self_intersections_resolved ),
+              num_self_intersections_abandoned_( num_self_intersections_abandoned ),
+              num_failures_on_final_resolution_(num_failures_on_final_resolution)
+        {}
+
+        SelfIntersectionResolutionResults( const SelfIntersectionResolutionResults& ) = default;
+        SelfIntersectionResolutionResults( SelfIntersectionResolutionResults&& ) = default;
+
+        ~SelfIntersectionResolutionResults() = default;
+
+        SelfIntersectionResolutionResults&      operator=( const SelfIntersectionResolutionResults& ) = default;
+        SelfIntersectionResolutionResults&      operator=( SelfIntersectionResolutionResults&& ) = default;
+
+        uint32_t        num_self_intersections_resolved() const { return num_self_intersections_resolved_; }
+        uint32_t        num_self_intersections_abandoned() const { return num_self_intersections_abandoned_; }
+        uint32_t        num_failures_on_final_resolution() const { return num_failures_on_final_resolution_; }
+
+        private :
+
+        uint32_t        num_self_intersections_resolved_;
+        uint32_t        num_self_intersections_abandoned_;
+        uint32_t        num_failures_on_final_resolution_;
+    };
+
+    class TriangleMesh : public virtual WriteableMesh
     {
        public:
         using GeometricStatistics = Statistics::GeometricStatistics;
@@ -95,7 +130,7 @@ namespace Cork
             TopologicalProperties props_to_compute) const = 0;
 
         virtual HoleClosingResult close_holes(const TopologicalStatistics& topo_stats) = 0;
-        virtual void remove_self_intersections(const TopologicalStatistics& topo_stats) = 0;
+        virtual SelfIntersectionResolutionResults remove_self_intersections(const TopologicalStatistics& topo_stats) = 0;
     };
 
     class SolverControlBlock

@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include <set>
+
 #include "type_safe/integer.hpp"
 
 //	Setup the numeric precision and the vector implementation for the build.
@@ -416,6 +418,50 @@ namespace Cork::Primitives
         }
     };
 
+    class TriangleByIndicesIndexSet : public std::set<TriangleByIndicesIndex>
+    {
+       public:
+        TriangleByIndicesIndexSet() = default;
+        TriangleByIndicesIndexSet( TriangleByIndicesIndexSet&& ) = default;
+
+        TriangleByIndicesIndexSet(const TriangleByIndicesIndexSet& set_to_copy)
+            : std::set<TriangleByIndicesIndex>(set_to_copy)
+        {
+        }
+
+        TriangleByIndicesIndexSet(const TriangleByIndicesIndexSet& set_to_copy,
+                                  const TriangleByIndicesIndexSet& set_to_merge)
+            : std::set<TriangleByIndicesIndex>(set_to_copy)
+        {
+            merge(set_to_merge);
+        }
+
+        TriangleByIndicesIndexSet&      operator=( const TriangleByIndicesIndexSet& ) = default;
+
+        bool    intersects( const TriangleByIndicesIndexSet&    set_to_check )
+        {
+            for (auto index : set_to_check)
+            {
+                if( contains(index))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        void merge(const TriangleByIndicesIndexSet& set_to_add)
+        {
+            for (auto index : set_to_add)
+            {
+                emplace(index);
+            }
+        }
+    };
+
+    using TriangleByIndicesSet = std::set<TriangleByIndices>;
+
     using EdgeByIndicesVector = std::vector<EdgeByIndices>;
 
     class EdgeByVertices
@@ -545,6 +591,8 @@ namespace Cork::Primitives
 
         void resize(IndexType new_size) { vector_.resize(size_t(new_size)); }
 
+        size_t      size() const { return vector_.size(); }
+
         unsigned char& operator[](IndexType index)
         {
             unsigned char& return_value = vector_[TriangleByIndicesIndex::integer_type(index)];
@@ -584,6 +632,9 @@ namespace Cork
     using Vertex3DVector = Primitives::Vertex3DVector;
     using TriangleByIndicesVector = Primitives::TriangleByIndicesVector;
     using EdgeByIndicesVector = Primitives::EdgeByIndicesVector;
+
+    using TriangleByIndicesSet = Primitives::TriangleByIndicesSet;
+    using TriangleByIndicesIndexSet = Primitives::TriangleByIndicesIndexSet;
 
     template <typename IndexType>
     using BooleanVector = Primitives::BooleanVector<IndexType>;
