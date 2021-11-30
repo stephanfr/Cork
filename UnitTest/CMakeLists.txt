@@ -51,6 +51,8 @@ add_executable( benchmarks
   bounding_box_benchmark.cpp
   UnionFindBenchmark.cpp
   Vector3DBenchmark.cpp
+  performance_stream_benchmark.cpp
+  exterior_calculus_benchmark.cpp
 )
 
 target_link_libraries(benchmarks PRIVATE Catch2::Catch2WithMain Corklib tbb mpir boost_program_options boost_filesystem boost_system boost_timer boost_thread pthread)

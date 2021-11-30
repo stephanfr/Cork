@@ -4,7 +4,7 @@
 
 #include "primitives/primitives.hpp"
 
-#include "util/ThreadPool.h"
+#include "util/thread_pool.hpp"
 #include "util/union_find.hpp"
 #include "RandomGraphGenerator.h"
 #include "tbb/tbb.h"
