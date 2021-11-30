@@ -24,6 +24,7 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
+#include <boost/container/small_vector.hpp>
 #include <unordered_set>
 
 #include "mesh/mesh_base.hpp"
@@ -90,21 +91,30 @@ namespace Cork::Statistics
 
             virtual ~EdgeAndIncidence() {}
 
-            int AddIncidence() { return (++m_numIncidences); }
+            int AddIncidence(TriangleByIndicesIndex tri_index, TriangleEdgeId edge_id)
+            {
+                triangles_.emplace_back(std::make_pair(tri_index, edge_id));
+                return ++m_numIncidences;
+            }
 
             int numIncidences() const { return (m_numIncidences); }
+
+            const boost::container::small_vector<std::pair<TriangleByIndicesIndex, TriangleEdgeId>, 4> triangles() const
+            {
+                return triangles_;
+            }
 
             struct HashFunction
             {
                 std::size_t operator()(const Primitives::EdgeByIndices& k) const
                 {
-                    return (VertexIndex::integer_type(k.first()) * 10000019 ^
-                            VertexIndex::integer_type(k.second()));
+                    return (VertexIndex::integer_type(k.first()) * 10000019 ^ VertexIndex::integer_type(k.second()));
                 }
             };
 
            private:
             int m_numIncidences;
+            boost::container::small_vector<std::pair<TriangleByIndicesIndex, TriangleEdgeId>, 4> triangles_;
         };
 
         using EdgeSet = std::unordered_set<EdgeAndIncidence, EdgeAndIncidence::HashFunction>;

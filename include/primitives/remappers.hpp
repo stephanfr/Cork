@@ -36,7 +36,7 @@ namespace Cork::Primitives
         T& operator[](size_t) = delete;
         const T& operator[](size_t) const = delete;
 
-        T& operator[](T index){return std::vector<T>::operator[](typename T::integer_type(index)); }
+        T& operator[](T index) { return std::vector<T>::operator[](typename T::integer_type(index)); }
         const T& operator[](T index) const { return std::vector<T>::operator[](typename T::integer_type(index)); }
     };
 

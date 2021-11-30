@@ -28,7 +28,7 @@
 
 #include <set>
 
-#include "primitives/hole.hpp"
+#include "primitives/boundary_edge.hpp"
 
 namespace Cork::Statistics
 {
@@ -86,6 +86,25 @@ namespace Cork::Statistics
         const BBox3D bounding_box_;
     };
 
+    class NonManifoldEdge
+    {
+        public :
+
+        NonManifoldEdge() = delete;
+
+        NonManifoldEdge( TriangleByIndicesIndex triangle_id,
+                         TriangleEdgeId edge_id )
+                         : triangle_id_( triangle_id ), edge_id_( edge_id )
+                         {}
+
+        NonManifoldEdge( const NonManifoldEdge& ) = default;
+        NonManifoldEdge( NonManifoldEdge&& ) = default;
+
+
+        TriangleByIndicesIndex triangle_id_;
+        TriangleEdgeId edge_id_;
+    };
+
     class SelfIntersectingEdge
     {
        public:
@@ -121,11 +140,11 @@ namespace Cork::Statistics
        public:
         TopologicalStatistics() = delete;
 
-        TopologicalStatistics(size_t num_edges, size_t num_bodies, size_t non_2_manifold_edges,
-                              const std::vector<Hole>& holes, const std::vector<SelfIntersectingEdge>& self_intersecting_edges)
+        TopologicalStatistics(size_t num_edges, size_t num_bodies, const std::vector<NonManifoldEdge>& non_manifold_edges,
+                              const std::vector<BoundaryEdge>& holes, const std::vector<SelfIntersectingEdge>& self_intersecting_edges)
             : num_edges_(num_edges),
               num_bodies_(num_bodies),
-              non_2_manifold_edges_(non_2_manifold_edges),
+              non_manifold_edges_(non_manifold_edges),
               holes_(holes),
               self_intersecting_edges_(self_intersecting_edges)
         {
@@ -134,7 +153,7 @@ namespace Cork::Statistics
         TopologicalStatistics(const TopologicalStatistics& stats_to_copy)
             : num_edges_(stats_to_copy.num_edges_),
               num_bodies_(stats_to_copy.num_bodies_),
-              non_2_manifold_edges_(stats_to_copy.non_2_manifold_edges_),
+              non_manifold_edges_(stats_to_copy.non_manifold_edges_),
               holes_(stats_to_copy.holes_),
               self_intersecting_edges_(stats_to_copy.self_intersecting_edges_)
         {
@@ -151,17 +170,17 @@ namespace Cork::Statistics
 
         size_t num_bodies() const { return (num_bodies_); }
 
-        bool is_two_manifold() const { return (non_2_manifold_edges_ == 0); }
+        const std::vector<NonManifoldEdge> non_manifold_edges() const { return non_manifold_edges_; }
 
-        const std::vector<Hole>& holes() const { return holes_; }
+        const std::vector<BoundaryEdge>& holes() const { return holes_; }
         const std::vector<SelfIntersectingEdge>& self_intersecting_edges() const { return self_intersecting_edges_; }
 
        private:
         size_t num_edges_;
         size_t num_bodies_;
-        size_t non_2_manifold_edges_;
 
-        const std::vector<Hole> holes_;
+        const std::vector<NonManifoldEdge> non_manifold_edges_;
+        const std::vector<BoundaryEdge> holes_;
         const std::vector<SelfIntersectingEdge> self_intersecting_edges_;
     };
 

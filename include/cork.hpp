@@ -131,6 +131,8 @@ namespace Cork
 
         virtual HoleClosingResult close_holes(const TopologicalStatistics& topo_stats) = 0;
         virtual SelfIntersectionResolutionResults remove_self_intersections(const TopologicalStatistics& topo_stats) = 0;
+        virtual void remove_non_manifold_edges(const Statistics::TopologicalStatistics& topo_stats) = 0;
+
     };
 
     class SolverControlBlock

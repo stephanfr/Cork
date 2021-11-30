@@ -27,14 +27,16 @@
 #include "statistics/statistics_engines.hpp"
 
 #include "intersection/self_intersection_finder.hpp"
+#include "mesh/boundary_edge_builder.hpp"
 
 
 
 namespace Cork::Statistics
 {
-    using MeshBaseImpl = Meshes::MeshBase;
+    using MeshBase = Meshes::MeshBase;
 
     using SelfIntersectingEdge = Statistics::SelfIntersectingEdge;
+    using BoundaryEdgeBuilder = Meshes::BoundaryEdgeBuilder;
 
     GeometricStatisticsEngine::GeometricStatisticsEngine(const Meshes::MeshBase& triangle_mesh,
                                                          GeometricProperties properties_to_compute)
@@ -87,20 +89,22 @@ namespace Cork::Statistics
         }
     }
 
-    TopologicalStatisticsEngine::TopologicalStatisticsEngine(const MeshBaseImpl& triangle_mesh)
+    TopologicalStatisticsEngine::TopologicalStatisticsEngine(const MeshBase& triangle_mesh)
         : triangle_mesh_(triangle_mesh)
     {
         edges_.reserve((triangle_mesh.num_triangles() * 6) + 10);  //  Pad just a little bit
 
-        for (const auto& current_triangle : triangle_mesh_.triangles())
+        for ( TriangleByIndicesIndex i = 0U; i < triangle_mesh_.triangles().size(); i++)
         {
-            EdgeSet::iterator itrEdgeAB = edges_.emplace(current_triangle.a(), current_triangle.b()).first;
-            EdgeSet::iterator itrEdgeAC = edges_.emplace(current_triangle.a(), current_triangle.c()).first;
-            EdgeSet::iterator itrEdgeBC = edges_.emplace(current_triangle.b(), current_triangle.c()).first;
+            const TriangleByIndices&       current_triangle = triangle_mesh_.triangles()[i];
 
-            const_cast<EdgeAndIncidence&>(*itrEdgeAB).AddIncidence();
-            const_cast<EdgeAndIncidence&>(*itrEdgeAC).AddIncidence();
-            const_cast<EdgeAndIncidence&>(*itrEdgeBC).AddIncidence();
+            EdgeSet::iterator itrEdgeAB = edges_.emplace(current_triangle.a(), current_triangle.b()).first;
+            EdgeSet::iterator itrEdgeBC = edges_.emplace(current_triangle.b(), current_triangle.c()).first;
+            EdgeSet::iterator itrEdgeCA = edges_.emplace(current_triangle.c(), current_triangle.a()).first;
+
+            const_cast<EdgeAndIncidence&>(*itrEdgeAB).AddIncidence(i, TriangleEdgeId::AB);
+            const_cast<EdgeAndIncidence&>(*itrEdgeBC).AddIncidence(i, TriangleEdgeId::BC);
+            const_cast<EdgeAndIncidence&>(*itrEdgeCA).AddIncidence(i, TriangleEdgeId::CA);
         }
     }
 
@@ -111,7 +115,9 @@ namespace Cork::Statistics
 
         int num_non_2_manifold = 0;
         int num_edges = 0;
-        std::vector<Hole> holes;
+
+        std::vector<NonManifoldEdge>    non_manifold_edges;
+        std::vector<BoundaryEdge> holes;
         std::vector<SelfIntersectingEdge> si_stats;
 
         if (props_to_compute & TopologicalProperties::TOPO_BASE)
@@ -120,7 +126,7 @@ namespace Cork::Statistics
             {
                 if (edge.numIncidences() != 2)
                 {
-                    num_non_2_manifold++;
+                    non_manifold_edges.emplace_back( NonManifoldEdge( edge.triangles().front().first, edge.triangles().front().second ));
                 }
             }
 
@@ -141,7 +147,8 @@ namespace Cork::Statistics
                     }
                 }
             }
-            holes = HoleBuilder::extract_holes(hole_edges);
+
+            holes = BoundaryEdgeBuilder().extract_boundaries(hole_edges);
         }
 
         if (props_to_compute & TopologicalProperties::TOPO_SELF_INTERSECTIONS)
@@ -151,7 +158,7 @@ namespace Cork::Statistics
             si_stats = se_finder.CheckSelfIntersection();
         }
 
-        return TopologicalStatistics(num_edges, 0, num_non_2_manifold, holes, si_stats);
+        return TopologicalStatistics(num_edges, 0, non_manifold_edges, holes, si_stats);
     }
 
 };  // namespace Cork::Statistics
