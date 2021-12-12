@@ -5,6 +5,29 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(gdb) Tests",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/UnitTest/tests",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/UnitTest",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "logging": {
+                "trace": true,
+                "traceResponse": true
+              },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "(gdb) Regression Test",
             "type": "cppdbg",
             "request": "launch",
@@ -15,6 +38,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
+            "hardwareBreakpoints": { "require": true, "limit": 32 },
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

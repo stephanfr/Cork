@@ -25,6 +25,8 @@
 #include "file_formats/files.hpp"
 #include "intersection/triangulator.hpp"
 #include "mesh/boundary_edge_builder.hpp"
+#include "mesh/surface_mesh.hpp"
+#include "mesh/triangle_mesh_wrapper.hpp"
 
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
 
@@ -148,10 +150,10 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(stats.return_value().holes().size() == 3);
         REQUIRE(((stats.return_value().holes()[0].vertices()[0] == 21u) && (stats.return_value().holes()[0].vertices()[1] == 11u) &&
                  (stats.return_value().holes()[0].vertices()[2] == 5u) && (stats.return_value().holes()[0].vertices()[3] == 13u)));
-        REQUIRE(((stats.return_value().holes()[1].vertices()[0] == 16u) && (stats.return_value().holes()[1].vertices()[1] == 24u) &&
-                 (stats.return_value().holes()[1].vertices()[2] == 8u)));
-        REQUIRE(((stats.return_value().holes()[2].vertices()[0] == 16u) && (stats.return_value().holes()[2].vertices()[1] == 18u) &&
-                 (stats.return_value().holes()[2].vertices()[2] == 12u)));
+        REQUIRE(((stats.return_value().holes()[1].vertices()[0] == 8u) && (stats.return_value().holes()[1].vertices()[1] == 16u) &&
+                 (stats.return_value().holes()[1].vertices()[2] == 24u)));
+        REQUIRE(((stats.return_value().holes()[2].vertices()[0] == 18u) && (stats.return_value().holes()[2].vertices()[1] == 12u) &&
+                 (stats.return_value().holes()[2].vertices()[2] == 16u)));
         REQUIRE(stats.return_value().self_intersecting_edges().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
     }
@@ -219,7 +221,6 @@ TEST_CASE("Topology Tests", "[file io]")
             REQUIRE(write_result.succeeded());
         }
     }
-
     
     SECTION("Find and Fix Self Intersections - Hard")
     {
@@ -253,7 +254,7 @@ TEST_CASE("Topology Tests", "[file io]")
         }
     }
 
-        
+
     SECTION("Find and Fix Self Intersections - Harder")
     {
         auto read_result = Cork::Files::readOFF("../../UnitTest/Test Files/TulipWithSelfIntersections.off");
@@ -277,6 +278,13 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats_after_se_removal.return_value().non_manifold_edges().size() != 0);
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
 //        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 108);
+
+        {
+            auto write_result =
+                Cork::Files::writeOFF("../../UnitTest/Test Results/TulipRepaired.off", *mesh);
+
+            REQUIRE(write_result.succeeded());
+        }
 
         mesh->remove_non_manifold_edges( topo_stats_after_se_removal.return_value() );
 
@@ -303,12 +311,5 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats_after_nme_removal_2.succeeded());
         REQUIRE(topo_stats_after_nme_removal_2.return_value().non_manifold_edges().size() != 0);
         REQUIRE(topo_stats_after_nme_removal_2.return_value().holes().size() == 0);
-
-        {
-            auto write_result =
-                Cork::Files::writeOFF("../../UnitTest/Test Results/TulipRepaired.off", *mesh);
-
-            REQUIRE(write_result.succeeded());
-        }
     }
 }

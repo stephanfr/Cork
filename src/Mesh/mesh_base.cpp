@@ -140,12 +140,12 @@ namespace Cork::Meshes
         return MeshBase(copy_of_tris, copy_of_verts, bounding_box_, min_and_max_edge_lengths_, max_vertex_magnitude_);
     }
 
-    std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleByIndicesVector& tris_to_extract)
+    std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleByIndicesVector& tris_to_extract) const
     {
         return TriangleRemapper(*this).extract_surface(tris_to_extract);
     }
 
-    std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleByIndicesIndexSet& tris_to_extract)
+    std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleByIndicesIndexSet& tris_to_extract) const
     {
         return TriangleRemapper(*this).extract_surface(tris_to_extract);
     }

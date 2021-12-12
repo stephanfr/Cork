@@ -27,7 +27,7 @@
 #include <boost/container/small_vector.hpp>
 #include <unordered_set>
 
-#include "mesh/mesh_base.hpp"
+#include "mesh/edge_incidence_counter.hpp"
 #include "statistics.hpp"
 
 namespace Cork::Statistics
@@ -81,45 +81,7 @@ namespace Cork::Statistics
        private:
         const Cork::Meshes::MeshBase& triangle_mesh_;
 
-        class EdgeAndIncidence : public Primitives::EdgeByIndices
-        {
-           public:
-            EdgeAndIncidence(const Primitives::VertexIndex a, const Primitives::VertexIndex b)
-                : Primitives::EdgeByIndices(a, b), m_numIncidences(0)
-            {
-            }
-
-            virtual ~EdgeAndIncidence() {}
-
-            int AddIncidence(TriangleByIndicesIndex tri_index, TriangleEdgeId edge_id)
-            {
-                triangles_.emplace_back(std::make_pair(tri_index, edge_id));
-                return ++m_numIncidences;
-            }
-
-            int numIncidences() const { return (m_numIncidences); }
-
-            const boost::container::small_vector<std::pair<TriangleByIndicesIndex, TriangleEdgeId>, 4> triangles() const
-            {
-                return triangles_;
-            }
-
-            struct HashFunction
-            {
-                std::size_t operator()(const Primitives::EdgeByIndices& k) const
-                {
-                    return (VertexIndex::integer_type(k.first()) * 10000019 ^ VertexIndex::integer_type(k.second()));
-                }
-            };
-
-           private:
-            int m_numIncidences;
-            boost::container::small_vector<std::pair<TriangleByIndicesIndex, TriangleEdgeId>, 4> triangles_;
-        };
-
-        using EdgeSet = std::unordered_set<EdgeAndIncidence, EdgeAndIncidence::HashFunction>;
-
-        EdgeSet edges_;
+        Meshes::EdgeIncidenceCounter edges_;
     };
 
 }  // namespace Cork::Statistics

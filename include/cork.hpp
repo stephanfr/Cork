@@ -49,16 +49,6 @@
 namespace Cork
 {
 
-    enum class TopologicalStatisticsResultCodes
-    {
-        SUCCESS = 0,
-
-        ANALYSIS_FAILED
-    };
-
-    using TopologicalStatisticsResult =
-        SEFUtility::ResultWithReturnValue<TopologicalStatisticsResultCodes, Statistics::TopologicalStatistics>;
-
     enum class HoleClosingResultCodes
     {
         SUCCESS = 0,
@@ -108,6 +98,7 @@ namespace Cork
         using GeometricProperties = Statistics::GeometricProperties;
         using TopologicalStatistics = Statistics::TopologicalStatistics;
         using TopologicalProperties = Statistics::TopologicalProperties;
+        using TopologicalStatisticsResult = Statistics::TopologicalStatisticsResult;
 
         //	Methods follow
 

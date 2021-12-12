@@ -451,12 +451,14 @@ namespace Cork::Primitives
             return false;
         }
 
-        void merge(const TriangleByIndicesIndexSet& set_to_add)
+        TriangleByIndicesIndexSet& merge(const TriangleByIndicesIndexSet& set_to_add)
         {
             for (auto index : set_to_add)
             {
                 emplace(index);
             }
+
+            return *this;
         }
     };
 

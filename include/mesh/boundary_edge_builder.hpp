@@ -23,16 +23,22 @@
 #include <vector>
 
 #include "primitives/boundary_edge.hpp"
+#include "mesh/edge_incidence_counter.hpp"
 
 namespace Cork::Meshes
 {
     class BoundaryEdgeBuilder
     {
        public:
+
+        using EdgeIncidenceSet = Meshes::EdgeIncidenceSet;
+
         BoundaryEdgeBuilder() = default;
 
-        std::vector<BoundaryEdge> extract_boundaries(const MeshBase& mesh, const TriangleByIndicesIndexSet& tris_in_region);
-        std::vector<BoundaryEdge> extract_boundaries( const EdgeByIndicesVector&   edges );
+        std::vector<BoundaryEdge> extract_boundaries( const MeshBase& mesh, const TriangleByIndicesIndexSet& tris_in_region);
+        std::vector<BoundaryEdge> extract_boundaries( const MeshBase& mesh, const EdgeIncidenceSet&   region_edges );
+        std::vector<BoundaryEdge> extract_boundaries( const EdgeByIndicesVector& region_edges );
+        std::vector<BoundaryEdge> extract_boundaries( EdgeByIndicesVector&& region_edges );
 
        private:
         std::deque<VertexIndex> vertices_;

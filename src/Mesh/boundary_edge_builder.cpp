@@ -21,8 +21,7 @@
 
 namespace Cork::Meshes
 {
-    std::vector<BoundaryEdge> BoundaryEdgeBuilder::extract_boundaries(const MeshBase& mesh,
-                                                                      const TriangleByIndicesIndexSet& tris_in_region)
+    std::vector<BoundaryEdge> BoundaryEdgeBuilder::extract_boundaries(const MeshBase& mesh, const TriangleByIndicesIndexSet& tris_in_region)
     {
         //  Return immediately with an empty list if there are no edges
 
@@ -33,53 +32,33 @@ namespace Cork::Meshes
 
         //  Create the edge incidence map
 
-        std::map<EdgeByIndices, uint32_t, Primitives::EdgeByIndicesMapCompare> edge_counts;
+        EdgeIncidenceCounter        edge_counts( mesh, tris_in_region );
 
-        for (auto tri_to_remove_index : tris_in_region)
+        return extract_boundaries(mesh, edge_counts.edges_and_incidences());
+    }
+
+    std::vector<BoundaryEdge> BoundaryEdgeBuilder::extract_boundaries(const MeshBase& mesh, const EdgeIncidenceSet& region_edges)
+    {
+        //  Return immediately with an empty list if there are no edges
+
+        if (region_edges.empty())
         {
-            auto edge_ab = edge_counts.find(mesh.triangles()[tri_to_remove_index].edge(TriangleEdgeId::AB));
-            auto edge_bc = edge_counts.find(mesh.triangles()[tri_to_remove_index].edge(TriangleEdgeId::BC));
-            auto edge_ca = edge_counts.find(mesh.triangles()[tri_to_remove_index].edge(TriangleEdgeId::CA));
+            return std::vector<BoundaryEdge>();
+        }
 
-            if (edge_ab == edge_counts.end())
-            {
-                edge_counts.insert(std::make_pair(mesh.triangles()[tri_to_remove_index].edge(TriangleEdgeId::AB), 1));
-            }
-            else
-            {
-                edge_ab->second++;
-            }
+        //  Start extracting boundaries
 
-            if (edge_bc == edge_counts.end())
-            {
-                edge_counts.insert(std::make_pair(mesh.triangles()[tri_to_remove_index].edge(TriangleEdgeId::BC), 1));
-            }
-            else
-            {
-                edge_bc->second++;
-            }
+        std::vector<EdgeByIndices> edges;
 
-            if (edge_ca == edge_counts.end())
+        for (auto edge : region_edges)
+        {
+            if (edge.numIncidences() == 1)
             {
-                edge_counts.insert(std::make_pair(mesh.triangles()[tri_to_remove_index].edge(TriangleEdgeId::CA), 1));
-            }
-            else
-            {
-                edge_ca->second++;
+                edges.emplace_back(mesh.triangles()[edge.triangles()[0U].first].edge(edge.triangles()[0U].second));
             }
         }
 
-        EdgeByIndicesVector region_edges;
-
-        for (auto edge : edge_counts)
-        {
-            if (edge.second == 1)
-            {
-                region_edges.emplace_back(edge.first);
-            }
-        }
-
-        return extract_boundaries(region_edges);
+        return extract_boundaries( edges );
     }
 
     std::vector<BoundaryEdge> BoundaryEdgeBuilder::extract_boundaries(const EdgeByIndicesVector& region_edges)
@@ -93,9 +72,25 @@ namespace Cork::Meshes
 
         //  Start extracting boundaries
 
+        std::vector<EdgeByIndices> edges( region_edges );
+
+        return extract_boundaries( std::move( edges ) );
+    }
+
+    std::vector<BoundaryEdge> BoundaryEdgeBuilder::extract_boundaries( EdgeByIndicesVector&& region_edges)
+    {
+        //  Return immediately with an empty list if there are no edges
+
+        if (region_edges.empty())
+        {
+            return std::vector<BoundaryEdge>();
+        }
+
+        //  Start extracting boundaries
+
         std::vector<BoundaryEdge> boundaries;
 
-        std::vector<EdgeByIndices> edges(region_edges);
+        std::vector<EdgeByIndices> edges( std::move( region_edges ));
 
         vertices_.push_back(edges.back().first());
         vertices_.push_back(edges.back().second());

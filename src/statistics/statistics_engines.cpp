@@ -90,23 +90,9 @@ namespace Cork::Statistics
     }
 
     TopologicalStatisticsEngine::TopologicalStatisticsEngine(const MeshBase& triangle_mesh)
-        : triangle_mesh_(triangle_mesh)
-    {
-        edges_.reserve((triangle_mesh.num_triangles() * 6) + 10);  //  Pad just a little bit
-
-        for ( TriangleByIndicesIndex i = 0U; i < triangle_mesh_.triangles().size(); i++)
-        {
-            const TriangleByIndices&       current_triangle = triangle_mesh_.triangles()[i];
-
-            EdgeSet::iterator itrEdgeAB = edges_.emplace(current_triangle.a(), current_triangle.b()).first;
-            EdgeSet::iterator itrEdgeBC = edges_.emplace(current_triangle.b(), current_triangle.c()).first;
-            EdgeSet::iterator itrEdgeCA = edges_.emplace(current_triangle.c(), current_triangle.a()).first;
-
-            const_cast<EdgeAndIncidence&>(*itrEdgeAB).AddIncidence(i, TriangleEdgeId::AB);
-            const_cast<EdgeAndIncidence&>(*itrEdgeBC).AddIncidence(i, TriangleEdgeId::BC);
-            const_cast<EdgeAndIncidence&>(*itrEdgeCA).AddIncidence(i, TriangleEdgeId::CA);
-        }
-    }
+        : triangle_mesh_(triangle_mesh),
+          edges_( triangle_mesh )
+    {}
 
     TopologicalStatisticsEngineAnalyzeResult TopologicalStatisticsEngine::Analyze(
         TopologicalProperties props_to_compute)
@@ -122,7 +108,7 @@ namespace Cork::Statistics
 
         if (props_to_compute & TopologicalProperties::TOPO_BASE)
         {
-            for (auto& edge : edges_)
+            for (auto& edge : edges_.edges_and_incidences())
             {
                 if (edge.numIncidences() != 2)
                 {
@@ -130,14 +116,14 @@ namespace Cork::Statistics
                 }
             }
 
-            num_edges = edges_.size();
+            num_edges = edges_.edges_and_incidences().size();
         }
 
         if (props_to_compute & TopologicalProperties::TOPO_HOLES)
         {
             std::vector<Primitives::EdgeByIndices> hole_edges;
 
-            for (auto& edge : edges_)
+            for (auto& edge : edges_.edges_and_incidences())
             {
                 if (edge.numIncidences() != 2)
                 {

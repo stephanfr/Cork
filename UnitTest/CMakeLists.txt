@@ -32,16 +32,16 @@ include_directories(
 )
 
 add_executable( tests
-  exterior_calculus_test.cpp
-  performance_stream_test.cpp
-  off_file_io_test.cpp
-  CachingFactoryTest.cpp
-  ConstructOnceResizeableVectorTest.cpp
-  Vector2DTest.cpp
-  Vector3DTest.cpp
-  topology_tests.cpp
-  geometric_tests.cpp
-  triangulator_test.cpp
+#  exterior_calculus_test.cpp
+#  performance_stream_test.cpp
+#  off_file_io_test.cpp
+#  CachingFactoryTest.cpp
+#  ConstructOnceResizeableVectorTest.cpp
+#  Vector2DTest.cpp
+#  Vector3DTest.cpp
+#  topology_tests.cpp
+#  geometric_tests.cpp
+#  triangulator_test.cpp
   surface_mesh_tests.cpp
 )
 

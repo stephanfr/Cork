@@ -36,7 +36,8 @@ add_library(Corklib SHARED
     Intersection/self_intersection_finder.cpp
     Mesh/mesh.cpp
     Mesh/topo_cache.cpp
-    Mesh/triangle_mesh.cpp
+    Mesh/triangle_mesh_impl.cpp
+    Mesh/triangle_mesh_wrapper.cpp
     Mesh/mesh_base.cpp
     Mesh/mesh_builder.cpp
     Mesh/boundary_edge_builder.cpp
