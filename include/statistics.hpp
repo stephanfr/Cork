@@ -88,19 +88,21 @@ namespace Cork::Statistics
 
     class NonManifoldEdge
     {
-        public :
-
+       public:
         NonManifoldEdge() = delete;
 
-        NonManifoldEdge( TriangleByIndicesIndex triangle_id,
-                         TriangleEdgeId edge_id )
-                         : triangle_id_( triangle_id ), edge_id_( edge_id )
-                         {}
+        NonManifoldEdge(TriangleByIndicesIndex triangle_id, TriangleEdgeId edge_id)
+            : triangle_id_(triangle_id), edge_id_(edge_id)
+        {
+        }
 
-        NonManifoldEdge( const NonManifoldEdge& ) = default;
-        NonManifoldEdge( NonManifoldEdge&& ) = default;
+        NonManifoldEdge(const NonManifoldEdge&) = default;
+        NonManifoldEdge(NonManifoldEdge&&) = default;
 
+        TriangleByIndicesIndex triangle_id() const { return triangle_id_; }
+        TriangleEdgeId edge_id() const { return edge_id_; }
 
+       private:
         TriangleByIndicesIndex triangle_id_;
         TriangleEdgeId edge_id_;
     };
@@ -110,8 +112,8 @@ namespace Cork::Statistics
        public:
         SelfIntersectingEdge() = delete;
 
-        SelfIntersectingEdge(const SelfIntersectingEdge& ) = default;
-        SelfIntersectingEdge(SelfIntersectingEdge&& ) = default;
+        SelfIntersectingEdge(const SelfIntersectingEdge&) = default;
+        SelfIntersectingEdge(SelfIntersectingEdge&&) = default;
 
         SelfIntersectingEdge(TriangleByIndicesIndex edge_triangle_id, TriangleEdgeId edge_index,
                              TriangleByIndicesIndex triangle_instersected_id)
@@ -121,8 +123,8 @@ namespace Cork::Statistics
         {
         }
 
-        SelfIntersectingEdge&   operator=(const SelfIntersectingEdge&) = default;
-        SelfIntersectingEdge&   operator=(SelfIntersectingEdge&&) = default;
+        SelfIntersectingEdge& operator=(const SelfIntersectingEdge&) = default;
+        SelfIntersectingEdge& operator=(SelfIntersectingEdge&&) = default;
 
         TriangleByIndicesIndex edge_triangle_id() const { return edge_triangle_id_; }
         TriangleEdgeId edge_index() const { return edge_index_; }
@@ -134,14 +136,15 @@ namespace Cork::Statistics
         TriangleByIndicesIndex triangle_instersected_id_;
     };
 
-
     class TopologicalStatistics
     {
        public:
         TopologicalStatistics() = delete;
 
-        TopologicalStatistics(size_t num_edges, size_t num_bodies, const std::vector<NonManifoldEdge>& non_manifold_edges,
-                              const std::vector<BoundaryEdge>& holes, const std::vector<SelfIntersectingEdge>& self_intersecting_edges)
+        TopologicalStatistics(size_t num_edges, size_t num_bodies,
+                              const std::vector<NonManifoldEdge>& non_manifold_edges,
+                              const std::vector<BoundaryEdge>& holes,
+                              const std::vector<SelfIntersectingEdge>& self_intersecting_edges)
             : num_edges_(num_edges),
               num_bodies_(num_bodies),
               non_manifold_edges_(non_manifold_edges),

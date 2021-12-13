@@ -43,7 +43,6 @@ namespace Cork::Meshes
 
         ~TriangleMeshWrapper(){};
 
-
         TriangleMeshImpl& implementation() { return *mesh_; }
 
         //	Methods follow
@@ -57,6 +56,17 @@ namespace Cork::Meshes
         TriangleByVertices triangle_by_vertices(const TriangleByIndices& triangle_by_indices) const
         {
             return mesh_->triangle_by_vertices(triangle_by_indices);
+        }
+
+        virtual std::unique_ptr<TriangleMesh> extract_surface(TriangleByIndicesIndex center_triangle,
+                                                              uint32_t num_rings, bool smooth_boundary)
+        {
+            Cork::Primitives::TriangleByIndicesIndexSet single_triangle;
+
+            single_triangle.emplace(center_triangle);
+
+            return std::make_unique<TriangleMeshWrapper>( std::move( *(mesh_->extract_surface(
+                mesh_->find_enclosing_triangles(single_triangle, num_rings, smooth_boundary).merge(single_triangle)))));
         }
 
         const BBox3D& bounding_box() const { return mesh_->bounding_box(); }

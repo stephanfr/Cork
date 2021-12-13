@@ -21,7 +21,7 @@
 
 #include <vector>
 
-#include "mesh/mesh_base.hpp"
+#include "primitives/primitives.hpp"
 
 namespace Cork::Meshes
 {

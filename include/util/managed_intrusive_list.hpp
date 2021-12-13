@@ -236,6 +236,7 @@ class ManagedIntrusiveValueList : public boost::noncopyable,
     bool isCompact() const { return (pool_.size() == size()); }
 
     PoolType& getPool() { return (pool_); }
+    const PoolType& getPool() const { return (pool_); }
 
     void FixupList()
     {

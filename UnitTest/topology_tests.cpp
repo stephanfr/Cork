@@ -47,9 +47,9 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(mesh->num_vertices() == 26);
         REQUIRE(mesh->num_triangles() == 48);
 
-        auto stats = mesh->ComputeTopologicalStatistics( Cork::Statistics::TopologicalProperties::TOPO_ALL  );
+        auto stats = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
-        REQUIRE( stats.succeeded() );
+        REQUIRE(stats.succeeded());
         REQUIRE(stats.return_value().non_manifold_edges().size() == 0);
         REQUIRE(stats.return_value().num_edges() == 72);
     }
@@ -123,10 +123,11 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto stats = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
-        REQUIRE( stats.succeeded() );
+        REQUIRE(stats.succeeded());
         REQUIRE(stats.return_value().non_manifold_edges().size() != 0);
         REQUIRE(stats.return_value().holes().size() == 1);
-        REQUIRE(((stats.return_value().holes()[0].vertices()[0] == 21u) && (stats.return_value().holes()[0].vertices()[1] == 5u) &&
+        REQUIRE(((stats.return_value().holes()[0].vertices()[0] == 21u) &&
+                 (stats.return_value().holes()[0].vertices()[1] == 5u) &&
                  (stats.return_value().holes()[0].vertices()[2] == 11u)));
         REQUIRE(stats.return_value().self_intersecting_edges().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
@@ -145,14 +146,18 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto stats = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
-        REQUIRE( stats.succeeded() );
+        REQUIRE(stats.succeeded());
         REQUIRE(stats.return_value().non_manifold_edges().size() != 0);
         REQUIRE(stats.return_value().holes().size() == 3);
-        REQUIRE(((stats.return_value().holes()[0].vertices()[0] == 21u) && (stats.return_value().holes()[0].vertices()[1] == 11u) &&
-                 (stats.return_value().holes()[0].vertices()[2] == 5u) && (stats.return_value().holes()[0].vertices()[3] == 13u)));
-        REQUIRE(((stats.return_value().holes()[1].vertices()[0] == 8u) && (stats.return_value().holes()[1].vertices()[1] == 16u) &&
+        REQUIRE(((stats.return_value().holes()[0].vertices()[0] == 21u) &&
+                 (stats.return_value().holes()[0].vertices()[1] == 11u) &&
+                 (stats.return_value().holes()[0].vertices()[2] == 5u) &&
+                 (stats.return_value().holes()[0].vertices()[3] == 13u)));
+        REQUIRE(((stats.return_value().holes()[1].vertices()[0] == 8u) &&
+                 (stats.return_value().holes()[1].vertices()[1] == 16u) &&
                  (stats.return_value().holes()[1].vertices()[2] == 24u)));
-        REQUIRE(((stats.return_value().holes()[2].vertices()[0] == 18u) && (stats.return_value().holes()[2].vertices()[1] == 12u) &&
+        REQUIRE(((stats.return_value().holes()[2].vertices()[0] == 18u) &&
+                 (stats.return_value().holes()[2].vertices()[1] == 12u) &&
                  (stats.return_value().holes()[2].vertices()[2] == 16u)));
         REQUIRE(stats.return_value().self_intersecting_edges().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
@@ -168,23 +173,23 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto topo_stats = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
-        REQUIRE( topo_stats.succeeded() );
+        REQUIRE(topo_stats.succeeded());
         REQUIRE(topo_stats.return_value().non_manifold_edges().size() == 0);
         REQUIRE(topo_stats.return_value().holes().size() == 0);
         REQUIRE(topo_stats.return_value().self_intersecting_edges().size() == 1);
 
-        mesh->remove_self_intersections( topo_stats.return_value() );
+        mesh->remove_self_intersections(topo_stats.return_value());
 
         {
-            auto write_result =
-                Cork::Files::writeOFF("../../UnitTest/Test Results/JuliaVaseRepaired.off", *mesh);
+            auto write_result = Cork::Files::writeOFF("../../UnitTest/Test Results/JuliaVaseRepaired.off", *mesh);
 
             REQUIRE(write_result.succeeded());
         }
 
-        auto topo_stats_after_se_removal = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
+        auto topo_stats_after_se_removal =
+            mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
-        REQUIRE( topo_stats_after_se_removal.succeeded() );
+        REQUIRE(topo_stats_after_se_removal.succeeded());
         REQUIRE(topo_stats_after_se_removal.return_value().non_manifold_edges().size() == 0);
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
         REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 0);
@@ -200,28 +205,28 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto topo_stats = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
-        REQUIRE(topo_stats.succeeded() );
+        REQUIRE(topo_stats.succeeded());
         REQUIRE(topo_stats.return_value().non_manifold_edges().size() == 0);
         REQUIRE(topo_stats.return_value().holes().size() == 0);
         REQUIRE(topo_stats.return_value().self_intersecting_edges().size() == 4);
 
-        mesh->remove_self_intersections( topo_stats.return_value() );
+        mesh->remove_self_intersections(topo_stats.return_value());
 
-        auto topo_stats_after_se_removal = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
+        auto topo_stats_after_se_removal =
+            mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
-        REQUIRE(topo_stats_after_se_removal.succeeded() );
+        REQUIRE(topo_stats_after_se_removal.succeeded());
         REQUIRE(topo_stats_after_se_removal.return_value().non_manifold_edges().size() == 0);
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
         REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 0);
 
         {
-            auto write_result =
-                Cork::Files::writeOFF("../../UnitTest/Test Results/Schoen_16Repaired.off", *mesh);
+            auto write_result = Cork::Files::writeOFF("../../UnitTest/Test Results/Schoen_16Repaired.off", *mesh);
 
             REQUIRE(write_result.succeeded());
         }
     }
-    
+
     SECTION("Find and Fix Self Intersections - Hard")
     {
         auto read_result = Cork::Files::readOFF("../../UnitTest/Test Files/bladeWithSelfIntersections.off");
@@ -232,14 +237,15 @@ TEST_CASE("Topology Tests", "[file io]")
 
         auto topo_stats = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
-        REQUIRE(topo_stats.succeeded() );
+        REQUIRE(topo_stats.succeeded());
         REQUIRE(topo_stats.return_value().non_manifold_edges().size() == 0);
         REQUIRE(topo_stats.return_value().holes().size() == 0);
         REQUIRE(topo_stats.return_value().self_intersecting_edges().size() == 22);
 
-        mesh->remove_self_intersections( topo_stats.return_value() );
+        mesh->remove_self_intersections(topo_stats.return_value());
 
-        auto topo_stats_after_se_removal = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
+        auto topo_stats_after_se_removal =
+            mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
         REQUIRE(topo_stats_after_se_removal.succeeded());
         REQUIRE(topo_stats_after_se_removal.return_value().non_manifold_edges().size() == 0);
@@ -247,13 +253,11 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 0);
 
         {
-            auto write_result =
-                Cork::Files::writeOFF("../../UnitTest/Test Results/bladeRepaired.off", *mesh);
+            auto write_result = Cork::Files::writeOFF("../../UnitTest/Test Results/bladeRepaired.off", *mesh);
 
             REQUIRE(write_result.succeeded());
         }
     }
-
 
     SECTION("Find and Fix Self Intersections - Harder")
     {
@@ -270,46 +274,20 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats.return_value().holes().size() == 0);
         REQUIRE(topo_stats.return_value().self_intersecting_edges().size() == 178);
 
-        mesh->remove_self_intersections( topo_stats.return_value() );
+        mesh->remove_self_intersections(topo_stats.return_value());
 
-        auto topo_stats_after_se_removal = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
+        auto topo_stats_after_se_removal =
+            mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
         REQUIRE(topo_stats_after_se_removal.succeeded());
-        REQUIRE(topo_stats_after_se_removal.return_value().non_manifold_edges().size() != 0);
+        REQUIRE(topo_stats_after_se_removal.return_value().non_manifold_edges().size() == 0);
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
-//        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 108);
+        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 110);
 
         {
-            auto write_result =
-                Cork::Files::writeOFF("../../UnitTest/Test Results/TulipRepaired.off", *mesh);
+            auto write_result = Cork::Files::writeOFF("../../UnitTest/Test Results/tulipRepaired.off", *mesh);
 
             REQUIRE(write_result.succeeded());
         }
-
-        mesh->remove_non_manifold_edges( topo_stats_after_se_removal.return_value() );
-
-        auto topo_stats_after_nme_removal = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
-
-        REQUIRE(topo_stats_after_nme_removal.succeeded());
-        REQUIRE(topo_stats_after_nme_removal.return_value().non_manifold_edges().size() != 0);
-        REQUIRE(topo_stats_after_nme_removal.return_value().holes().size() == 0);
-//        REQUIRE(topo_stats_after_nme_removal.return_value().self_intersecting_edges().size() == 108);
-
-        mesh->remove_self_intersections( topo_stats.return_value() );
-
-        auto topo_stats_after_se_removal_2 = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
-
-        REQUIRE(topo_stats_after_se_removal_2.succeeded());
-        REQUIRE(topo_stats_after_se_removal_2.return_value().non_manifold_edges().size() != 0);
-        REQUIRE(topo_stats_after_se_removal_2.return_value().holes().size() == 0);
-//        REQUIRE(topo_stats_after_se_removal_2.return_value().self_intersecting_edges().size() == 108);
-
-        mesh->remove_non_manifold_edges( topo_stats_after_se_removal_2.return_value() );
-
-        auto topo_stats_after_nme_removal_2 = mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
-
-        REQUIRE(topo_stats_after_nme_removal_2.succeeded());
-        REQUIRE(topo_stats_after_nme_removal_2.return_value().non_manifold_edges().size() != 0);
-        REQUIRE(topo_stats_after_nme_removal_2.return_value().holes().size() == 0);
     }
 }

@@ -39,7 +39,7 @@ add_executable( tests
 #  ConstructOnceResizeableVectorTest.cpp
 #  Vector2DTest.cpp
 #  Vector3DTest.cpp
-#  topology_tests.cpp
+  topology_tests.cpp
 #  geometric_tests.cpp
 #  triangulator_test.cpp
   surface_mesh_tests.cpp

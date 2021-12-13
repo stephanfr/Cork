@@ -58,10 +58,10 @@ void WriteMeshStatistics(const Cork::TriangleMesh& mesh, const std::string& file
 {
     Cork::Statistics::GeometricStatistics stats =
         mesh.ComputeGeometricStatistics(Cork::Statistics::GeometricProperties::GEOM_ALL);
-    Cork::TopologicalStatisticsResult topo_stats =
+    Cork::Statistics::TopologicalStatisticsResult topo_stats =
         mesh.ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_BASE);
 
-    geotopoResults << filename << "\t" << topo_stats.return_value().is_two_manifold() << "\t";
+    geotopoResults << filename << "\t" << ( topo_stats.return_value().non_manifold_edges().size() != 0 ) << "\t";
     geotopoResults << stats.num_vertices() << "\t" << topo_stats.return_value().num_edges() << "\t"
                    << stats.num_triangles() << "\t";
     geotopoResults << stats.area() << "\t" << stats.volume() << "\t";
@@ -73,7 +73,7 @@ void WriteMeshStatistics(const Cork::TriangleMesh& mesh, const std::string& file
 
     num_successful_operations++;
 
-    if (topo_stats.return_value().is_two_manifold())
+    if (topo_stats.return_value().non_manifold_edges().size() == 0)
     {
         num_two_manifold_results++;
     }
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
 
         std::cout << "Read: " << current_model.filename().string() << std::endl;
 
-        Cork::TopologicalStatisticsResult topo_stats = read_model_result.return_ptr()->ComputeTopologicalStatistics(
+        Cork::Statistics::TopologicalStatisticsResult topo_stats = read_model_result.return_ptr()->ComputeTopologicalStatistics(
             Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
         if (topo_stats.succeeded())
@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
 
                 std::cout << "Num SIs resolved: " << resolve_sis_results.num_self_intersections_resolved() << "  Num Abandoned: " << resolve_sis_results.num_self_intersections_abandoned() << "  Num Failures on final resolution: " << resolve_sis_results.num_failures_on_final_resolution() << std::endl;
                 
-                Cork::TopologicalStatisticsResult topo_stats =
+                Cork::Statistics::TopologicalStatisticsResult topo_stats =
                     read_model_result.return_ptr()->ComputeTopologicalStatistics(
                         Cork::Statistics::TopologicalProperties::TOPO_ALL);
 

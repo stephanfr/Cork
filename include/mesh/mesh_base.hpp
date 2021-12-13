@@ -29,10 +29,10 @@
 #include <optional>
 #include <vector>
 
-#include "writeable_mesh.hpp"
-
 #include "math/quantization.hpp"
 #include "mesh/topo_cache.hpp"
+#include "primitives/boundary_edge.hpp"
+#include "writeable_mesh.hpp"
 
 namespace Cork::Meshes
 {
@@ -41,7 +41,7 @@ namespace Cork::Meshes
        public:
         MeshBase(MeshBase&& mesh_base_to_move);
 
-        MeshBase(size_t num_vertices, size_t num_triangles );
+        MeshBase(size_t num_vertices, size_t num_triangles);
 
         virtual ~MeshBase() {}
 
@@ -122,10 +122,39 @@ namespace Cork::Meshes
             return *topo_cache_;
         }
 
-        std::unique_ptr<MeshBase>       extract_surface( const TriangleByIndicesVector&       tris_to_extract ) const;
-        std::unique_ptr<MeshBase>       extract_surface( const TriangleByIndicesIndexSet&     tris_to_extract ) const;
+        std::vector<BoundaryEdge> get_boundary_edge(const TriangleByIndicesIndexSet& tris_to_outline) const;
 
-        void    compact();
+        TriangleByIndicesIndexSet find_enclosing_triangles(const TriangleByIndicesVector& triangles,
+                                                           uint32_t num_layers = 1, bool smooth_boundary = false) const;
+
+        TriangleByIndicesIndexSet find_enclosing_triangles(const TriangleByIndicesIndexSet& interior_triangles,
+                                                           uint32_t num_layers = 1, bool smooth_boundary = false) const;
+
+        TriangleByIndicesIndexSet find_enclosing_triangles(const BoundaryEdge& boundary,
+                                                           const TriangleByIndicesIndexSet& interior_triangles,
+                                                           uint32_t num_layers = 1, bool smooth_boundary = false) const;
+
+        TriangleByIndicesIndexSet find_triangles_containing_vertex(VertexIndex vertex_index)
+        {
+            TriangleByIndicesIndexSet triangles_including_vertex;
+
+            for (const auto& triangle_to_add : topo_cache().vertices().getPool()[vertex_index].triangles())
+            {
+                triangles_including_vertex.insert(triangle_to_add->source_triangle_id());
+            }
+
+            return (triangles_including_vertex);
+        }
+
+        std::optional<TriangleByIndicesIndex> tri_containing_all_three_vertices(VertexIndex vert1, VertexIndex vert2,
+                                                                                VertexIndex vert3) const;
+
+        std::unique_ptr<MeshBase> extract_surface(TriangleByIndicesIndex center_triangle, uint32_t num_rings,
+                                                  bool smooth_boundary) const;
+        std::unique_ptr<MeshBase> extract_surface(const TriangleByIndicesVector& tris_to_extract) const;
+        std::unique_ptr<MeshBase> extract_surface(const TriangleByIndicesIndexSet& tris_to_extract) const;
+
+        void compact();
 
         void for_raw_tris(std::function<void(VertexIndex, VertexIndex, VertexIndex)> func)
         {
@@ -158,8 +187,8 @@ namespace Cork::Meshes
         MeshBase() = default;
 
         MeshBase(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>& vertices,
-                     const Primitives::BBox3D& boundingBox,
-                     const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths, double max_vertex_magnitude);
+                 const Primitives::BBox3D& boundingBox, const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths,
+                 double max_vertex_magnitude);
     };
 
 }  // namespace Cork::Meshes

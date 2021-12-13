@@ -24,16 +24,16 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include <algorithm>
-
 #include "mesh/triangle_mesh_impl.hpp"
+
+#include <algorithm>
 
 #include "file_formats/files.hpp"
 #include "intersection/self_intersection_finder.hpp"
 #include "intersection/triangulator.hpp"
 #include "mesh/boundary_edge_builder.hpp"
-#include "statistics/statistics_engines.hpp"
 #include "mesh/surface_mesh.hpp"
+#include "statistics/statistics_engines.hpp"
 
 namespace Cork::Meshes
 {
@@ -125,10 +125,10 @@ namespace Cork::Meshes
 
         for (auto& non_manifold_edge : topo_stats.non_manifold_edges())
         {
-            auto& triangle_containing_edge = triangles()[non_manifold_edge.triangle_id_];
+            auto& triangle_containing_edge = triangles()[non_manifold_edge.triangle_id()];
 
-            VertexIndex vertex_1 = triangle_containing_edge.edge(non_manifold_edge.edge_id_).first();
-            VertexIndex vertex_2 = triangle_containing_edge.edge(non_manifold_edge.edge_id_).second();
+            VertexIndex vertex_1 = triangle_containing_edge.edge(non_manifold_edge.edge_id()).first();
+            VertexIndex vertex_2 = triangle_containing_edge.edge(non_manifold_edge.edge_id()).second();
 
             //  Simpler than self intersections, we are just going to delete the edge and all
             //      triangles including either vertex.
@@ -364,28 +364,19 @@ namespace Cork::Meshes
 
         //  Check to insure that there are no non 2 manifold edges added as a result of the fixes
 
-        if( TriangleByIndicesIndex::integer_type( *(tris_to_remove.begin()) ) > 400000 )
-        {
-            EdgeIncidenceCounter        edge_counts( *patch );
+        EdgeIncidenceCounter edge_counts(*patch);
 
-            for( const auto& edge_and_count : edge_counts.edges_and_incidences() )
+        for (const auto& edge_and_count : edge_counts.edges_and_incidences())
+        {
+            if (edge_and_count.numIncidences() > 2)
             {
-                if( edge_and_count.numIncidences() > 2 )
-                {
-                    return false;
-                }
+                return false;
             }
         }
 
         //  Finished with success
 
         return true;
-    }
-
-    std::vector<BoundaryEdge> TriangleMeshImpl::get_boundary_edge(
-        const TriangleByIndicesIndexSet& tris_to_outline) const
-    {
-        return BoundaryEdgeBuilder().extract_boundaries(*this, tris_to_outline);
     }
 
     TriangleMeshImpl::GetHoleClosingTrianglesResult TriangleMeshImpl::get_hole_closing_triangles(
@@ -465,151 +456,6 @@ namespace Cork::Meshes
         //  Finished with success
 
         return HoleClosingResult::success();
-    }
-
-    TriangleByIndicesIndexSet TriangleMeshImpl::find_enclosing_triangles(const TriangleByIndicesVector& triangles,
-                                                                         uint32_t num_layers, bool smooth_boundary)
-    {
-        TriangleByIndicesIndexSet triangle_set;
-
-        for (auto triangle : triangles)
-        {
-            triangle_set.insert(triangle.uid());
-        }
-
-        return find_enclosing_triangles(triangle_set, smooth_boundary);
-    }
-
-    TriangleByIndicesIndexSet TriangleMeshImpl::find_enclosing_triangles(
-        const TriangleByIndicesIndexSet& interior_triangles, uint32_t num_layers, bool smooth_boundary)
-    {
-        std::vector<BoundaryEdge> boundaries = get_boundary_edge(interior_triangles);
-
-        //  Occasionally we may end up with multiple boundaries - we will just find all the
-        //      enclosing triangles for however many boundaries we have and press on.
-
-        if (boundaries.size() == 1)
-        {
-            return find_enclosing_triangles(boundaries[0], interior_triangles, num_layers, smooth_boundary);
-        }
-
-        TriangleByIndicesIndexSet union_of_all_boundaries;
-
-        for (const BoundaryEdge& current_boundary : boundaries)
-        {
-            union_of_all_boundaries.merge(find_enclosing_triangles(current_boundary, interior_triangles));
-        }
-
-        return union_of_all_boundaries;
-    }
-
-    TriangleByIndicesIndexSet TriangleMeshImpl::find_enclosing_triangles(
-        const BoundaryEdge& boundary, const TriangleByIndicesIndexSet& interior_triangles, uint32_t num_layers,
-                                                           bool smooth_boundary )
-    {
-        std::vector<BoundaryEdge> current_boundaries{boundary};
-        TriangleByIndicesIndexSet all_enclosing_triangles;
-
-        for (int i = 0; i < num_layers; i++)
-        {
-            TriangleByIndicesIndexSet enclosing_triangles;
-
-            for (const auto& boundary : current_boundaries)
-            {
-                for (auto vertex_index : boundary.vertices())
-                {
-                    for (auto edge : topo_cache().vertices().getPool()[vertex_index].edges())
-                    {
-                        for (auto next_tri : edge->triangles())
-                        {
-                            if (!interior_triangles.contains(next_tri->source_triangle_id()))
-                            {
-                                enclosing_triangles.insert(next_tri->source_triangle_id());
-                            }
-                        }
-                    }
-                }
-            }
-
-            //  Merge all the triangles into one master set
-
-            all_enclosing_triangles.merge(enclosing_triangles);
-
-            //  Compute the new boundary, then smooth it
-
-            if( smooth_boundary )
-            {
-
-                TriangleByIndicesIndexSet all_interior_triangles(interior_triangles, all_enclosing_triangles);
-                current_boundaries = get_boundary_edge(all_interior_triangles);
-
-                //  One special case here - look for triangles whose 3 vertices appear in order on the
-                //      boundary edge that are not already in the interior triangle set.  Add these triangles
-                //      to the set and this will smooth out the boundary.
-
-                bool recompute_boundary = false;
-
-                for (const auto& boundary : current_boundaries)
-                {
-                    for (uint32_t i = 0; i < boundary.vertices().size() - 2; i++)
-                    {
-                        std::optional<TriangleByIndicesIndex> all_three = tri_containing_all_three_vertices( boundary.vertices()[i], boundary.vertices()[(i + 1)], boundary.vertices()[(i + 2)] );
-
-                        if (all_three)
-                        {
-                            //  We found a triangle to smooth the edge, add it.  We will also need to recompute the boundary.
-
-                            all_enclosing_triangles.emplace(all_three.value());
-                            all_interior_triangles.emplace(all_three.value());
-
-                            recompute_boundary = true;
-                        }
-                    }
-                }
-
-                if (recompute_boundary)
-                {
-                    current_boundaries = get_boundary_edge(all_interior_triangles);
-                }
-            }
-            else if( i < num_layers - 1 )
-            {
-                TriangleByIndicesIndexSet all_interior_triangles(interior_triangles, all_enclosing_triangles);
-                current_boundaries = get_boundary_edge(all_interior_triangles);
-            }
-        }
-
-        return all_enclosing_triangles;
-    }
-
-    inline std::optional<TriangleByIndicesIndex> TriangleMeshImpl::tri_containing_all_three_vertices(VertexIndex vert1,
-                                                                                                     VertexIndex vert2,
-                                                                                                     VertexIndex vert3)
-    {
-        std::vector<TopoTri*> tris_containing_1_and_2;
-
-        std::set_intersection(topo_cache().vertices().getPool()[vert1].triangles().begin(),
-                              topo_cache().vertices().getPool()[vert1].triangles().end(),
-                              topo_cache().vertices().getPool()[vert2].triangles().begin(),
-                              topo_cache().vertices().getPool()[vert2].triangles().end(),
-                              std::back_inserter(tris_containing_1_and_2));
-
-        std::vector<TopoTri*> tris_containing_all_3;
-
-        std::set_intersection(tris_containing_1_and_2.begin(), tris_containing_1_and_2.end(),
-                              topo_cache().vertices().getPool()[vert3].triangles().begin(),
-                              topo_cache().vertices().getPool()[vert3].triangles().end(),
-                              std::back_inserter(tris_containing_all_3));
-
-        std::optional<TriangleByIndicesIndex>   result;
-
-        if (!tris_containing_all_3.empty())
-        {
-            //  There should only ever be one ....
-            result = (*(tris_containing_all_3.begin()))->source_triangle_id();
-        }
-
-        return result;
     }
 
 }  // namespace Cork::Meshes

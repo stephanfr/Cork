@@ -30,6 +30,10 @@ namespace Cork::Meshes
         virtual ~SurfaceMesh() {}
 
         static std::unique_ptr<SurfaceMesh> extract_surface(const MeshBase& mesh,
+                                                            TriangleByIndicesIndex  center_triangle,
+                                                            uint32_t                num_rings );
+
+        static std::unique_ptr<SurfaceMesh> extract_surface(const MeshBase& mesh,
                                                             const TriangleByIndicesVector& tris_to_extract)
         {
             return std::make_unique<SurfaceMesh>(std::move(*(mesh.extract_surface(tris_to_extract).release())));

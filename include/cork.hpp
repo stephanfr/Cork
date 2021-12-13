@@ -112,6 +112,10 @@ namespace Cork
 
         virtual TriangleByVertices triangle_by_vertices(const TriangleByIndices& triangle_by_indices) const = 0;
 
+        virtual std::unique_ptr<TriangleMesh>   extract_surface( TriangleByIndicesIndex  center_triangle,
+                                                                 uint32_t                num_rings,
+                                                                 bool                    smooth_boundary ) = 0;
+
         virtual const BBox3D& bounding_box() const = 0;
         virtual MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
         virtual double max_vertex_magnitude() const = 0;
@@ -123,7 +127,6 @@ namespace Cork
         virtual HoleClosingResult close_holes(const TopologicalStatistics& topo_stats) = 0;
         virtual SelfIntersectionResolutionResults remove_self_intersections(const TopologicalStatistics& topo_stats) = 0;
         virtual void remove_non_manifold_edges(const Statistics::TopologicalStatistics& topo_stats) = 0;
-
     };
 
     class SolverControlBlock

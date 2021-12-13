@@ -60,42 +60,12 @@ namespace Cork::Meshes
 
         bool resolves_self_intersection(const TriangleByIndicesIndexSet& tris_to_remove);
 
-        std::vector<BoundaryEdge> get_boundary_edge(const TriangleByIndicesIndexSet& tris_to_outline) const;
-
         using GetHoleClosingTrianglesResult =
             SEFUtility::ResultWithReturnUniquePtr<HoleClosingResultCodes, TriangleByIndicesVector>;
 
         GetHoleClosingTrianglesResult get_hole_closing_triangles(const BoundaryEdge& hole);
 
         HoleClosingResult close_holes(const Statistics::TopologicalStatistics& topo_stats);
-
-        TriangleByIndicesIndexSet find_triangles_containing_vertex(VertexIndex vertex_index)
-        {
-            TriangleByIndicesIndexSet triangles_including_vertex;
-
-            for (const auto& triangle_to_add : topo_cache().vertices().getPool()[vertex_index].triangles())
-            {
-                triangles_including_vertex.insert(triangle_to_add->source_triangle_id());
-            }
-
-            return (triangles_including_vertex);
-        }
-
-        TriangleByIndicesIndexSet find_enclosing_triangles(const TriangleByIndicesVector& triangles,
-                                                           uint32_t num_layers = 1,
-                                                           bool smooth_boundary = false);
-
-        TriangleByIndicesIndexSet find_enclosing_triangles(const TriangleByIndicesIndexSet& interior_triangles,
-                                                           uint32_t num_layers = 1,
-                                                           bool smooth_boundary = false);
-
-        TriangleByIndicesIndexSet find_enclosing_triangles(const BoundaryEdge& boundary,
-                                                           const TriangleByIndicesIndexSet& interior_triangles,
-                                                           uint32_t num_layers = 1,
-                                                           bool smooth_boundary = false);
-
-        std::optional<TriangleByIndicesIndex> tri_containing_all_three_vertices(VertexIndex vert1, VertexIndex vert2,
-                                                                                VertexIndex vert3);
 
         TriangleByIndicesVector as_triangles(const TriangleByIndicesIndexSet& indices)
         {
