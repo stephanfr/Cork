@@ -22,7 +22,6 @@
 #include <catch2/catch_all.hpp>
 
 #include "file_formats/files.hpp"
-#include "mesh/surface_mesh.hpp"
 #include "mesh/triangle_mesh_wrapper.hpp"
 
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
@@ -42,18 +41,13 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         std::unique_ptr<Cork::Meshes::TriangleMeshWrapper> mesh_wrapper(
             static_cast<Cork::Meshes::TriangleMeshWrapper*>(read_result.return_ptr().release()));
 
-        Cork::Meshes::TriangleMeshImpl& mesh = mesh_wrapper->implementation();
+        Cork::TriangleMesh& mesh = *mesh_wrapper;
 
         REQUIRE(mesh.num_vertices() == 5001);
         REQUIRE(mesh.num_triangles() == 9998);
 
-        Cork::Primitives::TriangleByIndicesIndexSet single_triangle;
-
-        single_triangle.emplace(5000U);
-
         {
-            auto surface1 = Cork::Meshes::SurfaceMesh::extract_surface(
-                mesh, mesh.find_enclosing_triangles(single_triangle).merge(single_triangle));
+            auto surface1 = mesh.extract_surface(5000u, 1, false);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_1.off", *surface1);
 
@@ -62,8 +56,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface1_smoothed = Cork::Meshes::SurfaceMesh::extract_surface(
-                mesh, mesh.find_enclosing_triangles(single_triangle, 1, true).merge(single_triangle));
+            auto surface1_smoothed = mesh.extract_surface(5000u, 1, true);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_1_smoothed.off",
                                   *surface1_smoothed);
@@ -73,8 +66,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface2 = Cork::Meshes::SurfaceMesh::extract_surface(
-                mesh, mesh.find_enclosing_triangles(single_triangle, 2).merge(single_triangle));
+            auto surface2 = mesh.extract_surface(5000u, 2, false);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_2.off", *surface2);
 
@@ -83,8 +75,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface2_smoothed = Cork::Meshes::SurfaceMesh::extract_surface(
-                mesh, mesh.find_enclosing_triangles(single_triangle, 2, true).merge(single_triangle));
+            auto surface2_smoothed = mesh.extract_surface(5000u, 2, true);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_2_smoothed.off",
                                   *surface2_smoothed);
@@ -94,8 +85,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface3 = Cork::Meshes::SurfaceMesh::extract_surface(
-                mesh, mesh.find_enclosing_triangles(single_triangle, 3).merge(single_triangle));
+            auto surface3 = mesh.extract_surface(5000u, 3, false);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_3.off", *surface3);
 
@@ -104,8 +94,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface3_smoothed = Cork::Meshes::SurfaceMesh::extract_surface(
-                mesh, mesh.find_enclosing_triangles(single_triangle, 3, true).merge(single_triangle));
+            auto surface3_smoothed = mesh.extract_surface(5000u, 3, true);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_3_smoothed.off",
                                   *surface3_smoothed);
@@ -115,8 +104,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface4 = Cork::Meshes::SurfaceMesh::extract_surface(
-                mesh, mesh.find_enclosing_triangles(single_triangle, 4).merge(single_triangle));
+            auto surface4 = mesh.extract_surface(5000u, 4, false);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_4.off", *surface4);
 
@@ -125,8 +113,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface4_smoothed = Cork::Meshes::SurfaceMesh::extract_surface(
-                mesh, mesh.find_enclosing_triangles(single_triangle, 4, true).merge(single_triangle));
+            auto surface4_smoothed = mesh.extract_surface(5000u, 4, true);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_4_smoothed.off",
                                   *surface4_smoothed);
@@ -136,8 +123,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface5 = Cork::Meshes::SurfaceMesh::extract_surface(
-                mesh, mesh.find_enclosing_triangles(single_triangle, 5).merge(single_triangle));
+            auto surface5 = mesh.extract_surface(5000u, 5, false);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_5.off", *surface5);
 
@@ -146,8 +132,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface5_smoothed = Cork::Meshes::SurfaceMesh::extract_surface(
-                mesh, mesh.find_enclosing_triangles(single_triangle, 5, true).merge(single_triangle));
+            auto surface5_smoothed = mesh.extract_surface(5000u, 5, true);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_5_smoothed.off",
                                   *surface5_smoothed);
@@ -157,8 +142,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface6 = Cork::Meshes::SurfaceMesh::extract_surface(
-                mesh, mesh.find_enclosing_triangles(single_triangle, 6).merge(single_triangle));
+            auto surface6 = mesh.extract_surface(5000u, 6, false);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_6.off", *surface6);
 
@@ -167,8 +151,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface6_smoothed = Cork::Meshes::SurfaceMesh::extract_surface(
-                mesh, mesh.find_enclosing_triangles(single_triangle, 6, true).merge(single_triangle));
+            auto surface6_smoothed = mesh.extract_surface(5000u, 6, true);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_6_smoothed.off",
                                   *surface6_smoothed);

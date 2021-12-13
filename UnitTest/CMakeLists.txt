@@ -42,7 +42,7 @@ add_executable( tests
   topology_tests.cpp
 #  geometric_tests.cpp
 #  triangulator_test.cpp
-  surface_mesh_tests.cpp
+#  surface_mesh_tests.cpp
 )
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain Corklib tbb mpir boost_program_options boost_filesystem boost_iostreams boost_system boost_timer boost_thread pthread)
