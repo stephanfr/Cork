@@ -23,25 +23,24 @@ include_directories(
 )
 
 add_library(Corklib SHARED 
-    Accel/aabvh.cpp
-#    FileFormats/ifs.cpp
-    FileFormats/off.cpp
-    Intersection/empty3d.cpp
     primitives/streaming_operators.cpp
-    Intersection/intersection_problem_base.cpp
-    Intersection/perturbation_epsilon.cpp
-    Intersection/triangle.c
-    Intersection/triangulator.cpp
-    Intersection/intersection.cpp
-    Intersection/self_intersection_finder.cpp
-    Mesh/mesh.cpp
-    Mesh/topo_cache.cpp
-    Mesh/triangle_mesh_impl.cpp
-    Mesh/triangle_mesh_wrapper.cpp
-    Mesh/mesh_base.cpp
-    Mesh/mesh_builder.cpp
-    Mesh/boundary_edge_builder.cpp
-    Mesh/surface_mesh.cpp
+    accel/aabvh.cpp
+#    file_formats/ifs.cpp
+    file_formats/off.cpp
+    intersection/empty3d.cpp
+    intersection/intersection_problem_base.cpp
+    intersection/perturbation_epsilon.cpp
+    intersection/triangle.c
+    intersection/triangulator.cpp
+    intersection/intersection.cpp
+    intersection/self_intersection_finder.cpp
+    mesh/mesh.cpp
+    mesh/topo_cache.cpp
+    mesh/triangle_mesh_impl.cpp
+    mesh/triangle_mesh_wrapper.cpp
+    mesh/mesh_base.cpp
+    mesh/mesh_builder.cpp
+    mesh/boundary_edge_builder.cpp
     statistics/statistics_engines.cpp
     util/thread_pool.cpp
     cork.cpp

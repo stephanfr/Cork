@@ -32,7 +32,7 @@
 #include "intersection/self_intersection_finder.hpp"
 #include "intersection/triangulator.hpp"
 #include "mesh/boundary_edge_builder.hpp"
-#include "mesh/surface_mesh.hpp"
+
 #include "statistics/statistics_engines.hpp"
 
 namespace Cork::Meshes

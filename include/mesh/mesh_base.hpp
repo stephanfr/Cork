@@ -151,6 +151,7 @@ namespace Cork::Meshes
 
         std::unique_ptr<MeshBase> extract_surface(TriangleByIndicesIndex center_triangle, uint32_t num_rings,
                                                   bool smooth_boundary) const;
+                                                  
         std::unique_ptr<MeshBase> extract_surface(const TriangleByIndicesVector& tris_to_extract) const;
         std::unique_ptr<MeshBase> extract_surface(const TriangleByIndicesIndexSet& tris_to_extract) const;
 
