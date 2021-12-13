@@ -257,10 +257,20 @@ namespace Cork::Meshes
                 continue;
             }
 
+            TriangleByIndicesIndexSet both_vertices_and_ring_2(
+                triangles_containing_both_vertices, find_enclosing_triangles(triangles_containing_both_vertices, 2, true));
+
+            if (resolves_self_intersection(both_vertices_and_ring_2))
+            {
+                sis_resolved++;
+                resolution_plan.add_resolution(both_vertices_and_ring_2);
+                continue;
+            }
+
             sis_abdondoned++;
 
             {
-                std::unique_ptr<MeshBase> patch(this->extract_surface(both_vertices_and_ring));
+                std::unique_ptr<MeshBase> patch(this->extract_surface(both_vertices_and_ring_2));
 
                 auto write_result = Cork::Files::writeOFF("../../UnitTest/Test Results/patch.off", *patch);
             }
@@ -277,16 +287,16 @@ namespace Cork::Meshes
 
         for (const auto& resolution : resolution_plan.resolutions())
         {
-            std::vector<BoundaryEdge> holes_for_se = get_boundary_edge(resolution);
+            std::vector<BoundaryEdge> holes_for_si = get_boundary_edge(resolution);
 
-            if (holes_for_se.size() != 1)
+            if (holes_for_si.size() != 1)
             {
                 failures_on_final_resolution++;
                 continue;
             }
 
             GetHoleClosingTrianglesResult get_hole_closing_triangles_result =
-                get_hole_closing_triangles(holes_for_se[0]);
+                get_hole_closing_triangles(holes_for_si[0]);
 
             if (!get_hole_closing_triangles_result.succeeded())
             {
