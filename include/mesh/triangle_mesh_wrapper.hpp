@@ -65,7 +65,9 @@ namespace Cork::Meshes
 
             single_triangle.emplace(center_triangle);
 
-            return std::make_unique<TriangleMeshWrapper>( std::move( *(mesh_->extract_surface(
+            TriangleRemapper        remapper( *mesh_ );
+
+            return std::make_unique<TriangleMeshWrapper>( std::move( *(mesh_->extract_surface( remapper,
                 mesh_->find_enclosing_triangles(single_triangle, num_rings, smooth_boundary).merge(single_triangle)))));
         }
 

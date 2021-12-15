@@ -29,10 +29,12 @@
 #include <optional>
 #include <vector>
 
+#include "cork.hpp"
 #include "math/quantization.hpp"
 #include "mesh/topo_cache.hpp"
 #include "primitives/boundary_edge.hpp"
 #include "writeable_mesh.hpp"
+#include "mesh/triangle_remapper.hpp"
 
 namespace Cork::Meshes
 {
@@ -122,6 +124,11 @@ namespace Cork::Meshes
             return *topo_cache_;
         }
 
+        void clear_topo_cache()
+        {
+            topo_cache_.reset();
+        }
+
         std::vector<BoundaryEdge> get_boundary_edge(const TriangleByIndicesIndexSet& tris_to_outline) const;
 
         TriangleByIndicesIndexSet find_enclosing_triangles(const TriangleByIndicesVector& triangles,
@@ -149,11 +156,19 @@ namespace Cork::Meshes
         std::optional<TriangleByIndicesIndex> tri_containing_all_three_vertices(VertexIndex vert1, VertexIndex vert2,
                                                                                 VertexIndex vert3) const;
 
-        std::unique_ptr<MeshBase> extract_surface(TriangleByIndicesIndex center_triangle, uint32_t num_rings,
+        std::unique_ptr<MeshBase> extract_surface(const TriangleRemapper& remapper,
+                                                  TriangleByIndicesIndex center_triangle, uint32_t num_rings,
                                                   bool smooth_boundary) const;
-                                                  
-        std::unique_ptr<MeshBase> extract_surface(const TriangleByIndicesVector& tris_to_extract) const;
-        std::unique_ptr<MeshBase> extract_surface(const TriangleByIndicesIndexSet& tris_to_extract) const;
+
+        std::unique_ptr<MeshBase> extract_surface(const TriangleRemapper& remapper,
+                                                  const TriangleByIndicesVector& tris_to_extract) const;
+        std::unique_ptr<MeshBase> extract_surface(const TriangleRemapper& remapper,
+                                                  const TriangleByIndicesIndexSet& tris_to_extract) const;
+
+        using GetHoleClosingTrianglesResult =
+            SEFUtility::ResultWithReturnUniquePtr<HoleClosingResultCodes, TriangleByIndicesVector>;
+
+        GetHoleClosingTrianglesResult get_hole_closing_triangles(const BoundaryEdge& hole);
 
         void compact();
 

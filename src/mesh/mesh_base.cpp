@@ -28,71 +28,10 @@
 
 #include "mesh/boundary_edge_builder.hpp"
 #include "primitives/remappers.hpp"
+#include "intersection/triangulator.hpp"
 
 namespace Cork::Meshes
 {
-    class TriangleRemapper
-    {
-       public:
-        TriangleRemapper(const MeshBase& primary_mesh) : primary_mesh_(primary_mesh) {}
-
-        std::unique_ptr<MeshBase> extract_surface(const TriangleByIndicesVector& tris_to_extract)
-        {
-            result_mesh_ = std::make_unique<MeshBase>(tris_to_extract.size() * 3, tris_to_extract.size());
-
-            for (const auto& tri : tris_to_extract)
-            {
-                remap(tri);
-            }
-
-            return std::unique_ptr<MeshBase>(result_mesh_.release());
-        }
-
-        std::unique_ptr<MeshBase> extract_surface(const TriangleByIndicesIndexSet& tris_to_extract)
-        {
-            result_mesh_ = std::make_unique<MeshBase>(tris_to_extract.size() * 3, tris_to_extract.size());
-
-            for (const auto& tri : tris_to_extract)
-            {
-                remap(primary_mesh_.triangles()[tri]);
-            }
-
-            return std::unique_ptr<MeshBase>(result_mesh_.release());
-        }
-
-       private:
-        const MeshBase& primary_mesh_;
-        std::unique_ptr<MeshBase> result_mesh_;
-        std::map<VertexIndex, VertexIndex> remapper_;
-
-        void remap(const TriangleByIndices& triangle)
-        {
-            if (!remapper_.contains(triangle.a()))
-            {
-                remapper_.emplace(triangle.a(), VertexIndex(uint32_t(result_mesh_->vertices().size())));
-                result_mesh_->vertices().emplace_back(primary_mesh_.vertices()[triangle.a()]);
-            }
-
-            if (!remapper_.contains(triangle.b()))
-            {
-                remapper_.emplace(triangle.b(), VertexIndex(uint32_t(result_mesh_->vertices().size())));
-                result_mesh_->vertices().emplace_back(primary_mesh_.vertices()[triangle.b()]);
-            }
-
-            if (!remapper_.contains(triangle.c()))
-            {
-                remapper_.emplace(triangle.c(), VertexIndex(uint32_t(result_mesh_->vertices().size())));
-                result_mesh_->vertices().emplace_back(primary_mesh_.vertices()[triangle.c()]);
-            }
-
-            VertexIndex new_a = remapper_.at(triangle.a());
-            VertexIndex new_b = remapper_.at(triangle.b());
-            VertexIndex new_c = remapper_.at(triangle.c());
-
-            result_mesh_->triangles().emplace_back(result_mesh_->triangles().size(), new_a, new_b, new_c);
-        }
-    };
-
     MeshBase::MeshBase(MeshBase&& mesh_base_to_move)
         : bounding_box_(mesh_base_to_move.bounding_box_),
           min_and_max_edge_lengths_(mesh_base_to_move.min_and_max_edge_lengths_),
@@ -141,25 +80,82 @@ namespace Cork::Meshes
         return MeshBase(copy_of_tris, copy_of_verts, bounding_box_, min_and_max_edge_lengths_, max_vertex_magnitude_);
     }
 
-    std::unique_ptr<MeshBase> MeshBase::extract_surface(TriangleByIndicesIndex center_triangle,
-                                                        uint32_t num_rings,
+    std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleRemapper& remapper,
+                                                        TriangleByIndicesIndex center_triangle, uint32_t num_rings,
                                                         bool smooth_boundary) const
     {
         Cork::Primitives::TriangleByIndicesIndexSet single_triangle;
 
         single_triangle.emplace(center_triangle);
 
-        return extract_surface(find_enclosing_triangles(single_triangle, num_rings, smooth_boundary).merge(single_triangle));
+        return extract_surface(
+            remapper, find_enclosing_triangles(single_triangle, num_rings, smooth_boundary).merge(single_triangle));
     }
 
-    std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleByIndicesVector& tris_to_extract) const
+    std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleRemapper& remapper,
+                                                        const TriangleByIndicesVector& tris_to_extract) const
     {
         return TriangleRemapper(*this).extract_surface(tris_to_extract);
     }
 
-    std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleByIndicesIndexSet& tris_to_extract) const
+    std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleRemapper& remapper,
+                                                        const TriangleByIndicesIndexSet& tris_to_extract) const
     {
         return TriangleRemapper(*this).extract_surface(tris_to_extract);
+    }
+
+    MeshBase::GetHoleClosingTrianglesResult MeshBase::get_hole_closing_triangles(const BoundaryEdge& hole)
+    {
+        //  Determine the projection needed to turn this into a 2D triangulation problem
+
+        Cork::Triangulator::NormalProjector projector(vertices()[hole.vertices()[0]], vertices()[hole.vertices()[1]],
+                                                      vertices()[hole.vertices()[2]]);
+
+        //  Get the triangulator and add the points on the hole edge and the segments joining them.
+        //      This is trivial as the vertices are ordered so segments are just one after the next.
+        //      Holes must be closed, thus the last segment from the last vertex to the first.
+
+        Triangulator::Triangulator triangulator;
+
+        for (auto vertex_index : hole.vertices())
+        {
+            triangulator.add_point(vertices()[vertex_index], true, projector);
+        }
+
+        for (int i = 0; i < hole.vertices().size() - 1; i++)
+        {
+            triangulator.add_segment(i, i + 1, true);
+        }
+
+        triangulator.add_segment(hole.vertices().size() - 1, 0, true);
+
+        //  Compute the triangulation - I suppose some really messed up geometries might fail here.
+
+        auto result = triangulator.compute_triangulation();
+
+        if (result.failed())
+        {
+            return GetHoleClosingTrianglesResult::failure(result, HoleClosingResultCodes::TRIANGULATION_FAILED,
+                                                          "Triangulation failed for hole");
+        }
+
+        //  Add the new triangles which close the hole.  There will never be new vertices to add based
+        //      on the settings of the triangulator - thus this operation is simple.
+
+        std::unique_ptr<TriangleByIndicesVector> hole_closing_triangles = std::make_unique<TriangleByIndicesVector>();
+
+        hole_closing_triangles->reserve(result.return_ptr()->size() + 2);
+
+        for (auto triangle_to_add : *(result.return_ptr()))
+        {
+            hole_closing_triangles->emplace_back(
+                TriangleByIndices(Primitives::UNINTIALIZED_INDEX, hole.vertices()[triangle_to_add.v0()],
+                                  hole.vertices()[triangle_to_add.v2()], hole.vertices()[triangle_to_add.v1()]));
+        }
+
+        //  Return the triangles to close the hole
+
+        return GetHoleClosingTrianglesResult::success(std::move(hole_closing_triangles));
     }
 
     void MeshBase::compact()

@@ -41,6 +41,7 @@ add_library(Corklib SHARED
     mesh/mesh_base.cpp
     mesh/mesh_builder.cpp
     mesh/boundary_edge_builder.cpp
+    mesh/triangle_remapper.cpp
     statistics/statistics_engines.cpp
     util/thread_pool.cpp
     cork.cpp
