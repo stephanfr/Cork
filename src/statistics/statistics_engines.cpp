@@ -134,7 +134,12 @@ namespace Cork::Statistics
                 }
             }
 
-            holes = BoundaryEdgeBuilder().extract_boundaries(hole_edges);
+            auto extract_boundaries_result = BoundaryEdgeBuilder().extract_boundaries(hole_edges);  //  TODO fix this - maybe success/failure
+
+            if( extract_boundaries_result.succeeded() )
+            {
+                holes = *(extract_boundaries_result.return_ptr());
+            }
         }
 
         if (props_to_compute & TopologicalProperties::TOPO_SELF_INTERSECTIONS)

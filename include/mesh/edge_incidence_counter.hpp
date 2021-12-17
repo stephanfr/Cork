@@ -32,7 +32,7 @@
 
 namespace Cork::Meshes
 {
-    class EdgeAndIncidenceCount : public Primitives::EdgeByIndices
+    class EdgeAndIncidenceCount : public Primitives::EdgeByIndices      //  TODO make this standalone and move to separate hpp file
     {
        public:
         EdgeAndIncidenceCount(const Primitives::VertexIndex a, const Primitives::VertexIndex b)
@@ -68,7 +68,7 @@ namespace Cork::Meshes
         boost::container::small_vector<std::pair<TriangleByIndicesIndex, TriangleEdgeId>, 6> triangles_;
     };
 
-    using EdgeIncidenceSet = std::unordered_set<EdgeAndIncidenceCount, EdgeAndIncidenceCount::HashFunction>;
+    class EdgeIncidenceSet : public std::unordered_set<EdgeAndIncidenceCount, EdgeAndIncidenceCount::HashFunction> {};
 
     class EdgeIncidenceCounter
     {

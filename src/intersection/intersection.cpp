@@ -114,14 +114,6 @@ namespace Cork::Intersection
         // if we encounter ambiguous degeneracies, then this
         // routine returns false, indicating that the computation aborted.
 
-        enum TryToFindIntersectionsResultCodes
-        {
-            SUCCESS = 0,
-            OUT_OF_MEMORY,
-            TRI_EGDE_DEGENERACIES,
-            TRI_TRI_TRI_INTERSECTIONS_FAILED
-        };
-
         typedef SEFUtility::Result<TryToFindIntersectionsResultCodes> TryToFindIntersectionsResult;
 
         TryToFindIntersectionsResult tryToFindIntersections();

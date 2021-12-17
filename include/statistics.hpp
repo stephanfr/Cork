@@ -187,13 +187,6 @@ namespace Cork::Statistics
         const std::vector<SelfIntersectingEdge> self_intersecting_edges_;
     };
 
-    enum class TopologicalStatisticsResultCodes
-    {
-        SUCCESS = 0,
-
-        ANALYSIS_FAILED
-    };
-
     using TopologicalStatisticsResult =
         SEFUtility::ResultWithReturnValue<TopologicalStatisticsResultCodes, Statistics::TopologicalStatistics>;
 

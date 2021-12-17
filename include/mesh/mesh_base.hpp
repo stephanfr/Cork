@@ -31,13 +31,16 @@
 
 #include "cork.hpp"
 #include "math/quantization.hpp"
+#include "mesh/boundary_edge_builder.hpp"
 #include "mesh/topo_cache.hpp"
-#include "primitives/boundary_edge.hpp"
-#include "writeable_mesh.hpp"
 #include "mesh/triangle_remapper.hpp"
+#include "writeable_mesh.hpp"
 
 namespace Cork::Meshes
 {
+    using FindEnclosingTrianglesResult =
+        SEFUtility::ResultWithReturnUniquePtr<FindEnclosingTrianglesResultCodes, TriangleByIndicesIndexSet>;
+
     class MeshBase : public WriteableMesh
     {
        public:
@@ -124,22 +127,24 @@ namespace Cork::Meshes
             return *topo_cache_;
         }
 
-        void clear_topo_cache()
-        {
-            topo_cache_.reset();
-        }
+        void clear_topo_cache() { topo_cache_.reset(); }
 
-        std::vector<BoundaryEdge> get_boundary_edge(const TriangleByIndicesIndexSet& tris_to_outline) const;
+        ExtractBoundariesResult get_boundary_edge(const TriangleByIndicesIndexSet& tris_to_outline) const;
 
-        TriangleByIndicesIndexSet find_enclosing_triangles(const TriangleByIndicesVector& triangles,
-                                                           uint32_t num_layers = 1, bool smooth_boundary = false) const;
+        //  TODO remove defaults
 
-        TriangleByIndicesIndexSet find_enclosing_triangles(const TriangleByIndicesIndexSet& interior_triangles,
-                                                           uint32_t num_layers = 1, bool smooth_boundary = false) const;
+        FindEnclosingTrianglesResult find_enclosing_triangles(const TriangleByIndicesVector& triangles,
+                                                              uint32_t num_layers = 1,
+                                                              bool smooth_boundary = false) const;
 
-        TriangleByIndicesIndexSet find_enclosing_triangles(const BoundaryEdge& boundary,
-                                                           const TriangleByIndicesIndexSet& interior_triangles,
-                                                           uint32_t num_layers = 1, bool smooth_boundary = false) const;
+        FindEnclosingTrianglesResult find_enclosing_triangles(const TriangleByIndicesIndexSet& interior_triangles,
+                                                              uint32_t num_layers = 1,
+                                                              bool smooth_boundary = false) const;
+
+        FindEnclosingTrianglesResult find_enclosing_triangles(const BoundaryEdge& boundary,
+                                                              const TriangleByIndicesIndexSet& interior_triangles,
+                                                              uint32_t num_layers = 1,
+                                                              bool smooth_boundary = false) const;
 
         TriangleByIndicesIndexSet find_triangles_containing_vertex(VertexIndex vertex_index)
         {

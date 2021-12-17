@@ -163,12 +163,6 @@ namespace Cork::Intersection
 
         // run after we've accumulated all the elements
 
-        enum class ConsolidateResultCodes
-        {
-            SUCCESS = 0,
-            COULD_NOT_FIND_COMMON_VERTEX
-        };
-
         typedef SEFUtility::Result<ConsolidateResultCodes> ConsolidateResult;
 
         ConsolidateResult Consolidate()
@@ -236,13 +230,6 @@ namespace Cork::Intersection
             return (ConsolidateResult::success());
         }
 
-        enum SubdivideResultCodes
-        {
-            SUCCESS = 0,
-            SELF_INTERSECTING_MESH,
-            FAILED_TRIANGULATION
-        };
-
         typedef SEFUtility::Result<SubdivideResultCodes> SubdivideResult;
 
         SubdivideResult Subdivide()
@@ -288,7 +275,7 @@ namespace Cork::Intersection
             Triangulator::Triangulator triangulator;
 
             if (auto result = triangulator.will_problem_fit(points.size(), edges.size());
-                result != Triangulator::TriangulationResultCodes::SUCCESS)
+                result != TriangulationResultCodes::SUCCESS)
             {
                 return (SubdivideResult::failure(
                     Triangulator::TriangulateResult::failure(result, "Too many points or segments for triangulation"),

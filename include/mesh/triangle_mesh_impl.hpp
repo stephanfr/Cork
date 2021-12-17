@@ -58,8 +58,8 @@ namespace Cork::Meshes
         SelfIntersectionResolutionResults remove_self_intersections(
             const Statistics::TopologicalStatistics& topo_stats);
 
-//        void find_self_intersecting_regions(
-//            const Statistics::TopologicalStatistics& topo_stats);
+        void find_self_intersecting_regions(
+            const Statistics::TopologicalStatistics& topo_stats);
 
         bool resolves_self_intersection(const TriangleByIndicesIndexSet& tris_to_remove);
 

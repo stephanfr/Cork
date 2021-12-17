@@ -18,16 +18,17 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "mesh/boundary_edge_builder.hpp"
+#include "mesh/edge_incidence_counter.hpp"
 
 namespace Cork::Meshes
 {
-    std::vector<BoundaryEdge> BoundaryEdgeBuilder::extract_boundaries(const MeshBase& mesh, const TriangleByIndicesIndexSet& tris_in_region)
+    ExtractBoundariesResult BoundaryEdgeBuilder::extract_boundaries(const MeshBase& mesh, const TriangleByIndicesIndexSet& tris_in_region)
     {
         //  Return immediately with an empty list if there are no edges
 
         if (tris_in_region.empty())
         {
-            return std::vector<BoundaryEdge>();
+            return ExtractBoundariesResult::failure( ExtractBoundariesResultCodes::EMPTY_REGION, "Empty Region" );
         }
 
         //  Create the edge incidence map
@@ -37,13 +38,13 @@ namespace Cork::Meshes
         return extract_boundaries(mesh, edge_counts.edges_and_incidences());
     }
 
-    std::vector<BoundaryEdge> BoundaryEdgeBuilder::extract_boundaries(const MeshBase& mesh, const EdgeIncidenceSet& region_edges)
+    ExtractBoundariesResult BoundaryEdgeBuilder::extract_boundaries(const MeshBase& mesh, const EdgeIncidenceSet& region_edges)
     {
         //  Return immediately with an empty list if there are no edges
 
         if (region_edges.empty())
         {
-            return std::vector<BoundaryEdge>();
+            return ExtractBoundariesResult::failure( ExtractBoundariesResultCodes::EMPTY_REGION, "Empty Region" );
         }
 
         //  Start extracting boundaries
@@ -61,13 +62,13 @@ namespace Cork::Meshes
         return extract_boundaries( edges );
     }
 
-    std::vector<BoundaryEdge> BoundaryEdgeBuilder::extract_boundaries(const EdgeByIndicesVector& region_edges)
+    ExtractBoundariesResult BoundaryEdgeBuilder::extract_boundaries(const EdgeByIndicesVector& region_edges)
     {
         //  Return immediately with an empty list if there are no edges
 
         if (region_edges.empty())
         {
-            return std::vector<BoundaryEdge>();
+            return ExtractBoundariesResult::failure( ExtractBoundariesResultCodes::EMPTY_REGION, "Empty Region" );
         }
 
         //  Start extracting boundaries
@@ -77,18 +78,18 @@ namespace Cork::Meshes
         return extract_boundaries( std::move( edges ) );
     }
 
-    std::vector<BoundaryEdge> BoundaryEdgeBuilder::extract_boundaries( EdgeByIndicesVector&& region_edges)
+    ExtractBoundariesResult BoundaryEdgeBuilder::extract_boundaries( EdgeByIndicesVector&& region_edges)
     {
         //  Return immediately with an empty list if there are no edges
 
         if (region_edges.empty())
         {
-            return std::vector<BoundaryEdge>();
+            return ExtractBoundariesResult::failure( ExtractBoundariesResultCodes::EMPTY_REGION, "Empty Region" );
         }
 
         //  Start extracting boundaries
 
-        std::vector<BoundaryEdge> boundaries;
+        auto boundaries = std::make_unique<std::vector<BoundaryEdge>>();
 
         std::vector<EdgeByIndices> edges( std::move( region_edges ));
 
@@ -111,8 +112,14 @@ namespace Cork::Meshes
 
                     if (is_closed())
                     {
-                        std::vector<BoundaryEdge> new_boundaries(get_boundary_edges());
-                        boundaries.insert(std::begin(boundaries), std::begin(new_boundaries), std::end(new_boundaries));
+                        ExtractBoundariesResult new_boundaries = get_boundary_edges();
+
+                        if( new_boundaries.failed() )
+                        {
+                            return new_boundaries;
+                        }
+
+                        boundaries->insert(std::begin(*boundaries), std::begin(*(new_boundaries.return_ptr())), std::end(*(new_boundaries.return_ptr())));
 
                         if (!edges.empty())
                         {
@@ -127,7 +134,12 @@ namespace Cork::Meshes
             }
         } while (!fell_through);
 
-        return boundaries;
+        if( boundaries->empty() )
+        {
+            return ExtractBoundariesResult::failure( ExtractBoundariesResultCodes::COULD_NOT_FIND_CLOSED_BOUNDARY, "Could not find closed boundary on exit" );
+        }
+
+        return ExtractBoundariesResult::success( std::unique_ptr<std::vector<BoundaryEdge>>( boundaries.release() ));
     }
 
     bool BoundaryEdgeBuilder::add_edge(const EdgeByIndices& next_edge)
@@ -171,15 +183,13 @@ namespace Cork::Meshes
         return added_edge;
     }
 
-    std::vector<BoundaryEdge> BoundaryEdgeBuilder::get_boundary_edges()
+    ExtractBoundariesResult BoundaryEdgeBuilder::get_boundary_edges()
     {
-        assert(is_closed());
-
         //  If the list is not a closed boundary - return nothing as something has probably gone wrong.
 
         if (!is_closed())
         {
-            return std::vector<BoundaryEdge>();
+            return ExtractBoundariesResult::failure( ExtractBoundariesResultCodes::BOUNDARY_IS_NOT_CLOSED, "Boundary is not closed" );
         }
 
         //  We are going to use a recursive extraction.  There may be a more efficient technique but
@@ -187,17 +197,17 @@ namespace Cork::Meshes
         //      nor complex.  That said, even if they are - this approach of recursively pulling inner boundaries
         //      out of boundaries *should* work in general.
 
-        std::vector<BoundaryEdge> boundaries =
+        auto boundaries =
             extract_boundaries_recursively(BoundaryEdge(std::vector(std::begin(vertices_), std::end(vertices_))));
 
-        //  Return the boundaries we have
+        //  Return the boundaries we have extracted
 
-        return boundaries;
+        return ExtractBoundariesResult::success( std::unique_ptr<std::vector<BoundaryEdge>>( boundaries.release() ));
     }
 
-    std::vector<BoundaryEdge> BoundaryEdgeBuilder::extract_boundaries_recursively(BoundaryEdge boundary)
+    std::unique_ptr<std::vector<BoundaryEdge>> BoundaryEdgeBuilder::extract_boundaries_recursively(BoundaryEdge boundary)
     {
-        std::vector<BoundaryEdge> boundaries;
+        auto boundaries = std::make_unique<std::vector<BoundaryEdge>>();
 
         //  If there is a repeated index, then we have an embedded boundary
 
@@ -213,12 +223,12 @@ namespace Cork::Meshes
                     {
                         //  We have an embedded boundary
 
-                        std::vector<BoundaryEdge> inner_boundaries = extract_boundaries_recursively(
-                            BoundaryEdge(std::vector(boundary.vertices_.begin() + i, boundary.vertices_.begin() + j)));
+                        std::unique_ptr<std::vector<BoundaryEdge>> inner_boundaries( extract_boundaries_recursively(
+                            BoundaryEdge(std::vector(boundary.vertices_.begin() + i, boundary.vertices_.begin() + j))));
 
-                        if (!inner_boundaries.empty())
+                        if (!inner_boundaries->empty())
                         {
-                            boundaries.insert(std::end(boundaries), std::begin(inner_boundaries), std::end(inner_boundaries));
+                            boundaries->insert(std::end(*boundaries), std::begin(*inner_boundaries), std::end(*inner_boundaries));
                         }
 
                         boundary.vertices_.erase(boundary.vertices_.begin() + i, boundary.vertices_.begin() + j);
@@ -231,7 +241,7 @@ namespace Cork::Meshes
 
             if (!break_to_while)
             {
-                boundaries.emplace_back(boundary);
+                boundaries->emplace_back(boundary);
                 break;
             }
         }

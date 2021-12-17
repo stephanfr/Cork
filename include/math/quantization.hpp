@@ -28,6 +28,7 @@
 #include <cmath>
 
 #include "CPPResult.hpp"
+#include "result_codes.hpp"
 #include "primitives/primitives.hpp"
 
 namespace Cork::Math
@@ -37,13 +38,6 @@ namespace Cork::Math
     class Quantizer
     {
        public:
-        enum class QuantizerResultCodes
-        {
-            SUCCESS = 0,
-
-            EXCESSIVE_DYNAMIC_RANGE_FOR_QUANTIZATION,
-            INSUFFICIENT_PERTURBATION_RANGE
-        };
         using GetQuantizerResult = SEFUtility::ResultWithReturnValue<QuantizerResultCodes, Quantizer>;
 
         static GetQuantizerResult get_quantizer(double max_magnitude, double min_edge_length)

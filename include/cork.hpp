@@ -43,18 +43,12 @@
 #endif
 
 #include "CPPResult.hpp"
+#include "result_codes.hpp"
 #include "writeable_mesh.hpp"
 #include "statistics.hpp"
 
 namespace Cork
 {
-
-    enum class HoleClosingResultCodes
-    {
-        SUCCESS = 0,
-
-        TRIANGULATION_FAILED
-    };
 
     using HoleClosingResult = SEFUtility::Result<HoleClosingResultCodes>;
 
@@ -192,13 +186,6 @@ namespace Cork
         [[nodiscard]] virtual uint64_t elapsed_wall_time_in_nanoseconds() const = 0;
         [[nodiscard]] virtual uint64_t starting_virtual_memory_size_in_MB() const = 0;
         [[nodiscard]] virtual uint64_t ending_virtual_memory_size_in_MB() const = 0;
-    };
-
-    enum class BooleanOperationResultCodes
-    {
-        SUCCESS = 0,
-
-        ERROR_DURING_BOOLEAN_PROBLEM_SETUP
     };
 
     class SolidObjectMesh

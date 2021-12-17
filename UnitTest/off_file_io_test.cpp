@@ -23,6 +23,7 @@
 
 #include "catch2_matchers.h"
 
+#include "result_codes.hpp"
 #include "file_formats/files.hpp"
 
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
@@ -56,37 +57,37 @@ TEST_CASE("OFF File Tests", "[file io]")
         {
             auto read_result = Cork::Files::readOFF( "nosuchfile" );
             
-            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::Files::ReadFileResultCodes::UNABLE_TO_OPEN_FILE )));
+            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::ReadFileResultCodes::UNABLE_TO_OPEN_FILE )));
         }
 
         {
             auto read_result = Cork::Files::readOFF( "../../UnitTest/Test Files/Quadrilateral1 Bad Vertex.off" );
             
-            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::Files::ReadFileResultCodes::OFF_ERROR_READING_VERTICES )));
+            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::ReadFileResultCodes::OFF_ERROR_READING_VERTICES )));
         }
 
         {
             auto read_result = Cork::Files::readOFF( "../../UnitTest/Test Files/Quadrilateral1 Bad Triangle.off" );
             
-            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::Files::ReadFileResultCodes::OFF_ERROR_READING_FACES )));
+            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::ReadFileResultCodes::OFF_ERROR_READING_FACES )));
         }
 
         {
             auto read_result = Cork::Files::readOFF( "../../UnitTest/Test Files/Quadrilateral1 Bad Counts.off" );
             
-            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::Files::ReadFileResultCodes::OFF_ERROR_READING_COUNTS )));
+            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::ReadFileResultCodes::OFF_ERROR_READING_COUNTS )));
         }
 
         {
             auto read_result = Cork::Files::readOFF( "../../UnitTest/Test Files/Quadrilateral1 One Nontriangle Face.off" );
             
-            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::Files::ReadFileResultCodes::OFF_NON_TRIANGULAR_FACE )));
+            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::ReadFileResultCodes::OFF_NON_TRIANGULAR_FACE )));
         }
 
         {
             auto read_result = Cork::Files::readOFF( "../../UnitTest/Test Files/Quadrilateral1 Duplicate Vertex.off" );
             
-            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::Files::ReadFileResultCodes::OFF_READ_DUPLICATE_VERTICES )));
+            REQUIRE(( read_result.failed() && ( read_result.error_code() == Cork::ReadFileResultCodes::OFF_READ_DUPLICATE_VERTICES )));
         }
 
         {

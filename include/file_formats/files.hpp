@@ -55,42 +55,6 @@
 
 namespace Cork::Files
 {
-    enum class ReadFileResultCodes
-    {
-        SUCCESS = 0,
-        UNABLE_TO_OPEN_FILE,
-        UNABLE_TO_FIND_FILE_EXTENSION,
-        ERROR_READING_FILE_TYPE,
-        UNSUPPORTED_FILE_TYPE,
-
-        IFS_UNRECOGNIZED_HEADER,
-        IFS_FILE_FORMAT_ERROR,
-        IFS_NO_VERSION_FOUND,
-        IFS_UNSUPPORTED_VERSION,
-        IFS_ERROR_READING_MODEL_NAME,
-        IFS_ERROR_READING_VERTEX,
-        IFS_ERROR_READING_TRIANGLE,
-
-        OFF_UNRECOGNIZED_HEADER,
-        OFF_ERROR_READING_COUNTS,
-        OFF_ERROR_READING_VERTICES,
-        OFF_READ_DUPLICATE_VERTICES,
-        OFF_ERROR_STRIPPING_VERTEX_COLOR,
-        OFF_NON_TRIANGULAR_FACE,
-        OFF_ERROR_ADDING_FACE_TO_MESH,
-        OFF_ERROR_READING_FACES
-    };
-
-    enum class WriteFileResultCodes
-    {
-        SUCCESS = 0,
-        UNABLE_TO_FIND_FILE_EXTENSION,
-        UNSUPPORTED_FILE_TYPE,
-        UNABLE_TO_OPEN_FILE,
-
-        ERROR_WRITING_TO_OFS_FILE,
-        ERROR_WRITING_TO_IFS_FILE
-    };
 
     using ReadFileResult = SEFUtility::ResultWithReturnUniquePtr<ReadFileResultCodes, TriangleMesh>;
     using WriteFileResult = SEFUtility::Result<WriteFileResultCodes>;

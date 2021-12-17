@@ -67,8 +67,15 @@ namespace Cork::Meshes
 
             TriangleRemapper        remapper( *mesh_ );
 
+            auto result = mesh_->find_enclosing_triangles(single_triangle, num_rings, smooth_boundary);
+
+            if( !result.succeeded() )       //  TODO return proper success/failure
+            {
+                return std::unique_ptr<TriangleMesh>();
+            }
+
             return std::make_unique<TriangleMeshWrapper>( std::move( *(mesh_->extract_surface( remapper,
-                mesh_->find_enclosing_triangles(single_triangle, num_rings, smooth_boundary).merge(single_triangle)))));
+                result.return_ptr()->merge(single_triangle)))));
         }
 
         const BBox3D& bounding_box() const { return mesh_->bounding_box(); }

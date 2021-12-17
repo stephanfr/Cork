@@ -96,23 +96,6 @@ namespace Cork::Meshes
             FLIP_TRI
         };
 
-        enum class SetupBooleanProblemResultCodes
-        {
-            SUCCESS = 0,
-            TOO_MANY_TRIANGLES_IN_DISJOINT_UNION,
-            QUANTIZER_CREATION_FAILED,
-            FIND_INTERSECTIONS_FAILED,
-            RESOLVE_INTERSECTIONS_FAILED,
-            POPULATE_EDGE_GRAPH_CACHE_FAILED,
-            SELF_INTERSECTING_MESH
-        };
-
-        enum class BuildEGraphCacheResultCodes
-        {
-            SUCCESS = 0,
-            OUT_OF_MEMORY
-        };
-
         using SetupBooleanProblemResult = SEFUtility::Result<SetupBooleanProblemResultCodes>;
 
         using BuildEGraphCacheResult = SEFUtility::ResultWithReturnUniquePtr<BuildEGraphCacheResultCodes, EGraphCache>;

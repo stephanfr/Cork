@@ -22,23 +22,28 @@
 #include <deque>
 #include <vector>
 
+#include "CPPResult.hpp"
 #include "primitives/boundary_edge.hpp"
-#include "mesh/edge_incidence_counter.hpp"
+#include "result_codes.hpp"
 
 namespace Cork::Meshes
 {
+    using ExtractBoundariesResult =
+        SEFUtility::ResultWithReturnUniquePtr<ExtractBoundariesResultCodes, std::vector<BoundaryEdge>>;
+
+    class EdgeIncidenceSet;
+    class MeshBase;
+
     class BoundaryEdgeBuilder
     {
        public:
-
-        using EdgeIncidenceSet = Meshes::EdgeIncidenceSet;
-
         BoundaryEdgeBuilder() = default;
 
-        std::vector<BoundaryEdge> extract_boundaries( const MeshBase& mesh, const TriangleByIndicesIndexSet& tris_in_region);
-        std::vector<BoundaryEdge> extract_boundaries( const MeshBase& mesh, const EdgeIncidenceSet&   region_edges );
-        std::vector<BoundaryEdge> extract_boundaries( const EdgeByIndicesVector& region_edges );
-        std::vector<BoundaryEdge> extract_boundaries( EdgeByIndicesVector&& region_edges );
+        ExtractBoundariesResult extract_boundaries(const MeshBase& mesh,
+                                                   const TriangleByIndicesIndexSet& tris_in_region);
+        ExtractBoundariesResult extract_boundaries(const MeshBase& mesh, const EdgeIncidenceSet& region_edges);
+        ExtractBoundariesResult extract_boundaries(const EdgeByIndicesVector& region_edges);
+        ExtractBoundariesResult extract_boundaries(EdgeByIndicesVector&& region_edges);
 
        private:
         std::deque<VertexIndex> vertices_;
@@ -59,8 +64,8 @@ namespace Cork::Meshes
 
         bool is_closed() { return vertices_.front() == vertices_.back(); }
 
-        std::vector<BoundaryEdge> get_boundary_edges();
+        ExtractBoundariesResult get_boundary_edges();
 
-        std::vector<BoundaryEdge> extract_boundaries_recursively(BoundaryEdge boundary);
+        std::unique_ptr<std::vector<BoundaryEdge>> extract_boundaries_recursively(BoundaryEdge boundary);
     };
 }  // namespace Cork::Meshes

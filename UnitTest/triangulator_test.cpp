@@ -25,6 +25,8 @@
 #include <iostream>
 #include <list>
 
+#include "result_codes.hpp"
+
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
 
 #if __INTELLISENSE__
@@ -109,7 +111,7 @@ TEST_CASE("Triangulator Tests", "[cork basic]")
 
         auto result = triangulator.will_problem_fit( Cork::Triangulator::Triangulator::MAX_POINTS + 1, 1 );
 
-        REQUIRE( result == Cork::Triangulator::TriangulationResultCodes::TOO_MANY_POINTS );
+        REQUIRE( result == Cork::TriangulationResultCodes::TOO_MANY_POINTS );
     }
 
         
@@ -119,6 +121,6 @@ TEST_CASE("Triangulator Tests", "[cork basic]")
 
         auto result = triangulator.will_problem_fit( 1, Cork::Triangulator::Triangulator::MAX_POINTS + 1 );
 
-        REQUIRE( result == Cork::Triangulator::TriangulationResultCodes::TOO_MANY_SEGMENTS );
+        REQUIRE( result == Cork::TriangulationResultCodes::TOO_MANY_SEGMENTS );
     }
 }

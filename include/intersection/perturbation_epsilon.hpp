@@ -29,11 +29,6 @@
 
 namespace Cork::Intersection
 {
-    enum class AdjustPerturbationResultCodes
-    {
-        SUCCESS = 0,
-        MAXIMUM_PERTURBATION_REACHED
-    };
 
     using AdjustPerturbationResult = SEFUtility::ResultWithReturnValue<AdjustPerturbationResultCodes, int>;
 

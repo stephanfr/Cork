@@ -28,6 +28,7 @@
 #include <stdint.h>
 
 #include "CPPResult.hpp"
+#include "result_codes.hpp"
 #include "primitives/primitives.hpp"
 
 namespace Cork::Triangulator
@@ -121,14 +122,6 @@ namespace Cork::Triangulator
 
         double      sign_flip_;
         bool        flip_sign_;
-    };
-
-    enum class TriangulationResultCodes {
-        SUCCESS = 0,
-
-        TOO_MANY_POINTS,
-        TOO_MANY_SEGMENTS,
-        UNEQUAL_NUMBER_OF_INPUT_AND_OUTPUT_POINTS
     };
 
     using TriangulateResult = SEFUtility::ResultWithReturnUniquePtr<TriangulationResultCodes, TriangleList>;

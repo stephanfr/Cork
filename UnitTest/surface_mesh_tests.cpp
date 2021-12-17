@@ -21,6 +21,7 @@
 
 #include <catch2/catch_all.hpp>
 
+#include "result_codes.hpp"
 #include "file_formats/files.hpp"
 #include "mesh/triangle_mesh_wrapper.hpp"
 
