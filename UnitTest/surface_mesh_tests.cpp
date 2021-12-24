@@ -48,7 +48,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         REQUIRE(mesh.num_triangles() == 9998);
 
         {
-            auto surface1 = mesh.extract_surface(5000u, 1, false);
+            auto surface1 = mesh.extract_surface(5000u, 1);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_1.off", *surface1);
 
@@ -57,17 +57,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface1_smoothed = mesh.extract_surface(5000u, 1, true);
-
-            Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_1_smoothed.off",
-                                  *surface1_smoothed);
-
-            REQUIRE(surface1_smoothed->num_vertices() == 15);
-            REQUIRE(surface1_smoothed->num_triangles() == 16);
-        }
-
-        {
-            auto surface2 = mesh.extract_surface(5000u, 2, false);
+            auto surface2 = mesh.extract_surface(5000u, 2);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_2.off", *surface2);
 
@@ -76,17 +66,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface2_smoothed = mesh.extract_surface(5000u, 2, true);
-
-            Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_2_smoothed.off",
-                                  *surface2_smoothed);
-
-            REQUIRE(surface2_smoothed->num_vertices() == 37);
-            REQUIRE(surface2_smoothed->num_triangles() == 51);
-        }
-
-        {
-            auto surface3 = mesh.extract_surface(5000u, 3, false);
+            auto surface3 = mesh.extract_surface(5000u, 3);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_3.off", *surface3);
 
@@ -95,17 +75,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface3_smoothed = mesh.extract_surface(5000u, 3, true);
-
-            Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_3_smoothed.off",
-                                  *surface3_smoothed);
-
-            REQUIRE(surface3_smoothed->num_vertices() == 71);
-            REQUIRE(surface3_smoothed->num_triangles() == 111);
-        }
-
-        {
-            auto surface4 = mesh.extract_surface(5000u, 4, false);
+            auto surface4 = mesh.extract_surface(5000u, 4);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_4.off", *surface4);
 
@@ -114,17 +84,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface4_smoothed = mesh.extract_surface(5000u, 4, true);
-
-            Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_4_smoothed.off",
-                                  *surface4_smoothed);
-
-            REQUIRE(surface4_smoothed->num_vertices() == 120);
-            REQUIRE(surface4_smoothed->num_triangles() == 197);
-        }
-
-        {
-            auto surface5 = mesh.extract_surface(5000u, 5, false);
+            auto surface5 = mesh.extract_surface(5000u, 5);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_5.off", *surface5);
 
@@ -133,17 +93,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface5_smoothed = mesh.extract_surface(5000u, 5, true);
-
-            Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_5_smoothed.off",
-                                  *surface5_smoothed);
-
-            REQUIRE(surface5_smoothed->num_vertices() == 164);
-            REQUIRE(surface5_smoothed->num_triangles() == 292);
-        }
-
-        {
-            auto surface6 = mesh.extract_surface(5000u, 6, false);
+            auto surface6 = mesh.extract_surface(5000u, 6);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_6.off", *surface6);
 
@@ -152,13 +102,39 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface6_smoothed = mesh.extract_surface(5000u, 6, true);
+            auto surface7 = mesh.extract_surface(5000u, 7);
 
-            Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_6_smoothed.off",
-                                  *surface6_smoothed);
+            Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_7.off", *surface7);
 
-            REQUIRE(surface6_smoothed->num_vertices() == 207);
-            REQUIRE(surface6_smoothed->num_triangles() == 375);
+            REQUIRE(surface7->num_vertices() == 252);
+            REQUIRE(surface7->num_triangles() == 461);
+        }
+
+        {
+            auto surface8 = mesh.extract_surface(5000u, 8);
+
+            Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_8.off", *surface8);
+
+            REQUIRE(surface8->num_vertices() == 300);
+            REQUIRE(surface8->num_triangles() == 554);
+        }
+
+        {
+            auto surface9 = mesh.extract_surface(5000u, 9);
+
+            Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_9.off", *surface9);
+
+            REQUIRE(surface9->num_vertices() == 362);
+            REQUIRE(surface9->num_triangles() == 663);
+        }
+
+        {
+            auto surface10 = mesh.extract_surface(5000u, 10);
+
+            Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_10.off", *surface10);
+
+            REQUIRE(surface10->num_vertices() == 442);
+            REQUIRE(surface10->num_triangles() == 805);
         }
     }
 }

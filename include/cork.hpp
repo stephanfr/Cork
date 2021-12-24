@@ -107,8 +107,7 @@ namespace Cork
         virtual TriangleByVertices triangle_by_vertices(const TriangleByIndices& triangle_by_indices) const = 0;
 
         virtual std::unique_ptr<TriangleMesh>   extract_surface( TriangleByIndicesIndex  center_triangle,
-                                                                 uint32_t                num_rings,
-                                                                 bool                    smooth_boundary ) = 0;
+                                                                 uint32_t                num_rings ) = 0;
 
         virtual const BBox3D& bounding_box() const = 0;
         virtual MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;

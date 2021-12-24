@@ -81,14 +81,13 @@ namespace Cork::Meshes
     }
 
     std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleRemapper& remapper,
-                                                        TriangleByIndicesIndex center_triangle, uint32_t num_rings,
-                                                        bool smooth_boundary) const
+                                                        TriangleByIndicesIndex center_triangle, uint32_t num_rings) const
     {
         Cork::Primitives::TriangleByIndicesIndexSet single_triangle;
 
         single_triangle.emplace(center_triangle);
 
-        auto find_enclosing_triangles_result = find_enclosing_triangles(single_triangle, num_rings, smooth_boundary);
+        auto find_enclosing_triangles_result = find_enclosing_triangles(single_triangle, num_rings);
 
         if (!find_enclosing_triangles_result.succeeded())  //  TODO return proper success/failure result
         {
@@ -223,7 +222,7 @@ namespace Cork::Meshes
     }
 
     FindEnclosingTrianglesResult MeshBase::find_enclosing_triangles(const TriangleByIndicesVector& triangles,
-                                                                    uint32_t num_layers, bool smooth_boundary) const
+                                                                    uint32_t num_layers) const
     {
         TriangleByIndicesIndexSet triangle_set;
 
@@ -232,11 +231,11 @@ namespace Cork::Meshes
             triangle_set.insert(triangle.uid());
         }
 
-        return find_enclosing_triangles(triangle_set, smooth_boundary);
+        return find_enclosing_triangles(triangle_set);
     }
 
     FindEnclosingTrianglesResult MeshBase::find_enclosing_triangles(const TriangleByIndicesIndexSet& interior_triangles,
-                                                                    uint32_t num_layers, bool smooth_boundary) const
+                                                                    uint32_t num_layers) const
     {
         ExtractBoundariesResult get_boundaries_result = get_boundary_edge(interior_triangles);
 
@@ -254,7 +253,7 @@ namespace Cork::Meshes
 
         if (boundaries->size() == 1)
         {
-            return find_enclosing_triangles((*boundaries)[0], interior_triangles, num_layers, smooth_boundary);
+            return find_enclosing_triangles((*boundaries)[0], interior_triangles, num_layers);
         }
 
         auto union_of_all_boundaries = std::make_unique<TriangleByIndicesIndexSet>();
@@ -276,7 +275,7 @@ namespace Cork::Meshes
 
     FindEnclosingTrianglesResult MeshBase::find_enclosing_triangles(const BoundaryEdge& boundary,
                                                                     const TriangleByIndicesIndexSet& interior_triangles,
-                                                                    uint32_t num_layers, bool smooth_boundary) const
+                                                                    uint32_t num_layers) const
     {
         auto current_boundaries = std::make_unique<std::vector<BoundaryEdge>>();
         auto all_enclosing_triangles = std::make_unique<TriangleByIndicesIndexSet>();
@@ -289,17 +288,14 @@ namespace Cork::Meshes
 
             for (const auto& boundary : *current_boundaries)
             {
-                for (auto vertex_index : boundary.vertices())
+                std::vector<const TopoEdge*>  topo_edges( std::move( topo_cache().topo_edge_boundary(boundary)));
+                std::set<const TopoTri*>  tris_on_edge( std::move( topo_cache().tris_along_edges( topo_edges )));
+
+                for (auto next_tri : tris_on_edge)
                 {
-                    for (auto edge : topo_cache().vertices().getPool()[vertex_index].edges())
+                    if (!interior_triangles.contains(next_tri->source_triangle_id()))
                     {
-                        for (auto next_tri : edge->triangles())
-                        {
-                            if (!interior_triangles.contains(next_tri->source_triangle_id()))
-                            {
-                                enclosing_triangles.insert(next_tri->source_triangle_id());
-                            }
-                        }
+                        enclosing_triangles.insert(next_tri->source_triangle_id());
                     }
                 }
             }
@@ -308,63 +304,9 @@ namespace Cork::Meshes
 
             all_enclosing_triangles->merge(enclosing_triangles);
 
-            //  Compute the new boundary, then smooth it
+            //  Recompute the boundary if there is another enclosing layer to add
 
-            if (smooth_boundary)
-            {
-                TriangleByIndicesIndexSet all_interior_triangles(interior_triangles, *all_enclosing_triangles);
-                auto get_current_boundaries_result = get_boundary_edge(all_interior_triangles);
-
-                if (get_current_boundaries_result.failed())
-                {
-                    return FindEnclosingTrianglesResult::failure(
-                        get_current_boundaries_result, FindEnclosingTrianglesResultCodes::UNABLE_TO_RECOMPUTE_BOUNDARY,
-                        "Unable to recompute boundary");
-                }
-
-                //  One special case here - look for triangles whose 3 vertices appear in order on the
-                //      boundary edge that are not already in the interior triangle set.  Add these triangles
-                //      to the set and this will smooth out the boundary.
-
-                bool recompute_boundary = false;
-
-                current_boundaries.reset(get_current_boundaries_result.return_ptr().release());
-
-                for (const auto& boundary : *current_boundaries)
-                {
-                    for (uint32_t i = 0; i < boundary.vertices().size() - 2; i++)
-                    {
-                        std::optional<TriangleByIndicesIndex> all_three = tri_containing_all_three_vertices(
-                            boundary.vertices()[i], boundary.vertices()[(i + 1)], boundary.vertices()[(i + 2)]);
-
-                        if (all_three)
-                        {
-                            //  We found a triangle to smooth the edge, add it.  We will also need to recompute the
-                            //  boundary.
-
-                            all_enclosing_triangles->emplace(all_three.value());
-                            all_interior_triangles.emplace(all_three.value());
-
-                            recompute_boundary = true;
-                        }
-                    }
-                }
-
-                if (recompute_boundary)
-                {
-                    auto result = get_boundary_edge(all_interior_triangles);
-
-                    if (!result.succeeded())
-                    {
-                        return FindEnclosingTrianglesResult::failure(
-                            result, FindEnclosingTrianglesResultCodes::UNABLE_TO_RECOMPUTE_BOUNDARY,
-                            "Unable to recompute boundary");
-                    }
-
-                    current_boundaries.reset(result.return_ptr().release());
-                }
-            }
-            else if (i < num_layers - 1)
+            if (i < num_layers - 1)
             {
                 TriangleByIndicesIndexSet all_interior_triangles(interior_triangles, *all_enclosing_triangles);
 

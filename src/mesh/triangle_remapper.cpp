@@ -73,10 +73,21 @@ namespace Cork::Meshes
     {
         auto result_mesh = std::make_unique<MeshBase>(tris_to_extract.size() * 3, tris_to_extract.size());
 
+        MinAndMaxEdgeLengths        min_max_edges;
+        double                      max_vertex_magnitude = DBL_MIN;
+
         for (const auto& tri : tris_to_extract)
         {
             remap_into_mesh(*result_mesh, primary_mesh_.triangles()[tri]);
+
+            TriangleByVertices  tri_by_verts = primary_mesh_.triangle_by_vertices( primary_mesh_.triangles()[tri] );
+
+            min_max_edges.update( tri_by_verts.min_and_max_edge_lengths() );
+            max_vertex_magnitude = std::max( max_vertex_magnitude, tri_by_verts.max_magnitude_vertex() );
         }
+
+        result_mesh->min_and_max_edge_lengths_ = min_max_edges;
+        result_mesh->max_vertex_magnitude_ = max_vertex_magnitude;
 
         return result_mesh;
     }

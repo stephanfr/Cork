@@ -30,25 +30,25 @@
 #include <tbb/task_group.h>
 
 #include "math/gmpext4.hpp"
-
 #include "mesh/mesh_base.hpp"
 
 namespace Cork::Meshes
 {
-
-    TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles, Vertex3DVector& vertices, uint32_t num_edges,
-                      const Math::Quantizer& quantizer)
-        : TopoCacheBase(triangles, vertices, num_edges, quantizer )
-    {}
+    TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles,
+                                                                       Vertex3DVector& vertices, uint32_t num_edges,
+                                                                       const Math::Quantizer& quantizer)
+        : TopoCacheBase(triangles, vertices, num_edges, quantizer)
+    {
+    }
 
     TriangleByIndicesVectorTopoCache::~TriangleByIndicesVectorTopoCache() {}
 
-
-
     MeshTopoCache::MeshTopoCache(MeshBase& owner, const Math::Quantizer& quantizer)
-        : TriangleByIndicesVectorTopoCache( owner.triangles(), owner.vertices(), owner.triangles().size() * 3, quantizer ),
+        : TriangleByIndicesVectorTopoCache(owner.triangles(), owner.vertices(), owner.triangles().size() * 3,
+                                           quantizer),
           mesh_(owner)
-    {}
+    {
+    }
 
     MeshTopoCache::~MeshTopoCache() {}
 
@@ -65,7 +65,7 @@ namespace Cork::Meshes
 
         // record which triangles are live, and record connectivity
 
-        BooleanVector<TriangleByIndicesIndex>   live_tris(mesh_triangles_.size());
+        BooleanVector<TriangleByIndicesIndex> live_tris(mesh_triangles_.size());
 
         for (auto& tri : m_topoTriList)
         {
@@ -134,7 +134,7 @@ namespace Cork::Meshes
             }
         }
 
-        mesh_triangles_.resize(TriangleByIndicesIndex::integer_type( tri_write));
+        mesh_triangles_.resize(TriangleByIndicesIndex::integer_type(tri_write));
 
         // rewrite the triangle reference ids
 
@@ -144,8 +144,128 @@ namespace Cork::Meshes
         }
     }
 
+    std::vector<const TopoEdge*> MeshTopoCache::topo_edge_boundary(const BoundaryEdge& boundary) const
+    {
+        std::vector<const TopoEdge*> topo_edge_boundary;
 
+        topo_edge_boundary.reserve(boundary.vertices().size() + 4);
 
+        for (int i = 0; i < boundary.vertices().size() - 1; i++)
+        {
+            VertexIndex vertex1 = boundary.vertices()[i];
+            VertexIndex vertex2 = boundary.vertices()[i + 1];
+
+            for (auto edge : vertices().getPool()[vertex1].edges())
+            {
+                if (((edge->vert_0().index() == vertex1) && (edge->vert_1().index() == vertex2)) ||
+                    ((edge->vert_0().index() == vertex2) && (edge->vert_1().index() == vertex1)))
+                {
+                    topo_edge_boundary.emplace_back(edge);
+
+                    break;
+                }
+            }
+        }
+
+        VertexIndex vertex1 = boundary.vertices()[0];
+        VertexIndex vertex2 = boundary.vertices()[boundary.vertices().size() - 1];
+
+        for (auto edge : vertices().getPool()[vertex1].edges())
+        {
+            if (((edge->vert_0().index() == vertex1) && (edge->vert_1().index() == vertex2)) ||
+                ((edge->vert_0().index() == vertex2) && (edge->vert_1().index() == vertex1)))
+            {
+                topo_edge_boundary.emplace_back(edge);
+
+                break;
+            }
+        }
+
+        return topo_edge_boundary;
+    }
+
+    std::set<const TopoTri*> MeshTopoCache::tris_along_edges(const std::vector<const TopoEdge*>& boundary) const
+    {
+        std::set<const TopoVert*> edge_verts;
+        std::set<const TopoTri*> edge_tris;
+        std::set<const TopoEdge*> all_edges_for_edge_tris;
+
+        //  First, add all triangles that share an edge.
+
+        for (auto edge : boundary)
+        {
+            //  Insert both edge vertices as we are not assured of ordering
+            //      (i.e. we could have v1->v2, v2->v3, v4->v3 so simply adding the first vert would miss v3)
+
+            edge_verts.insert(&edge->vert_0());
+            edge_verts.insert(&edge->vert_1());
+
+            for (auto tri : edge->triangles())
+            {
+                edge_tris.insert(tri);
+
+                all_edges_for_edge_tris.insert(tri->edges()[0]);
+                all_edges_for_edge_tris.insert(tri->edges()[1]);
+                all_edges_for_edge_tris.insert(tri->edges()[2]);
+            }
+        }
+
+        //  Next, add any triangles which have at least one vertex on the boundary and share at least 1 edge with an adjacent
+        //      triangle on the edge.
+        //
+        //  Repeat until we add no more new triangles.
+
+        bool repeat_search = false;
+
+        do
+        {
+            repeat_search = false;
+
+            for (auto vert : edge_verts)
+            {
+                for (auto tri : vert->triangles())
+                {
+                    if (edge_tris.contains(tri))
+                    {
+                        continue;
+                    }
+
+                    bool vert0_on = edge_verts.contains(tri->verts()[0]);
+                    bool vert1_on = edge_verts.contains(tri->verts()[1]);
+                    bool vert2_on = edge_verts.contains(tri->verts()[2]);
+
+                    if (vert0_on || vert1_on || vert2_on)
+                    {
+                        //   The triangle has one vertex on the boundary - check edges now.
+
+                        bool edge0_on = all_edges_for_edge_tris.contains(tri->edges()[0]);
+                        bool edge1_on = all_edges_for_edge_tris.contains(tri->edges()[1]);
+                        bool edge2_on = all_edges_for_edge_tris.contains(tri->edges()[2]);
+
+                        if (edge0_on || edge1_on || edge2_on)
+                        {
+                            //   We have a match - add the triangle and its edges.
+                            //
+                            //   We also want to search again just in case we have additional
+                            //      triangles enter as a result of this add
+
+                            edge_tris.insert(tri);
+
+                            all_edges_for_edge_tris.insert(tri->edges()[0]);
+                            all_edges_for_edge_tris.insert(tri->edges()[1]);
+                            all_edges_for_edge_tris.insert(tri->edges()[2]);
+
+                            repeat_search = true;
+                        }
+                    }
+                }
+            }
+        } while (repeat_search);
+
+        //  Finished - return the triangles;
+
+        return edge_tris;
+    }
 
     std::ostream& operator<<(std::ostream& out, const TopoVert& vertex)
     {

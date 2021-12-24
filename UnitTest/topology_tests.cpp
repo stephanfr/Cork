@@ -164,7 +164,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(stats.return_value().self_intersecting_edges().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
     }
-/*
+
     SECTION("Find and Fix Self Intersections - Simple")
     {
         auto read_result = Cork::Files::readOFF("../../UnitTest/Test Files/JuliaVaseWithSelfIntersection.off");
@@ -260,7 +260,7 @@ TEST_CASE("Topology Tests", "[file io]")
             REQUIRE(write_result.succeeded());
         }
     }
-*/
+
     SECTION("Find and Fix Self Intersections - Harder")
     {
         auto read_result = Cork::Files::readOFF("../../UnitTest/Test Files/TulipWithSelfIntersections.off");
@@ -284,7 +284,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats_after_se_removal.succeeded());
         REQUIRE(topo_stats_after_se_removal.return_value().non_manifold_edges().size() == 0);
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
-        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 104);
+        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 105);
 
         {
             auto write_result = Cork::Files::writeOFF("../../UnitTest/Test Results/tulipRepaired.off", *mesh);

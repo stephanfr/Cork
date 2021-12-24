@@ -134,17 +134,14 @@ namespace Cork::Meshes
         //  TODO remove defaults
 
         FindEnclosingTrianglesResult find_enclosing_triangles(const TriangleByIndicesVector& triangles,
-                                                              uint32_t num_layers = 1,
-                                                              bool smooth_boundary = false) const;
+                                                              uint32_t num_layers = 1) const;
 
         FindEnclosingTrianglesResult find_enclosing_triangles(const TriangleByIndicesIndexSet& interior_triangles,
-                                                              uint32_t num_layers = 1,
-                                                              bool smooth_boundary = false) const;
+                                                              uint32_t num_layers = 1) const;
 
         FindEnclosingTrianglesResult find_enclosing_triangles(const BoundaryEdge& boundary,
                                                               const TriangleByIndicesIndexSet& interior_triangles,
-                                                              uint32_t num_layers = 1,
-                                                              bool smooth_boundary = false) const;
+                                                              uint32_t num_layers = 1) const;
 
         TriangleByIndicesIndexSet find_triangles_containing_vertex(VertexIndex vertex_index)
         {
@@ -162,8 +159,7 @@ namespace Cork::Meshes
                                                                                 VertexIndex vert3) const;
 
         std::unique_ptr<MeshBase> extract_surface(const TriangleRemapper& remapper,
-                                                  TriangleByIndicesIndex center_triangle, uint32_t num_rings,
-                                                  bool smooth_boundary) const;
+                                                  TriangleByIndicesIndex center_triangle, uint32_t num_rings) const;
 
         std::unique_ptr<MeshBase> extract_surface(const TriangleRemapper& remapper,
                                                   const TriangleByIndicesVector& tris_to_extract) const;
@@ -210,6 +206,8 @@ namespace Cork::Meshes
         MeshBase(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>& vertices,
                  const Primitives::BBox3D& boundingBox, const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths,
                  double max_vertex_magnitude);
+
+        friend class TriangleRemapper;
     };
 
 }  // namespace Cork::Meshes

@@ -33,6 +33,7 @@
 
 #include "intersection/empty3d.hpp"
 #include "math/quantization.hpp"
+#include "primitives/boundary_edge.hpp"
 #include "util/caching_factory.hpp"
 #include "util/managed_intrusive_list.hpp"
 #include "util/sparse_vector.hpp"
@@ -44,7 +45,6 @@ namespace Cork::Intersection
 {
     class TriangleProblem;
 }
-
 
 namespace Cork::Meshes
 {
@@ -77,7 +77,6 @@ namespace Cork::Meshes
     class TopoVert final : public boost::noncopyable, public IntrusiveListHookNoDestructorOnElements
     {
        public:
-
         explicit TopoVert(VertexIndex index, Vertex3D quantized_coordinates,
                           TopoTrianglePointerList::SetPoolType& tri_ptr_set_pool,
                           TopoEdgePointerList::SetPoolType& edge_ptr_set_pool)
@@ -126,7 +125,6 @@ namespace Cork::Meshes
     class TopoEdge final : public IntrusiveListHookNoDestructorOnElements
     {
        public:
-
         TopoEdge(TopoVert& vertex0, TopoVert& vertex1)
             : source_triangle_id_(Primitives::UNINTIALIZED_INDEX), vertices_({{&vertex0, &vertex1}})
         {
@@ -134,8 +132,8 @@ namespace Cork::Meshes
             vertex1.edges().insert(this);
         }
 
-        TopoEdge(TriangleByIndicesIndex source_triangle_id, TriangleEdgeId tri_edge_id,
-                 TopoVert& vertex0, TopoVert& vertex1, TopoTrianglePointerList::SetPoolType& tri_ptr_set_pool)
+        TopoEdge(TriangleByIndicesIndex source_triangle_id, TriangleEdgeId tri_edge_id, TopoVert& vertex0,
+                 TopoVert& vertex1, TopoTrianglePointerList::SetPoolType& tri_ptr_set_pool)
             : source_triangle_id_(source_triangle_id),
               tri_edge_id_(tri_edge_id),
               vertices_({{&vertex0, &vertex1}}),
@@ -154,8 +152,8 @@ namespace Cork::Meshes
 
         void set_boolean_algorithm_data(uint32_t newValue) { boolean_algorithm_data_ = newValue; }
 
-        const TopoVert&     vert_0() const { return *(vertices_[0]); }
-        const TopoVert&     vert_1() const { return *(vertices_[1]); }
+        const TopoVert& vert_0() const { return *(vertices_[0]); }
+        const TopoVert& vert_1() const { return *(vertices_[1]); }
 
         const std::array<TopoVert*, 2>& verts() const { return vertices_; }
 
@@ -238,11 +236,9 @@ namespace Cork::Meshes
     class TopoTri final : public boost::noncopyable, public IntrusiveListHookNoDestructorOnElements
     {
        public:
-
         explicit TopoTri(IndexType ref) : ref_(ref) {}
 
-        TopoTri(uint32_t source_triangle_id, IndexType ref, TopoVert& vertex0, TopoVert& vertex1,
-                TopoVert& vertex2)
+        TopoTri(uint32_t source_triangle_id, IndexType ref, TopoVert& vertex0, TopoVert& vertex1, TopoVert& vertex2)
             : source_triangle_id_(source_triangle_id), ref_(ref)
         {
             m_verts[0] = &vertex0;
@@ -611,8 +607,7 @@ namespace Cork::Meshes
     class TopoCacheBase
     {
        public:
-        TopoCacheBase(T& triangles, Vertex3DVector& vertices, uint32_t num_edges,
-                      const Math::Quantizer& quantizer)
+        TopoCacheBase(T& triangles, Vertex3DVector& vertices, uint32_t num_edges, const Math::Quantizer& quantizer)
             : m_workspace(SEFUtility::CachingFactory<TopoCacheWorkspace>::GetInstance()),
               quantizer_(quantizer),
               mesh_triangles_(triangles),
@@ -641,7 +636,7 @@ namespace Cork::Meshes
 
         TopoVertexList& vertices() { return (m_topoVertexList); }
 
-        const Math::Quantizer   quantizer() const { return quantizer_; }
+        const Math::Quantizer quantizer() const { return quantizer_; }
 
        private:
         TopoCacheBase() = delete;
@@ -800,12 +795,10 @@ namespace Cork::Meshes
     class TriangleByIndicesVectorTopoCache : public TopoCacheBase<TriangleByIndicesVector>
     {
        public:
-
-        TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles, Vertex3DVector& vertices, uint32_t num_edges,
-                      const Math::Quantizer& quantizer);
+        TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles, Vertex3DVector& vertices,
+                                         uint32_t num_edges, const Math::Quantizer& quantizer);
 
         virtual ~TriangleByIndicesVectorTopoCache();
-
 
         void print();
 
@@ -863,7 +856,6 @@ namespace Cork::Meshes
             freeTri(tri);
         }
 
-
        private:
         TriangleByIndicesVectorTopoCache() = delete;
 
@@ -873,8 +865,6 @@ namespace Cork::Meshes
         TriangleByIndicesVectorTopoCache& operator=(const TriangleByIndicesVectorTopoCache&) = delete;
         TriangleByIndicesVectorTopoCache& operator=(TriangleByIndicesVectorTopoCache&&) = delete;
     };
-
-
 
     class MeshTopoCache : public TriangleByIndicesVectorTopoCache
     {
@@ -925,6 +915,11 @@ namespace Cork::Meshes
             mesh_triangles_[t->ref()].flip();
         }
 
+        //  Boundaries
+
+        std::vector<const TopoEdge*> topo_edge_boundary(const BoundaryEdge& boundary) const;
+        std::set<const TopoTri*> tris_along_edges(const std::vector<const TopoEdge*>& boundary) const;
+
        private:
         MeshTopoCache() = delete;
 
@@ -939,89 +934,88 @@ namespace Cork::Meshes
         MeshBase& mesh_;
     };
 
-
-/*
-    class TriangleByIndicesVectorTopoCache : public TopoCacheBase<TriangleByIndicesVector>
-    {
-       public:
-        TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles, Vertex3DVector& vertices, uint32_t num_edges,
-                      const Math::Quantizer& quantizer);
-
-        virtual ~TriangleByIndicesVectorTopoCache();
-
-        //        TopoEdge* newEdge() { return (m_topoEdgeList.emplace_back()); }
-
-        TopoEdge* newEdge(TopoVert& v0, TopoVert& v1) { return m_topoEdgeList.emplace_back(v0, v1); }
-
-        TopoTri* newTri()
+    /*
+        class TriangleByIndicesVectorTopoCache : public TopoCacheBase<TriangleByIndicesVector>
         {
-            return (m_topoTriList.emplace_back(-1));
-        }
+           public:
+            TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles, Vertex3DVector& vertices, uint32_t
+       num_edges, const Math::Quantizer& quantizer);
 
-        // helpers to release bits and pieces
+            virtual ~TriangleByIndicesVectorTopoCache();
 
-        void freeVert(TopoVert* v) { m_topoVertexList.free(v); }
+            //        TopoEdge* newEdge() { return (m_topoEdgeList.emplace_back()); }
 
-        void freeEdge(TopoEdge* e) { m_topoEdgeList.free(e); }
+            TopoEdge* newEdge(TopoVert& v0, TopoVert& v1) { return m_topoEdgeList.emplace_back(v0, v1); }
 
-        void freeTri(TopoTri* t) { m_topoTriList.free(t); }
-
-        // helper to delete geometry in a structured way
-
-        void deleteTri(TopoTri* tri)
-        {
-            // first, unhook the triangle from its faces
-
-            for (uint k = 0; k < 3; k++)
+            TopoTri* newTri()
             {
-                tri->verts()[k]->triangles().erase(tri);
-                tri->edges()[k]->triangles().erase(tri);
+                return (m_topoTriList.emplace_back(-1));
             }
 
-            // now, let's check for any edges which no longer border triangles
+            // helpers to release bits and pieces
 
-            for (uint k = 0; k < 3; k++)
+            void freeVert(TopoVert* v) { m_topoVertexList.free(v); }
+
+            void freeEdge(TopoEdge* e) { m_topoEdgeList.free(e); }
+
+            void freeTri(TopoTri* t) { m_topoTriList.free(t); }
+
+            // helper to delete geometry in a structured way
+
+            void deleteTri(TopoTri* tri)
             {
-                TopoEdge* e = tri->edges()[k];
+                // first, unhook the triangle from its faces
 
-                if (e->triangles().empty())
+                for (uint k = 0; k < 3; k++)
                 {
-                    //	Unhook the edge from its vertices and delete it
-
-                    e->verts()[0]->edges().erase(e);
-                    e->verts()[1]->edges().erase(e);
-
-                    freeEdge(e);
+                    tri->verts()[k]->triangles().erase(tri);
+                    tri->edges()[k]->triangles().erase(tri);
                 }
-            }
 
-            // now, let's check for any vertices which no longer border triangles
+                // now, let's check for any edges which no longer border triangles
 
-            for (uint k = 0; k < 3; k++)
-            {
-                TopoVert* v = tri->verts()[k];
-
-                if (v->triangles().empty())
+                for (uint k = 0; k < 3; k++)
                 {
-                    freeVert(v);
+                    TopoEdge* e = tri->edges()[k];
+
+                    if (e->triangles().empty())
+                    {
+                        //	Unhook the edge from its vertices and delete it
+
+                        e->verts()[0]->edges().erase(e);
+                        e->verts()[1]->edges().erase(e);
+
+                        freeEdge(e);
+                    }
                 }
+
+                // now, let's check for any vertices which no longer border triangles
+
+                for (uint k = 0; k < 3; k++)
+                {
+                    TopoVert* v = tri->verts()[k];
+
+                    if (v->triangles().empty())
+                    {
+                        freeVert(v);
+                    }
+                }
+
+                // finally, release the triangle
+
+                freeTri(tri);
             }
 
-            // finally, release the triangle
+           private:
+            TriangleByIndicesVectorTopoCache() = delete;
 
-            freeTri(tri);
-        }
+            TriangleByIndicesVectorTopoCache(const TriangleByIndicesVectorTopoCache&) = delete;
+            TriangleByIndicesVectorTopoCache(TriangleByIndicesVectorTopoCache&&) = delete;
 
-       private:
-        TriangleByIndicesVectorTopoCache() = delete;
-
-        TriangleByIndicesVectorTopoCache(const TriangleByIndicesVectorTopoCache&) = delete;
-        TriangleByIndicesVectorTopoCache(TriangleByIndicesVectorTopoCache&&) = delete;
-
-        TriangleByIndicesVectorTopoCache& operator=(const TriangleByIndicesVectorTopoCache&) = delete;
-        TriangleByIndicesVectorTopoCache& operator=(TriangleByIndicesVectorTopoCache&&) = delete;
-    };
-*/
+            TriangleByIndicesVectorTopoCache& operator=(const TriangleByIndicesVectorTopoCache&) = delete;
+            TriangleByIndicesVectorTopoCache& operator=(TriangleByIndicesVectorTopoCache&&) = delete;
+        };
+    */
 
     std::ostream& operator<<(std::ostream& out, const TopoVert& vertex);
     std::ostream& operator<<(std::ostream& out, const TopoEdge& edge);

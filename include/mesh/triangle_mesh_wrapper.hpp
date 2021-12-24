@@ -59,7 +59,7 @@ namespace Cork::Meshes
         }
 
         virtual std::unique_ptr<TriangleMesh> extract_surface(TriangleByIndicesIndex center_triangle,
-                                                              uint32_t num_rings, bool smooth_boundary)
+                                                              uint32_t num_rings)
         {
             Cork::Primitives::TriangleByIndicesIndexSet single_triangle;
 
@@ -67,7 +67,7 @@ namespace Cork::Meshes
 
             TriangleRemapper        remapper( *mesh_ );
 
-            auto result = mesh_->find_enclosing_triangles(single_triangle, num_rings, smooth_boundary);
+            auto result = mesh_->find_enclosing_triangles(single_triangle, num_rings);
 
             if( !result.succeeded() )       //  TODO return proper success/failure
             {

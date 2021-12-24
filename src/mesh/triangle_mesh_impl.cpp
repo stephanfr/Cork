@@ -212,7 +212,7 @@ namespace Cork::Meshes
     SelfIntersectionResolutionResults TriangleMeshImpl::remove_self_intersections(
         const Statistics::TopologicalStatistics& topo_stats)
     {
-        find_self_intersecting_regions(topo_stats);
+//        find_self_intersecting_regions(topo_stats);
 
         uint32_t sis_resolved = 0;
         uint32_t sis_abdondoned = 0;
@@ -282,7 +282,7 @@ namespace Cork::Meshes
             }
 
             auto find_enclosing_triangles_result2 =
-                find_enclosing_triangles(triangles_containing_both_vertices, 2, true);
+                find_enclosing_triangles(triangles_containing_both_vertices, 2);
 
             if (!find_enclosing_triangles_result2.succeeded())
             {
@@ -400,7 +400,7 @@ namespace Cork::Meshes
             return false;
         }
 
-        auto ring_of_tris_result = find_enclosing_triangles(holes_for_se[0], tris_to_remove, 3, true);
+        auto ring_of_tris_result = find_enclosing_triangles(holes_for_se[0], tris_to_remove, 3);
 
         if (!ring_of_tris_result.succeeded())
         {
@@ -494,10 +494,10 @@ namespace Cork::Meshes
 
             TriangleByIndicesIndexSet si_region;
 
-            for (int ring_size = 3; ring_size < 10; ring_size++)
+            for (int ring_size = 4; ring_size < 10; ring_size++)
             {
                 auto find_enclosing_triangles_result =
-                    find_enclosing_triangles(triangles_containing_both_vertices, ring_size, true);
+                    find_enclosing_triangles(triangles_containing_both_vertices, ring_size);
 
                 if (!find_enclosing_triangles_result.succeeded())
                 {
@@ -585,9 +585,9 @@ namespace Cork::Meshes
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/patch.off", *patch);
 
-            Meshes::MeshTopoCache minimal_cache(*patch, topo_cache().quantizer());
+//            Meshes::MeshTopoCache minimal_cache(*patch, topo_cache().quantizer());
 
-            Intersection::SelfIntersectionFinder si_finder(minimal_cache);
+            Intersection::SelfIntersectionFinder si_finder(patch->topo_cache());
 
             auto si_stats = si_finder.CheckSelfIntersection();
 
@@ -614,7 +614,8 @@ namespace Cork::Meshes
                 TriangleByIndicesIndexSet triangles_containing_both_vertices(triangles_containing_vertex_1,
                                                                              triangles_containing_vertex_2);
 
-                auto find_enclosing_triangles_result = patch->find_enclosing_triangles(triangles_containing_both_vertices, 2, true);
+//                auto find_enclosing_triangles_result = patch->find_enclosing_triangles(triangles_containing_both_vertices, 2);
+                auto find_enclosing_triangles_result = patch->find_enclosing_triangles(triangles_containing_both_vertices, 2);
 
                 if( !find_enclosing_triangles_result.succeeded() )
                 {

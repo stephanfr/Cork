@@ -13,6 +13,8 @@
 #pragma diag_suppress 2486
 #endif
 
+using namespace std::literals::chrono_literals;
+
 class NonResettableObject
 {
    public:
