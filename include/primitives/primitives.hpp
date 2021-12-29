@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <set>
 
 #include "type_safe/integer.hpp"
@@ -53,6 +54,7 @@ namespace Cork::Primitives
 
     //	Vertices and vectors share the same implementation of a numeric 3-tuple
 
+    using Vertex2D = Vector2D;
     using Vertex3D = Vector3D;
 
     using Ray3D = Math::Ray3DTemplate<NUMERIC_PRECISION>;
@@ -261,6 +263,14 @@ namespace Cork::Primitives
 
         EdgeByIndices flip_segment() const { return EdgeByIndices(second_vertex_, first_vertex_); }
 
+        struct HashFunction
+        {
+            std::size_t operator()(const Primitives::EdgeByIndices& k) const
+            {
+                return (VertexIndex::integer_type(k.first()) * 10000019 ^ VertexIndex::integer_type(k.second()));
+            }
+        };
+
        private:
         VertexIndex first_vertex_;
         VertexIndex second_vertex_;
@@ -418,16 +428,23 @@ namespace Cork::Primitives
         }
     };
 
+    using TriangleByIndicesIndexVector = std::vector<TriangleByIndicesIndex>;
+
     class TriangleByIndicesIndexSet : public std::set<TriangleByIndicesIndex>
     {
        public:
         TriangleByIndicesIndexSet() = default;
-        TriangleByIndicesIndexSet( TriangleByIndicesIndexSet&& ) = default;
+        TriangleByIndicesIndexSet(TriangleByIndicesIndexSet&&) = default;
 
         TriangleByIndicesIndexSet(const TriangleByIndicesIndexSet& set_to_copy)
             : std::set<TriangleByIndicesIndex>(set_to_copy)
         {
         }
+
+        template< class InputIterator>
+        TriangleByIndicesIndexSet( InputIterator    first, InputIterator    last )
+            : std::set<TriangleByIndicesIndex>( first, last )
+            {}
 
         TriangleByIndicesIndexSet(const TriangleByIndicesIndexSet& set_to_copy,
                                   const TriangleByIndicesIndexSet& set_to_merge)
@@ -436,19 +453,32 @@ namespace Cork::Primitives
             merge(set_to_merge);
         }
 
-        TriangleByIndicesIndexSet&      operator=( const TriangleByIndicesIndexSet& ) = default;
+        TriangleByIndicesIndexSet& operator=(const TriangleByIndicesIndexSet&) = default;
 
-        bool    intersects( const TriangleByIndicesIndexSet&    set_to_check )
+        bool intersects(const TriangleByIndicesIndexSet& set_to_check) const
         {
             for (auto index : set_to_check)
             {
-                if( contains(index))
+                if (contains(index))
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        bool is_proper_subset(const TriangleByIndicesIndexSet& set_to_check) const
+        {
+            for (auto index : set_to_check)
+            {
+                if (!contains(index))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         TriangleByIndicesIndexSet& merge(const TriangleByIndicesIndexSet& set_to_add)
@@ -459,6 +489,15 @@ namespace Cork::Primitives
             }
 
             return *this;
+        }
+
+        TriangleByIndicesIndexSet difference(const TriangleByIndicesIndexSet& set_to_diff)
+        {
+            TriangleByIndicesIndexSet   difference;
+
+            std::set_difference( begin(), end(), set_to_diff.begin(), set_to_diff.end(), std::inserter( difference, difference.begin()) );
+
+            return difference;
         }
     };
 
@@ -593,7 +632,7 @@ namespace Cork::Primitives
 
         void resize(IndexType new_size) { vector_.resize(size_t(new_size)); }
 
-        size_t      size() const { return vector_.size(); }
+        size_t size() const { return vector_.size(); }
 
         unsigned char& operator[](IndexType index)
         {
@@ -618,6 +657,9 @@ namespace Cork
     using TriangleVertexId = Primitives::TriangleVertexId;
     using TriangleEdgeId = Primitives::TriangleEdgeId;
 
+    using Vector2D = Primitives::Vector2D;
+    using Vertex2D = Primitives::Vertex2D;
+
     using Vector3D = Primitives::Vector3D;
     using Vertex3D = Primitives::Vertex3D;
 
@@ -636,6 +678,7 @@ namespace Cork
     using EdgeByIndicesVector = Primitives::EdgeByIndicesVector;
 
     using TriangleByIndicesSet = Primitives::TriangleByIndicesSet;
+    using TriangleByIndicesIndexVector = Primitives::TriangleByIndicesIndexVector;
     using TriangleByIndicesIndexSet = Primitives::TriangleByIndicesIndexSet;
 
     template <typename IndexType>

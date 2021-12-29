@@ -32,6 +32,7 @@
 #include "intersection/self_intersection_finder.hpp"
 #include "intersection/triangulator.hpp"
 #include "mesh/boundary_edge_builder.hpp"
+#include "mesh/surface_mesh.hpp"
 #include "statistics/statistics_engines.hpp"
 
 namespace Cork::Meshes
@@ -131,8 +132,8 @@ namespace Cork::Meshes
             //  Simpler than self intersections, we are just going to delete the edge and all
             //      triangles including either vertex.
 
-            TriangleByIndicesIndexSet triangles_to_remove{std::move(find_triangles_containing_vertex(vertex_1)),
-                                                          std::move(find_triangles_containing_vertex(vertex_2))};
+            TriangleByIndicesIndexSet triangles_to_remove{std::move(find_triangles_including_vertex(vertex_1)),
+                                                          std::move(find_triangles_including_vertex(vertex_2))};
 
             auto get_boundary_edge_result = get_boundary_edge(triangles_to_remove);
 
@@ -141,12 +142,11 @@ namespace Cork::Meshes
                 continue;
             }
 
-            std::vector<BoundaryEdge> holes_for_nme =
-                *(get_boundary_edge_result.return_ptr());  //  TODO make holes_for_nme a pointer
+            std::vector<BoundaryEdge> holes_for_nme = *(get_boundary_edge_result.return_ptr());
 
             TriangleRemapper remapper(*this);
 
-            auto find_enclosing_triangles_result = find_enclosing_triangles(triangles_to_remove);
+            auto find_enclosing_triangles_result = find_enclosing_triangles(triangles_to_remove, 1);
 
             if (!find_enclosing_triangles_result.succeeded())
             {
@@ -235,7 +235,7 @@ namespace Cork::Meshes
             //  4)  First and Second vertices with the enclosing ring
 
             TriangleByIndicesIndexSet triangles_containing_vertex_1{
-                std::move(find_triangles_containing_vertex(vertex_1))};
+                std::move(find_triangles_including_vertex(vertex_1))};
 
             if (resolves_self_intersection(triangles_containing_vertex_1))
             {
@@ -245,7 +245,7 @@ namespace Cork::Meshes
             }
 
             TriangleByIndicesIndexSet triangles_containing_vertex_2{
-                std::move(find_triangles_containing_vertex(vertex_2))};
+                std::move(find_triangles_including_vertex(vertex_2))};
 
             if (resolves_self_intersection(triangles_containing_vertex_2))
             {
@@ -264,7 +264,7 @@ namespace Cork::Meshes
                 continue;
             }
 
-            auto find_enclosing_triangles_result1 = find_enclosing_triangles(triangles_containing_both_vertices);
+            auto find_enclosing_triangles_result1 = find_enclosing_triangles(triangles_containing_both_vertices, 1);
 
             if (!find_enclosing_triangles_result1.succeeded())
             {
@@ -281,8 +281,7 @@ namespace Cork::Meshes
                 continue;
             }
 
-            auto find_enclosing_triangles_result2 =
-                find_enclosing_triangles(triangles_containing_both_vertices, 2);
+            auto find_enclosing_triangles_result2 = find_enclosing_triangles(triangles_containing_both_vertices, 2);
 
             if (!find_enclosing_triangles_result2.succeeded())
             {
@@ -484,10 +483,10 @@ namespace Cork::Meshes
             VertexIndex vertex_2 = triangle_containing_edge.edge(intersecting_edge.edge_index()).second();
 
             TriangleByIndicesIndexSet triangles_containing_vertex_1{
-                std::move(find_triangles_containing_vertex(vertex_1))};
+                std::move(find_triangles_including_vertex(vertex_1))};
 
             TriangleByIndicesIndexSet triangles_containing_vertex_2{
-                std::move(find_triangles_containing_vertex(vertex_2))};
+                std::move(find_triangles_including_vertex(vertex_2))};
 
             TriangleByIndicesIndexSet triangles_containing_both_vertices(triangles_containing_vertex_1,
                                                                          triangles_containing_vertex_2);
@@ -581,19 +580,25 @@ namespace Cork::Meshes
         {
             TriangleRemapper remapper(*this);
 
-            std::unique_ptr<MeshBase> patch = extract_surface(remapper, all_regions[i]);
+            //            std::unique_ptr<MeshBase> patch = extract_surface(remapper, all_regions[i]);
 
-            Cork::Files::writeOFF("../../UnitTest/Test Results/patch.off", *patch);
+            Meshes::SurfaceMesh patch(std::move(*extract_surface(remapper, all_regions[i])));
 
-//            Meshes::MeshTopoCache minimal_cache(*patch, topo_cache().quantizer());
+            Cork::Files::writeOFF("../../UnitTest/Test Results/patch.off", patch);
 
-            Intersection::SelfIntersectionFinder si_finder(patch->topo_cache());
+            //            Meshes::MeshTopoCache minimal_cache(*patch, topo_cache().quantizer());
+
+            Intersection::SelfIntersectionFinder si_finder(patch.topo_cache());
 
             auto si_stats = si_finder.CheckSelfIntersection();
 
+            patch.scrub_surface();
+
             for (auto& intersecting_edge : si_stats)
             {
-                auto& triangle_containing_edge = patch->triangles()[intersecting_edge.edge_triangle_id()];
+                patch.remove_self_intersection(intersecting_edge);
+
+                auto& triangle_containing_edge = patch.triangles()[intersecting_edge.edge_triangle_id()];
 
                 VertexIndex vertex_1 = triangle_containing_edge.edge(intersecting_edge.edge_index()).first();
                 VertexIndex vertex_2 = triangle_containing_edge.edge(intersecting_edge.edge_index()).second();
@@ -606,30 +611,31 @@ namespace Cork::Meshes
                 //  4)  First and Second vertices with the enclosing ring
 
                 TriangleByIndicesIndexSet triangles_containing_vertex_1{
-                    std::move(patch->find_triangles_containing_vertex(vertex_1))};
+                    std::move(patch.find_triangles_including_vertex(vertex_1))};
 
                 TriangleByIndicesIndexSet triangles_containing_vertex_2{
-                    std::move(patch->find_triangles_containing_vertex(vertex_2))};
+                    std::move(patch.find_triangles_including_vertex(vertex_2))};
 
                 TriangleByIndicesIndexSet triangles_containing_both_vertices(triangles_containing_vertex_1,
                                                                              triangles_containing_vertex_2);
 
-//                auto find_enclosing_triangles_result = patch->find_enclosing_triangles(triangles_containing_both_vertices, 2);
-                auto find_enclosing_triangles_result = patch->find_enclosing_triangles(triangles_containing_both_vertices, 2);
+                //                auto find_enclosing_triangles_result =
+                //                patch->find_enclosing_triangles(triangles_containing_both_vertices, 2);
+                auto find_enclosing_triangles_result =
+                    patch.find_enclosing_triangles(triangles_containing_both_vertices, 2);
 
-                if( !find_enclosing_triangles_result.succeeded() )
+                if (!find_enclosing_triangles_result.succeeded())
                 {
                     std::cout << "could not find enclosing triangles" << std::endl;
                     continue;
                 }
 
-                TriangleByIndicesIndexSet both_vertices_and_ring(
-                    triangles_containing_both_vertices,
-                    *(find_enclosing_triangles_result.return_ptr()));
+                TriangleByIndicesIndexSet both_vertices_and_ring(triangles_containing_both_vertices,
+                                                                 *(find_enclosing_triangles_result.return_ptr()));
 
-                auto get_boundary_edge_result = patch->get_boundary_edge(both_vertices_and_ring);
+                auto get_boundary_edge_result = patch.get_boundary_edge(both_vertices_and_ring);
 
-                if( !get_boundary_edge_result.succeeded() )
+                if (!get_boundary_edge_result.succeeded())
                 {
                     std::cout << "could not find boundary edge" << std::endl;
                     continue;
@@ -638,7 +644,7 @@ namespace Cork::Meshes
                 std::vector<BoundaryEdge>& holes_for_se = *(get_boundary_edge_result.return_ptr());
 
                 GetHoleClosingTrianglesResult get_hole_closing_triangles_result =
-                    patch->get_hole_closing_triangles(holes_for_se[0]);
+                    patch.get_hole_closing_triangles(holes_for_se[0]);
 
                 if (!get_hole_closing_triangles_result.succeeded())
                 {
@@ -646,40 +652,46 @@ namespace Cork::Meshes
                     continue;
                 }
 
-                std::cout << "Num Tris before removal " << patch->triangles().size() << std::endl;
+                //  Look for extra triangles scattered through the patch
 
-                for (auto triangle_itr = patch->triangles().begin(); triangle_itr != patch->triangles().end();
-                     triangle_itr++)
+                //                for( int i = 0; i <  )
+
+                std::cout << "Num Tris before removal " << patch.triangles().size() << std::endl;
+
+                TriangleByIndicesIndex  index = 0u;
+
+                for (auto triangle_itr = patch.triangles().begin(); triangle_itr != patch.triangles().end();
+                     triangle_itr++, index++)
                 {
-                    if (both_vertices_and_ring.contains(triangle_itr->uid()))
+                    if (both_vertices_and_ring.contains(index))
                     {
-                        triangle_itr = patch->triangles().erase(triangle_itr);
+                        triangle_itr = patch.triangles().erase(triangle_itr);
 
-                        if (triangle_itr == patch->triangles().end())
+                        if (triangle_itr == patch.triangles().end())
                         {
                             break;
                         }
                     }
                 }
 
-                Cork::Files::writeOFF("../../UnitTest/Test Results/patch_with_holes.off", *patch);
+                Cork::Files::writeOFF("../../UnitTest/Test Results/patch_with_holes.off", patch);
 
-                std::cout << "Num Tris after removal " << patch->triangles().size() << std::endl;
+                std::cout << "Num Tris after removal " << patch.triangles().size() << std::endl;
 
                 for (auto tri_to_add : *(get_hole_closing_triangles_result.return_ptr()))
                 {
-                    patch->triangles().emplace_back(tri_to_add);
+                    patch.triangles().emplace_back(tri_to_add);
                     //                    remapper.remap_into_mesh( *patch, tri_to_add );
                 }
 
-                std::cout << "Num Tris after additions " << patch->triangles().size() << std::endl;
+                std::cout << "Num Tris after additions " << patch.triangles().size() << std::endl;
             }
 
-            Cork::Files::writeOFF("../../UnitTest/Test Results/patch_with_fixes.off", *patch);
+            Cork::Files::writeOFF("../../UnitTest/Test Results/patch_with_fixes.off", patch);
 
-            patch->clear_topo_cache();
+            patch.clear_topo_cache();
 
-            Meshes::MeshTopoCache minimal_cache2(*patch, topo_cache().quantizer());
+            Meshes::MeshTopoCache minimal_cache2(patch, topo_cache().quantizer());
 
             Intersection::SelfIntersectionFinder si_finder2(minimal_cache2);
 

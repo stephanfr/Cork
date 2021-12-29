@@ -748,9 +748,9 @@ namespace SEFUtility
         {
             if (!cut_over_)
             {
-                for (T& entry : array_)
+                for (T entry : array_)
                 {
-                    if (entry.index() == index)
+                    if (entry->index() == index)
                     {
                         return (entry);
                     }

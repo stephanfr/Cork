@@ -26,6 +26,8 @@
 
 #include "mesh/mesh_base.hpp"
 
+#include <numeric>
+
 #include "intersection/triangulator.hpp"
 #include "mesh/boundary_edge_builder.hpp"
 #include "primitives/remappers.hpp"
@@ -113,8 +115,8 @@ namespace Cork::Meshes
     {
         //  Determine the projection needed to turn this into a 2D triangulation problem
 
-        Cork::Triangulator::NormalProjector projector(vertices()[hole.vertices()[0]], vertices()[hole.vertices()[1]],
-                                                      vertices()[hole.vertices()[2]]);
+        Math::NormalProjector projector(vertices()[hole.vertex_indices()[0]], vertices()[hole.vertex_indices()[1]],
+                                                      vertices()[hole.vertex_indices()[2]]);
 
         //  Get the triangulator and add the points on the hole edge and the segments joining them.
         //      This is trivial as the vertices are ordered so segments are just one after the next.
@@ -122,17 +124,17 @@ namespace Cork::Meshes
 
         Triangulator::Triangulator triangulator;
 
-        for (auto vertex_index : hole.vertices())
+        for (auto vertex_index : hole.vertex_indices())
         {
             triangulator.add_point(vertices()[vertex_index], true, projector);
         }
 
-        for (int i = 0; i < hole.vertices().size() - 1; i++)
+        for (int i = 0; i < hole.vertex_indices().size() - 1; i++)
         {
             triangulator.add_segment(i, i + 1, true);
         }
 
-        triangulator.add_segment(hole.vertices().size() - 1, 0, true);
+        triangulator.add_segment(hole.vertex_indices().size() - 1, 0, true);
 
         //  Compute the triangulation - I suppose some really messed up geometries might fail here.
 
@@ -154,8 +156,8 @@ namespace Cork::Meshes
         for (auto triangle_to_add : *(result.return_ptr()))
         {
             hole_closing_triangles->emplace_back(
-                TriangleByIndices(Primitives::UNINTIALIZED_INDEX, hole.vertices()[triangle_to_add.v0()],
-                                  hole.vertices()[triangle_to_add.v2()], hole.vertices()[triangle_to_add.v1()]));
+                TriangleByIndices(Primitives::UNINTIALIZED_INDEX, hole.vertex_indices()[triangle_to_add.v0()],
+                                  hole.vertex_indices()[triangle_to_add.v2()], hole.vertex_indices()[triangle_to_add.v1()]));
         }
 
         //  Return the triangles to close the hole
@@ -221,17 +223,17 @@ namespace Cork::Meshes
         return BoundaryEdgeBuilder().extract_boundaries(*this, tris_to_outline);
     }
 
-    FindEnclosingTrianglesResult MeshBase::find_enclosing_triangles(const TriangleByIndicesVector& triangles,
+    ExtractBoundariesResult MeshBase::get_boundary_edge(const TriangleByIndicesIndexVector& tris_to_outline) const
+    {
+        return BoundaryEdgeBuilder().extract_boundaries(*this, tris_to_outline);
+    }
+
+    FindEnclosingTrianglesResult MeshBase::find_enclosing_triangles(const TriangleByIndicesIndexVector& triangles,
                                                                     uint32_t num_layers) const
     {
-        TriangleByIndicesIndexSet triangle_set;
+        TriangleByIndicesIndexSet    tris( triangles.begin(), triangles.end() );
 
-        for (auto triangle : triangles)
-        {
-            triangle_set.insert(triangle.uid());
-        }
-
-        return find_enclosing_triangles(triangle_set);
+        return find_enclosing_triangles(tris, num_layers);
     }
 
     FindEnclosingTrianglesResult MeshBase::find_enclosing_triangles(const TriangleByIndicesIndexSet& interior_triangles,
@@ -260,7 +262,7 @@ namespace Cork::Meshes
 
         for (const BoundaryEdge& current_boundary : *boundaries)
         {
-            auto result = find_enclosing_triangles(current_boundary, interior_triangles);
+            auto result = find_enclosing_triangles(current_boundary, interior_triangles, 1);
 
             if (!result.succeeded())
             {
@@ -330,7 +332,7 @@ namespace Cork::Meshes
                                                                                              VertexIndex vert2,
                                                                                              VertexIndex vert3) const
     {
-        std::vector<TopoTri*> tris_containing_1_and_2;
+        std::vector<const TopoTri*> tris_containing_1_and_2;
 
         std::set_intersection(topo_cache().vertices().getPool()[vert1].triangles().begin(),
                               topo_cache().vertices().getPool()[vert1].triangles().end(),
@@ -338,7 +340,7 @@ namespace Cork::Meshes
                               topo_cache().vertices().getPool()[vert2].triangles().end(),
                               std::back_inserter(tris_containing_1_and_2));
 
-        std::vector<TopoTri*> tris_containing_all_3;
+        std::vector<const TopoTri*> tris_containing_all_3;
 
         std::set_intersection(tris_containing_1_and_2.begin(), tris_containing_1_and_2.end(),
                               topo_cache().vertices().getPool()[vert3].triangles().begin(),

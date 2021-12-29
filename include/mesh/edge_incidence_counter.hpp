@@ -55,14 +55,6 @@ namespace Cork::Meshes
             return triangles_;
         }
 
-        struct HashFunction
-        {
-            std::size_t operator()(const Primitives::EdgeByIndices& k) const
-            {
-                return (VertexIndex::integer_type(k.first()) * 10000019 ^ VertexIndex::integer_type(k.second()));
-            }
-        };
-
        private:
         int num_incidences_;
         boost::container::small_vector<std::pair<TriangleByIndicesIndex, TriangleEdgeId>, 6> triangles_;
@@ -80,6 +72,16 @@ namespace Cork::Meshes
             for (TriangleByIndicesIndex i = 0U; i < triangle_mesh.triangles().size(); i++)
             {
                 add_incidence( i, triangle_mesh.triangles()[i] );
+            }
+        }
+
+        EdgeIncidenceCounter(const MeshBase& mesh, const TriangleByIndicesIndexVector& tris_in_region)
+        {
+            edges_and_incidences_.reserve((tris_in_region.size() * 3) + 10);  //  Pad just a little bit
+
+            for ( auto tri_index : tris_in_region )
+            {
+                add_incidence( tri_index, mesh.triangles()[tri_index] );
             }
         }
 

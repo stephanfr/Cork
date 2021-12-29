@@ -27,9 +27,12 @@
 
 #include <stdint.h>
 
-#include "CPPResult.hpp"
 #include "result_codes.hpp"
+#include "CPPResult.hpp"
+
 #include "primitives/primitives.hpp"
+#include "math/normal_projector.hpp"
+
 
 namespace Cork::Triangulator
 {
@@ -96,33 +99,6 @@ namespace Cork::Triangulator
 
     using TriangleList = std::vector<Triangle>;
 
-    class NormalProjector
-    {
-       public:
-        NormalProjector(const Primitives::Vector3D& v0, const Primitives::Vector3D& v1, const Primitives::Vector3D& v2)
-        {
-            Primitives::Vector3D normal = (v1 - v0).cross(v2 - v0);
-            uint normdim = normal.abs().maxDim();
-            proj_dim0_ = (normdim + 1) % 3;
-            proj_dim1_ = (normdim + 2) % 3;
-            sign_flip_ = (normal[normdim] < 0.0) ? -1.0 : 1.0;
-            flip_sign_ = (sign_flip_ != 1.0 );
-        }
-
-        [[nodiscard]] uint32_t    proj_dim0() const { return proj_dim0_; }
-        [[nodiscard]] uint32_t    proj_dim1() const { return proj_dim1_; }
-
-        [[nodiscard]] double      sign_flip() const { return sign_flip_; }
-        [[nodiscard]] bool        flip_sign() const { return flip_sign_; }
-
-        private :
-
-        uint32_t    proj_dim0_;
-        uint32_t    proj_dim1_;
-
-        double      sign_flip_;
-        bool        flip_sign_;
-    };
 
     using TriangulateResult = SEFUtility::ResultWithReturnUniquePtr<TriangulationResultCodes, TriangleList>;
 
@@ -178,10 +154,12 @@ namespace Cork::Triangulator
             point_markers_[number_of_points_++] = boundary;
         }
 
-        inline void add_point( const Primitives::Vector3D&    point, bool boundary, const NormalProjector& projector )
+        inline void add_point(const Primitives::Vector3D& point, bool boundary, const Math::NormalProjector& projector)
         {
             points_[number_of_points_].first = point[projector.proj_dim0()];
-            points_[number_of_points_].second = projector.flip_sign() ? point[projector.proj_dim1()]  * projector.sign_flip() : point[projector.proj_dim1()];
+            points_[number_of_points_].second = projector.flip_sign()
+                                                    ? point[projector.proj_dim1()] * projector.sign_flip()
+                                                    : point[projector.proj_dim1()];
             point_markers_[number_of_points_++] = boundary;
         }
 
@@ -197,7 +175,7 @@ namespace Cork::Triangulator
             segment_markers_[number_of_segments_++] = boundary ? 1 : 0;
         }
 
-        const std::array<std::pair<double, double>, MAX_POINTS + 1>&    points() const { return points_; }       
+        const std::array<std::pair<double, double>, MAX_POINTS + 1>& points() const { return points_; }
 
         [[nodiscard]] TriangulateResult compute_triangulation();
 

@@ -54,7 +54,7 @@ namespace Cork::Meshes
         VertexIndex new_b = remapper_.at(triangle.b());
         VertexIndex new_c = remapper_.at(triangle.c());
 
-        result_mesh.triangles().emplace_back(result_mesh.triangles().size(), new_a, new_b, new_c);
+        result_mesh.triangles().emplace_back(triangle.uid(), new_a, new_b, new_c);
     }
 
     std::unique_ptr<MeshBase> TriangleRemapper::extract_surface(const TriangleByIndicesVector& tris_to_extract)

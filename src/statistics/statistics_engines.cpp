@@ -35,7 +35,6 @@ namespace Cork::Statistics
 {
     using MeshBase = Meshes::MeshBase;
 
-    using SelfIntersectingEdge = Statistics::SelfIntersectingEdge;
     using BoundaryEdgeBuilder = Meshes::BoundaryEdgeBuilder;
 
     GeometricStatisticsEngine::GeometricStatisticsEngine(const Meshes::MeshBase& triangle_mesh,

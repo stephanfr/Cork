@@ -34,6 +34,7 @@
 
 namespace Cork::Meshes
 {
+
     TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles,
                                                                        Vertex3DVector& vertices, uint32_t num_edges,
                                                                        const Math::Quantizer& quantizer)
@@ -148,12 +149,12 @@ namespace Cork::Meshes
     {
         std::vector<const TopoEdge*> topo_edge_boundary;
 
-        topo_edge_boundary.reserve(boundary.vertices().size() + 4);
+        topo_edge_boundary.reserve(boundary.vertex_indices().size() + 4);
 
-        for (int i = 0; i < boundary.vertices().size() - 1; i++)
+        for (int i = 0; i < boundary.vertex_indices().size() - 1; i++)
         {
-            VertexIndex vertex1 = boundary.vertices()[i];
-            VertexIndex vertex2 = boundary.vertices()[i + 1];
+            VertexIndex vertex1 = boundary.vertex_indices()[i];
+            VertexIndex vertex2 = boundary.vertex_indices()[i + 1];
 
             for (auto edge : vertices().getPool()[vertex1].edges())
             {
@@ -167,8 +168,8 @@ namespace Cork::Meshes
             }
         }
 
-        VertexIndex vertex1 = boundary.vertices()[0];
-        VertexIndex vertex2 = boundary.vertices()[boundary.vertices().size() - 1];
+        VertexIndex vertex1 = boundary.vertex_indices()[0];
+        VertexIndex vertex2 = boundary.vertex_indices()[boundary.vertex_indices().size() - 1];
 
         for (auto edge : vertices().getPool()[vertex1].edges())
         {
@@ -210,7 +211,8 @@ namespace Cork::Meshes
             }
         }
 
-        //  Next, add any triangles which have at least one vertex on the boundary and share at least 1 edge with an adjacent
+        //  Next, add any triangles which have at least one vertex on the boundary and share at least 1 edge with an
+        //  adjacent
         //      triangle on the edge.
         //
         //  Repeat until we add no more new triangles.

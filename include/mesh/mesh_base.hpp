@@ -130,20 +130,20 @@ namespace Cork::Meshes
         void clear_topo_cache() { topo_cache_.reset(); }
 
         ExtractBoundariesResult get_boundary_edge(const TriangleByIndicesIndexSet& tris_to_outline) const;
+        ExtractBoundariesResult get_boundary_edge(const TriangleByIndicesIndexVector& tris_to_outline) const;
 
-        //  TODO remove defaults
 
-        FindEnclosingTrianglesResult find_enclosing_triangles(const TriangleByIndicesVector& triangles,
-                                                              uint32_t num_layers = 1) const;
+        FindEnclosingTrianglesResult find_enclosing_triangles(const TriangleByIndicesIndexVector& triangles,
+                                                              uint32_t num_layers) const;
 
         FindEnclosingTrianglesResult find_enclosing_triangles(const TriangleByIndicesIndexSet& interior_triangles,
-                                                              uint32_t num_layers = 1) const;
+                                                              uint32_t num_layers) const;
 
         FindEnclosingTrianglesResult find_enclosing_triangles(const BoundaryEdge& boundary,
                                                               const TriangleByIndicesIndexSet& interior_triangles,
-                                                              uint32_t num_layers = 1) const;
+                                                              uint32_t num_layers) const;
 
-        TriangleByIndicesIndexSet find_triangles_containing_vertex(VertexIndex vertex_index)
+        TriangleByIndicesIndexSet find_triangles_including_vertex(VertexIndex vertex_index)
         {
             TriangleByIndicesIndexSet triangles_including_vertex;
 
@@ -208,6 +208,7 @@ namespace Cork::Meshes
                  double max_vertex_magnitude);
 
         friend class TriangleRemapper;
+        friend class SurfaceMesh;
     };
 
 }  // namespace Cork::Meshes

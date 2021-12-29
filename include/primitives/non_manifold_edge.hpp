@@ -23,50 +23,33 @@
 
 #include "primitives/primitives.hpp"
 
-namespace Cork::Meshes
-{
-    class BoundaryEdgeBuilder;
-}
-
 namespace Cork::Primitives
 {
 
-    class BoundaryEdge
+    class NonManifoldEdge
     {
        public:
-        BoundaryEdge(const BoundaryEdge&) = default;
+        NonManifoldEdge() = delete;
 
-        BoundaryEdge& operator=(const BoundaryEdge&) = default;
-
-        const std::vector<VertexIndex>& vertex_indices() const { return vertex_indices_; }
-
-        double  length( const Vertex3DVector&       vertices )
+        NonManifoldEdge(TriangleByIndicesIndex triangle_id, TriangleEdgeId edge_id)
+            : triangle_id_(triangle_id), edge_id_(edge_id)
         {
-            double  len = 0;
-
-            for( int i = 0; i < vertex_indices_.size() - 1; i++ )
-            {
-                Vector3D    segment = vertices[vertex_indices_[i]] - vertices[vertex_indices_[i+1]];
-
-                len += sqrt(( segment.x() * segment.x() ) + ( segment.y() * segment.y() ) + ( segment.z() * segment.z() )); 
-            }
-
-            return len;
         }
 
+        NonManifoldEdge(const NonManifoldEdge&) = default;
+        NonManifoldEdge(NonManifoldEdge&&) = default;
+
+        TriangleByIndicesIndex triangle_id() const { return triangle_id_; }
+        TriangleEdgeId edge_id() const { return edge_id_; }
+
        private:
-        std::vector<VertexIndex> vertex_indices_;
-
-        BoundaryEdge(const std::vector<VertexIndex>& vertices) : vertex_indices_(vertices) {}
-
-        friend class Meshes::BoundaryEdgeBuilder;
+        TriangleByIndicesIndex triangle_id_;
+        TriangleEdgeId edge_id_;
     };
-
-    std::ostream& operator<<(std::ostream& out, const BoundaryEdge& boundary);
-
-}  // namespace Cork::Primitives
+}
 
 namespace Cork
 {
-    using BoundaryEdge = Primitives::BoundaryEdge;
+    using NonManifoldEdge = Primitives::NonManifoldEdge;
 }  // namespace Cork
+

@@ -29,6 +29,8 @@
 #include <set>
 
 #include "primitives/boundary_edge.hpp"
+#include "primitives/self_intersecting_edge.hpp"
+#include "primitives/non_manifold_edge.hpp"
 
 namespace Cork::Statistics
 {
@@ -84,56 +86,6 @@ namespace Cork::Statistics
         double min_edge_length_;
         double max_edge_length_;
         const BBox3D bounding_box_;
-    };
-
-    class NonManifoldEdge
-    {
-       public:
-        NonManifoldEdge() = delete;
-
-        NonManifoldEdge(TriangleByIndicesIndex triangle_id, TriangleEdgeId edge_id)
-            : triangle_id_(triangle_id), edge_id_(edge_id)
-        {
-        }
-
-        NonManifoldEdge(const NonManifoldEdge&) = default;
-        NonManifoldEdge(NonManifoldEdge&&) = default;
-
-        TriangleByIndicesIndex triangle_id() const { return triangle_id_; }
-        TriangleEdgeId edge_id() const { return edge_id_; }
-
-       private:
-        TriangleByIndicesIndex triangle_id_;
-        TriangleEdgeId edge_id_;
-    };
-
-    class SelfIntersectingEdge
-    {
-       public:
-        SelfIntersectingEdge() = delete;
-
-        SelfIntersectingEdge(const SelfIntersectingEdge&) = default;
-        SelfIntersectingEdge(SelfIntersectingEdge&&) = default;
-
-        SelfIntersectingEdge(TriangleByIndicesIndex edge_triangle_id, TriangleEdgeId edge_index,
-                             TriangleByIndicesIndex triangle_instersected_id)
-            : edge_triangle_id_(edge_triangle_id),
-              edge_index_(edge_index),
-              triangle_instersected_id_(triangle_instersected_id)
-        {
-        }
-
-        SelfIntersectingEdge& operator=(const SelfIntersectingEdge&) = default;
-        SelfIntersectingEdge& operator=(SelfIntersectingEdge&&) = default;
-
-        TriangleByIndicesIndex edge_triangle_id() const { return edge_triangle_id_; }
-        TriangleEdgeId edge_index() const { return edge_index_; }
-        TriangleByIndicesIndex triangle_instersected_id() const { return triangle_instersected_id_; }
-
-       private:
-        TriangleByIndicesIndex edge_triangle_id_;
-        TriangleEdgeId edge_index_;
-        TriangleByIndicesIndex triangle_instersected_id_;
     };
 
     class TopologicalStatistics

@@ -32,8 +32,6 @@ namespace Cork::Intersection
     using TopoTri = Meshes::TopoTri;
     using TopoEdgePointerVector = Meshes::TopoEdgePointerVector;
 
-    using SelfIntersectingEdge = Statistics::SelfIntersectingEdge;
-
     SelfIntersectionFinder::SelfIntersectionFinder(const Meshes::TriangleByIndicesVectorTopoCache& topo_cache)
         : m_intersection_workspace(std::move(SEFUtility::CachingFactory<IntersectionWorkspace>::GetInstance())),
           topo_cache_(topo_cache)
@@ -47,7 +45,7 @@ namespace Cork::Intersection
     {
         Empty3d::ExactArithmeticContext localArithmeticContext;
         std::vector<SelfIntersectingEdge> self_intersections;
-        std::vector<std::set<TopoTri*>> si_triangle_sets;
+        std::vector<std::set<const TopoTri*>> si_triangle_sets;
 
         for (const TopoTri& triangle_intersected : topo_cache_.triangles())
         {
@@ -64,7 +62,7 @@ namespace Cork::Intersection
                     //  We deduplicate by looking for prior self intersections whose vertices share a triangle.
                     //      This seems to work reasonably well.
 
-                    std::set<TopoTri*> topo_tris_with_se_vertex;
+                    std::set<const TopoTri*> topo_tris_with_se_vertex;
 
                     for (auto triangle_sharing_edge : edge.vert_0().triangles())
                     {

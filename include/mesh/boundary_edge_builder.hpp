@@ -41,9 +41,10 @@ namespace Cork::Meshes
 
         ExtractBoundariesResult extract_boundaries(const MeshBase& mesh,
                                                    const TriangleByIndicesIndexSet& tris_in_region);
+        ExtractBoundariesResult extract_boundaries(const MeshBase& mesh,
+                                                   const TriangleByIndicesIndexVector& tris_in_region);
         ExtractBoundariesResult extract_boundaries(const MeshBase& mesh, const EdgeIncidenceSet& region_edges);
         ExtractBoundariesResult extract_boundaries(const EdgeByIndicesVector& region_edges);
-        ExtractBoundariesResult extract_boundaries(EdgeByIndicesVector&& region_edges);
 
        private:
         std::deque<VertexIndex> vertices_;

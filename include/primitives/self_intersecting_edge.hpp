@@ -23,50 +23,39 @@
 
 #include "primitives/primitives.hpp"
 
-namespace Cork::Meshes
-{
-    class BoundaryEdgeBuilder;
-}
-
 namespace Cork::Primitives
 {
-
-    class BoundaryEdge
+    class SelfIntersectingEdge
     {
        public:
-        BoundaryEdge(const BoundaryEdge&) = default;
+        SelfIntersectingEdge() = delete;
 
-        BoundaryEdge& operator=(const BoundaryEdge&) = default;
+        SelfIntersectingEdge(const SelfIntersectingEdge&) = default;
+        SelfIntersectingEdge(SelfIntersectingEdge&&) = default;
 
-        const std::vector<VertexIndex>& vertex_indices() const { return vertex_indices_; }
-
-        double  length( const Vertex3DVector&       vertices )
+        SelfIntersectingEdge(TriangleByIndicesIndex edge_triangle_id, TriangleEdgeId edge_index,
+                             TriangleByIndicesIndex triangle_instersected_id)
+            : edge_triangle_id_(edge_triangle_id),
+              edge_index_(edge_index),
+              triangle_instersected_id_(triangle_instersected_id)
         {
-            double  len = 0;
-
-            for( int i = 0; i < vertex_indices_.size() - 1; i++ )
-            {
-                Vector3D    segment = vertices[vertex_indices_[i]] - vertices[vertex_indices_[i+1]];
-
-                len += sqrt(( segment.x() * segment.x() ) + ( segment.y() * segment.y() ) + ( segment.z() * segment.z() )); 
-            }
-
-            return len;
         }
 
+        SelfIntersectingEdge& operator=(const SelfIntersectingEdge&) = default;
+        SelfIntersectingEdge& operator=(SelfIntersectingEdge&&) = default;
+
+        TriangleByIndicesIndex edge_triangle_id() const { return edge_triangle_id_; }
+        TriangleEdgeId edge_index() const { return edge_index_; }
+        TriangleByIndicesIndex triangle_instersected_id() const { return triangle_instersected_id_; }
+
        private:
-        std::vector<VertexIndex> vertex_indices_;
-
-        BoundaryEdge(const std::vector<VertexIndex>& vertices) : vertex_indices_(vertices) {}
-
-        friend class Meshes::BoundaryEdgeBuilder;
+        TriangleByIndicesIndex edge_triangle_id_;
+        TriangleEdgeId edge_index_;
+        TriangleByIndicesIndex triangle_instersected_id_;
     };
-
-    std::ostream& operator<<(std::ostream& out, const BoundaryEdge& boundary);
-
 }  // namespace Cork::Primitives
 
 namespace Cork
 {
-    using BoundaryEdge = Primitives::BoundaryEdge;
+    using SelfIntersectingEdge = Primitives::SelfIntersectingEdge;
 }  // namespace Cork

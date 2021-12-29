@@ -1,5 +1,5 @@
 // +-------------------------------------------------------------------------
-// | self_intersection_finder.hpp
+// | surface_mesh.hpp
 // |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
@@ -23,43 +23,40 @@
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
+#pragma once
 
-#include "edge_cache.hpp"
-#include "mesh/topo_cache.hpp"
+#include "tbb/concurrent_vector.h"
 
-namespace Cork::Intersection
+#include "mesh/edge_graph_cache.hpp"
+#include "mesh_base.hpp"
+
+#include "primitives/self_intersecting_edge.hpp"
+
+namespace Cork::Meshes
 {
-    class SelfIntersectionFinder
+    //
+    //	The Mesh class brings together the functionality needed for the boolean operations
+    //
+
+    class SurfaceMesh : public MeshBase
     {
        public:
-        SelfIntersectionFinder(const Meshes::TriangleByIndicesVectorTopoCache&   topo_cache);
+        SurfaceMesh() = delete;
 
-        virtual ~SelfIntersectionFinder() { reset(); }
+        SurfaceMesh(SurfaceMesh&& src) : MeshBase(std::move(src)){};
 
-        const std::vector<SelfIntersectingEdge> CheckSelfIntersection();
+        SurfaceMesh(MeshBase&& src) : MeshBase(std::move(src)){};
 
-       private:
-        SEFUtility::CachingFactory<IntersectionWorkspace>::UniquePtr m_intersection_workspace;
+        explicit SurfaceMesh(const TriangleMesh& inputMesh);
 
-        const Meshes::TriangleByIndicesVectorTopoCache& topo_cache_;
+        virtual ~SurfaceMesh();
 
-        std::unique_ptr<AABVH::AxisAlignedBoundingVolumeHierarchy> m_edgeBVH;
+        void operator=(SurfaceMesh&& src);
 
-        void reset();
+        void        scrub_surface();
 
-        void CreateBoundingVolumeHierarchy()
-        {
-            std::unique_ptr<AABVH::GeomBlobVector> edge_geoms(new AABVH::GeomBlobVector());
+        BoundaryEdge        find_outside_boundary();
 
-            edge_geoms->reserve(topo_cache_.edges().size());
-
-            for (auto& e : topo_cache_.edges())
-            {
-                edge_geoms->emplace_back(e);
-            }
-
-            m_edgeBVH.reset(new AABVH::AxisAlignedBoundingVolumeHierarchy(
-                edge_geoms, *m_intersection_workspace, Cork::SolverControlBlock::get_default_control_block()));
-        }
+        void        remove_self_intersection( const SelfIntersectingEdge&   self_intersection );
     };
-}
+}  // namespace Cork::Meshes

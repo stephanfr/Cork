@@ -282,7 +282,7 @@ namespace Cork::Intersection
                     SubdivideResultCodes::FAILED_TRIANGULATION, "Failed Triangulation"));
             }
 
-            Triangulator::NormalProjector normal_projector(overts[0]->coordinate(), overts[1]->coordinate(),
+            Math::NormalProjector normal_projector(overts[0]->coordinate(), overts[1]->coordinate(),
                                                            overts[2]->coordinate());
 
             for (auto& point : points)
