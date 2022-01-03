@@ -82,7 +82,7 @@ namespace Cork::Meshes
         return MeshBase(copy_of_tris, copy_of_verts, bounding_box_, min_and_max_edge_lengths_, max_vertex_magnitude_);
     }
 
-    std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleRemapper& remapper,
+    std::unique_ptr<MeshBase> MeshBase::extract_surface(TriangleRemapper& remapper,
                                                         TriangleByIndicesIndex center_triangle, uint32_t num_rings) const
     {
         Cork::Primitives::TriangleByIndicesIndexSet single_triangle;
@@ -99,16 +99,16 @@ namespace Cork::Meshes
         return extract_surface(remapper, find_enclosing_triangles_result.return_ptr()->merge(single_triangle));
     }
 
-    std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleRemapper& remapper,
+    std::unique_ptr<MeshBase> MeshBase::extract_surface(TriangleRemapper& remapper,
                                                         const TriangleByIndicesVector& tris_to_extract) const
     {
-        return TriangleRemapper(*this).extract_surface(tris_to_extract);
+        return remapper.extract_surface(tris_to_extract);
     }
 
-    std::unique_ptr<MeshBase> MeshBase::extract_surface(const TriangleRemapper& remapper,
+    std::unique_ptr<MeshBase> MeshBase::extract_surface(TriangleRemapper& remapper,
                                                         const TriangleByIndicesIndexSet& tris_to_extract) const
     {
-        return TriangleRemapper(*this).extract_surface(tris_to_extract);
+        return remapper.extract_surface(tris_to_extract);
     }
 
     MeshBase::GetHoleClosingTrianglesResult MeshBase::get_hole_closing_triangles(const BoundaryEdge& hole)
@@ -290,14 +290,14 @@ namespace Cork::Meshes
 
             for (const auto& boundary : *current_boundaries)
             {
-                std::vector<const TopoEdge*>  topo_edges( std::move( topo_cache().topo_edge_boundary(boundary)));
+                TopoEdgeBoundary  topo_edges( std::move( topo_cache().topo_edge_boundary(boundary)));
                 std::set<const TopoTri*>  tris_on_edge( std::move( topo_cache().tris_along_edges( topo_edges )));
 
                 for (auto next_tri : tris_on_edge)
                 {
-                    if (!interior_triangles.contains(next_tri->source_triangle_id()))
+                    if (!interior_triangles.contains(next_tri->ref()))
                     {
-                        enclosing_triangles.insert(next_tri->source_triangle_id());
+                        enclosing_triangles.insert(next_tri->ref());
                     }
                 }
             }
@@ -352,7 +352,7 @@ namespace Cork::Meshes
         if (!tris_containing_all_3.empty())
         {
             //  There should only ever be one ....
-            result = (*(tris_containing_all_3.begin()))->source_triangle_id();
+            result = (*(tris_containing_all_3.begin()))->ref();
         }
 
         return result;

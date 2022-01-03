@@ -734,7 +734,7 @@ namespace Cork::Meshes
                     break;
 
                 case TriCode::FLIP_TRI:
-                    topocache.flipTri(&currentTriangle);
+                    topocache.flip_triangle(&currentTriangle);
                     break;
 
                 case TriCode::KEEP_TRI:
@@ -746,7 +746,7 @@ namespace Cork::Meshes
 
         for (auto tptr : toDelete)
         {
-            topocache.deleteTri(tptr);
+            topocache.delete_tri(tptr);
         }
 
         topocache.commit();

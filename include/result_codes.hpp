@@ -170,4 +170,13 @@ namespace Cork
 
         UNABLE_TO_RECOMPUTE_BOUNDARY
     };
+
+    
+    enum class FindTopoEdgeBoundariesResultCodes
+    {
+        SUCCESS = 0,
+
+        EDGE_WITH_MORE_THAN_TWO_INCIDENCES_FOUND
+    };
+
 }  // namespace Cork

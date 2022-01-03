@@ -149,7 +149,7 @@ namespace Cork::Meshes
 
             for (const auto& triangle_to_add : topo_cache().vertices().getPool()[vertex_index].triangles())
             {
-                triangles_including_vertex.insert(triangle_to_add->source_triangle_id());
+                triangles_including_vertex.insert(triangle_to_add->ref());
             }
 
             return (triangles_including_vertex);
@@ -158,12 +158,12 @@ namespace Cork::Meshes
         std::optional<TriangleByIndicesIndex> tri_containing_all_three_vertices(VertexIndex vert1, VertexIndex vert2,
                                                                                 VertexIndex vert3) const;
 
-        std::unique_ptr<MeshBase> extract_surface(const TriangleRemapper& remapper,
+        std::unique_ptr<MeshBase> extract_surface(TriangleRemapper& remapper,
                                                   TriangleByIndicesIndex center_triangle, uint32_t num_rings) const;
 
-        std::unique_ptr<MeshBase> extract_surface(const TriangleRemapper& remapper,
+        std::unique_ptr<MeshBase> extract_surface(TriangleRemapper& remapper,
                                                   const TriangleByIndicesVector& tris_to_extract) const;
-        std::unique_ptr<MeshBase> extract_surface(const TriangleRemapper& remapper,
+        std::unique_ptr<MeshBase> extract_surface(TriangleRemapper& remapper,
                                                   const TriangleByIndicesIndexSet& tris_to_extract) const;
 
         using GetHoleClosingTrianglesResult =
@@ -203,12 +203,15 @@ namespace Cork::Meshes
        private:
         MeshBase() = default;
 
+        MeshBase&   operator=( MeshBase&& ) = default;
+
         MeshBase(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>& vertices,
                  const Primitives::BBox3D& boundingBox, const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths,
                  double max_vertex_magnitude);
 
         friend class TriangleRemapper;
         friend class SurfaceMesh;
+        friend class ExtractedSurfaceMesh;
     };
 
 }  // namespace Cork::Meshes

@@ -36,8 +36,8 @@ namespace Cork::Intersection
     
     inline Primitives::Vector3D computeCoords(const Meshes::TopoEdge& e, const Meshes::TopoTri& t, const Math::Quantizer& quantizer)
     {
-        Math::ExteriorCalculusR4::GMPExt4_2 edgeCoordinates(e.edgeExactCoordinates(quantizer));
-        Math::ExteriorCalculusR4::GMPExt4_3 triangleCoordinates(t.triangleExactCoordinates(quantizer));
+        Math::ExteriorCalculusR4::GMPExt4_2 edgeCoordinates(e.edge_exact_coordinates(quantizer));
+        Math::ExteriorCalculusR4::GMPExt4_3 triangleCoordinates(t.triangle_exact_coordinates(quantizer));
 
         return (Empty3d::coordsExact(edgeCoordinates, triangleCoordinates, quantizer));
     }
@@ -45,8 +45,8 @@ namespace Cork::Intersection
     inline Primitives::Vector3D computeCoords(const Meshes::TopoTri& t0, const Meshes::TopoTri& t1, const Meshes::TopoTri& t2,
                                               const Math::Quantizer& quantizer)
     {
-        return (Empty3d::coordsExact(t0.triangleExactCoordinates(quantizer), t1.triangleExactCoordinates(quantizer),
-                                     t2.triangleExactCoordinates(quantizer), quantizer));
+        return (Empty3d::coordsExact(t0.triangle_exact_coordinates(quantizer), t1.triangle_exact_coordinates(quantizer),
+                                     t2.triangle_exact_coordinates(quantizer), quantizer));
     }
 
 
@@ -184,7 +184,7 @@ namespace Cork::Intersection
         OrigVertType* newOrigVert(TopoVert* v)
         {
             return (
-                orig_vert_type_list_.emplace_back(GenericVertType::VertexType::ORIGINAL, *v, v->quantizedValue(), true));
+                orig_vert_type_list_.emplace_back(GenericVertType::VertexType::ORIGINAL, *v, v->quantized_value(), true));
         }
 
         OrigEdgeType* newOrigEdge(const TopoEdge& e, OrigVertType* v0, OrigVertType* v1)
@@ -213,9 +213,9 @@ namespace Cork::Intersection
         {
             assert(glue.vertices_to_be_glued().size() > 0);
 
-            TopoVert* v = topo_cache().newVert();
+            TopoVert* v = topo_cache().new_vertex();
 
-            topo_cache().ownerMesh().vertices()[v->index()] = glue.vertices_to_be_glued()[0]->coordinate();
+            topo_cache().owner_mesh().vertices()[v->index()] = glue.vertices_to_be_glued()[0]->coordinate();
 
             for (IsctVertType* iv : glue.vertices_to_be_glued())
             {
@@ -309,7 +309,7 @@ namespace Cork::Intersection
 
             TopoVert* common;
 
-            if (triangles.t0().findCommonVertex(triangles.t1(), common))
+            if (triangles.t0().find_common_vertex(triangles.t1(), common))
             {
                 for (uint i = 0; i < 3; i++)
                 {

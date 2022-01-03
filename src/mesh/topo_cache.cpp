@@ -34,7 +34,6 @@
 
 namespace Cork::Meshes
 {
-
     TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles,
                                                                        Vertex3DVector& vertices, uint32_t num_edges,
                                                                        const Math::Quantizer& quantizer)
@@ -59,7 +58,7 @@ namespace Cork::Meshes
 
         BooleanVector<VertexIndex> live_verts(mesh_vertices_.size(), false);  //	All initialized to zero
 
-        for (auto& vert : m_topoVertexList)
+        for (auto& vert : topo_vertex_list_)
         {
             live_verts[vert.index()] = true;
         }
@@ -68,7 +67,7 @@ namespace Cork::Meshes
 
         BooleanVector<TriangleByIndicesIndex> live_tris(mesh_triangles_.size());
 
-        for (auto& tri : m_topoTriList)
+        for (auto& tri : topo_tri_list_)
         {
             live_tris[tri.ref()] = true;
 
@@ -104,7 +103,7 @@ namespace Cork::Meshes
 
         // rewrite the vertex reference ids
 
-        for (auto& vert : m_topoVertexList)
+        for (auto& vert : topo_vertex_list_)
         {
             vert.set_index(vertex_map[VertexIndex::integer_type(vert.index())]);
         }
@@ -145,7 +144,7 @@ namespace Cork::Meshes
         }
     }
 
-    std::vector<const TopoEdge*> MeshTopoCache::topo_edge_boundary(const BoundaryEdge& boundary) const
+    TopoEdgeBoundary MeshTopoCache::topo_edge_boundary(const BoundaryEdge& boundary) const
     {
         std::vector<const TopoEdge*> topo_edge_boundary;
 
@@ -182,10 +181,10 @@ namespace Cork::Meshes
             }
         }
 
-        return topo_edge_boundary;
+        return TopoEdgeBoundary(std::move(topo_edge_boundary));
     }
 
-    std::set<const TopoTri*> MeshTopoCache::tris_along_edges(const std::vector<const TopoEdge*>& boundary) const
+    std::set<const TopoTri*> MeshTopoCache::tris_along_edges(const TopoEdgeBoundary& boundary) const
     {
         std::set<const TopoVert*> edge_verts;
         std::set<const TopoTri*> edge_tris;
@@ -193,7 +192,7 @@ namespace Cork::Meshes
 
         //  First, add all triangles that share an edge.
 
-        for (auto edge : boundary)
+        for (auto edge : boundary.edges())
         {
             //  Insert both edge vertices as we are not assured of ordering
             //      (i.e. we could have v1->v2, v2->v3, v4->v3 so simply adding the first vert would miss v3)
@@ -267,6 +266,73 @@ namespace Cork::Meshes
         //  Finished - return the triangles;
 
         return edge_tris;
+    }
+
+    std::unordered_set<const TopoTri*> MeshTopoCache::tris_inside_boundaries(const std::vector<TopoEdgeBoundary>& boundaries,
+                                                                 const TopoTri& seed_triangle_inside_boundary,
+                                                                 uint32_t   max_num_tris_before_failure ) const
+    {
+        //  Starting from the seed triangle, grow the surface outward until we run out of triangles to process.
+        //      Along the way, keep track of the boundary edges, we use them below to get reliable boundaries.
+
+        std::unordered_set<const TopoEdge*> boundary_edges;
+        std::unordered_set<const TopoEdge*> boundary_edges_found;
+        std::unordered_set<const TopoEdge*> edges_processed;
+        std::unordered_set<const TopoTri*> tris_inside_boundary;
+        std::vector<const TopoTri*> tris_to_process;
+
+        for( auto& current_boundary : boundaries )
+        {
+            boundary_edges.insert( current_boundary.edges().begin(), current_boundary.edges().end() );
+        }
+
+        tris_to_process.emplace_back(&seed_triangle_inside_boundary);
+
+        while (!tris_to_process.empty())
+        {
+            const TopoTri* current_tri = tris_to_process.back();
+            tris_to_process.pop_back();
+
+            tris_inside_boundary.insert(current_tri);
+
+            if( tris_inside_boundary.size() > max_num_tris_before_failure )
+            {
+                return std::unordered_set<const TopoTri*>();
+            }
+
+            for (auto current_edge : current_tri->edges())
+            {
+                if (edges_processed.contains(current_edge))
+                {
+                    continue;
+                }
+
+                edges_processed.insert(current_edge);
+
+                if (boundary_edges.contains(current_edge))
+                {
+                    boundary_edges_found.insert( current_edge );
+                    continue;
+                }
+                else if (current_edge->triangles().size() == 2)
+                {
+                    if (current_edge->triangles()[0] != current_tri)
+                    {
+                        tris_to_process.push_back(current_edge->triangles()[0]);
+                    }
+                    else
+                    {
+                        tris_to_process.push_back(current_edge->triangles()[1]);
+                    }
+                }
+                else
+                {
+                    std::cout << "Found edge with three or more incidences" << std::endl;  //   TODO fix with error
+                }
+            }
+        }
+
+        return tris_inside_boundary;
     }
 
     std::ostream& operator<<(std::ostream& out, const TopoVert& vertex)

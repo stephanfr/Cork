@@ -212,6 +212,17 @@ namespace Cork::Meshes
     SelfIntersectionResolutionResults TriangleMeshImpl::remove_self_intersections(
         const Statistics::TopologicalStatistics& topo_stats)
     {
+        //  Stats for full surface
+
+        {
+            Intersection::SelfIntersectionFinder si_finder(topo_cache());
+
+            auto si_stats = si_finder.CheckSelfIntersection();
+
+            std::cout << "Solid has " << tris_->size() << " triangles and " << si_stats.size() << " self intersections"
+                      << std::endl;
+        }
+
 //        find_self_intersecting_regions(topo_stats);
 
         uint32_t sis_resolved = 0;
@@ -469,235 +480,32 @@ namespace Cork::Meshes
         return HoleClosingResult::success();
     }
 
-    void TriangleMeshImpl::find_self_intersecting_regions(const Statistics::TopologicalStatistics& topo_stats)
+    SelfIntersectingRegions TriangleMeshImpl::find_self_intersecting_regions(const Statistics::TopologicalStatistics& topo_stats)
     {
-        std::vector<TriangleByIndicesIndexSet> all_regions;
+        SelfIntersectingRegions         si_regions( *this );
 
-        int i = 0;
+        si_regions.find_regions();
 
-        for (auto& intersecting_edge : topo_stats.self_intersecting_edges())
+        long    total_sis = 0;
+
+        for (int i = 0; i < si_regions.regions().size(); i++)
         {
-            auto& triangle_containing_edge = triangles()[intersecting_edge.edge_triangle_id()];
-
-            VertexIndex vertex_1 = triangle_containing_edge.edge(intersecting_edge.edge_index()).first();
-            VertexIndex vertex_2 = triangle_containing_edge.edge(intersecting_edge.edge_index()).second();
-
-            TriangleByIndicesIndexSet triangles_containing_vertex_1{
-                std::move(find_triangles_including_vertex(vertex_1))};
-
-            TriangleByIndicesIndexSet triangles_containing_vertex_2{
-                std::move(find_triangles_including_vertex(vertex_2))};
-
-            TriangleByIndicesIndexSet triangles_containing_both_vertices(triangles_containing_vertex_1,
-                                                                         triangles_containing_vertex_2);
-
-            TriangleByIndicesIndexSet si_region;
-
-            for (int ring_size = 4; ring_size < 10; ring_size++)
-            {
-                auto find_enclosing_triangles_result =
-                    find_enclosing_triangles(triangles_containing_both_vertices, ring_size);
-
-                if (!find_enclosing_triangles_result.succeeded())
-                {
-                    continue;
-                }
-
-                si_region = find_enclosing_triangles_result.return_ptr()->merge(triangles_containing_both_vertices);
-
-                if (si_region.contains(intersecting_edge.triangle_instersected_id()))
-                {
-                    break;
-                }
-                else
-                {
-                    std::cout << "Increasing ring to " << ring_size << std::endl;
-                }
-            }
-
-            if (!si_region.contains(intersecting_edge.triangle_instersected_id()))
-            {
-                std::cout << "Region " << i << " does not contain triangle intersected" << std::endl;
-            }
-
-            all_regions.emplace_back(si_region);
-
-            TriangleRemapper remapper(*this);
-
-            std::unique_ptr<MeshBase> patch = extract_surface(remapper, all_regions[i]);
-
-            Meshes::MeshTopoCache minimal_cache(*patch, topo_cache().quantizer());
-
-            Intersection::SelfIntersectionFinder si_finder(minimal_cache);
-
-            auto si_stats = si_finder.CheckSelfIntersection();
-
-            std::cout << "Initially, Region " << i << " has " << all_regions[i].size() << " triangles and "
-                      << si_stats.size() << " self intersections" << std::endl;
-            i++;
-        }
-
-        std::cout << "Starting with " << all_regions.size() << std::endl;
-
-        for (int i = 0; i < all_regions.size(); i++)
-        {
-            for (int j = i + 1; j < all_regions.size(); j++)
-            {
-                if (all_regions[i].intersects(all_regions[j]))
-                {
-                    all_regions[i].merge(all_regions[j]);
-                    all_regions.erase(all_regions.begin() + j);
-                    j--;
-                }
-            }
-        }
-
-        std::cout << "Finished with " << all_regions.size() << std::endl;
-
-        int total_sis = 0;
-
-        for (int i = 0; i < all_regions.size(); i++)
-        {
-            TriangleRemapper remapper(*this);
-
-            std::unique_ptr<MeshBase> patch = extract_surface(remapper, all_regions[i]);
-
-            Meshes::MeshTopoCache minimal_cache(*patch, topo_cache().quantizer());
-
-            Intersection::SelfIntersectionFinder si_finder(minimal_cache);
-
-            auto si_stats = si_finder.CheckSelfIntersection();
-
-            std::cout << "Region " << i << " has " << all_regions[i].size() << " triangles and " << si_stats.size()
-                      << " self intersections" << std::endl;
-
-            total_sis += si_stats.size();
-        }
-
-        std::cout << "Total num sis " << total_sis << std::endl;
-
-        for (int i = 0; i < all_regions.size(); i++)
-        {
-            TriangleRemapper remapper(*this);
-
-            //            std::unique_ptr<MeshBase> patch = extract_surface(remapper, all_regions[i]);
-
-            Meshes::SurfaceMesh patch(std::move(*extract_surface(remapper, all_regions[i])));
-
-            Cork::Files::writeOFF("../../UnitTest/Test Results/patch.off", patch);
-
-            //            Meshes::MeshTopoCache minimal_cache(*patch, topo_cache().quantizer());
+            ExtractedSurfaceMesh patch( *this, si_regions.regions()[i]);
 
             Intersection::SelfIntersectionFinder si_finder(patch.topo_cache());
 
             auto si_stats = si_finder.CheckSelfIntersection();
 
-            patch.scrub_surface();
+            std::cout << "Region " << i << " has " << si_regions.regions()[i].size() << " triangles and " << si_stats.size()
+                      << " self intersections" << std::endl;
 
-            for (auto& intersecting_edge : si_stats)
-            {
-                patch.remove_self_intersection(intersecting_edge);
+            total_sis += si_stats.size();
 
-                auto& triangle_containing_edge = patch.triangles()[intersecting_edge.edge_triangle_id()];
-
-                VertexIndex vertex_1 = triangle_containing_edge.edge(intersecting_edge.edge_index()).first();
-                VertexIndex vertex_2 = triangle_containing_edge.edge(intersecting_edge.edge_index()).second();
-
-                //  Try to fix the self intersection by removing different sets of triangles:
-                //
-                //  1)  First SE vertex only
-                //  2)  Second SE vertex only
-                //  3)  First and Second vertices together
-                //  4)  First and Second vertices with the enclosing ring
-
-                TriangleByIndicesIndexSet triangles_containing_vertex_1{
-                    std::move(patch.find_triangles_including_vertex(vertex_1))};
-
-                TriangleByIndicesIndexSet triangles_containing_vertex_2{
-                    std::move(patch.find_triangles_including_vertex(vertex_2))};
-
-                TriangleByIndicesIndexSet triangles_containing_both_vertices(triangles_containing_vertex_1,
-                                                                             triangles_containing_vertex_2);
-
-                //                auto find_enclosing_triangles_result =
-                //                patch->find_enclosing_triangles(triangles_containing_both_vertices, 2);
-                auto find_enclosing_triangles_result =
-                    patch.find_enclosing_triangles(triangles_containing_both_vertices, 2);
-
-                if (!find_enclosing_triangles_result.succeeded())
-                {
-                    std::cout << "could not find enclosing triangles" << std::endl;
-                    continue;
-                }
-
-                TriangleByIndicesIndexSet both_vertices_and_ring(triangles_containing_both_vertices,
-                                                                 *(find_enclosing_triangles_result.return_ptr()));
-
-                auto get_boundary_edge_result = patch.get_boundary_edge(both_vertices_and_ring);
-
-                if (!get_boundary_edge_result.succeeded())
-                {
-                    std::cout << "could not find boundary edge" << std::endl;
-                    continue;
-                }
-
-                std::vector<BoundaryEdge>& holes_for_se = *(get_boundary_edge_result.return_ptr());
-
-                GetHoleClosingTrianglesResult get_hole_closing_triangles_result =
-                    patch.get_hole_closing_triangles(holes_for_se[0]);
-
-                if (!get_hole_closing_triangles_result.succeeded())
-                {
-                    std::cout << "could not close hole" << std::endl;
-                    continue;
-                }
-
-                //  Look for extra triangles scattered through the patch
-
-                //                for( int i = 0; i <  )
-
-                std::cout << "Num Tris before removal " << patch.triangles().size() << std::endl;
-
-                TriangleByIndicesIndex  index = 0u;
-
-                for (auto triangle_itr = patch.triangles().begin(); triangle_itr != patch.triangles().end();
-                     triangle_itr++, index++)
-                {
-                    if (both_vertices_and_ring.contains(index))
-                    {
-                        triangle_itr = patch.triangles().erase(triangle_itr);
-
-                        if (triangle_itr == patch.triangles().end())
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                Cork::Files::writeOFF("../../UnitTest/Test Results/patch_with_holes.off", patch);
-
-                std::cout << "Num Tris after removal " << patch.triangles().size() << std::endl;
-
-                for (auto tri_to_add : *(get_hole_closing_triangles_result.return_ptr()))
-                {
-                    patch.triangles().emplace_back(tri_to_add);
-                    //                    remapper.remap_into_mesh( *patch, tri_to_add );
-                }
-
-                std::cout << "Num Tris after additions " << patch.triangles().size() << std::endl;
-            }
-
-            Cork::Files::writeOFF("../../UnitTest/Test Results/patch_with_fixes.off", patch);
-
-            patch.clear_topo_cache();
-
-            Meshes::MeshTopoCache minimal_cache2(patch, topo_cache().quantizer());
-
-            Intersection::SelfIntersectionFinder si_finder2(minimal_cache2);
-
-            auto si_stats2 = si_finder2.CheckSelfIntersection();
-
-            std::cout << "After punching out vertex1 intersections, patch contains " << si_stats2.size() << std::endl;
+            patch.remove_self_intersections();
         }
+
+        std::cout << "Total number of self intersections in regions: " << total_sis << std::endl;
+
+        return si_regions;
     }
 }  // namespace Cork::Meshes

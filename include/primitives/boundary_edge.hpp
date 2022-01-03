@@ -34,13 +34,14 @@ namespace Cork::Primitives
     class BoundaryEdge
     {
        public:
+        BoundaryEdge(const std::vector<VertexIndex>& vertices) : vertex_indices_(vertices) {}
         BoundaryEdge(const BoundaryEdge&) = default;
 
         BoundaryEdge& operator=(const BoundaryEdge&) = default;
 
         const std::vector<VertexIndex>& vertex_indices() const { return vertex_indices_; }
 
-        double  length( const Vertex3DVector&       vertices )
+        double  length( const Vertex3DVector&       vertices ) const
         {
             double  len = 0;
 
@@ -54,10 +55,20 @@ namespace Cork::Primitives
             return len;
         }
 
+        BBox3D      bounding_box( const Vertex3DVector&       vertices ) const
+        {
+            BBox3D      bounding_box;
+
+            for( auto current_index : vertex_indices_ )
+            {
+                bounding_box.convex( vertices[current_index] );
+            }
+
+            return bounding_box;
+        }
+
        private:
         std::vector<VertexIndex> vertex_indices_;
-
-        BoundaryEdge(const std::vector<VertexIndex>& vertices) : vertex_indices_(vertices) {}
 
         friend class Meshes::BoundaryEdgeBuilder;
     };

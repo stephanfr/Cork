@@ -50,14 +50,14 @@ namespace Cork::Intersection
         for (TopoTri& t : topo_cache().triangles())
         {
             t.clear_triangle_problem_association();
-            t.setBoolAlgData(owner_mesh_.triangles()[t.ref()].bool_alg_data());
+            t.set_bool_alg_data(owner_mesh_.triangles()[t.ref()].bool_alg_data());
         }
 
         //	Initialize all of the edge solid IDs
 
         for (TopoEdge& e : topo_cache().edges())
         {
-            e.set_boolean_algorithm_data(e.triangles().front()->boolAlgData());
+            e.set_boolean_algorithm_data(e.triangles().front()->bool_alg_data());
         }
     }
 

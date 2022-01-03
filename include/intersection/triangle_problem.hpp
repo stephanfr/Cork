@@ -179,7 +179,7 @@ namespace Cork::Intersection
 
                     TopoVert* vert;
 
-                    if (!m_triangle.findCommonVertex(ie->otherTriKey(), vert))
+                    if (!m_triangle.find_common_vertex(ie->otherTriKey(), vert))
                     {
 #ifdef _DEBUG
 

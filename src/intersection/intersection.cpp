@@ -125,7 +125,7 @@ namespace Cork::Intersection
         {
             for (auto& gt : tprob.gtris())
             {
-                TopoTri* t = topo_cache().newTri();
+                TopoTri* t = topo_cache().new_triangle();
 
                 std::array<TopoVert*, 3> vertices;
                 std::array<TopoEdge*, 3> edges;
@@ -145,8 +145,8 @@ namespace Cork::Intersection
                     edges[k] = &(ecache.getTriangleEdge(genericTri, k, tprob.triangle()));
                 }
 
-                t->setVertices(vertices);
-                t->setEdges(edges);
+                t->set_vertices(vertices);
+                t->set_edges(edges);
 
                 fillOutTriData(*t, tprob.triangle());
             }
@@ -154,7 +154,7 @@ namespace Cork::Intersection
             //	Once all the pieces are hooked up, let's kill the old triangle!
             //		We need to cast away the const here as well...
 
-            topo_cache().deleteTri(&(const_cast<TopoTri&>(tprob.triangle())));
+            topo_cache().delete_tri(&(const_cast<TopoTri&>(tprob.triangle())));
         }
     };
 
@@ -193,7 +193,7 @@ namespace Cork::Intersection
 
             for (const TopoEdge& edge : ((TriangleAndIntersectingEdgesMessage&)(*currentMessage)).edges())
             {
-                if (triangle.intersectsEdge(edge, quantizer_, exact_arithmetic_context_))
+                if (triangle.intersects_edge(edge, quantizer_, exact_arithmetic_context_))
                 {
                     GluePointMarker* glue = glue_point_marker_list_.emplace_back(
                         GluePointMarker::IntersectionType::EDGE_TRIANGLE, edge, triangle);
@@ -427,12 +427,12 @@ namespace Cork::Intersection
 
                 for (auto tri : allTris)
                 {
-                    std::cout << tri->boolAlgData() << "    (" << tri->verts()[0]->quantizedValue().x() << ", "
-                              << tri->verts()[0]->quantizedValue().y() << ", " << tri->verts()[0]->quantizedValue().z()
-                              << ")    (" << tri->verts()[1]->quantizedValue().x() << ", "
-                              << tri->verts()[1]->quantizedValue().y() << ", " << tri->verts()[1]->quantizedValue().z()
-                              << ")    (" << tri->verts()[2]->quantizedValue().x() << ", "
-                              << tri->verts()[2]->quantizedValue().y() << ", " << tri->verts()[2]->quantizedValue().z()
+                    std::cout << tri->bool_alg_data() << "    (" << tri->verts()[0]->quantized_value().x() << ", "
+                              << tri->verts()[0]->quantized_value().y() << ", " << tri->verts()[0]->quantized_value().z()
+                              << ")    (" << tri->verts()[1]->quantized_value().x() << ", "
+                              << tri->verts()[1]->quantized_value().y() << ", " << tri->verts()[1]->quantized_value().z()
+                              << ")    (" << tri->verts()[2]->quantized_value().x() << ", "
+                              << tri->verts()[2]->quantized_value().y() << ", " << tri->verts()[2]->quantized_value().z()
                               << ")" << std::endl;
                     std::cout.flush();
 
@@ -441,7 +441,7 @@ namespace Cork::Intersection
 
                     for (const TopoEdge& edge : edges)
                     {
-                        if (tri->intersectsEdge(edge, quantizer_, localArithmeticContext))
+                        if (tri->intersects_edge(edge, quantizer_, localArithmeticContext))
                         {
                             numIntersections++;
                         }

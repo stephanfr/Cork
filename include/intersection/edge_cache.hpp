@@ -66,7 +66,7 @@ namespace Cork::Intersection
 
             m_edges[i].emplace_back(EdgeEntry(j));
 
-            TopoEdge& new_edge = m_edges[i][N].set_edge( *(m_intersectionProblem.topo_cache().newEdge(v0, v1)));
+            TopoEdge& new_edge = m_edges[i][N].set_edge( *(m_intersectionProblem.topo_cache().new_edge(v0, v1)));
 
             return new_edge;
         }

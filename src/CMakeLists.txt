@@ -1,5 +1,12 @@
 
 FetchContent_Declare(
+  EigenTemplateLibrary
+  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+  GIT_TAG        3.4.0)
+
+FetchContent_MakeAvailable(EigenTemplateLibrary)
+
+FetchContent_Declare(
   Xoshiro256PlusSIMD
   GIT_REPOSITORY https://github.com/stephanfr/Xoshiro256PlusSIMD.git
   GIT_TAG        main)
@@ -20,6 +27,8 @@ include_directories(
     ../thirdparty/mpir/${MPIR_VERSION}
     ${xoshiro256plussimd_SOURCE_DIR}/include
     ${fmtlib_SOURCE_DIR}/include
+    ${eigentemplatelibrary_SOURCE_DIR}
+    ${redsvdtemplatelibrary_SOURCE_DIR}/include
 )
 
 add_library(Corklib SHARED 
@@ -43,6 +52,7 @@ add_library(Corklib SHARED
     mesh/mesh_builder.cpp
     mesh/boundary_edge_builder.cpp
     mesh/triangle_remapper.cpp
+    mesh/self_intersecting_regions.cpp
     statistics/statistics_engines.cpp
     util/thread_pool.cpp
     cork.cpp

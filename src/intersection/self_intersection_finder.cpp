@@ -54,7 +54,7 @@ namespace Cork::Intersection
 
             for (const TopoEdge& edge : edges)
             {
-                if (triangle_intersected.intersectsEdge(edge, topo_cache_.quantizer(), localArithmeticContext))
+                if (triangle_intersected.intersects_edge(edge, topo_cache_.quantizer(), localArithmeticContext))
                 {
                     //  There will be multiple hits for the same general self intersection.  Combining
                     //      self intersections here will reduce work later as we try to resolve them.
@@ -96,7 +96,7 @@ namespace Cork::Intersection
                     //  This self intersection is unique - record it.
 
                     self_intersections.emplace_back(edge.source_triangle_id(), edge.edge_index(),
-                                                    triangle_intersected.source_triangle_id());
+                                                    triangle_intersected.ref());
 
                     si_triangle_sets.emplace_back(topo_tris_with_se_vertex);
                 }

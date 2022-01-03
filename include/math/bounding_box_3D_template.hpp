@@ -83,6 +83,11 @@ namespace Cork::Math
                     (pointToTest[1] <= m_maxp[1]) && (m_minp[2] <= pointToTest[2]) && (pointToTest[2] <= m_maxp[2]));
         }
 
+        bool contains(const BBox3DTemplate& rhs) const
+        {
+            return isIn( rhs.m_minp ) && isIn( rhs.m_maxp );
+        }
+
         bool intersects(const BBox3DTemplate& rhs) const
         {
             if constexpr (SIMD >= SIMDInstructionSet::AVX)
@@ -115,6 +120,22 @@ namespace Cork::Math
         {
             m_minp = Vector3DTemplate<N>(m_minp.x() * scaling.x(), m_minp.y() * scaling.y(), m_minp.z() * scaling.z());
             m_maxp = Vector3DTemplate<N>(m_maxp.x() * scaling.x(), m_maxp.y() * scaling.y(), m_maxp.z() * scaling.z());
+        }
+
+        //  Expand the bounding box if the new point is outside
+
+        void convex(const Vector3DTemplate<N, SIMD>& rhs)
+        {
+            if constexpr (SIMD >= SIMDInstructionSet::AVX)
+            {
+                m_minp = _mm256_min_pd(m_minp, rhs);
+                m_maxp = _mm256_max_pd(m_maxp, rhs);
+            }
+            else
+            {
+                m_minp = m_minp.min(rhs);
+                m_maxp = m_maxp.min(rhs);
+            }
         }
 
         void convex(const BBox3DTemplate& rhs)

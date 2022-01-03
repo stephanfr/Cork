@@ -24,6 +24,8 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
+#include "mesh/triangle_remapper.hpp"
+
 #include "mesh/mesh_base.hpp"
 
 namespace Cork::Meshes
@@ -35,18 +37,24 @@ namespace Cork::Meshes
         if (!remapper_.contains(triangle.a()))
         {
             remapper_.emplace(triangle.a(), VertexIndex(uint32_t(result_mesh.vertices().size())));
+            reverse_remapper_.emplace(VertexIndex(uint32_t(result_mesh.vertices().size())), triangle.a());
+
             result_mesh.vertices().emplace_back(primary_mesh_.vertices()[triangle.a()]);
         }
 
         if (!remapper_.contains(triangle.b()))
         {
             remapper_.emplace(triangle.b(), VertexIndex(uint32_t(result_mesh.vertices().size())));
+            reverse_remapper_.emplace(VertexIndex(uint32_t(result_mesh.vertices().size())), triangle.b());
+
             result_mesh.vertices().emplace_back(primary_mesh_.vertices()[triangle.b()]);
         }
 
         if (!remapper_.contains(triangle.c()))
         {
             remapper_.emplace(triangle.c(), VertexIndex(uint32_t(result_mesh.vertices().size())));
+            reverse_remapper_.emplace(VertexIndex(uint32_t(result_mesh.vertices().size())), triangle.c());
+
             result_mesh.vertices().emplace_back(primary_mesh_.vertices()[triangle.c()]);
         }
 
@@ -73,17 +81,17 @@ namespace Cork::Meshes
     {
         auto result_mesh = std::make_unique<MeshBase>(tris_to_extract.size() * 3, tris_to_extract.size());
 
-        MinAndMaxEdgeLengths        min_max_edges;
-        double                      max_vertex_magnitude = DBL_MIN;
+        MinAndMaxEdgeLengths min_max_edges;
+        double max_vertex_magnitude = DBL_MIN;
 
         for (const auto& tri : tris_to_extract)
         {
             remap_into_mesh(*result_mesh, primary_mesh_.triangles()[tri]);
 
-            TriangleByVertices  tri_by_verts = primary_mesh_.triangle_by_vertices( primary_mesh_.triangles()[tri] );
+            TriangleByVertices tri_by_verts = primary_mesh_.triangle_by_vertices(primary_mesh_.triangles()[tri]);
 
-            min_max_edges.update( tri_by_verts.min_and_max_edge_lengths() );
-            max_vertex_magnitude = std::max( max_vertex_magnitude, tri_by_verts.max_magnitude_vertex() );
+            min_max_edges.update(tri_by_verts.min_and_max_edge_lengths());
+            max_vertex_magnitude = std::max(max_vertex_magnitude, tri_by_verts.max_magnitude_vertex());
         }
 
         result_mesh->min_and_max_edge_lengths_ = min_max_edges;

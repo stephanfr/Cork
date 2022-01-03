@@ -64,8 +64,8 @@ namespace Cork::AABVH
        public:
         explicit GeomBlob(const Meshes::TopoEdge& idx) : m_id(idx)
         {
-            const Vector3D& p0 = (idx.verts()[0])->quantizedValue();
-            const Vector3D& p1 = (idx.verts()[1])->quantizedValue();
+            const Vector3D& p0 = (idx.verts()[0])->quantized_value();
+            const Vector3D& p1 = (idx.verts()[1])->quantized_value();
 
             m_bbox = BBox3D(p0.min(p1), p0.max(p1));
         }
@@ -240,8 +240,8 @@ namespace Cork::AABVH
             //	Set the boolAlgData index for intersections between two bodies or for self-intersections.
 
             unsigned int blob_id_list_selector =
-                (intersection_type == IntersectionType::BOOLEAN_INTERSECTION ? triangle.boolAlgData() ^ 1
-                                                                            : triangle.boolAlgData());
+                (intersection_type == IntersectionType::BOOLEAN_INTERSECTION ? triangle.bool_alg_data() ^ 1
+                                                                            : triangle.bool_alg_data());
 
             //	Use a recursive search and save edges that intersect the triangle
 
@@ -256,7 +256,7 @@ namespace Cork::AABVH
             {
                 //	Move on to the next node if there is no intersection between with node and the bounding box
 
-                if (node->boundingBox().doesNotIntersect(triangle.boundingBox()))
+                if (node->boundingBox().doesNotIntersect(triangle.bounding_box()))
                 {
                     continue;
                 }
@@ -279,7 +279,7 @@ namespace Cork::AABVH
                     {
                         auto& currentBlob = (*blobs_)[bid];
 
-                        if (currentBlob.boundingBox().intersects(triangle.boundingBox()))
+                        if (currentBlob.boundingBox().intersects(triangle.bounding_box()))
                         {
                             edges.push_back(currentBlob.index());
                         }

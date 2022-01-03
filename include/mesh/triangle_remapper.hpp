@@ -26,18 +26,15 @@
 #pragma once
 
 #include "map"
-
 #include "primitives/primitives.hpp"
-
 
 namespace Cork::Meshes
 {
-
     //  Forward declare the MeshBase class
 
     class MeshBase;
 
-     class TriangleRemapper
+    class TriangleRemapper
     {
        public:
         TriangleRemapper(const MeshBase& primary_mesh);
@@ -46,10 +43,16 @@ namespace Cork::Meshes
 
         std::unique_ptr<MeshBase> extract_surface(const TriangleByIndicesIndexSet& tris_to_extract);
 
-        void remap_into_mesh(MeshBase&    result_mesh, const TriangleByIndices& triangle);
-        
+        void remap_into_mesh(MeshBase& result_mesh, const TriangleByIndices& triangle);
+
+        VertexIndex     reverse_mapping( VertexIndex    remapped_index )
+        {
+            return reverse_remapper_.find( remapped_index )->second;
+        }
+
        private:
         const MeshBase& primary_mesh_;
         std::map<VertexIndex, VertexIndex> remapper_;
+        std::map<VertexIndex, VertexIndex> reverse_remapper_;
     };
-}
+}  // namespace Cork::Meshes
