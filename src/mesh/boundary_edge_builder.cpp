@@ -22,7 +22,7 @@
 
 namespace Cork::Meshes
 {
-    ExtractBoundariesResult BoundaryEdgeBuilder::extract_boundaries(const MeshBase& mesh, const TriangleByIndicesIndexSet& tris_in_region)
+    ExtractBoundariesResult BoundaryEdgeBuilder::extract_boundaries(const TriangleByIndicesIndexSet& tris_in_region)
     {
         //  Return immediately with an empty list if there are no edges
 
@@ -33,12 +33,12 @@ namespace Cork::Meshes
 
         //  Create the edge incidence map
 
-        EdgeIncidenceCounter        edge_counts( mesh, tris_in_region );
+        EdgeIncidenceCounter        edge_counts( mesh_, tris_in_region );
 
-        return extract_boundaries(mesh, edge_counts.edges_and_incidences());
+        return extract_boundaries(edge_counts.edges_and_incidences());
     }
 
-    ExtractBoundariesResult BoundaryEdgeBuilder::extract_boundaries(const MeshBase& mesh, const TriangleByIndicesIndexVector& tris_in_region)
+    ExtractBoundariesResult BoundaryEdgeBuilder::extract_boundaries(const TriangleByIndicesIndexVector& tris_in_region)
     {
         //  Return immediately with an empty list if there are no edges
 
@@ -49,12 +49,12 @@ namespace Cork::Meshes
 
         //  Create the edge incidence map
 
-        EdgeIncidenceCounter        edge_counts( mesh, tris_in_region );
+        EdgeIncidenceCounter        edge_counts( mesh_, tris_in_region );
 
-        return extract_boundaries(mesh, edge_counts.edges_and_incidences());
+        return extract_boundaries(edge_counts.edges_and_incidences());
     }
 
-    ExtractBoundariesResult BoundaryEdgeBuilder::extract_boundaries(const MeshBase& mesh, const EdgeIncidenceSet& region_edges)
+    ExtractBoundariesResult BoundaryEdgeBuilder::extract_boundaries(const EdgeIncidenceSet& region_edges)
     {
         //  Return immediately with an empty list if there are no edges
 
@@ -71,7 +71,7 @@ namespace Cork::Meshes
         {
             if (edge.numIncidences() == 1)
             {
-                edges.emplace_back(mesh.triangles()[edge.triangles()[0U].first].edge(edge.triangles()[0U].second));
+                edges.emplace_back(mesh_.triangles()[edge.triangles()[0U].first].edge(edge.triangles()[0U].second));
             }
         }
 
@@ -203,40 +203,56 @@ namespace Cork::Meshes
         //      out of boundaries *should* work in general.
 
         auto boundaries =
-            extract_boundaries_recursively(BoundaryEdge(std::vector(std::begin(vertices_), std::end(vertices_))));
+            extract_boundaries_recursively(VertexIndexVector(std::vector(std::begin(vertices_), std::end(vertices_))));
 
         //  Return the boundaries we have extracted
 
-        return ExtractBoundariesResult::success( std::unique_ptr<std::vector<BoundaryEdge>>( boundaries.release() ));
+        auto result = std::make_unique<std::vector<BoundaryEdge>>();
+
+        for( auto current_boundary : *boundaries )
+        {
+            Vertex3DVector      vertices;
+            VertexIndexVector   vertex_indices;
+
+            for( auto current_index : current_boundary )
+            {
+                vertices.emplace_back( mesh_.vertices()[current_index] );
+                vertex_indices.emplace_back( current_index );
+            }
+
+            result->emplace_back( std::move( vertices ), std::move( vertex_indices ) );
+        }
+
+        return ExtractBoundariesResult::success( std::unique_ptr<std::vector<BoundaryEdge>>( result.release() ));
     }
 
-    std::unique_ptr<std::vector<BoundaryEdge>> BoundaryEdgeBuilder::extract_boundaries_recursively(BoundaryEdge boundary)
+    std::unique_ptr<std::vector<VertexIndexVector>> BoundaryEdgeBuilder::extract_boundaries_recursively(VertexIndexVector boundary)
     {
-        auto boundaries = std::make_unique<std::vector<BoundaryEdge>>();
+        auto boundaries = std::make_unique<std::vector<VertexIndexVector>>();
 
         //  If there is a repeated index, then we have an embedded boundary
 
-        while (boundary.vertex_indices_.size() > 1)
+        while (boundary.size() > 1)
         {
             bool break_to_while = false;
 
-            for (size_t i = 0; i < boundary.vertex_indices_.size() - 1 && !break_to_while; i++)
+            for (size_t i = 0; i < boundary.size() - 1 && !break_to_while; i++)
             {
-                for (size_t j = i + 1; j < boundary.vertex_indices_.size() && !break_to_while; j++)
+                for (size_t j = i + 1; j < boundary.size() && !break_to_while; j++)
                 {
-                    if (boundary.vertex_indices_[i] == boundary.vertex_indices_[j])
+                    if (boundary[i] == boundary[j])
                     {
                         //  We have an embedded boundary
 
-                        std::unique_ptr<std::vector<BoundaryEdge>> inner_boundaries( extract_boundaries_recursively(
-                            BoundaryEdge(std::vector(boundary.vertex_indices_.begin() + i, boundary.vertex_indices_.begin() + j))));
+                        std::unique_ptr<std::vector<VertexIndexVector>> inner_boundaries( extract_boundaries_recursively(
+                            VertexIndexVector(std::vector(boundary.begin() + i, boundary.begin() + j))));
 
                         if (!inner_boundaries->empty())
                         {
                             boundaries->insert(std::end(*boundaries), std::begin(*inner_boundaries), std::end(*inner_boundaries));
                         }
 
-                        boundary.vertex_indices_.erase(boundary.vertex_indices_.begin() + i, boundary.vertex_indices_.begin() + j);
+                        boundary.erase(boundary.begin() + i, boundary.begin() + j);
                         break_to_while = true;
                     }
                 }

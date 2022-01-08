@@ -226,7 +226,7 @@ namespace Cork::Files
                                                    "Error reading faces.");
                 }
 
-                if (meshBuilder->add_triangle(x_index, y_index, z_index) != TriangleMeshBuilderResultCodes::SUCCESS)
+                if (meshBuilder->add_triangle(i, x_index, y_index, z_index) != TriangleMeshBuilderResultCodes::SUCCESS)
                 {
                     return ReadFileResult::failure(
                         ReadFileResultCodes::OFF_ERROR_ADDING_FACE_TO_MESH,
@@ -266,7 +266,7 @@ namespace Cork::Files
         //	Write the number of vertices and triangles (i.e. faces)
         //		We will not be writing any edges, so write zero for that value.
 
-        vertices_stream << mesh_to_write.num_vertices() << ' ' << mesh_to_write.num_triangles() << ' ' << 0 << "\n";
+        vertices_stream << mesh_to_write.vertices().size() << ' ' << mesh_to_write.triangles().size() << ' ' << 0 << "\n";
 
         //	Create a task group to allow us to spin off a thread
 

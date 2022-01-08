@@ -101,7 +101,7 @@ namespace Cork::Meshes
             return (VertexIndex::integer_type(vertex_index_remapper_.size()) - 1u);
         }
 
-        TriangleMeshBuilderResultCodes add_triangle(VertexIndex a, VertexIndex b, VertexIndex c) final
+        TriangleMeshBuilderResultCodes add_triangle(TriangleUID uid, VertexIndex a, VertexIndex b, VertexIndex c) final
         {
             //	Insure the indices are in bounds
 
@@ -113,7 +113,7 @@ namespace Cork::Meshes
 
             //	Remap the triangle indices
 
-            TriangleByIndices remappedTriangle(mesh_.triangles().size(), vertex_index_remapper_[a],
+            TriangleByIndices remappedTriangle(uid, vertex_index_remapper_[a],
                                                vertex_index_remapper_[b], vertex_index_remapper_[c]);
 
             //	Add the triangle to the vector

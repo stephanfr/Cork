@@ -26,6 +26,10 @@ namespace Cork::Meshes
 {
     void SelfIntersectingRegions::find_regions()
     {
+        constexpr uint32_t  MAX_RINGS_TO_INCLUDE_INTERSECTED_TRIANGLE = 8;
+        constexpr uint32_t  RINGS_AROUND_DISCRETE_SI = 2;
+        constexpr uint32_t  RINGS_AROUND_SI_REGION = 3;
+
         //  Start by identifying the self intersections in the mesh
 
         Intersection::SelfIntersectionFinder si_finder(mesh_.topo_cache());
@@ -48,7 +52,7 @@ namespace Cork::Meshes
 
             TriangleByIndicesIndexSet si_region;
 
-            for (uint32_t ring_size = 1; ring_size < 8; ring_size++)
+            for (uint32_t ring_size = 1; ring_size < MAX_RINGS_TO_INCLUDE_INTERSECTED_TRIANGLE; ring_size++)
             {
                 auto find_tris_result = mesh_.find_enclosing_triangles(tris_sharing_si_edge, ring_size);
 
@@ -61,7 +65,7 @@ namespace Cork::Meshes
 
                 if (si_region.contains(intersecting_edge.triangle_instersected_id()))
                 {
-                    auto find_tris_result2 = mesh_.find_enclosing_triangles(tris_sharing_si_edge, ring_size + 4);
+                    auto find_tris_result2 = mesh_.find_enclosing_triangles(tris_sharing_si_edge, ring_size + RINGS_AROUND_DISCRETE_SI);
 
                     if (!find_tris_result2.succeeded())
                     {
@@ -80,7 +84,7 @@ namespace Cork::Meshes
 
                 intersected_tri.insert(intersecting_edge.triangle_instersected_id());
 
-                auto find_tris_result3 = mesh_.find_enclosing_triangles(intersected_tri, 4);
+                auto find_tris_result3 = mesh_.find_enclosing_triangles(intersected_tri, RINGS_AROUND_DISCRETE_SI);
 
                 if (!find_tris_result3.succeeded())
                 {
@@ -88,6 +92,17 @@ namespace Cork::Meshes
                 }
 
                 regions_.emplace_back(std::move(find_tris_result3.return_ptr()->merge(intersected_tri)));
+            }
+
+            auto region_enclosing_tris_result = mesh_.find_enclosing_triangles(si_region, RINGS_AROUND_SI_REGION);
+
+            if( region_enclosing_tris_result.succeeded() )
+            {
+                si_region.merge( *(region_enclosing_tris_result.return_ptr()) );
+            }
+            else
+            {
+                std::cout << "Could not find enclosing triangles for full region" << std::endl;
             }
 
             regions_.emplace_back(std::move(si_region));
@@ -159,7 +174,7 @@ namespace Cork::Meshes
 
             for (uint32_t i = 0; i < get_be_result.return_ptr()->size(); i++)
             {
-                double current_length = (*(get_be_result.return_ptr()))[i].length(mesh_.vertices());
+                double current_length = (*(get_be_result.return_ptr()))[i].length();
 
                 boundaries_ordered_by_length.insert(std::make_pair(current_length, i));
             }

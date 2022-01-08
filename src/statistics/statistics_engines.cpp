@@ -133,7 +133,7 @@ namespace Cork::Statistics
                 }
             }
 
-            auto extract_boundaries_result = BoundaryEdgeBuilder().extract_boundaries(hole_edges);  //  TODO fix this - maybe success/failure
+            auto extract_boundaries_result = BoundaryEdgeBuilder(triangle_mesh_).extract_boundaries(hole_edges);  //  TODO fix this - maybe success/failure
 
             if( extract_boundaries_result.succeeded() )
             {

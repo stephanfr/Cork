@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include <vector>
-
+#include "2d_geometry/polygon.hpp"
 #include "primitives/primitives.hpp"
 
 namespace Cork::Meshes
@@ -30,47 +29,68 @@ namespace Cork::Meshes
 
 namespace Cork::Primitives
 {
-
     class BoundaryEdge
     {
        public:
-        BoundaryEdge(const std::vector<VertexIndex>& vertices) : vertex_indices_(vertices) {}
+        BoundaryEdge(Vertex3DVector&& vertices, VertexIndexVector&& vertex_indices)
+            : vertices_(std::move(vertices)), vertex_indices_(std::move(vertex_indices))
+        {
+        }
         BoundaryEdge(const BoundaryEdge&) = default;
 
         BoundaryEdge& operator=(const BoundaryEdge&) = default;
 
+        const Vertex3DVector& vertices() const { return vertices_; }
         const std::vector<VertexIndex>& vertex_indices() const { return vertex_indices_; }
 
-        double  length( const Vertex3DVector&       vertices ) const
+        double length() const
         {
-            double  len = 0;
+            double len = 0;
 
-            for( int i = 0; i < vertex_indices_.size() - 1; i++ )
+            for (VertexIndex i = 0u; i < vertex_indices_.size() - 1; i++)
             {
-                Vector3D    segment = vertices[vertex_indices_[i]] - vertices[vertex_indices_[i+1]];
+                Vector3D segment = vertices_[i] - vertices_[i + 1u];
 
-                len += sqrt(( segment.x() * segment.x() ) + ( segment.y() * segment.y() ) + ( segment.z() * segment.z() )); 
+                len += sqrt((segment.x() * segment.x()) + (segment.y() * segment.y()) + (segment.z() * segment.z()));
             }
 
             return len;
         }
 
-        BBox3D      bounding_box( const Vertex3DVector&       vertices ) const
+        BBox3D bounding_box() const
         {
-            BBox3D      bounding_box;
+            BBox3D bounding_box;
 
-            for( auto current_index : vertex_indices_ )
+            for (auto current_vertex : vertices_)
             {
-                bounding_box.convex( vertices[current_index] );
+                bounding_box.convex(current_vertex);
             }
 
             return bounding_box;
         }
 
-       private:
-        std::vector<VertexIndex> vertex_indices_;
+        Vertex3D centroid() const
+        {
+            Vertex3D centroid;
 
-        friend class Meshes::BoundaryEdgeBuilder;
+            for (auto current_vertex : vertices_)
+            {
+                centroid += current_vertex;
+            }
+
+            centroid /= vertices_.size();
+
+            return centroid;
+        }
+
+        Vector3D best_fit_normal() const;
+
+        TwoD::Polygon project(const Vector3D projection_surface_normal, const Vertex3D normal_surface_origin) const;
+
+       private:
+        Vertex3DVector vertices_;
+
+        std::vector<VertexIndex> vertex_indices_;
     };
 
     std::ostream& operator<<(std::ostream& out, const BoundaryEdge& boundary);

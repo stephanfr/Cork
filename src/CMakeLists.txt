@@ -32,10 +32,13 @@ include_directories(
 )
 
 add_library(Corklib SHARED 
+    primitives/boundary_edge.cpp
     primitives/streaming_operators.cpp
+    2d_geometry/polygon.cpp
     accel/aabvh.cpp
 #    file_formats/ifs.cpp
     file_formats/off.cpp
+    file_formats/polyline3d.cpp
     intersection/empty3d.cpp
     intersection/intersection_problem_base.cpp
     intersection/perturbation_epsilon.cpp

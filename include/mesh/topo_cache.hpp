@@ -118,7 +118,7 @@ namespace Cork::Meshes
     {
        public:
         TopoEdge(TopoVert& vertex0, TopoVert& vertex1)
-            : source_triangle_id_(Primitives::UNINTIALIZED_INDEX), vertices_({{&vertex0, &vertex1}})
+            : source_triangle_id_(Primitives::UNINITIALIZED_INDEX), vertices_({{&vertex0, &vertex1}})
         {
             vertex0.add_edge(this);
             vertex1.add_edge(this);
@@ -231,6 +231,8 @@ namespace Cork::Meshes
 
         BBox3D bounding_box() const { return bounding_box_; }
 
+        TriangleUID     triangle_on_boundary_uid() const;
+
         void add_edge(const TopoEdge* edge)
         {
             if (&(edge->vert_0()) == last_vert_)
@@ -263,13 +265,14 @@ namespace Cork::Meshes
                     (edges_.front()->vert_0().index() == edges_.back()->vert_1().index()));
         }
 
-        BoundaryEdge as_boundary_edge()
+        BoundaryEdge as_boundary_edge( const Vertex3DVector&    vertices )
         {
-            std::vector<VertexIndex> vertices;
+            Vertex3DVector      boundary_vertices;
+            VertexIndexVector   vertex_indices;
 
             VertexIndex last_vertex = edges_.front()->vert_1().index();
 
-            vertices.emplace_back(last_vertex);
+            vertex_indices.emplace_back(last_vertex);
 
             for (uint32_t i = 1; i < edges_.size(); i++)
             {
@@ -282,10 +285,10 @@ namespace Cork::Meshes
                     last_vertex = edges_[i]->vert_0().index();
                 }
 
-                vertices.emplace_back(last_vertex);
+                vertex_indices.emplace_back(last_vertex);
             }
 
-            return BoundaryEdge(vertices);
+            return BoundaryEdge(std::move( boundary_vertices ), std::move( vertex_indices));
         }
 
        private:
@@ -326,10 +329,10 @@ namespace Cork::Meshes
     class TopoTri final : public boost::noncopyable, public IntrusiveListHookNoDestructorOnElements
     {
        public:
-        explicit TopoTri(IndexType ref) : ref_(ref) {}
+        explicit TopoTri(IndexType ref) : source_triangle_uid_( Primitives::UNINITIALIZED_INDEX ), ref_(ref) {}
 
-        TopoTri(/*uint32_t source_triangle_id, */IndexType ref, TopoVert& vertex0, TopoVert& vertex1, TopoVert& vertex2)
-            : /*source_triangle_id_(source_triangle_id),*/ ref_(ref)
+        TopoTri(TriangleUID source_triangle_uid, IndexType ref, TopoVert& vertex0, TopoVert& vertex1, TopoVert& vertex2)
+            : source_triangle_uid_(source_triangle_uid), ref_(ref)
         {
             vertices_[0] = &vertex0;
             vertices_[1] = &vertex1;
@@ -344,7 +347,7 @@ namespace Cork::Meshes
 
         ~TopoTri() {}
 
-//        uint32_t source_triangle_id() const { return source_triangle_id_; }
+        TriangleUID source_triangle_uid() const { return source_triangle_uid_; }
 
         TriangleByIndicesIndex ref() const { return ref_; }
 
@@ -559,11 +562,11 @@ namespace Cork::Meshes
         }
 
        private:
+        const TriangleUID source_triangle_uid_;
+        
         TriangleByIndicesIndex ref_;  // index to actual data
 
         std::optional<std::reference_wrapper<Intersection::TriangleProblem>> associated_triangle_problem_;
-
-//        uint32_t source_triangle_id_;
 
         uint32_t bool_alg_data_;
 
@@ -721,7 +724,7 @@ namespace Cork::Meshes
                 TriangleVertexId vertex1_id = TriangleVertexId::B;
                 TriangleVertexId vertex2_id = TriangleVertexId::C;
 
-                TopoTri* tri = topo_tri_list_.emplace_back( /*i,*/ i, topo_vertex_list_.getPool()[vertex0_index],
+                TopoTri* tri = topo_tri_list_.emplace_back( ref_tri.uid(), i, topo_vertex_list_.getPool()[vertex0_index],
                                                            topo_vertex_list_.getPool()[vertex1_index],
                                                            topo_vertex_list_.getPool()[vertex2_index]);
 
@@ -924,11 +927,11 @@ namespace Cork::Meshes
             mesh_triangles_[t->ref()].flip();
         }
 
-        const TopoTri*  find_topo_tri_by_source_triangle_id( TriangleByIndicesIndex  tri_id )
+        const TopoTri*  find_topo_tri_by_source_triangle_uid( TriangleUID  tri_uid )
         {
             for( const TopoTri& current_tri : topo_tri_list_ )
             {
-                if( current_tri.ref() == tri_id )
+                if( current_tri.source_triangle_uid() == tri_uid )
                 {
                     return &current_tri;
                 }

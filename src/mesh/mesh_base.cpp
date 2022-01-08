@@ -156,7 +156,7 @@ namespace Cork::Meshes
         for (auto triangle_to_add : *(result.return_ptr()))
         {
             hole_closing_triangles->emplace_back(
-                TriangleByIndices(Primitives::UNINTIALIZED_INDEX, hole.vertex_indices()[triangle_to_add.v0()],
+                TriangleByIndices(Primitives::UNINITIALIZED_INDEX, hole.vertex_indices()[triangle_to_add.v0()],
                                   hole.vertex_indices()[triangle_to_add.v2()], hole.vertex_indices()[triangle_to_add.v1()]));
         }
 
@@ -203,7 +203,7 @@ namespace Cork::Meshes
 
         //  Remap the triangles
 
-        TriangleByIndices::UIDType tri_uid = 0U;
+        TriangleUID tri_uid = 0U;
 
         for (auto& tri : *tris_)
         {
@@ -220,12 +220,12 @@ namespace Cork::Meshes
 
     ExtractBoundariesResult MeshBase::get_boundary_edge(const TriangleByIndicesIndexSet& tris_to_outline) const
     {
-        return BoundaryEdgeBuilder().extract_boundaries(*this, tris_to_outline);
+        return BoundaryEdgeBuilder(*this).extract_boundaries( tris_to_outline);
     }
 
     ExtractBoundariesResult MeshBase::get_boundary_edge(const TriangleByIndicesIndexVector& tris_to_outline) const
     {
-        return BoundaryEdgeBuilder().extract_boundaries(*this, tris_to_outline);
+        return BoundaryEdgeBuilder(*this).extract_boundaries( tris_to_outline);
     }
 
     FindEnclosingTrianglesResult MeshBase::find_enclosing_triangles(const TriangleByIndicesIndexVector& triangles,

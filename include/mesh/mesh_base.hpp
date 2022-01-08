@@ -173,19 +173,19 @@ namespace Cork::Meshes
 
         void compact();
 
-        void for_raw_tris(std::function<void(VertexIndex, VertexIndex, VertexIndex)> func)
+        void for_raw_tris(std::function<void(TriangleUID uid, VertexIndex, VertexIndex, VertexIndex)> func)
         {
             for (auto& tri : *tris_)
             {
-                func(tri.a(), tri.b(), tri.c());
+                func(tri.uid(), tri.a(), tri.b(), tri.c());
             }
         }
 
-        void for_raw_tris(std::function<void(VertexIndex, VertexIndex, VertexIndex)> func) const
+        void for_raw_tris(std::function<void(TriangleUID uid, VertexIndex, VertexIndex, VertexIndex)> func) const
         {
             for (auto& tri : *tris_)
             {
-                func(tri.a(), tri.b(), tri.c());
+                func(tri.uid(), tri.a(), tri.b(), tri.c());
             }
         }
 

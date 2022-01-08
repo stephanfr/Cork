@@ -34,6 +34,11 @@
 
 namespace Cork::Meshes
 {
+    TriangleUID TopoEdgeBoundary::triangle_on_boundary_uid() const
+    {
+        return edges_.front()->triangles().front()->source_triangle_uid();
+    }
+
     TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles,
                                                                        Vertex3DVector& vertices, uint32_t num_edges,
                                                                        const Math::Quantizer& quantizer)
@@ -95,7 +100,7 @@ namespace Cork::Meshes
             }
             else
             {
-                vertex_map.emplace_back(Primitives::UNINTIALIZED_INDEX);
+                vertex_map.emplace_back(Primitives::UNINITIALIZED_INDEX);
             }
         }
 
@@ -130,7 +135,7 @@ namespace Cork::Meshes
             }
             else
             {
-                tmap.emplace_back(Primitives::UNINTIALIZED_INDEX);
+                tmap.emplace_back(Primitives::UNINITIALIZED_INDEX);
             }
         }
 
@@ -268,9 +273,9 @@ namespace Cork::Meshes
         return edge_tris;
     }
 
-    std::unordered_set<const TopoTri*> MeshTopoCache::tris_inside_boundaries(const std::vector<TopoEdgeBoundary>& boundaries,
-                                                                 const TopoTri& seed_triangle_inside_boundary,
-                                                                 uint32_t   max_num_tris_before_failure ) const
+    std::unordered_set<const TopoTri*> MeshTopoCache::tris_inside_boundaries(
+        const std::vector<TopoEdgeBoundary>& boundaries, const TopoTri& seed_triangle_inside_boundary,
+        uint32_t max_num_tris_before_failure) const
     {
         //  Starting from the seed triangle, grow the surface outward until we run out of triangles to process.
         //      Along the way, keep track of the boundary edges, we use them below to get reliable boundaries.
@@ -281,9 +286,9 @@ namespace Cork::Meshes
         std::unordered_set<const TopoTri*> tris_inside_boundary;
         std::vector<const TopoTri*> tris_to_process;
 
-        for( auto& current_boundary : boundaries )
+        for (auto& current_boundary : boundaries)
         {
-            boundary_edges.insert( current_boundary.edges().begin(), current_boundary.edges().end() );
+            boundary_edges.insert(current_boundary.edges().begin(), current_boundary.edges().end());
         }
 
         tris_to_process.emplace_back(&seed_triangle_inside_boundary);
@@ -295,7 +300,7 @@ namespace Cork::Meshes
 
             tris_inside_boundary.insert(current_tri);
 
-            if( tris_inside_boundary.size() > max_num_tris_before_failure )
+            if (tris_inside_boundary.size() > max_num_tris_before_failure)
             {
                 return std::unordered_set<const TopoTri*>();
             }
@@ -311,7 +316,7 @@ namespace Cork::Meshes
 
                 if (boundary_edges.contains(current_edge))
                 {
-                    boundary_edges_found.insert( current_edge );
+                    boundary_edges_found.insert(current_edge);
                     continue;
                 }
                 else if (current_edge->triangles().size() == 2)

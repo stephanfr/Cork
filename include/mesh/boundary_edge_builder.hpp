@@ -37,16 +37,16 @@ namespace Cork::Meshes
     class BoundaryEdgeBuilder
     {
        public:
-        BoundaryEdgeBuilder() = default;
+        BoundaryEdgeBuilder(const MeshBase& mesh) : mesh_(mesh) {};
 
-        ExtractBoundariesResult extract_boundaries(const MeshBase& mesh,
-                                                   const TriangleByIndicesIndexSet& tris_in_region);
-        ExtractBoundariesResult extract_boundaries(const MeshBase& mesh,
-                                                   const TriangleByIndicesIndexVector& tris_in_region);
-        ExtractBoundariesResult extract_boundaries(const MeshBase& mesh, const EdgeIncidenceSet& region_edges);
+        ExtractBoundariesResult extract_boundaries(const TriangleByIndicesIndexSet& tris_in_region);
+        ExtractBoundariesResult extract_boundaries(const TriangleByIndicesIndexVector& tris_in_region);
+        ExtractBoundariesResult extract_boundaries(const EdgeIncidenceSet& region_edges);
         ExtractBoundariesResult extract_boundaries(const EdgeByIndicesVector& region_edges);
 
        private:
+
+        const MeshBase& mesh_;
         std::deque<VertexIndex> vertices_;
 
         void reset(const EdgeByIndices& starting_edge)
@@ -67,6 +67,6 @@ namespace Cork::Meshes
 
         ExtractBoundariesResult get_boundary_edges();
 
-        std::unique_ptr<std::vector<BoundaryEdge>> extract_boundaries_recursively(BoundaryEdge boundary);
+        std::unique_ptr<std::vector<VertexIndexVector>> extract_boundaries_recursively(VertexIndexVector boundary);
     };
 }  // namespace Cork::Meshes

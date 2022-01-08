@@ -994,7 +994,7 @@ namespace Cork::Meshes
                                                      (NUMERIC_PRECISION)currentVertex.z()));
         }
 
-        for_raw_tris([&](VertexIndex a, VertexIndex b, VertexIndex c) { triangleMeshBuilder->add_triangle(a, b, c); });
+        for_raw_tris([&](TriangleUID uid, VertexIndex a, VertexIndex b, VertexIndex c) { triangleMeshBuilder->add_triangle(uid, a, b, c); });
 
         return (triangleMeshBuilder->mesh());
     }

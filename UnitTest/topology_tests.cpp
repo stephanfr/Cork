@@ -26,6 +26,8 @@
 #include "intersection/triangulator.hpp"
 #include "mesh/boundary_edge_builder.hpp"
 
+#include "mesh/mesh_base.hpp"
+
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
 
 #if __INTELLISENSE__
@@ -88,7 +90,14 @@ TEST_CASE("Topology Tests", "[file io]")
         hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(31u, 40u));
         hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(41u, 22u));
 
-        auto extract_boundaries_result = Cork::Meshes::BoundaryEdgeBuilder().extract_boundaries(hole_edges);
+        auto fake_mesh = Cork::Meshes::MeshBase(100,0);
+
+        for( uint32_t i = 0; i < 100; i++ )
+        {
+            fake_mesh.vertices().emplace_back( i, i, i );
+        }
+
+        auto extract_boundaries_result = Cork::Meshes::BoundaryEdgeBuilder(fake_mesh).extract_boundaries(hole_edges);
 
         REQUIRE( extract_boundaries_result.succeeded() );
 

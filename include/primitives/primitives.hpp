@@ -45,7 +45,7 @@
 
 namespace Cork::Primitives
 {
-    constexpr uint32_t UNINTIALIZED_INDEX = -1;
+    constexpr uint32_t UNINITIALIZED_INDEX = -1;
 
     using Vector2D = Math::Vector2DTemplate<NUMERIC_PRECISION>;
     using Vector3D = Math::Vector3DTemplate<NUMERIC_PRECISION>;
@@ -68,8 +68,11 @@ namespace Cork::Primitives
     using IndexVector = std::vector<IndexType>;
 
     using VertexIndex = type_safe::integer<uint32_t>;
+    using VertexIndexVector = std::vector<VertexIndex>;
 
     using TriangleByIndicesIndex = type_safe::integer<uint32_t>;
+
+    using TriangleUID = type_safe::integer<uint64_t>;
 
     using TriangleBooleanAlgData = uint32_t;
 
@@ -313,16 +316,15 @@ namespace Cork::Primitives
     class TriangleByIndices
     {
        public:
-        using UIDType = uint32_t;
 
         TriangleByIndices()
-            : uid_(UNINTIALIZED_INDEX), a_(UNINTIALIZED_INDEX), b_(UNINTIALIZED_INDEX), c_(UNINTIALIZED_INDEX)
+            : uid_(UNINITIALIZED_INDEX), a_(UNINITIALIZED_INDEX), b_(UNINITIALIZED_INDEX), c_(UNINITIALIZED_INDEX)
         {
         }
 
-        TriangleByIndices(UIDType uid, VertexIndex a, VertexIndex b, VertexIndex c) : uid_(uid), a_(a), b_(b), c_(c) {}
+        TriangleByIndices(TriangleUID uid, VertexIndex a, VertexIndex b, VertexIndex c) : uid_(uid), a_(a), b_(b), c_(c) {}
 
-        TriangleByIndices(UIDType uid, VertexIndex a, VertexIndex b, VertexIndex c,
+        TriangleByIndices(TriangleUID uid, VertexIndex a, VertexIndex b, VertexIndex c,
                           TriangleBooleanAlgData bool_alg_data)
             : uid_(uid), a_(a), b_(b), c_(c), bool_alg_data_(bool_alg_data)
         {
@@ -351,7 +353,7 @@ namespace Cork::Primitives
             return (reinterpret_cast<VertexIndex*>(&a_))[index];
         }
 
-        UIDType uid() const { return uid_; }
+        TriangleUID uid() const { return uid_; }
 
         const VertexIndex a() const { return a_; }
 
@@ -395,7 +397,7 @@ namespace Cork::Primitives
         }
 
        protected:
-        UIDType uid_;
+        TriangleUID uid_;
 
         VertexIndex a_;
         VertexIndex b_;
@@ -657,6 +659,8 @@ namespace Cork
     using TriangleVertexId = Primitives::TriangleVertexId;
     using TriangleEdgeId = Primitives::TriangleEdgeId;
 
+    using TriangleUID = Primitives::TriangleUID;
+
     using Vector2D = Primitives::Vector2D;
     using Vertex2D = Primitives::Vertex2D;
 
@@ -674,6 +678,7 @@ namespace Cork
     using TriangleByIndices = Primitives::TriangleByIndices;
 
     using Vertex3DVector = Primitives::Vertex3DVector;
+    using VertexIndexVector = Primitives::VertexIndexVector;
     using TriangleByIndicesVector = Primitives::TriangleByIndicesVector;
     using EdgeByIndicesVector = Primitives::EdgeByIndicesVector;
 

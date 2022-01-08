@@ -30,9 +30,9 @@
 #include <numeric>
 
 #include "file_formats/files.hpp"
+#include "intersection/self_intersection_finder.hpp"
 #include "math/normal_projector.hpp"
 #include "mesh/edge_incidence_counter.hpp"
-#include "intersection/self_intersection_finder.hpp"
 
 namespace Cork::Meshes
 {
@@ -169,6 +169,9 @@ namespace Cork::Meshes
 
     Vector3D SurfaceMesh::best_fit_normal() const
     {
+        //  TODO    Skip points...
+
+
         //  We are going to estimate the best fit surface normal.  We will limit the computation to a
         //      maximum of 250 points, so we may be skipping points for surfaces with a greater number of vertices.
         //
@@ -224,10 +227,10 @@ namespace Cork::Meshes
     {
         //  Start with a seed triangle which is simply the first in the pool.
 
-        return find_topo_edge_boundaries( &(topo_cache().triangles().getPool().front()));
+        return find_topo_edge_boundaries(&(topo_cache().triangles().getPool().front()));
     }
 
-    FindTopoEdgeBoundariesResult SurfaceMesh::find_topo_edge_boundaries( const TopoTri*     seed_triangle )
+    FindTopoEdgeBoundariesResult SurfaceMesh::find_topo_edge_boundaries(const TopoTri* seed_triangle)
     {
         //  The difference between this method on 'get_boundary_edge()' is that 'get_boundary_edge'
         //      relies only on hooking up vertices on edges with a single incidence.  This method takes
@@ -350,7 +353,7 @@ namespace Cork::Meshes
 
         auto initial_boundaries = find_topo_edge_boundaries();
 
-        if( initial_boundaries.failed() )
+        if (initial_boundaries.failed())
         {
             std::cout << "Find initial boundaries failed." << std::endl;
             return;
@@ -359,7 +362,8 @@ namespace Cork::Meshes
         //  Identify a triangle on the outside boundary, we will need this when we get the
         //      boundaries again later.
 
-        TriangleByIndicesIndex      tri_on_boundary_index = initial_boundaries.return_value().outside_boundary_.edges().front()->triangles().front()->ref();
+        TriangleUID tri_on_boundary_uid =
+            initial_boundaries.return_value().outside_boundary_.triangle_on_boundary_uid();
 
         //  Next, find all the self intersections
 
@@ -370,7 +374,7 @@ namespace Cork::Meshes
         //  For each self intersection, extract the two triangles sharing the edge and then extract
         //      one ring around it.  Do the same for the intersected triangle.
 
-        std::set<TriangleByIndicesIndex,std::greater<>> all_tris_to_remove;
+        std::set<TriangleByIndicesIndex, std::greater<>> all_tris_to_remove;
 
         for (const SelfIntersectingEdge& edge : si_stats)
         {
@@ -406,18 +410,12 @@ namespace Cork::Meshes
             all_tris_to_remove.merge(*(find_tris_result2.return_ptr()));
         }
 
-        if( all_tris_to_remove.contains( tri_on_boundary_index ) )
-        {
-            std::cout << "Triangle on boundary is in removal set.  This should not occur."  << std::endl;
-            return;
-        }
-
         //  Remove all the triangles associated with self intersections.
         //      The set of indices should be sorted in descending order.
 
-        for( auto tri_index : all_tris_to_remove )
+        for (auto tri_index : all_tris_to_remove)
         {
-            remove_triangle( tri_index );
+            remove_triangle(tri_index);
         }
 
         //  Look for self intersections again - we should not find any.
@@ -431,58 +429,141 @@ namespace Cork::Meshes
         //  Find the boundaries again and identify the originals - all the rest should be holes associated
         //      with the self intersections we removed.
 
-        auto after_boundaries = find_topo_edge_boundaries( topo_cache().find_topo_tri_by_source_triangle_id( tri_on_boundary_index  ));
+        auto after_boundaries =
+            find_topo_edge_boundaries(topo_cache().find_topo_tri_by_source_triangle_uid(tri_on_boundary_uid));
 
-        if( after_boundaries.failed() )
+        if (after_boundaries.failed())
         {
             std::cout << "Find boundaries after removing sis failed" << std::endl;
             return;
         }
 
-        if(( initial_boundaries.return_value().outside_boundary_.edges().size() != after_boundaries.return_value().outside_boundary_.edges().size() ) ||
-           ( fabs( initial_boundaries.return_value().outside_boundary_.length() - after_boundaries.return_value().outside_boundary_.length() ) > 1e-6 ))
+        if ((initial_boundaries.return_value().outside_boundary_.edges().size() !=
+             after_boundaries.return_value().outside_boundary_.edges().size()) ||
+            (fabs(initial_boundaries.return_value().outside_boundary_.length() -
+                  after_boundaries.return_value().outside_boundary_.length()) > 1e-6))
         {
             std::cout << "Outside Boundary is not intact" << std::endl;
             return;
         }
 
-        if( after_boundaries.return_value().tris_inside_boundary_.size() != tris_->size() )
+        TopoEdgeBoundaryVector si_holes_to_fill;
+        uint32_t num_original_holes_found = 0;
+
+        for (auto hole : after_boundaries.return_value().holes_)
         {
-            std::cout << "Disconnected triangles found in surface: " << tris_->size() - after_boundaries.return_value().tris_inside_boundary_.size() << std::endl;
-        }
+            bool found_original_hole = false;
 
-        TopoEdgeBoundaryVector      si_holes_to_fill;
-        uint32_t                    num_original_holes_found = 0;
-
-        for( auto hole : after_boundaries.return_value().holes_ )
-        {
-            bool    found_original_hole = false;
-
-            for( auto original_hole : initial_boundaries.return_value().holes_ )
+            for (auto original_hole : initial_boundaries.return_value().holes_)
             {
-                if(( hole.edges().size() == original_hole.edges().size() ) &&
-                   ( fabs( hole.length() - original_hole.length() ) < 1e-6 ))
+                if ((hole.edges().size() == original_hole.edges().size()) &&
+                    (fabs(hole.length() - original_hole.length()) < 1e-6))
                 {
                     num_original_holes_found++;
                     break;
                 }
             }
 
-            if( found_original_hole )
+            if (found_original_hole)
             {
                 continue;
             }
 
-            si_holes_to_fill.emplace_back( std::move( hole ));
+            si_holes_to_fill.emplace_back(std::move(hole));
         }
 
-        if( initial_boundaries.return_value().holes_.size() != num_original_holes_found )
+        if (initial_boundaries.return_value().holes_.size() != num_original_holes_found)
         {
             std::cout << "Could not identify all original holes" << std::endl;
             return;
         }
 
         std::cout << "Num si holes to fill: " << si_holes_to_fill.size() << std::endl;
+        
+        //  Finally, remove any disconnected triangles
+
+        if (after_boundaries.return_value().tris_inside_boundary_.size() != tris_->size())
+        {
+            std::cout << "Disconnected triangles found in surface: "
+                      << tris_->size() - after_boundaries.return_value().tris_inside_boundary_.size() << std::endl;
+
+            //  Remove the disconnected triangles, they should be in the middle of holes and will get replaced
+            //      when holes are filled.
+
+            TriangleByIndicesIndexSet disconnected_tris;
+
+            for (TriangleByIndicesIndex i = 0u; i < tris_->size(); i++)
+            {
+                if (!after_boundaries.return_value().tris_inside_boundary_.contains(i))
+                {
+                    disconnected_tris.insert(i);
+                }
+            }
+
+            for (auto itr = disconnected_tris.rbegin(); itr != disconnected_tris.rend(); itr++)
+            {
+                remove_triangle(*itr);
+            }
+        }
+
+        Cork::Files::writeOFF("../../UnitTest/Test Results/region_with_holes.off", *this);
+
+        TriangleByIndicesVector   all_tris_to_add;
+
+        for( auto& hole_to_fill : si_holes_to_fill )
+        {
+            BoundaryEdge    boundary = hole_to_fill.as_boundary_edge( *verts_ );
+
+            Vertex3D    boundary_centroid = boundary.centroid();
+            Vector3D    best_fit_normal = boundary.best_fit_normal();
+
+            auto        projected_boundary = boundary.project( best_fit_normal, boundary_centroid );
+
+            std::cout << "[[ " << projected_boundary.edges().front().v0().x() << ", " << projected_boundary.edges().front().v1().y() << " ]";
+
+            bool    add_comma = false;
+            for( auto edge2D : projected_boundary.edges() )
+            {
+                if( add_comma )
+                {
+                    std::cout << ", ";
+                }
+
+                std::cout << "[ " << edge2D.v1().x() << ", " << edge2D.v1().y() << " ] ";
+
+                add_comma = true;
+            }
+
+            std::cout << "]" << std::endl;
+
+            auto self_intersections = projected_boundary.self_intersections();
+
+            if( self_intersections.size() > 0 )
+            {
+                std::cout << "Boundary self intersects" << std::endl;
+            }
+
+            GetHoleClosingTrianglesResult get_hole_closing_result =
+                get_hole_closing_triangles( hole_to_fill.as_boundary_edge( *verts_ ) );
+
+            if (get_hole_closing_result.failed())
+            {
+                std::cout << "Could not close hole" << std::endl;
+                continue;
+            }
+
+            for (auto tri : *(get_hole_closing_result.return_ptr()))
+            {
+                all_tris_to_add.emplace_back(tri);
+            }
+        }
+
+        for( auto& tri_to_add : all_tris_to_add )
+        {
+            tris_->emplace_back( tri_to_add );
+        }
+
+        Cork::Files::writeOFF("../../UnitTest/Test Results/region_repaired.off", *this);
     }
 
     void SurfaceMesh::remove_self_intersection(const SelfIntersectingEdge& self_intersection)
@@ -570,7 +651,7 @@ namespace Cork::Meshes
 
         for (auto boundary : *(patch_boundary_result.return_ptr()))
         {
-            boundary_lengths.emplace_back(boundary.length(vertices()));
+            boundary_lengths.emplace_back(boundary.length());
 
             max_length = std::max(max_length, boundary_lengths.back());
         }
