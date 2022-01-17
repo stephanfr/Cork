@@ -39,6 +39,7 @@ namespace Cork
     {
         SUCCESS = 0,
 
+        HOLE_BOUNDARY_SELF_INTERSECTS,
         TRIANGULATION_FAILED
     };
 

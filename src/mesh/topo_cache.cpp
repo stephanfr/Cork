@@ -39,6 +39,69 @@ namespace Cork::Meshes
         return edges_.front()->triangles().front()->source_triangle_uid();
     }
 
+    void TopoEdgeBoundary::smooth()
+    {
+        //  Pass through the boundary, looking for any pair of edges on the boundary that belong to
+        //      the same triangle.  We should be able to remove the two edges and replace them
+        //      with the single far edge of the triangle - making the perimeter shorter and the area larger.
+
+        bool replaced_edge = false;
+
+        do
+        {
+            replaced_edge = false;
+
+            for (uint32_t i = 0; i < edges_.size() - 1; i++)
+            {
+                for (uint32_t j = i + 1; j < edges_.size(); j++)
+                {
+                    for (auto current_tri1 : edges_[i]->triangles())
+                    {
+                        for (auto current_tri2 : edges_[j]->triangles())
+                        {
+                            if (current_tri1 == current_tri2)
+                            {
+                                for (auto edge_to_test : current_tri1->edges())
+                                {
+                                    if (edge_to_test != edges_[i] && edge_to_test != edges_[j])
+                                    {
+                                        edges_[i] = edge_to_test;
+                                        edges_.erase(edges_.begin() + j);
+                                        replaced_edge = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (replaced_edge)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (replaced_edge)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (replaced_edge)
+                    {
+                        break;
+                    }
+                }
+
+                if (replaced_edge)
+                {
+                    break;
+                }
+            }
+
+        } while (replaced_edge);
+
+        //  TODO check last edge with first....
+    }
+
     TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(TriangleByIndicesVector& triangles,
                                                                        Vertex3DVector& vertices, uint32_t num_edges,
                                                                        const Math::Quantizer& quantizer)

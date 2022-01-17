@@ -27,18 +27,17 @@
 
 #include <stdint.h>
 
-#include "result_codes.hpp"
 #include "CPPResult.hpp"
-
-#include "primitives/primitives.hpp"
 #include "math/normal_projector.hpp"
-
+#include "primitives/primitives.hpp"
+#include "result_codes.hpp"
 
 namespace Cork::Triangulator
 {
     class Point
     {
        public:
+        Point(Vertex2D vertex, bool boundary) : x_(vertex.x()), y_(vertex.y()), boundary_(boundary) {}
         Point(double x, double y, bool boundary) : x_(x), y_(y), boundary_(boundary) {}
 
         double x() const { return x_; }
@@ -99,7 +98,6 @@ namespace Cork::Triangulator
 
     using TriangleList = std::vector<Triangle>;
 
-
     using TriangulateResult = SEFUtility::ResultWithReturnUniquePtr<TriangulationResultCodes, TriangleList>;
 
     class Triangulator
@@ -140,13 +138,21 @@ namespace Cork::Triangulator
             too_many_segments_ = false;
         }
 
-        inline void add_point(Point point)
+        void add_point(Point point)
         {
             points_[number_of_points_] = point.pair();
             point_markers_[number_of_points_++] = point.boundary() ? 1 : 0;
         }
 
-        inline void add_point(double x, double y, bool boundary)
+        void add_point(Vertex2D vertex, bool boundary)
+        {
+            points_[number_of_points_].first = vertex.x();
+            points_[number_of_points_].second = vertex.y();
+
+            point_markers_[number_of_points_++] = boundary;
+        }
+
+        void add_point(double x, double y, bool boundary)
         {
             points_[number_of_points_].first = x;
             points_[number_of_points_].second = y;
@@ -154,7 +160,7 @@ namespace Cork::Triangulator
             point_markers_[number_of_points_++] = boundary;
         }
 
-        inline void add_point(const Primitives::Vector3D& point, bool boundary, const Math::NormalProjector& projector)
+        void add_point(const Primitives::Vector3D& point, bool boundary, const Math::NormalProjector& projector)
         {
             points_[number_of_points_].first = point[projector.proj_dim0()];
             points_[number_of_points_].second = projector.flip_sign()
@@ -163,13 +169,13 @@ namespace Cork::Triangulator
             point_markers_[number_of_points_++] = boundary;
         }
 
-        inline void add_segment(Segment segment)
+        void add_segment(Segment segment)
         {
             segments_[number_of_segments_] = segment.pair();
             segment_markers_[number_of_segments_++] = segment.boundary() ? 1 : 0;
         }
 
-        inline void add_segment(uint32_t start, uint32_t end, bool boundary)
+        void add_segment(uint32_t start, uint32_t end, bool boundary)
         {
             segments_[number_of_segments_] = std::pair<int, int>(start, end);
             segment_markers_[number_of_segments_++] = boundary ? 1 : 0;

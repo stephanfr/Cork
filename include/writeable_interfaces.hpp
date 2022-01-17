@@ -1,5 +1,5 @@
 // +-------------------------------------------------------------------------
-// | writeable_mesh.hpp
+// | writeable_interfaces.hpp
 // |
 // | Author: Gilbert Bernstein
 // +-------------------------------------------------------------------------
@@ -49,9 +49,6 @@ namespace Cork
     class WriteableMesh
     {
        public:
-//        virtual size_t num_triangles() const = 0;
-//        virtual size_t num_vertices() const = 0;
-
         virtual const TriangleByIndicesVector& triangles() const = 0;
         virtual const Vertex3DVector& vertices() const = 0;
     };
@@ -60,6 +57,6 @@ namespace Cork
     {
         public :
 
-        virtual const std::vector<Vertex3D>&    points() const = 0;
+        virtual const std::vector<Vertex3D>&    vertices() const = 0;
     };
 }  // namespace Cork

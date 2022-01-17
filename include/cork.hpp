@@ -44,7 +44,7 @@
 
 #include "CPPResult.hpp"
 #include "result_codes.hpp"
-#include "writeable_mesh.hpp"
+#include "writeable_interfaces.hpp"
 #include "statistics.hpp"
 
 namespace Cork

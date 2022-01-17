@@ -62,6 +62,6 @@ namespace Cork::Files
     CORKLIB_API ReadFileResult readOFF(const std::filesystem::path& file_path);
     CORKLIB_API WriteFileResult writeOFF(const std::filesystem::path& file_path, const WriteableMesh& mesh_to_write);
 
-    CORKLIB_API WriteFileResult write_3d_polyline(const std::filesystem::path& file_path, const Writeable3DPolyline& mesh_to_write);
+    CORKLIB_API WriteFileResult write_3d_polyline(const std::filesystem::path& file_path, const Writeable3DPolyline& polyline_to_write);
 
 }  // namespace Cork::Files

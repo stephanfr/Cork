@@ -34,12 +34,30 @@
 #include "mesh/boundary_edge_builder.hpp"
 #include "mesh/topo_cache.hpp"
 #include "mesh/triangle_remapper.hpp"
-#include "writeable_mesh.hpp"
+#include "writeable_interfaces.hpp"
 
 namespace Cork::Meshes
 {
+    class HoleClosingSolution
+    {
+        public :
+
+        HoleClosingSolution( TriangleByIndicesVector&&     triangles_to_add,
+            VertexIndexVector&&           vertices_added )
+            : triangles_to_add_(triangles_to_add),
+              vertices_added_( vertices_added )
+              {}
+
+            TriangleByIndicesVector     triangles_to_add_;
+            VertexIndexVector           vertices_added_;
+    };
+
     using FindEnclosingTrianglesResult =
         SEFUtility::ResultWithReturnUniquePtr<FindEnclosingTrianglesResultCodes, TriangleByIndicesIndexSet>;
+
+    using GetHoleClosingTrianglesResult =
+            SEFUtility::ResultWithReturnValue<HoleClosingResultCodes, HoleClosingSolution>;
+
 
     class MeshBase : public WriteableMesh
     {
@@ -166,10 +184,7 @@ namespace Cork::Meshes
         std::unique_ptr<MeshBase> extract_surface(TriangleRemapper& remapper,
                                                   const TriangleByIndicesIndexSet& tris_to_extract) const;
 
-        using GetHoleClosingTrianglesResult =
-            SEFUtility::ResultWithReturnUniquePtr<HoleClosingResultCodes, TriangleByIndicesVector>;
-
-        GetHoleClosingTrianglesResult get_hole_closing_triangles(const BoundaryEdge& hole);
+        GetHoleClosingTrianglesResult close_hole(const BoundaryEdge& hole);
 
         void compact();
 

@@ -163,16 +163,16 @@ namespace Cork::Meshes
 
             for (auto const& hole : holes_for_nme)
             {
-                GetHoleClosingTrianglesResult get_hole_closing_triangles_result = get_hole_closing_triangles(hole);
+                GetHoleClosingTrianglesResult get_hole_closing_result = MeshBase::close_hole(hole);
 
-                if (!get_hole_closing_triangles_result.succeeded())
+                if (!get_hole_closing_result.succeeded())
                 {
                     std::cout << "Get hole closing triangles failed" << std::endl;
                     hole_closing_failed = true;
                     break;
                 }
 
-                for (const auto& tri : *(get_hole_closing_triangles_result.return_ptr()))
+                for (const auto& tri : get_hole_closing_result.return_value().triangles_to_add_)
                 {
                     nme_closing_tris.emplace_back(tri);
                 }
@@ -223,7 +223,8 @@ namespace Cork::Meshes
                       << std::endl;
         }
 
-//        find_self_intersecting_regions(topo_stats);
+        find_self_intersecting_regions(topo_stats);
+
 
         uint32_t sis_resolved = 0;
         uint32_t sis_abdondoned = 0;
@@ -348,10 +349,10 @@ namespace Cork::Meshes
                 continue;
             }
 
-            GetHoleClosingTrianglesResult get_hole_closing_triangles_result =
-                get_hole_closing_triangles(holes_for_si[0]);
+            GetHoleClosingTrianglesResult get_hole_closing_result =
+                MeshBase::close_hole(holes_for_si[0]);
 
-            if (!get_hole_closing_triangles_result.succeeded())
+            if (!get_hole_closing_result.succeeded())
             {
                 failures_on_final_resolution++;
                 continue;
@@ -362,7 +363,7 @@ namespace Cork::Meshes
                 all_triangles_to_remove.emplace(tri);
             }
 
-            for (const auto& tri : *(get_hole_closing_triangles_result.return_ptr()))
+            for (const auto& tri : get_hole_closing_result.return_value().triangles_to_add_)
             {
                 all_triangles_to_add.emplace_back(tri);
             }
@@ -403,9 +404,9 @@ namespace Cork::Meshes
             return false;
         }
 
-        GetHoleClosingTrianglesResult get_hole_closing_triangles_result = get_hole_closing_triangles(holes_for_se[0]);
+        GetHoleClosingTrianglesResult get_hole_closing_result = MeshBase::close_hole(holes_for_se[0]);
 
-        if (!get_hole_closing_triangles_result.succeeded())
+        if (!get_hole_closing_result.succeeded())
         {
             return false;
         }
@@ -417,7 +418,7 @@ namespace Cork::Meshes
             return false;
         }
 
-        TriangleByIndicesVector full_patch{*(get_hole_closing_triangles_result.return_ptr())};
+        TriangleByIndicesVector full_patch{get_hole_closing_result.return_value().triangles_to_add_};
 
         for (const auto& tri_to_add : as_triangles(*(ring_of_tris_result.return_ptr())))
         {
@@ -462,14 +463,14 @@ namespace Cork::Meshes
 
         for (auto hole : topo_stats.holes())
         {
-            auto result = get_hole_closing_triangles(hole);
+            auto result = MeshBase::close_hole(hole);
 
             if (!result.succeeded())
             {
                 return HoleClosingResult::failure(result.error_code(), result.message());
             }
 
-            for (auto tri_to_add : *(result.return_ptr()))
+            for (auto tri_to_add : result.return_value().triangles_to_add_)
             {
                 add_triangle(tri_to_add);
             }

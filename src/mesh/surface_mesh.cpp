@@ -26,12 +26,12 @@
 
 #include "mesh/surface_mesh.hpp"
 
-#include <Eigen/Dense>
 #include <numeric>
 
 #include "file_formats/files.hpp"
 #include "intersection/self_intersection_finder.hpp"
 #include "math/normal_projector.hpp"
+#include "math/util_3D.hpp"
 #include "mesh/edge_incidence_counter.hpp"
 
 namespace Cork::Meshes
@@ -169,37 +169,7 @@ namespace Cork::Meshes
 
     Vector3D SurfaceMesh::best_fit_normal() const
     {
-        //  TODO    Skip points...
-
-
-        //  We are going to estimate the best fit surface normal.  We will limit the computation to a
-        //      maximum of 250 points, so we may be skipping points for surfaces with a greater number of vertices.
-        //
-        //  We will build an Nx3 matrix (A) and an N dimensional vector (B) and solve for x in Ax=B.  x will
-        //      be a best-fit surface normal.
-
-        Vector3D mesh_centroid = centroid();
-
-        Eigen::MatrixXd A(verts_->size(), 3);
-        Eigen::VectorXd B(verts_->size());
-
-        int k = 0;
-        for (auto const current_vert : *verts_)
-        {
-            Vector3D translated_point = current_vert - mesh_centroid;
-
-            A(k, 0) = translated_point.x();
-            A(k, 1) = translated_point.y();
-            A(k, 2) = 1;
-
-            B(k) = translated_point.z();
-
-            k++;
-        }
-
-        Eigen::VectorXd normal = (A.transpose() * A).ldlt().solve(A.transpose() * B);
-
-        return Vector3D(normal(0), normal(1), normal(2)).normalized();
+       return Math::Utility3D::best_fit_normal( verts_->size(), verts_->begin(), verts_->end() );
     }
 
     std::unique_ptr<SurfaceMesh> SurfaceMesh::project_surface(const Vector3D projection_surface_normal,
@@ -479,7 +449,7 @@ namespace Cork::Meshes
         }
 
         std::cout << "Num si holes to fill: " << si_holes_to_fill.size() << std::endl;
-        
+
         //  Finally, remove any disconnected triangles
 
         if (after_boundaries.return_value().tris_inside_boundary_.size() != tris_->size())
@@ -487,64 +457,93 @@ namespace Cork::Meshes
             std::cout << "Disconnected triangles found in surface: "
                       << tris_->size() - after_boundaries.return_value().tris_inside_boundary_.size() << std::endl;
 
+            Cork::Files::writeOFF("../../UnitTest/Test Results/region_with_disconnected_tris.off", *this);
+
             //  Remove the disconnected triangles, they should be in the middle of holes and will get replaced
             //      when holes are filled.
 
-            TriangleByIndicesIndexSet disconnected_tris;
+            //            TriangleByIndicesIndexSet disconnected_tris;
 
             for (TriangleByIndicesIndex i = 0u; i < tris_->size(); i++)
             {
                 if (!after_boundaries.return_value().tris_inside_boundary_.contains(i))
                 {
-                    disconnected_tris.insert(i);
+                    //                    disconnected_tris.insert(i);
+                    all_tris_to_remove.insert(i);
                 }
             }
 
-            for (auto itr = disconnected_tris.rbegin(); itr != disconnected_tris.rend(); itr++)
-            {
-                remove_triangle(*itr);
-            }
+            //            for (auto itr = disconnected_tris.rbegin(); itr != disconnected_tris.rend(); itr++)
+            //            {
+            //                remove_triangle(*itr);
+            //            }
         }
 
-        Cork::Files::writeOFF("../../UnitTest/Test Results/region_with_holes.off", *this);
+//        Cork::Files::writeOFF("../../UnitTest/Test Results/region_with_holes.off", *this);
 
-        TriangleByIndicesVector   all_tris_to_add;
+        TriangleByIndicesVector all_tris_to_add;
 
-        for( auto& hole_to_fill : si_holes_to_fill )
+        for (auto& hole_to_fill : si_holes_to_fill)
         {
-            BoundaryEdge    boundary = hole_to_fill.as_boundary_edge( *verts_ );
+            BoundaryEdge boundary = hole_to_fill.as_boundary_edge(*verts_);
 
-            Vertex3D    boundary_centroid = boundary.centroid();
-            Vector3D    best_fit_normal = boundary.best_fit_normal();
+            Cork::Files::write_3d_polyline("../../UnitTest/Test Results/boundary.mat", boundary);
 
-            auto        projected_boundary = boundary.project( best_fit_normal, boundary_centroid );
+            //  Smooth the boundary, this helps occasionally with projection
 
-            std::cout << "[[ " << projected_boundary.edges().front().v0().x() << ", " << projected_boundary.edges().front().v1().y() << " ]";
+            TopoEdgeBoundary topo_boundary = topo_cache().topo_edge_boundary(boundary);
 
-            bool    add_comma = false;
-            for( auto edge2D : projected_boundary.edges() )
+            topo_boundary.smooth();
+
+            Cork::Files::write_3d_polyline("../../UnitTest/Test Results/boundary_smooth.mat",
+                                           topo_boundary.as_boundary_edge(*verts_));
+
+            //  If the smoothed boundary is shorter, then use it moving forward
+
+            if (boundary.vertex_indices().size() > topo_boundary.edges().size())
             {
-                if( add_comma )
-                {
-                    std::cout << ", ";
-                }
-
-                std::cout << "[ " << edge2D.v1().x() << ", " << edge2D.v1().y() << " ] ";
-
-                add_comma = true;
+                boundary = topo_boundary.as_boundary_edge(*verts_);
             }
 
-            std::cout << "]" << std::endl;
+            Vertex3D boundary_centroid = boundary.centroid();
+            Vector3D best_fit_normal = boundary.best_fit_normal();
+
+            auto projected_boundary = boundary.project(best_fit_normal, boundary_centroid);
 
             auto self_intersections = projected_boundary.self_intersections();
 
-            if( self_intersections.size() > 0 )
+            if (self_intersections.size() > 0)
             {
                 std::cout << "Boundary self intersects" << std::endl;
+
+                //  Let's split the boundary into quarters and add the centroid to each 1/4.  This gives
+                //      us four pie wedges to try individually.
+
+                std::vector<BoundaryEdge> sections =
+                    boundary.divide(std::min(std::size_t(8), boundary.vertex_indices().size() / 2));
+
+                std::cout << "Dividing into: " << sections.size() << " sections" << std::endl;
+
+                for (auto& current_section : sections)
+                {
+                    current_section.append(boundary_centroid, Primitives::UNINITIALIZED_INDEX);
+
+                    Vertex3D new_boundary_centroid = current_section.centroid();
+                    Vector3D new_best_fit_normal = current_section.best_fit_normal();
+
+                    auto new_projected_boundary = current_section.project(new_best_fit_normal, new_boundary_centroid);
+
+                    auto new_self_intersections = new_projected_boundary.self_intersections();
+
+                    if (new_self_intersections.size() > 0)
+                    {
+                        std::cout << "Section has self intersection" << std::endl;
+                    }
+                }
             }
 
             GetHoleClosingTrianglesResult get_hole_closing_result =
-                get_hole_closing_triangles( hole_to_fill.as_boundary_edge( *verts_ ) );
+                MeshBase::close_hole(hole_to_fill.as_boundary_edge(*verts_));
 
             if (get_hole_closing_result.failed())
             {
@@ -552,15 +551,15 @@ namespace Cork::Meshes
                 continue;
             }
 
-            for (auto tri : *(get_hole_closing_result.return_ptr()))
+            for (auto tri : get_hole_closing_result.return_value().triangles_to_add_)
             {
                 all_tris_to_add.emplace_back(tri);
             }
         }
 
-        for( auto& tri_to_add : all_tris_to_add )
+        for (auto& tri_to_add : all_tris_to_add)
         {
-            tris_->emplace_back( tri_to_add );
+            tris_->emplace_back(tri_to_add);
         }
 
         Cork::Files::writeOFF("../../UnitTest/Test Results/region_repaired.off", *this);
@@ -664,14 +663,14 @@ namespace Cork::Meshes
             }
 
             GetHoleClosingTrianglesResult get_hole_closing_result =
-                get_hole_closing_triangles((*(patch_boundary_result.return_ptr()))[i]);
+                close_hole((*(patch_boundary_result.return_ptr()))[i]);
 
             if (get_hole_closing_result.failed())
             {
                 return;
             }
 
-            for (auto tri : *(get_hole_closing_result.return_ptr()))
+            for (auto tri : get_hole_closing_result.return_value().triangles_to_add_)
             {
                 tris_->emplace_back(tri);
             }

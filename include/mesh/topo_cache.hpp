@@ -231,7 +231,7 @@ namespace Cork::Meshes
 
         BBox3D bounding_box() const { return bounding_box_; }
 
-        TriangleUID     triangle_on_boundary_uid() const;
+        TriangleUID triangle_on_boundary_uid() const;
 
         void add_edge(const TopoEdge* edge)
         {
@@ -265,30 +265,40 @@ namespace Cork::Meshes
                     (edges_.front()->vert_0().index() == edges_.back()->vert_1().index()));
         }
 
-        BoundaryEdge as_boundary_edge( const Vertex3DVector&    vertices )
+        void smooth();
+
+        BoundaryEdge as_boundary_edge(const Vertex3DVector& vertices)
         {
-            Vertex3DVector      boundary_vertices;
-            VertexIndexVector   vertex_indices;
+            VertexIndexVector vertex_indices;
 
-            VertexIndex last_vertex = edges_.front()->vert_1().index();
+            VertexIndex last_vertex_index = edges_.front()->vert_1().index();
 
-            vertex_indices.emplace_back(last_vertex);
+            vertex_indices.emplace_back(last_vertex_index);
 
             for (uint32_t i = 1; i < edges_.size(); i++)
             {
-                if (edges_[i]->vert_0().index() == last_vertex)
+                if (edges_[i]->vert_0().index() == last_vertex_index)
                 {
-                    last_vertex = edges_[i]->vert_1().index();
+                    last_vertex_index = edges_[i]->vert_1().index();
                 }
                 else
                 {
-                    last_vertex = edges_[i]->vert_0().index();
+                    last_vertex_index = edges_[i]->vert_0().index();
                 }
 
-                vertex_indices.emplace_back(last_vertex);
+                vertex_indices.emplace_back(last_vertex_index);
             }
 
-            return BoundaryEdge(std::move( boundary_vertices ), std::move( vertex_indices));
+            Vertex3DVector boundary_vertices;
+
+            boundary_vertices.reserve(vertex_indices.size() + 4);
+
+            for (auto current_index : vertex_indices)
+            {
+                boundary_vertices.emplace_back(vertices[current_index]);
+            }
+
+            return BoundaryEdge(std::move(boundary_vertices), std::move(vertex_indices));
         }
 
        private:
@@ -329,7 +339,7 @@ namespace Cork::Meshes
     class TopoTri final : public boost::noncopyable, public IntrusiveListHookNoDestructorOnElements
     {
        public:
-        explicit TopoTri(IndexType ref) : source_triangle_uid_( Primitives::UNINITIALIZED_INDEX ), ref_(ref) {}
+        explicit TopoTri(IndexType ref) : source_triangle_uid_(Primitives::UNINITIALIZED_INDEX), ref_(ref) {}
 
         TopoTri(TriangleUID source_triangle_uid, IndexType ref, TopoVert& vertex0, TopoVert& vertex1, TopoVert& vertex2)
             : source_triangle_uid_(source_triangle_uid), ref_(ref)
@@ -563,7 +573,7 @@ namespace Cork::Meshes
 
        private:
         const TriangleUID source_triangle_uid_;
-        
+
         TriangleByIndicesIndex ref_;  // index to actual data
 
         std::optional<std::reference_wrapper<Intersection::TriangleProblem>> associated_triangle_problem_;
@@ -724,7 +734,7 @@ namespace Cork::Meshes
                 TriangleVertexId vertex1_id = TriangleVertexId::B;
                 TriangleVertexId vertex2_id = TriangleVertexId::C;
 
-                TopoTri* tri = topo_tri_list_.emplace_back( ref_tri.uid(), i, topo_vertex_list_.getPool()[vertex0_index],
+                TopoTri* tri = topo_tri_list_.emplace_back(ref_tri.uid(), i, topo_vertex_list_.getPool()[vertex0_index],
                                                            topo_vertex_list_.getPool()[vertex1_index],
                                                            topo_vertex_list_.getPool()[vertex2_index]);
 
@@ -768,8 +778,8 @@ namespace Cork::Meshes
 
                     if (edge01 == nullptr)
                     {
-                        edge01 = edge01Proto.set_edge(topo_edge_list_.emplace_back(
-                            tri->ref(), from_vertices(vertex0_id, vertex1_id), v0, v1));
+                        edge01 = edge01Proto.set_edge(
+                            topo_edge_list_.emplace_back(tri->ref(), from_vertices(vertex0_id, vertex1_id), v0, v1));
                     }
 
                     edge01->add_triangle(tri);
@@ -781,8 +791,8 @@ namespace Cork::Meshes
 
                     if (edge02 == nullptr)
                     {
-                        edge02 = edge02Proto.set_edge(topo_edge_list_.emplace_back(
-                            tri->ref(), from_vertices(vertex0_id, vertex2_id), v0, v2));
+                        edge02 = edge02Proto.set_edge(
+                            topo_edge_list_.emplace_back(tri->ref(), from_vertices(vertex0_id, vertex2_id), v0, v2));
                     }
 
                     edge02->add_triangle(tri);
@@ -794,8 +804,8 @@ namespace Cork::Meshes
 
                     if (edge12 == nullptr)
                     {
-                        edge12 = edge12Proto.set_edge(topo_edge_list_.emplace_back(
-                            tri->ref(), from_vertices(vertex1_id, vertex2_id), v1, v2));
+                        edge12 = edge12Proto.set_edge(
+                            topo_edge_list_.emplace_back(tri->ref(), from_vertices(vertex1_id, vertex2_id), v1, v2));
                     }
 
                     edge12->add_triangle(tri);
@@ -927,11 +937,11 @@ namespace Cork::Meshes
             mesh_triangles_[t->ref()].flip();
         }
 
-        const TopoTri*  find_topo_tri_by_source_triangle_uid( TriangleUID  tri_uid )
+        const TopoTri* find_topo_tri_by_source_triangle_uid(TriangleUID tri_uid)
         {
-            for( const TopoTri& current_tri : topo_tri_list_ )
+            for (const TopoTri& current_tri : topo_tri_list_)
             {
-                if( current_tri.source_triangle_uid() == tri_uid )
+                if (current_tri.source_triangle_uid() == tri_uid)
                 {
                     return &current_tri;
                 }
@@ -945,12 +955,13 @@ namespace Cork::Meshes
         TopoEdgeBoundary topo_edge_boundary(const BoundaryEdge& boundary) const;
         std::set<const TopoTri*> tris_along_edges(const TopoEdgeBoundary& boundary) const;
         std::unordered_set<const TopoTri*> tris_inside_boundaries(const std::vector<TopoEdgeBoundary>& boundaries,
-                                                                const TopoTri& seed_triangle_inside_boundary,
-                                                                uint32_t max_num_tris_before_failure) const;
+                                                                  const TopoTri& seed_triangle_inside_boundary,
+                                                                  uint32_t max_num_tris_before_failure) const;
 
         TriangleByIndicesIndexSet triangles_sharing_edge(TriangleByIndicesIndex tri_index, TriangleEdgeId edge_id) const
         {
-            const TopoTri& triangle_containing_edge = topo_tri_list_.getPool()[TriangleByIndicesIndex::integer_type(tri_index)];
+            const TopoTri& triangle_containing_edge =
+                topo_tri_list_.getPool()[TriangleByIndicesIndex::integer_type(tri_index)];
 
             const TopoEdge* topo_edge = nullptr;
 

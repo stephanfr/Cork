@@ -83,7 +83,8 @@ namespace Cork::Meshes
     }
 
     std::unique_ptr<MeshBase> MeshBase::extract_surface(TriangleRemapper& remapper,
-                                                        TriangleByIndicesIndex center_triangle, uint32_t num_rings) const
+                                                        TriangleByIndicesIndex center_triangle,
+                                                        uint32_t num_rings) const
     {
         Cork::Primitives::TriangleByIndicesIndexSet single_triangle;
 
@@ -111,12 +112,26 @@ namespace Cork::Meshes
         return remapper.extract_surface(tris_to_extract);
     }
 
-    MeshBase::GetHoleClosingTrianglesResult MeshBase::get_hole_closing_triangles(const BoundaryEdge& hole)
+    GetHoleClosingTrianglesResult MeshBase::close_hole(const BoundaryEdge& hole)
     {
-        //  Determine the projection needed to turn this into a 2D triangulation problem
+        //  Start by obtaining the best fit plane normal for the boundary point.  We will project the
+        //      boundary on to this plane before triangulating.  It will *usually* be an excellent projection
+        //      surface but sometimes it is possible that the plane will be off by say 90 degrees if the hole
+        //      is folded.  In that case we will end up with a lot of self intersections.
 
-        Math::NormalProjector projector(vertices()[hole.vertex_indices()[0]], vertices()[hole.vertex_indices()[1]],
-                                                      vertices()[hole.vertex_indices()[2]]);
+        Vertex3D boundary_centroid = hole.centroid();
+        Vector3D best_fit_normal = hole.best_fit_normal();
+
+        auto projected_hole = hole.project(best_fit_normal, boundary_centroid);
+
+        auto self_intersections = projected_hole.self_intersections();
+
+        if (self_intersections.size() > 0)
+        {
+
+            return GetHoleClosingTrianglesResult::failure(HoleClosingResultCodes::HOLE_BOUNDARY_SELF_INTERSECTS,
+                                                          "Hole boundary hsa self intersections");
+        }
 
         //  Get the triangulator and add the points on the hole edge and the segments joining them.
         //      This is trivial as the vertices are ordered so segments are just one after the next.
@@ -124,9 +139,11 @@ namespace Cork::Meshes
 
         Triangulator::Triangulator triangulator;
 
-        for (auto vertex_index : hole.vertex_indices())
+        triangulator.add_point(projected_hole.edges().front().v0(), true);
+
+        for (uint32_t i = 0; i < projected_hole.edges().size() - 1; i++)
         {
-            triangulator.add_point(vertices()[vertex_index], true, projector);
+            triangulator.add_point(projected_hole.edges()[i].v1(), true);
         }
 
         for (int i = 0; i < hole.vertex_indices().size() - 1; i++)
@@ -136,7 +153,8 @@ namespace Cork::Meshes
 
         triangulator.add_segment(hole.vertex_indices().size() - 1, 0, true);
 
-        //  Compute the triangulation - I suppose some really messed up geometries might fail here.
+        //  Compute the triangulation.  We should not be here unless we have a good projection, so this
+        //      step should not fail ever.
 
         auto result = triangulator.compute_triangulation();
 
@@ -149,20 +167,22 @@ namespace Cork::Meshes
         //  Add the new triangles which close the hole.  There will never be new vertices to add based
         //      on the settings of the triangulator - thus this operation is simple.
 
-        std::unique_ptr<TriangleByIndicesVector> hole_closing_triangles = std::make_unique<TriangleByIndicesVector>();
+        TriangleByIndicesVector hole_closing_triangles;
 
-        hole_closing_triangles->reserve(result.return_ptr()->size() + 2);
+        hole_closing_triangles.reserve(result.return_ptr()->size() + 2);
 
         for (auto triangle_to_add : *(result.return_ptr()))
         {
-            hole_closing_triangles->emplace_back(
-                TriangleByIndices(Primitives::UNINITIALIZED_INDEX, hole.vertex_indices()[triangle_to_add.v0()],
-                                  hole.vertex_indices()[triangle_to_add.v2()], hole.vertex_indices()[triangle_to_add.v1()]));
+            hole_closing_triangles.emplace_back(TriangleByIndices(
+                Primitives::UNINITIALIZED_INDEX, hole.vertex_indices()[triangle_to_add.v0()],
+                hole.vertex_indices()[triangle_to_add.v2()], hole.vertex_indices()[triangle_to_add.v1()]));
         }
 
         //  Return the triangles to close the hole
 
-        return GetHoleClosingTrianglesResult::success(std::move(hole_closing_triangles));
+        HoleClosingSolution     hole_solution( std::move(hole_closing_triangles),std::move(VertexIndexVector()) );
+
+        return GetHoleClosingTrianglesResult::success( std::move( hole_solution ));
     }
 
     void MeshBase::compact()
@@ -220,18 +240,18 @@ namespace Cork::Meshes
 
     ExtractBoundariesResult MeshBase::get_boundary_edge(const TriangleByIndicesIndexSet& tris_to_outline) const
     {
-        return BoundaryEdgeBuilder(*this).extract_boundaries( tris_to_outline);
+        return BoundaryEdgeBuilder(*this).extract_boundaries(tris_to_outline);
     }
 
     ExtractBoundariesResult MeshBase::get_boundary_edge(const TriangleByIndicesIndexVector& tris_to_outline) const
     {
-        return BoundaryEdgeBuilder(*this).extract_boundaries( tris_to_outline);
+        return BoundaryEdgeBuilder(*this).extract_boundaries(tris_to_outline);
     }
 
     FindEnclosingTrianglesResult MeshBase::find_enclosing_triangles(const TriangleByIndicesIndexVector& triangles,
                                                                     uint32_t num_layers) const
     {
-        TriangleByIndicesIndexSet    tris( triangles.begin(), triangles.end() );
+        TriangleByIndicesIndexSet tris(triangles.begin(), triangles.end());
 
         return find_enclosing_triangles(tris, num_layers);
     }
@@ -290,8 +310,8 @@ namespace Cork::Meshes
 
             for (const auto& boundary : *current_boundaries)
             {
-                TopoEdgeBoundary  topo_edges( std::move( topo_cache().topo_edge_boundary(boundary)));
-                std::set<const TopoTri*>  tris_on_edge( std::move( topo_cache().tris_along_edges( topo_edges )));
+                TopoEdgeBoundary topo_edges(std::move(topo_cache().topo_edge_boundary(boundary)));
+                std::set<const TopoTri*> tris_on_edge(std::move(topo_cache().tris_along_edges(topo_edges)));
 
                 for (auto next_tri : tris_on_edge)
                 {

@@ -16,6 +16,13 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 FetchContent_Declare(
+  EigenTemplateLibrary
+  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+  GIT_TAG        3.4.0)
+
+FetchContent_MakeAvailable(EigenTemplateLibrary)
+
+FetchContent_Declare(
   Xoshiro256PlusSIMD
   GIT_REPOSITORY https://github.com/stephanfr/Xoshiro256PlusSIMD.git
   GIT_TAG        main)
@@ -28,22 +35,25 @@ include_directories(
     ../include
     ../thirdparty/tbb/${TBB_VERSION}/include
     ../thirdparty/mpir/${MPIR_VERSION}
+    ${eigentemplatelibrary_SOURCE_DIR}
     ${xoshiro256plussimd_SOURCE_DIR}/include
 )
 
 add_executable( tests
-  exterior_calculus_test.cpp
-  performance_stream_test.cpp
-  off_file_io_test.cpp
-  CachingFactoryTest.cpp
-  ConstructOnceResizeableVectorTest.cpp
-  Vector2DTest.cpp
-  Vector3DTest.cpp
-  topology_tests.cpp
-  geometric_tests.cpp
-  triangulator_test.cpp
-  surface_mesh_tests.cpp
-  polygon_tests.cpp
+#  exterior_calculus_test.cpp
+#  performance_stream_test.cpp
+#  off_file_io_test.cpp
+#  CachingFactoryTest.cpp
+#  ConstructOnceResizeableVectorTest.cpp
+#  Vector2DTest.cpp
+#  Vector3DTest.cpp
+#  topology_tests.cpp
+#  geometric_tests.cpp
+#  triangulator_test.cpp
+#  surface_mesh_tests.cpp
+#  polygon_tests.cpp
+#  boundary_edge_tests.cpp
+   svd_centroid_3d_tests.cpp
 )
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain Corklib tbb mpir boost_program_options boost_filesystem boost_iostreams boost_system boost_timer boost_thread pthread)

@@ -36,7 +36,7 @@
 
 namespace Cork::Files
 {
-    WriteFileResult write_3d_polyline(const std::filesystem::path& file_path, const Writeable3DPolyline& mesh_to_write)
+    WriteFileResult write_3d_polyline(const std::filesystem::path& file_path, const Writeable3DPolyline& polyline_to_write)
     {
         //	Open the output file
 
@@ -49,6 +49,13 @@ namespace Cork::Files
         }
 
         //  Write in a simple matrix format, simply vertex by vertex - one for each line.
+
+        for( auto current_vertex : polyline_to_write.vertices() )
+        {
+            out << current_vertex.x() << " " << current_vertex.y() << " " << current_vertex.z() << std::endl;
+        }
+
+        //  Flush and return
 
         out.flush();
 

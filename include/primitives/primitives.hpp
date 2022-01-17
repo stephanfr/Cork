@@ -162,6 +162,17 @@ namespace Cork::Primitives
     class Vertex3DVector : public std::vector<Vertex3D>
     {
        public:
+        Vertex3DVector() = default;
+
+        Vertex3DVector( const std::vector<Vertex3D>&        vec_to_copy )
+            : std::vector<Vertex3D>( vec_to_copy )
+        {}
+
+        Vertex3DVector( std::vector<Vertex3D>&&             vec_to_move )
+            : std::vector<Vertex3D>( std::move( vec_to_move ))
+        {}
+
+
         const Vertex3D& operator[](size_t) const = delete;
         Vertex3D& operator[](size_t) = delete;
 
