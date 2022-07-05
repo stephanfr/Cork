@@ -19,79 +19,19 @@
 
 #include "primitives/boundary_edge.hpp"
 
-//#include <Eigen/Dense>
-#include <Eigen/Core>
-#include <Eigen/SVD>
-
 #include "math/normal_projector.hpp"
-#include "math/util_3D.hpp"
+#include "math/plane.hpp"
 
 namespace Cork::Primitives
 {
-    /*
-        template <typename T>
-        Vector3D BoundaryEdge::best_fit_normal( uint32_t    num_verts,
-                                                T           itr_begin,
-                                                T           itr_end)
-        {
-            //  We will build an Nx3 matrix (A) and an N dimensional vector (B) and solve for x in Ax=B.  x will
-            //      be a best-fit surface normal.
-
-            Vertex3D surf_centroid = centroid( itr_begin, itr_end );
-
-            std::cout << surf_centroid << std::endl;
-
-            Eigen::MatrixXd A(num_verts, 3);
-            Eigen::VectorXd B(num_verts);
-
-            Eigen::MatrixXd C(num_verts, 3);
-
-            int k = 0;
-            for (auto itr = itr_begin; itr != itr_end; itr++ )
-            {
-                Vector3D translated_point = *itr - surf_centroid;
-
-        std::cout << *itr << "    " << translated_point << std::endl;
-
-                A(k, 0) = translated_point.x();
-                A(k, 1) = translated_point.y();
-                A(k, 2) = 1;
-
-                B(k) = translated_point.z();
-
-                C(k, 0) = translated_point.x();
-                C(k, 1) = translated_point.y();
-                C(k, 2) = translated_point.z();
-
-                k++;
-            }
-
-            std::cout << A << std::endl;
-            std::cout << B << std::endl;
-
-            Eigen::VectorXd normal = (A.transpose() * A).ldlt().solve(A.transpose() * B);
-
-            Vector3D    result( normal(0), normal(1), normal(2) );
-            result.normalize();
-
-            Eigen::BDCSVD<Eigen::MatrixXd> svd(C, Eigen::ComputeFullV);
-
-            std::cout << svd.singularValues() << std::endl;
-            std::cout << svd.matrixV() << std::endl;
-
-            return result;
-        }
-    */
-
     //    template Vector3D Cork::Math::Utility3D::best_fit_normal<BoundaryEdge::circularIterator>( uint32_t num_verts,
     //    const BoundaryEdge::circularIterator, const BoundaryEdge::circularIterator);
 
-    Vertex3D BoundaryEdge::centroid() const { return Math::Utility3D::centroid(vertices_.begin(), vertices_.end()); }
+    Vertex3D BoundaryEdge::centroid() const { return Math::centroid(vertices_.begin(), vertices_.end()); }
 
-    Vector3D BoundaryEdge::best_fit_normal() const
+    BestFitPlaneEquation BoundaryEdge::best_fit_plane() const
     {
-        return Math::Utility3D::best_fit_normal<Cork::Primitives::Vector3DVector::const_iterator>(
-            vertices_.size(), vertices_.cbegin(), vertices_.cend());
+        return BestFitPlaneEquation(vertices_.size(), vertices_.cbegin(), vertices_.cend());
     }
 
     TwoD::Polygon BoundaryEdge::project(const Vector3D projection_surface_normal,
@@ -120,18 +60,16 @@ namespace Cork::Primitives
         return TwoD::Polygon(std::move(projection_2D));
     }
 
-    Vector3DVector BoundaryEdge::get_normal_vectors(uint32_t adjacent_points)
+    std::vector<double> BoundaryEdge::get_point_deviations(const PlaneEquation&    plane)
     {
-        Vector3DVector normals;
+        std::vector<double>      deviations;
 
-        for (int32_t i = 0; i < vertices_.size(); i++)
+        for ( auto current_vertex : vertices_ )
         {
-            auto normal = Math::Utility3D::best_fit_normal((adjacent_points * 2 + 1), ci_location(i - adjacent_points),
-                                                           ci_location(i + adjacent_points + 1));
-            normals.emplace_back(normal);
+            deviations.emplace_back( plane.distance( current_vertex ) );
         }
 
-        return normals;
+        return deviations;
     }
 
 }  // namespace Cork::Primitives

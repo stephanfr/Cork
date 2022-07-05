@@ -120,9 +120,9 @@ namespace Cork::Meshes
         //      is folded.  In that case we will end up with a lot of self intersections.
 
         Vertex3D boundary_centroid = hole.centroid();
-        Vector3D best_fit_normal = hole.best_fit_normal();
+        BestFitPlaneEquation best_fit_plane = hole.best_fit_plane();
 
-        auto projected_hole = hole.project(best_fit_normal, boundary_centroid);
+        auto projected_hole = hole.project(best_fit_plane.unit_normal(), boundary_centroid);
 
         auto self_intersections = projected_hole.self_intersections();
 

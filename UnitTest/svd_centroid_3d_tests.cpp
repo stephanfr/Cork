@@ -21,7 +21,7 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "math/util_3D.hpp"
+#include "math/plane.hpp"
 
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
 
@@ -50,33 +50,37 @@ TEST_CASE("3D Utilities Tests", "[geometry]")
 
     SECTION("Surface 1")
     {
-        Cork::Primitives::Vertex3D centroid = Cork::Math::Utility3D::centroid(SURFACE_1.begin(), SURFACE_1.end());
+        Cork::Math::BestFitPlaneEquation best_fit_plane =
+            Cork::Math::BestFitPlaneEquation(SURFACE_1.size(), SURFACE_1.begin(), SURFACE_1.end());
 
-        Cork::Primitives::Vector3D best_fit_normal =
-            Cork::Math::Utility3D::best_fit_normal(SURFACE_1.size(), SURFACE_1.begin(), SURFACE_1.end());
+        REQUIRE(best_fit_plane.centroid().x() == Catch::Approx(0.12594).epsilon(10e-4));
+        REQUIRE(best_fit_plane.centroid().y() == Catch::Approx(2.0433).epsilon(10e-4));
+        REQUIRE(best_fit_plane.centroid().z() == Catch::Approx(-14.2306).epsilon(10e-4));
 
-        REQUIRE(centroid.x() == Catch::Approx(0.12594).epsilon(10e-4));
-        REQUIRE(centroid.y() == Catch::Approx(2.0433).epsilon(10e-4));
-        REQUIRE(centroid.z() == Catch::Approx(-14.2306).epsilon(10e-4));
+        REQUIRE(best_fit_plane.unit_normal().x() == Catch::Approx(-0.0198111).epsilon(10e-4));
+        REQUIRE(best_fit_plane.unit_normal().y() == Catch::Approx(0.0212086).epsilon(10e-4));
+        REQUIRE(best_fit_plane.unit_normal().z() == Catch::Approx(0.999579).epsilon(10e-4));
 
-        REQUIRE(best_fit_normal.x() == Catch::Approx(-0.0198111).epsilon(10e-4));
-        REQUIRE(best_fit_normal.y() == Catch::Approx(0.0212086).epsilon(10e-4));
-        REQUIRE(best_fit_normal.z() == Catch::Approx(0.999579).epsilon(10e-4));
+        REQUIRE( best_fit_plane.unit_normal().len() == Catch::Approx(1).epsilon(10e-8) );
+
+        REQUIRE( best_fit_plane.rms_error() == Catch::Approx(0.166599).epsilon(10e-4) );
     }
 
     SECTION("Surface 2")
     {
-        Cork::Primitives::Vertex3D centroid = Cork::Math::Utility3D::centroid(SURFACE_2.begin(), SURFACE_2.end());
+        Cork::Math::BestFitPlaneEquation best_fit_plane =
+            Cork::Math::BestFitPlaneEquation(SURFACE_2.size(), SURFACE_2.begin(), SURFACE_2.end());
 
-        Cork::Primitives::Vector3D best_fit_normal =
-            Cork::Math::Utility3D::best_fit_normal(SURFACE_2.size(), SURFACE_2.begin(), SURFACE_2.end());
+        REQUIRE(best_fit_plane.centroid().x() == Catch::Approx(2.0374).epsilon(10e-4));
+        REQUIRE(best_fit_plane.centroid().y() == Catch::Approx(-1.901).epsilon(10e-4));
+        REQUIRE(best_fit_plane.centroid().z() == Catch::Approx(-14.187).epsilon(10e-4));
 
-        REQUIRE(centroid.x() == Catch::Approx(2.0374).epsilon(10e-4));
-        REQUIRE(centroid.y() == Catch::Approx(-1.901).epsilon(10e-4));
-        REQUIRE(centroid.z() == Catch::Approx(-14.187).epsilon(10e-4));
+        REQUIRE(best_fit_plane.unit_normal().x() == Catch::Approx(-0.0792589).epsilon(10e-4));
+        REQUIRE(best_fit_plane.unit_normal().y() == Catch::Approx(0.238026).epsilon(10e-4));
+        REQUIRE(best_fit_plane.unit_normal().z() == Catch::Approx(0.968019).epsilon(10e-4));
 
-        REQUIRE(best_fit_normal.x() == Catch::Approx(-0.0792589).epsilon(10e-4));
-        REQUIRE(best_fit_normal.y() == Catch::Approx(0.238026).epsilon(10e-4));
-        REQUIRE(best_fit_normal.z() == Catch::Approx(0.968019).epsilon(10e-4));
+        REQUIRE( best_fit_plane.unit_normal().len() == Catch::Approx(1).epsilon(10e-8) );
+
+        REQUIRE( best_fit_plane.rms_error() == Catch::Approx(0.166785).epsilon(10e-4) );
     }
 }

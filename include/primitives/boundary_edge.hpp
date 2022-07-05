@@ -25,6 +25,7 @@
 #include "2d_geometry/polygon.hpp"
 #include "primitives/primitives.hpp"
 #include "writeable_interfaces.hpp"
+#include "math/plane.hpp"
 
 namespace Cork::Meshes
 {
@@ -154,11 +155,11 @@ namespace Cork::Primitives
 
         Vertex3D centroid() const;
 
-        Vector3D best_fit_normal() const;
+        BestFitPlaneEquation best_fit_plane() const;
 
         TwoD::Polygon project(const Vector3D projection_surface_normal, const Vertex3D normal_surface_origin) const;
 
-        std::vector<Vector3D> get_normal_vectors(uint32_t adjacent_points);
+        std::vector<double> get_point_deviations(const PlaneEquation&    plane);
 
        private:
         Vertex3DVector vertices_;

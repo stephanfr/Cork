@@ -31,7 +31,7 @@
 #include "file_formats/files.hpp"
 #include "intersection/self_intersection_finder.hpp"
 #include "math/normal_projector.hpp"
-#include "math/util_3D.hpp"
+#include "math/plane.hpp"
 #include "mesh/edge_incidence_counter.hpp"
 
 namespace Cork::Meshes
@@ -167,9 +167,9 @@ namespace Cork::Meshes
         centroid_ = std::move(src.centroid_);
     }
 
-    Vector3D SurfaceMesh::best_fit_normal() const
+    BestFitPlaneEquation SurfaceMesh::best_fit_plane() const
     {
-       return Math::Utility3D::best_fit_normal( verts_->size(), verts_->begin(), verts_->end() );
+       return BestFitPlaneEquation( verts_->size(), verts_->begin(), verts_->end() );
     }
 
     std::unique_ptr<SurfaceMesh> SurfaceMesh::project_surface(const Vector3D projection_surface_normal,
@@ -506,9 +506,9 @@ namespace Cork::Meshes
             }
 
             Vertex3D boundary_centroid = boundary.centroid();
-            Vector3D best_fit_normal = boundary.best_fit_normal();
+            PlaneEquation best_fit_plane = boundary.best_fit_plane();
 
-            auto projected_boundary = boundary.project(best_fit_normal, boundary_centroid);
+            auto projected_boundary = boundary.project(best_fit_plane.unit_normal(), boundary_centroid);
 
             auto self_intersections = projected_boundary.self_intersections();
 
@@ -529,9 +529,9 @@ namespace Cork::Meshes
                     current_section.append(boundary_centroid, Primitives::UNINITIALIZED_INDEX);
 
                     Vertex3D new_boundary_centroid = current_section.centroid();
-                    Vector3D new_best_fit_normal = current_section.best_fit_normal();
+                    PlaneEquation new_best_fit_plane = current_section.best_fit_plane();
 
-                    auto new_projected_boundary = current_section.project(new_best_fit_normal, new_boundary_centroid);
+                    auto new_projected_boundary = current_section.project(new_best_fit_plane.unit_normal(), new_boundary_centroid);
 
                     auto new_self_intersections = new_projected_boundary.self_intersections();
 

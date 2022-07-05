@@ -25,6 +25,7 @@
 #include <catch2/catch_approx.hpp>
 
 #include "primitives/boundary_edge.hpp"
+#include "math/basic_stats.hpp"
 
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
 
@@ -42,7 +43,7 @@ TEST_CASE("Boundary Edge Tests", "[3D Basic]")
         {-1.5345, 1.5945, -12.06},  {-1.53, 1.572, -12.4425},    {-1.524, 1.599, -12.6225}, {-1.398, 1.656, -12.6225},
         {-1.0665, 1.989, -12.624},  {-0.7335, -1.3635, -12.5835}};
 
-    SECTION("Get normal vectors")
+    SECTION("Best Fit Plane")
     {
         Cork::Primitives::Vertex3DVector vertices( NON_SELF_INTERSECTING_POLYGON_1 );
 
@@ -53,8 +54,14 @@ TEST_CASE("Boundary Edge Tests", "[3D Basic]")
 
         Cork::Primitives::BoundaryEdge boundry(std::move(vertices), std::move( indices ));
 
-        auto normals = boundry.get_normal_vectors(2);
+        Cork::Math::BestFitPlaneEquation   best_fit_plane = boundry.best_fit_plane();
 
-        REQUIRE(normals.size() == 14);
+        auto deviations = boundry.get_point_deviations(best_fit_plane);
+
+        REQUIRE(deviations.size() == 14);
+
+        Cork::Math::Statistics      deviation_stats( deviations.begin(), deviations.end() );
+
+        REQUIRE( deviation_stats.count() == 14 );
     }
 }

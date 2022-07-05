@@ -95,7 +95,7 @@ namespace Cork::Meshes
             return centroid_.value();
         }
 
-         Vector3D    best_fit_normal() const;
+        BestFitPlaneEquation    best_fit_plane() const;
 
         std::unique_ptr<SurfaceMesh>        project_surface( const Vector3D     projection_surface_normal,
                                                              const Vertex3D     normal_surface_origin );

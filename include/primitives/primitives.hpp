@@ -678,6 +678,8 @@ namespace Cork
     using Vector3D = Primitives::Vector3D;
     using Vertex3D = Primitives::Vertex3D;
 
+    using Vector3DVector = Primitives::Vector3DVector;
+
     using Ray3D = Primitives::Ray3D;
     using Ray3DWithInverseDirection = Primitives::Ray3DWithInverseDirection;
     using BBox3D = Primitives::BBox3D;

@@ -52,7 +52,7 @@ add_executable( tests
 #  triangulator_test.cpp
 #  surface_mesh_tests.cpp
 #  polygon_tests.cpp
-#  boundary_edge_tests.cpp
+   boundary_edge_tests.cpp
    svd_centroid_3d_tests.cpp
 )
 
