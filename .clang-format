@@ -1,0 +1,8 @@
+---
+BasedOnStyle: Google
+BreakBeforeBraces: Allman
+IndentWidth: '4'
+NamespaceIndentation: All
+Standard: Cpp11
+TabWidth: '4'
+ColumnLimit: '120'

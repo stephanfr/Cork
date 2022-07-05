@@ -1,0 +1,276 @@
+==18659== Memcheck, a memory error detector
+==18659== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==18659== Using Valgrind-3.15.0-608cb11914-20190413 and LibVEX; rerun with -h for copyright info
+==18659== Command: /home/steve/dev/Cork/build/RegressionTest/CorkCLI --union --input-directory /home/steve/dev/Cork/RegressionTest/PerfTestSet --output-directory /home/steve/dev/Cork/RegressionTest/PerfResults/
+==18659== Parent PID: 18587
+==18659== 
+--18659-- 
+--18659-- Valgrind options:
+--18659--    --leak-check=full
+--18659--    --show-leak-kinds=all
+--18659--    --track-origins=yes
+--18659--    --verbose
+--18659--    --log-file=valgrind-out.txt
+--18659-- Contents of /proc/version:
+--18659--   Linux version 5.4.0-90-generic (buildd@lgw01-amd64-054) (gcc version 9.3.0 (Ubuntu 9.3.0-17ubuntu1~20.04)) #101-Ubuntu SMP Fri Oct 15 20:00:55 UTC 2021
+--18659-- 
+--18659-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-ssse3-avx-avx2-bmi-f16c-rdrand
+--18659-- Page sizes: currently 4096, max supported 4096
+--18659-- Valgrind library directory: /usr/lib/x86_64-linux-gnu/valgrind
+--18659-- Reading syms from /home/steve/dev/Cork/build/RegressionTest/CorkCLI
+--18659-- Reading syms from /usr/lib/x86_64-linux-gnu/ld-2.31.so
+--18659--   Considering /usr/lib/x86_64-linux-gnu/ld-2.31.so ..
+--18659--   .. CRC mismatch (computed 975d0390 wanted 30bd717f)
+--18659--   Considering /lib/x86_64-linux-gnu/ld-2.31.so ..
+--18659--   .. CRC mismatch (computed 975d0390 wanted 30bd717f)
+--18659--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/ld-2.31.so ..
+--18659--   .. CRC is valid
+--18659-- Reading syms from /usr/lib/x86_64-linux-gnu/valgrind/memcheck-amd64-linux
+--18659--    object doesn't have a symbol table
+--18659--    object doesn't have a dynamic symbol table
+--18659-- Scheduler: using generic scheduler lock implementation.
+--18659-- Reading suppressions file: /usr/lib/x86_64-linux-gnu/valgrind/default.supp
+==18659== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-18659-by-steve-on-???
+==18659== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-18659-by-steve-on-???
+==18659== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-18659-by-steve-on-???
+==18659== 
+==18659== TO CONTROL THIS PROCESS USING vgdb (which you probably
+==18659== don't want to do, unless you know exactly what you're doing,
+==18659== or are doing some strange experiment):
+==18659==   /usr/lib/x86_64-linux-gnu/valgrind/../../bin/vgdb --pid=18659 ...command...
+==18659== 
+==18659== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==18659==   /path/to/gdb /home/steve/dev/Cork/build/RegressionTest/CorkCLI
+==18659== and then give GDB the following command
+==18659==   target remote | /usr/lib/x86_64-linux-gnu/valgrind/../../bin/vgdb --pid=18659
+==18659== --pid is optional if only one valgrind process is running
+==18659== 
+--18659-- REDIR: 0x4022e10 (ld-linux-x86-64.so.2:strlen) redirected to 0x580c9ce2 (???)
+--18659-- REDIR: 0x4022be0 (ld-linux-x86-64.so.2:index) redirected to 0x580c9cfc (???)
+--18659-- Reading syms from /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_core-amd64-linux.so
+--18659--    object doesn't have a symbol table
+--18659-- Reading syms from /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so
+--18659--    object doesn't have a symbol table
+==18659== WARNING: new redirection conflicts with existing -- ignoring it
+--18659--     old: 0x04022e10 (strlen              ) R-> (0000.0) 0x580c9ce2 ???
+--18659--     new: 0x04022e10 (strlen              ) R-> (2007.0) 0x0483f060 strlen
+--18659-- REDIR: 0x401f5f0 (ld-linux-x86-64.so.2:strcmp) redirected to 0x483ffd0 (strcmp)
+--18659-- REDIR: 0x4023370 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4843a20 (mempcpy)
+--18659-- Reading syms from /home/steve/dev/Cork/build/src/libCorklib.so
+--18659-- Reading syms from /usr/local/lib/libboost_program_options.so.1.77.0
+--18659-- Reading syms from /usr/local/lib/libboost_timer.so.1.77.0
+--18659-- Reading syms from /usr/local/lib/libboost_thread.so.1.77.0
+--18659-- Reading syms from /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28
+--18659--    object doesn't have a symbol table
+--18659-- Reading syms from /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+--18659--    object doesn't have a symbol table
+--18659-- Reading syms from /usr/lib/x86_64-linux-gnu/libc-2.31.so
+--18659--   Considering /usr/lib/x86_64-linux-gnu/libc-2.31.so ..
+--18659--   .. CRC mismatch (computed 86b78530 wanted e380f01c)
+--18659--   Considering /lib/x86_64-linux-gnu/libc-2.31.so ..
+--18659--   .. CRC mismatch (computed 86b78530 wanted e380f01c)
+--18659--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libc-2.31.so ..
+--18659--   .. CRC is valid
+--18659-- Reading syms from /usr/local/lib/libtbb.so.12
+--18659-- Reading syms from /usr/local/lib/libmpir.so.23.0.3
+--18659-- Reading syms from /usr/lib/x86_64-linux-gnu/libm-2.31.so
+--18659--   Considering /usr/lib/x86_64-linux-gnu/libm-2.31.so ..
+--18659--   .. CRC mismatch (computed fcb42c76 wanted f6c95789)
+--18659--   Considering /lib/x86_64-linux-gnu/libm-2.31.so ..
+--18659--   .. CRC mismatch (computed fcb42c76 wanted f6c95789)
+--18659--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libm-2.31.so ..
+--18659--   .. CRC is valid
+--18659-- Reading syms from /usr/lib/x86_64-linux-gnu/libpthread-2.31.so
+--18659--   Considering /usr/lib/debug/.build-id/e5/4761f7b554d0fcc1562959665d93dffbebdaf0.debug ..
+--18659--   .. build-id is valid
+--18659-- Reading syms from /usr/local/lib/libboost_chrono.so.1.77.0
+--18659-- Reading syms from /usr/lib/x86_64-linux-gnu/libdl-2.31.so
+--18659--   Considering /usr/lib/x86_64-linux-gnu/libdl-2.31.so ..
+--18659--   .. CRC mismatch (computed b5d487d3 wanted 6ef97e7c)
+--18659--   Considering /lib/x86_64-linux-gnu/libdl-2.31.so ..
+--18659--   .. CRC mismatch (computed b5d487d3 wanted 6ef97e7c)
+--18659--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libdl-2.31.so ..
+--18659--   .. CRC is valid
+--18659-- REDIR: 0x4c94600 (libc.so.6:memmove) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c93900 (libc.so.6:strncpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c94930 (libc.so.6:strcasecmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c93220 (libc.so.6:strcat) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c93960 (libc.so.6:rindex) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c95dd0 (libc.so.6:rawmemchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4cb0e60 (libc.so.6:wmemchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4cb09a0 (libc.so.6:wcscmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c94760 (libc.so.6:mempcpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c94590 (libc.so.6:bcmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c93890 (libc.so.6:strncmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c932d0 (libc.so.6:strcmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c946c0 (libc.so.6:memset) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4cb0960 (libc.so.6:wcschr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c937f0 (libc.so.6:strnlen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c933b0 (libc.so.6:strcspn) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c94980 (libc.so.6:strncasecmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c93350 (libc.so.6:strcpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c94ad0 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4cb20d0 (libc.so.6:wcsnlen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4cb09e0 (libc.so.6:wcscpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c939a0 (libc.so.6:strpbrk) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c93280 (libc.so.6:index) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c937b0 (libc.so.6:strlen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c9cd20 (libc.so.6:memrchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c949d0 (libc.so.6:strcasecmp_l) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c94550 (libc.so.6:memchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4cb0ab0 (libc.so.6:wcslen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c93c60 (libc.so.6:strspn) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c948d0 (libc.so.6:stpncpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c94870 (libc.so.6:stpcpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c95e10 (libc.so.6:strchrnul) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4c94a20 (libc.so.6:strncasecmp_l) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4d7c490 (libc.so.6:__strrchr_avx2) redirected to 0x483ea10 (rindex)
+--18659-- REDIR: 0x4c8e260 (libc.so.6:malloc) redirected to 0x483b780 (malloc)
+--18659-- REDIR: 0x4d7df30 (libc.so.6:__strncpy_avx2) redirected to 0x483f230 (strncpy)
+--18659-- REDIR: 0x4d7c660 (libc.so.6:__strlen_avx2) redirected to 0x483ef40 (strlen)
+--18659-- REDIR: 0x4c8e850 (libc.so.6:free) redirected to 0x483c9d0 (free)
+--18659-- REDIR: 0x4a9cb20 (libstdc++.so.6:operator new(unsigned long)) redirected to 0x483bdf0 (operator new(unsigned long))
+--18659-- REDIR: 0x4d78c50 (libc.so.6:__memcmp_avx2_movbe) redirected to 0x48421e0 (bcmp)
+--18659-- REDIR: 0x4d77b60 (libc.so.6:__strcmp_avx2) redirected to 0x483fed0 (strcmp)
+--18659-- REDIR: 0x4d7f670 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x48429f0 (memmove)
+--18659-- REDIR: 0x4c8fc90 (libc.so.6:calloc) redirected to 0x483dce0 (calloc)
+--18659-- REDIR: 0x4a9ad70 (libstdc++.so.6:operator delete(void*)) redirected to 0x483cf50 (operator delete(void*))
+--18659-- REDIR: 0x4d784c0 (libc.so.6:__memchr_avx2) redirected to 0x4840050 (memchr)
+--18659-- REDIR: 0x4d7f650 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x4843660 (mempcpy)
+--18659-- REDIR: 0x4a9ad80 (libstdc++.so.6:operator delete(void*, unsigned long)) redirected to 0x483d160 (operator delete(void*, unsigned long))
+--18659-- REDIR: 0x4c94120 (libc.so.6:__GI_strstr) redirected to 0x4843ca0 (__strstr_sse2)
+--18659-- REDIR: 0x4a9cb80 (libstdc++.so.6:operator new[](unsigned long)) redirected to 0x483c510 (operator new[](unsigned long))
+--18659-- REDIR: 0x4d78790 (libc.so.6:__rawmemchr_avx2) redirected to 0x4843580 (rawmemchr)
+--18659-- REDIR: 0x4c8f3d0 (libc.so.6:memalign) redirected to 0x483e2a0 (memalign)
+--18659-- REDIR: 0x4a9ada0 (libstdc++.so.6:operator delete[](void*)) redirected to 0x483d6e0 (operator delete[](void*))
+--18659-- REDIR: 0x4d7faf0 (libc.so.6:__memset_avx2_unaligned_erms) redirected to 0x48428e0 (memset)
+--18659-- Reading syms from /usr/local/lib/libtbbmalloc.so.2
+--18659-- REDIR: 0x4d77fa0 (libc.so.6:__strncmp_avx2) redirected to 0x483f670 (strncmp)
+--18659-- REDIR: 0x4d7e890 (libc.so.6:__stpcpy_avx2) redirected to 0x4842300 (stpcpy)
+--18659-- REDIR: 0x4d7c2a0 (libc.so.6:__strchrnul_avx2) redirected to 0x4843540 (strchrnul)
+--18659-- REDIR: 0x4c8f000 (libc.so.6:realloc) redirected to 0x483df30 (realloc)
+--18659-- REDIR: 0x4a9adb0 (libstdc++.so.6:operator delete[](void*, unsigned long)) redirected to 0x483d8f0 (operator delete[](void*, unsigned long))
+--18659-- REDIR: 0x4d219a0 (libc.so.6:__memmove_chk) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--18659-- REDIR: 0x4d7f660 (libc.so.6:__memcpy_chk_avx_unaligned_erms) redirected to 0x48434d0 (__memmove_chk)
+==18659== 
+==18659== HEAP SUMMARY:
+==18659==     in use at exit: 2,147 bytes in 7 blocks
+==18659==   total heap usage: 3,334,802 allocs, 3,334,795 frees, 5,535,993,295 bytes allocated
+==18659== 
+==18659== Searching for pointers to 7 not-freed blocks
+==18659== Checked 442,317,928 bytes
+==18659== 
+==18659== 33 bytes in 1 blocks are still reachable in loss record 1 of 7
+==18659==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==18659==    by 0x401F5CE: strdup (strdup.c:42)
+==18659==    by 0x400A5A9: _dl_map_object (dl-load.c:2168)
+==18659==    by 0x4015D36: dl_open_worker (dl-open.c:513)
+==18659==    by 0x4D548B7: _dl_catch_exception (dl-error-skeleton.c:208)
+==18659==    by 0x40155F9: _dl_open (dl-open.c:837)
+==18659==    by 0x525734B: dlopen_doit (dlopen.c:66)
+==18659==    by 0x4D548B7: _dl_catch_exception (dl-error-skeleton.c:208)
+==18659==    by 0x4D54982: _dl_catch_error (dl-error-skeleton.c:227)
+==18659==    by 0x5257B58: _dlerror_run (dlerror.c:170)
+==18659==    by 0x52573D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==18659==    by 0x4DFAE95: tbb::detail::r1::dynamic_load(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long) (dynamic_link.cpp:424)
+==18659== 
+==18659== 33 bytes in 1 blocks are still reachable in loss record 2 of 7
+==18659==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==18659==    by 0x400D5A7: _dl_new_object (dl-object.c:196)
+==18659==    by 0x4006E96: _dl_map_object_from_fd (dl-load.c:997)
+==18659==    by 0x400A61A: _dl_map_object (dl-load.c:2236)
+==18659==    by 0x4015D36: dl_open_worker (dl-open.c:513)
+==18659==    by 0x4D548B7: _dl_catch_exception (dl-error-skeleton.c:208)
+==18659==    by 0x40155F9: _dl_open (dl-open.c:837)
+==18659==    by 0x525734B: dlopen_doit (dlopen.c:66)
+==18659==    by 0x4D548B7: _dl_catch_exception (dl-error-skeleton.c:208)
+==18659==    by 0x4D54982: _dl_catch_error (dl-error-skeleton.c:227)
+==18659==    by 0x5257B58: _dlerror_run (dlerror.c:170)
+==18659==    by 0x52573D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==18659== 
+==18659== 128 bytes in 1 blocks are still reachable in loss record 3 of 7
+==18659==    at 0x483C583: operator new[](unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==18659==    by 0x4E07406: initialize_hardware_concurrency_info (misc_ex.cpp:148)
+==18659==    by 0x4E07406: run_initializer (_utils.h:286)
+==18659==    by 0x4E07406: atomic_do_once (_utils.h:275)
+==18659==    by 0x4E07406: tbb::detail::r1::AvailableHwConcurrency() (misc_ex.cpp:203)
+==18659==    by 0x4E03DF9: default_num_threads (governor.h:83)
+==18659==    by 0x4E03DF9: tbb::detail::r1::DoOneTimeInitialization() (main.cpp:131)
+==18659==    by 0x4DFD143: tbb::detail::r1::governor::init_external_thread() (governor.cpp:166)
+==18659==    by 0x4E0B95A: get_thread_data (governor.h:108)
+==18659==    by 0x4E0B95A: tbb::detail::r1::allocate(tbb::detail::d1::small_object_pool*&, unsigned long) (small_object_pool.cpp:41)
+==18659==    by 0x48E1F14: Cork::Intersection::IntersectionSolverImpl::tryToFindIntersections() (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==18659==    by 0x48E5483: Cork::Intersection::IntersectionSolverImpl::FindIntersections() (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==18659==    by 0x48FAF89: Cork::Meshes::Mesh::SetupBooleanProblem(Cork::Meshes::Mesh const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==18659==    by 0x48FE86F: Cork::Meshes::Mesh::Union(Cork::SolidObjectMesh const&, Cork::SolverControlBlock const&) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==18659==    by 0x111F31: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==18659== 
+==18659== 208 bytes in 1 blocks are still reachable in loss record 4 of 7
+==18659==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==18659==    by 0x401540A: add_to_global_resize (dl-open.c:139)
+==18659==    by 0x40163F7: dl_open_worker (dl-open.c:702)
+==18659==    by 0x4D548B7: _dl_catch_exception (dl-error-skeleton.c:208)
+==18659==    by 0x40155F9: _dl_open (dl-open.c:837)
+==18659==    by 0x525734B: dlopen_doit (dlopen.c:66)
+==18659==    by 0x4D548B7: _dl_catch_exception (dl-error-skeleton.c:208)
+==18659==    by 0x4D54982: _dl_catch_error (dl-error-skeleton.c:227)
+==18659==    by 0x5257B58: _dlerror_run (dlerror.c:170)
+==18659==    by 0x52573D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==18659==    by 0x4DFAE95: tbb::detail::r1::dynamic_load(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long) (dynamic_link.cpp:424)
+==18659==    by 0x4DFAC52: tbb::detail::r1::dynamic_link(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long, void**, int) (dynamic_link.cpp:452)
+==18659== 
+==18659== 240 bytes in 1 blocks are still reachable in loss record 5 of 7
+==18659==    at 0x483DD99: calloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==18659==    by 0x401330A: _dl_check_map_versions (dl-version.c:274)
+==18659==    by 0x40160EC: dl_open_worker (dl-open.c:577)
+==18659==    by 0x4D548B7: _dl_catch_exception (dl-error-skeleton.c:208)
+==18659==    by 0x40155F9: _dl_open (dl-open.c:837)
+==18659==    by 0x525734B: dlopen_doit (dlopen.c:66)
+==18659==    by 0x4D548B7: _dl_catch_exception (dl-error-skeleton.c:208)
+==18659==    by 0x4D54982: _dl_catch_error (dl-error-skeleton.c:227)
+==18659==    by 0x5257B58: _dlerror_run (dlerror.c:170)
+==18659==    by 0x52573D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==18659==    by 0x4DFAE95: tbb::detail::r1::dynamic_load(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long) (dynamic_link.cpp:424)
+==18659==    by 0x4DFAC52: tbb::detail::r1::dynamic_link(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long, void**, int) (dynamic_link.cpp:452)
+==18659== 
+==18659== 288 bytes in 1 blocks are possibly lost in loss record 6 of 7
+==18659==    at 0x483DD99: calloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==18659==    by 0x40149CA: allocate_dtv (dl-tls.c:286)
+==18659==    by 0x40149CA: _dl_allocate_tls (dl-tls.c:532)
+==18659==    by 0x522F322: allocate_stack (allocatestack.c:622)
+==18659==    by 0x522F322: pthread_create@@GLIBC_2.2.5 (pthread_create.c:660)
+==18659==    by 0x4E099DA: launch (rml_thread_monitor.h:208)
+==18659==    by 0x4E099DA: wake_or_launch (private_server.cpp:299)
+==18659==    by 0x4E099DA: tbb::detail::r1::rml::private_server::wake_some(int) (private_server.cpp:397)
+==18659==    by 0x4E062DB: tbb::detail::r1::market::adjust_demand(tbb::detail::r1::arena&, int, bool) (market.cpp:585)
+==18659==    by 0x4E0E601: advertise_new_work (arena.h:540)
+==18659==    by 0x4E0E601: spawn_and_notify (task_dispatcher.cpp:26)
+==18659==    by 0x4E0E601: tbb::detail::r1::spawn(tbb::detail::d1::task&, tbb::detail::d1::task_group_context&) (task_dispatcher.cpp:39)
+==18659==    by 0x48E1F74: Cork::Intersection::IntersectionSolverImpl::tryToFindIntersections() (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==18659==    by 0x48E5483: Cork::Intersection::IntersectionSolverImpl::FindIntersections() (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==18659==    by 0x48FAF89: Cork::Meshes::Mesh::SetupBooleanProblem(Cork::Meshes::Mesh const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==18659==    by 0x48FE86F: Cork::Meshes::Mesh::Union(Cork::SolidObjectMesh const&, Cork::SolverControlBlock const&) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==18659==    by 0x111F31: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==18659== 
+==18659== 1,217 bytes in 1 blocks are still reachable in loss record 7 of 7
+==18659==    at 0x483DD99: calloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==18659==    by 0x400D273: _dl_new_object (dl-object.c:89)
+==18659==    by 0x4006E96: _dl_map_object_from_fd (dl-load.c:997)
+==18659==    by 0x400A61A: _dl_map_object (dl-load.c:2236)
+==18659==    by 0x4015D36: dl_open_worker (dl-open.c:513)
+==18659==    by 0x4D548B7: _dl_catch_exception (dl-error-skeleton.c:208)
+==18659==    by 0x40155F9: _dl_open (dl-open.c:837)
+==18659==    by 0x525734B: dlopen_doit (dlopen.c:66)
+==18659==    by 0x4D548B7: _dl_catch_exception (dl-error-skeleton.c:208)
+==18659==    by 0x4D54982: _dl_catch_error (dl-error-skeleton.c:227)
+==18659==    by 0x5257B58: _dlerror_run (dlerror.c:170)
+==18659==    by 0x52573D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==18659== 
+==18659== LEAK SUMMARY:
+==18659==    definitely lost: 0 bytes in 0 blocks
+==18659==    indirectly lost: 0 bytes in 0 blocks
+==18659==      possibly lost: 288 bytes in 1 blocks
+==18659==    still reachable: 1,859 bytes in 6 blocks
+==18659==         suppressed: 0 bytes in 0 blocks
+==18659== 
+==18659== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)

@@ -1,0 +1,51 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Tests",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/UnitTest/tests",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/UnitTest",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "logging": {
+                "trace": true,
+                "traceResponse": true
+              },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Regression Test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/RegressionTest/CorkCLI",
+            "args": ["--union", "--input-directory", "/home/steve/dev/Cork/RegressionTest/TestSet/", "--output-directory", "/home/steve/dev/Cork/RegressionTest/Results/", "--write-statistics"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/RegressionTest/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "hardwareBreakpoints": { "require": true, "limit": 32 },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}
