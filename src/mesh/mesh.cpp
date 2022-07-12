@@ -621,7 +621,7 @@ namespace Cork::Meshes
 
         // begin by tagging the first triangle
 
-        (*tris_)[best_tid].set_bool_alg_data((*tris_)[best_tid].bool_alg_data() | (inside) ? 2 : 0);
+        (*tris_)[best_tid].set_bool_alg_data((*tris_)[best_tid].bool_alg_data() | (inside ? 2 : 0));
         visited[best_tid] = true;
         work.push_back(best_tid);
 
