@@ -127,6 +127,9 @@ namespace Cork::Statistics
 
         const std::vector<NonManifoldEdge> non_manifold_edges() const { return non_manifold_edges_; }
 
+        bool is_two_manifold() const { return non_manifold_edges_.empty(); }
+        bool is_not_two_manifold() const { return !is_two_manifold(); }
+
         const std::vector<BoundaryEdge>& holes() const { return holes_; }
         const std::vector<SelfIntersectingEdge>& self_intersecting_edges() const { return self_intersecting_edges_; }
 

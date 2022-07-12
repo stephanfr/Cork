@@ -61,7 +61,7 @@ void WriteMeshStatistics(const Cork::TriangleMesh& mesh, const std::string& file
     Cork::Statistics::TopologicalStatisticsResult topo_stats =
         mesh.ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_BASE);
 
-    geotopoResults << filename << "\t" << ( topo_stats.return_value().non_manifold_edges().size() != 0 ) << "\t";
+    geotopoResults << filename << "\t" << ( topo_stats.return_value().is_two_manifold() ) << "\t";
     geotopoResults << stats.num_vertices() << "\t" << topo_stats.return_value().num_edges() << "\t"
                    << stats.num_triangles() << "\t";
     geotopoResults << stats.area() << "\t" << stats.volume() << "\t";

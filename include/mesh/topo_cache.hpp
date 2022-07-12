@@ -98,11 +98,31 @@ namespace Cork::Meshes
 
         const TopoTrianglePointerVector& triangles() const { return triangles_; }
         void add_triangle(const TopoTri* triangle) { triangles_.emplace_back(triangle); }
-        void remove_triangle(const TopoTri* tri) { std::remove(triangles_.begin(), triangles_.end(), tri); }
+        void remove_triangle(const TopoTri* tri)
+        {
+            for (auto itr = triangles_.begin(); itr != triangles_.end(); itr++)
+            {
+                if (*itr == tri)
+                {
+                    triangles_.erase(itr);
+                    break;
+                }
+            }
+        }
 
         const TopoEdgePointerVector& edges() const { return edges_; }
         void add_edge(const TopoEdge* edge) { edges_.emplace_back(edge); }
-        void remove_edge(const TopoEdge* edge) { std::remove(edges_.begin(), edges_.end(), edge); }
+        void remove_edge(const TopoEdge* edge)
+        {
+            for (auto itr = edges_.begin(); itr != edges_.end(); itr++)
+            {
+                if (*itr == edge)
+                {
+                    edges_.erase(itr);
+                    break;
+                }
+            }
+        }
 
        private:
         VertexIndex index_;  // index to actual data
@@ -151,7 +171,17 @@ namespace Cork::Meshes
         const TopoTrianglePointerVector& triangles() const { return triangles_; }
 
         void add_triangle(const TopoTri* tri) { triangles_.emplace_back(tri); }
-        void remove_triangle(const TopoTri* tri) { std::remove(triangles_.begin(), triangles_.end(), tri); }
+        void remove_triangle(const TopoTri* tri)
+        {
+            for (auto itr = triangles_.begin(); itr != triangles_.end(); itr++)
+            {
+                if (*itr == tri)
+                {
+                    triangles_.erase(itr);
+                    break;
+                }
+            }
+        }
 
         BBox3D bounding_box() const
         {
