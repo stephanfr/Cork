@@ -19,27 +19,11 @@
 
 #pragma once
 
-#include <mesh/mesh_base.hpp>
-#include <vector>
 
-namespace Cork::Meshes
+template <class T>
+class no_init_alloc : public std::allocator<T>
 {
-    class SelfIntersectingRegions
-    {
-       public:
-        SelfIntersectingRegions(const MeshBase& mesh) : mesh_(mesh) {}
+public:
+    template <class U, class... Args> void construct(U*, Args&&...) {}
+};
 
-        void find_regions();
-
-        const std::vector<TriangleByIndicesIndexSet>&   regions() const { return regions_; }
-
-       private:
-        const MeshBase& mesh_;
-
-        std::vector<TriangleByIndicesIndexSet> regions_;
-
-        void    merge_overlapping_regions();
-
-        void    scrub_regions();
-    };
-}  // namespace Cork::Meshes

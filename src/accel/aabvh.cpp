@@ -24,7 +24,7 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "accel/aabvh.hpp"
+#include "aabvh.hpp"
 
 #include "math/gmpext4.hpp"
 #include "tbb/task_group.h"

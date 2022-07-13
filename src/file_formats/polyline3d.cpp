@@ -30,7 +30,7 @@
 #include "util/performance_stringstream.hpp"
 #endif
 
-#include "file_formats/files.hpp"
+#include "files.hpp"
 #include "result_codes.hpp"
 #include "util/file_helpers.hpp"
 

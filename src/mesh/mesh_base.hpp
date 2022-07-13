@@ -31,9 +31,9 @@
 
 #include "cork.hpp"
 #include "math/quantization.hpp"
-#include "mesh/boundary_edge_builder.hpp"
-#include "mesh/topo_cache.hpp"
-#include "mesh/triangle_remapper.hpp"
+#include "boundary_edge_builder.hpp"
+#include "topo_cache.hpp"
+#include "triangle_remapper.hpp"
 #include "writeable_interfaces.hpp"
 
 namespace Cork::Meshes

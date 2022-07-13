@@ -31,6 +31,7 @@
 // that uses this DLL. This way any other project whose source files include this file see
 // CORKLIB_API functions as being imported from a DLL, whereas this DLL sees symbols
 // defined with this macro as being exported.
+
 #ifdef WINDOWS
 #ifdef CORKLIB_EXPORTS
 #define CORKLIB_API __declspec(dllexport)

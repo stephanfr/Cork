@@ -26,8 +26,8 @@
 // +-------------------------------------------------------------------------
 
 #include "cork.hpp"
-#include "mesh/mesh_base.hpp"
-#include "mesh/self_intersecting_regions.hpp"
+#include "mesh_base.hpp"
+#include "self_intersecting_regions.hpp"
 
 namespace Cork::Meshes
 {

@@ -24,7 +24,7 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "intersection/empty3d.hpp"
+#include "empty3d.hpp"
 
 #include <cfloat>
 

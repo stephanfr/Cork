@@ -17,16 +17,11 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "thread_pool.hpp"
+#pragma once
 
-std::unique_ptr<ThreadPool> g_threadPool;
-
-ThreadPool& ThreadPool::getPool()
+enum class SIMDInstructionSet
 {
-    if (!g_threadPool)
-    {
-        g_threadPool.reset(new ThreadPool());  //	NOLINT
-    }
-
-    return (*g_threadPool);
-}
+    NONE = 0,
+    AVX = 1,
+    AVX2 = 2
+};

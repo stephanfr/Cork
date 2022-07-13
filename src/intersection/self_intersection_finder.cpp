@@ -24,7 +24,7 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "intersection/self_intersection_finder.hpp"
+#include "self_intersection_finder.hpp"
 
 namespace Cork::Intersection
 {

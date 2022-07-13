@@ -24,7 +24,7 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "intersection/intersection_problem_base.hpp"
+#include "intersection_problem_base.hpp"
 
 namespace Cork::Intersection
 {

@@ -27,7 +27,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "file_formats/files.hpp"
+#include "files.hpp"
 // using std::ifstream;
 // using std::ofstream;
 using boost::filesystem::ifstream;

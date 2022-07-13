@@ -24,7 +24,7 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "intersection/perturbation_epsilon.hpp"
+#include "perturbation_epsilon.hpp"
 
 #include <random>
 #include <vector>

@@ -17,13 +17,39 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "mesh/self_intersecting_regions.hpp"
+#include "self_intersecting_regions.hpp"
 
 #include "intersection/self_intersection_finder.hpp"
-#include "mesh/si_region_premutations.inc"
 
 namespace Cork::Meshes
 {
+
+    // clang-format off
+    static const std::vector<std::vector<std::vector<uint32_t>>> g_region_permutations
+    {
+        {{0}},
+        {{0}, {1},
+        {0, 1}},
+        {{0}, {1}, {2},
+        {0, 1}, {0, 2}, {1, 2},
+        {0, 1, 2}},
+        {{0}, {1}, {2}, {3},
+        {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3},
+        {0, 1, 2}, {0, 1, 3}, {0, 2, 3}, {1, 2, 3},
+        {0, 1, 2, 3}},
+        {{0}, {1}, {2}, {3}, {4},
+        {0, 1}, {0, 2}, {0, 3}, {0, 4}, {1, 2}, {1, 3}, {1, 4}, {2, 3}, {2, 4}, {3, 4},
+        {0, 1, 2}, {0, 1, 3}, {0, 1, 4}, {0, 2, 3}, {0, 2, 4}, {0, 3, 4}, {1, 2, 3}, {1, 2, 4}, {1, 3, 4}, {2, 3, 4},
+        {0, 1, 2, 3}, {0, 1, 2, 4}, {0, 1, 3, 4}, {0, 2, 3, 4}, {1, 2, 3, 4},
+        {0, 1, 2, 3, 4}},
+        {{0}, {1}, {2}, {3}, {4}, {5},
+        {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {1, 2}, {1, 3}, {1, 4}, {1, 5}, {2, 3}, {2, 4}, {2, 5}, {3, 4}, {3, 5}, {4, 5},
+        {0, 1, 2}, {0, 1, 3}, {0, 1, 4}, {0, 1, 5}, {0, 2, 3}, {0, 2, 4}, {0, 2, 5}, {0, 3, 4}, {0, 3, 5}, {0, 4, 5}, {1, 2, 3}, {1, 2, 4}, {1, 2, 5}, {1, 3, 4}, {1, 3, 5}, {1, 4, 5}, {2, 3, 4}, {2, 3, 5}, {2, 4, 5}, {3, 4, 5},
+        {0, 1, 2, 3}, {0, 1, 2, 4}, {0, 1, 2, 5}, {0, 1, 3, 4}, {0, 1, 3, 5}, {0, 1, 4, 5}, {0, 2, 3, 4}, {0, 2, 3, 5}, {0, 2, 4, 5}, {0, 3, 4, 5}, {1, 2, 3, 4}, {1, 2, 3, 5}, {1, 2, 4, 5}, {1, 3, 4, 5}, {2, 3, 4, 5},
+        {0, 1, 2, 3, 4}, {0, 1, 2, 3, 5}, {0, 1, 2, 4, 5}, {0, 1, 3, 4, 5}, {0, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, {0, 1, 2, 3, 4, 5}}
+    };
+    // clang-format on
+
     void SelfIntersectingRegions::find_regions()
     {
         constexpr uint32_t  MAX_RINGS_TO_INCLUDE_INTERSECTED_TRIANGLE = 8;

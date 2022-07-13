@@ -25,15 +25,15 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "mesh/mesh.hpp"
+#include "mesh.hpp"
 
 #include <boost/timer/timer.hpp>
 #include <sstream>
 
 #include "intersection/intersection_problem.hpp"
 #include "intersection/unsafe_ray_triangle_intersection.hpp"
-#include "mesh/topo_cache.hpp"
-#include "mesh/triangle_mesh_builder.hpp"
+#include "topo_cache.hpp"
+#include "triangle_mesh_builder.hpp"
 #include "tbb/parallel_for.h"
 #include "util/thread_pool.hpp"
 #include "util/union_find.hpp"

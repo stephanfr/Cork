@@ -24,12 +24,12 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "mesh/mesh_base.hpp"
+#include "mesh_base.hpp"
 
 #include <numeric>
 
 #include "intersection/triangulator.hpp"
-#include "mesh/boundary_edge_builder.hpp"
+#include "boundary_edge_builder.hpp"
 #include "primitives/remappers.hpp"
 
 namespace Cork::Meshes

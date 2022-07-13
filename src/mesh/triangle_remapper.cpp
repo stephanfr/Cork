@@ -24,9 +24,9 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "mesh/triangle_remapper.hpp"
+#include "triangle_remapper.hpp"
 
-#include "mesh/mesh_base.hpp"
+#include "mesh_base.hpp"
 
 namespace Cork::Meshes
 {

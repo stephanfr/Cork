@@ -21,41 +21,35 @@
 
 #include <vector>
 
-#include "primitives/primitives.hpp"
+#include "primitives.hpp"
 
 namespace Cork::Primitives
 {
-    class SelfIntersectingEdge
+
+    class NonManifoldEdge
     {
        public:
-        SelfIntersectingEdge() = delete;
+        NonManifoldEdge() = delete;
 
-        SelfIntersectingEdge(const SelfIntersectingEdge&) = default;
-        SelfIntersectingEdge(SelfIntersectingEdge&&) = default;
-
-        SelfIntersectingEdge(TriangleByIndicesIndex edge_triangle_id, TriangleEdgeId edge_index,
-                             TriangleByIndicesIndex triangle_instersected_id)
-            : edge_triangle_id_(edge_triangle_id),
-              edge_index_(edge_index),
-              triangle_instersected_id_(triangle_instersected_id)
+        NonManifoldEdge(TriangleByIndicesIndex triangle_id, TriangleEdgeId edge_id)
+            : triangle_id_(triangle_id), edge_id_(edge_id)
         {
         }
 
-        SelfIntersectingEdge& operator=(const SelfIntersectingEdge&) = default;
-        SelfIntersectingEdge& operator=(SelfIntersectingEdge&&) = default;
+        NonManifoldEdge(const NonManifoldEdge&) = default;
+        NonManifoldEdge(NonManifoldEdge&&) = default;
 
-        TriangleByIndicesIndex edge_triangle_id() const { return edge_triangle_id_; }
-        TriangleEdgeId edge_index() const { return edge_index_; }
-        TriangleByIndicesIndex triangle_instersected_id() const { return triangle_instersected_id_; }
+        TriangleByIndicesIndex triangle_id() const { return triangle_id_; }
+        TriangleEdgeId edge_id() const { return edge_id_; }
 
        private:
-        TriangleByIndicesIndex edge_triangle_id_;
-        TriangleEdgeId edge_index_;
-        TriangleByIndicesIndex triangle_instersected_id_;
+        TriangleByIndicesIndex triangle_id_;
+        TriangleEdgeId edge_id_;
     };
-}  // namespace Cork::Primitives
+}
 
 namespace Cork
 {
-    using SelfIntersectingEdge = Primitives::SelfIntersectingEdge;
+    using NonManifoldEdge = Primitives::NonManifoldEdge;
 }  // namespace Cork
+

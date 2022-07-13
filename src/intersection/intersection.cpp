@@ -24,11 +24,11 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "intersection/edge_cache.hpp"
-#include "intersection/glue_and_generic_types.hpp"
-#include "intersection/intersection_problem.hpp"
-#include "intersection/intersection_problem_base.hpp"
-#include "intersection/triangle_problem.hpp"
+#include "edge_cache.hpp"
+#include "glue_and_generic_types.hpp"
+#include "intersection_problem.hpp"
+#include "intersection_problem_base.hpp"
+#include "triangle_problem.hpp"
 #include "util/caching_factory.hpp"
 #include "util/optional_value_or_helper.hpp"
 

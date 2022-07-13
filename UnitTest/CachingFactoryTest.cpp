@@ -1,3 +1,21 @@
+// Copyright (c) 2021 Stephan Friedl
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of
+// this software and associated documentation files (the "Software"), to deal in
+// the Software without restriction, including without limitation the rights to
+// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+// the Software, and to permit persons to whom the Software is furnished to do so,
+// subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+// FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <array>
 #include <catch2/catch_all.hpp>
@@ -47,134 +65,6 @@ class ResettableObject : SEFUtility::Resettable
     long m_value;
 };
 
-TEST_CASE("Test Non Resetting Caching Factory", "[cork-base]")
-{
-    SEFUtility::CachingFactory<NonResettableObject> nonResettableFactory;
-
-    REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
-
-    {
-        SEFUtility::CachingFactory<NonResettableObject>::UniquePtr object1 =
-            nonResettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
-
-        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
-
-        object1->setValue(1);
-    }
-
-    REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 1);
-
-    {
-        SEFUtility::CachingFactory<NonResettableObject>::UniquePtr object1 =
-            nonResettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
-
-        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
-        REQUIRE(object1->getValue() == 1);
-
-        SEFUtility::CachingFactory<NonResettableObject>::UniquePtr object2 =
-            nonResettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
-
-        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
-        REQUIRE(object2->getValue() == 0);
-
-        object2->setValue(2);
-    }
-
-    REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 2);
-
-    {
-        SEFUtility::CachingFactory<NonResettableObject>::UniquePtr object1 =
-            nonResettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::DESTROY);
-
-        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 1);
-        REQUIRE(object1->getValue() == 2);
-
-        SEFUtility::CachingFactory<NonResettableObject>::UniquePtr object2 =
-            nonResettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
-
-        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
-        REQUIRE(object2->getValue() == 1);
-
-        SEFUtility::CachingFactory<NonResettableObject>::UniquePtr object3 =
-            nonResettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
-
-        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
-        REQUIRE(object3->getValue() == 0);
-
-        object3->setValue(3);
-    }
-
-    REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 2);
-
-    SEFUtility::CachingFactory<NonResettableObject>::clear();
-
-    REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
-}
-
-TEST_CASE("Test Resetting Caching Factory", "[cork-base]")
-{
-    SEFUtility::CachingFactory<ResettableObject> resettableFactory;
-
-    REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
-
-    {
-        SEFUtility::CachingFactory<ResettableObject>::UniquePtr object1 =
-            resettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
-
-        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
-
-        object1->setValue(1);
-    }
-
-    REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 1);
-
-    {
-        SEFUtility::CachingFactory<ResettableObject>::UniquePtr object1 =
-            resettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
-
-        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
-        REQUIRE(object1->getValue() == 0);
-
-        SEFUtility::CachingFactory<ResettableObject>::UniquePtr object2 =
-            resettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
-
-        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
-        REQUIRE(object2->getValue() == 0);
-
-        object2->setValue(2);
-    }
-
-    REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 2);
-
-    {
-        SEFUtility::CachingFactory<ResettableObject>::UniquePtr object1 =
-            resettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::DESTROY);
-
-        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 1);
-        REQUIRE(object1->getValue() == 0);
-
-        SEFUtility::CachingFactory<ResettableObject>::UniquePtr object2 =
-            resettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
-
-        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
-        REQUIRE(object2->getValue() == 0);
-
-        SEFUtility::CachingFactory<ResettableObject>::UniquePtr object3 =
-            resettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
-
-        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
-        REQUIRE(object3->getValue() == 0);
-
-        object3->setValue(3);
-    }
-
-    REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 2);
-
-    SEFUtility::CachingFactory<ResettableObject>::clear();
-
-    REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
-}
-
 void NonResettableThreadMain(SEFUtility::CachingFactoryCacheOrDestroy cacheOrDestroy, long numLoops)
 {
     SEFUtility::CachingFactory<NonResettableObject> factory;
@@ -206,62 +96,193 @@ void ResettableThreadMain(SEFUtility::CachingFactoryCacheOrDestroy cacheOrDestro
 constexpr int NUM_THREADS = 200;
 constexpr int NUM_LOOPS = 10000;
 
-TEST_CASE("Test Caching Factory Threading", "[cork-base]")
+TEST_CASE("Caching Factory Tests", "[cork-base]")
 {
-    std::array<std::thread, NUM_THREADS> resettableThreads;
-    std::array<std::thread, NUM_THREADS> nonResettableThreads;
-
-    for (int i = 0; i < NUM_THREADS; i++)
+    SECTION("Non Resetting Caching Factory Test")
     {
-        resettableThreads[i] =
-            std::thread(ResettableThreadMain, SEFUtility::CachingFactoryCacheOrDestroy::CACHE, NUM_LOOPS);
-        nonResettableThreads[i] =
-            std::thread(NonResettableThreadMain, SEFUtility::CachingFactoryCacheOrDestroy::CACHE, NUM_LOOPS);
+        SEFUtility::CachingFactory<NonResettableObject> nonResettableFactory;
+
+        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
+
+        {
+            SEFUtility::CachingFactory<NonResettableObject>::UniquePtr object1 =
+                nonResettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
+
+            REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
+
+            object1->setValue(1);
+        }
+
+        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 1);
+
+        {
+            SEFUtility::CachingFactory<NonResettableObject>::UniquePtr object1 =
+                nonResettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
+
+            REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
+            REQUIRE(object1->getValue() == 1);
+
+            SEFUtility::CachingFactory<NonResettableObject>::UniquePtr object2 =
+                nonResettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
+
+            REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
+            REQUIRE(object2->getValue() == 0);
+
+            object2->setValue(2);
+        }
+
+        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 2);
+
+        {
+            SEFUtility::CachingFactory<NonResettableObject>::UniquePtr object1 =
+                nonResettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::DESTROY);
+
+            REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 1);
+            REQUIRE(object1->getValue() == 2);
+
+            SEFUtility::CachingFactory<NonResettableObject>::UniquePtr object2 =
+                nonResettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
+
+            REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
+            REQUIRE(object2->getValue() == 1);
+
+            SEFUtility::CachingFactory<NonResettableObject>::UniquePtr object3 =
+                nonResettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
+
+            REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
+            REQUIRE(object3->getValue() == 0);
+
+            object3->setValue(3);
+        }
+
+        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 2);
+
+        SEFUtility::CachingFactory<NonResettableObject>::clear();
+
+        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
     }
 
-    for (int i = 0; i < NUM_THREADS; i++)
+    SECTION("Resetting Caching Factory Test")
     {
-        resettableThreads[i].join();
-        nonResettableThreads[i].join();
+        SEFUtility::CachingFactory<ResettableObject> resettableFactory;
+
+        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
+
+        {
+            SEFUtility::CachingFactory<ResettableObject>::UniquePtr object1 =
+                resettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
+
+            REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
+
+            object1->setValue(1);
+        }
+
+        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 1);
+
+        {
+            SEFUtility::CachingFactory<ResettableObject>::UniquePtr object1 =
+                resettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
+
+            REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
+            REQUIRE(object1->getValue() == 0);
+
+            SEFUtility::CachingFactory<ResettableObject>::UniquePtr object2 =
+                resettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
+
+            REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
+            REQUIRE(object2->getValue() == 0);
+
+            object2->setValue(2);
+        }
+
+        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 2);
+
+        {
+            SEFUtility::CachingFactory<ResettableObject>::UniquePtr object1 =
+                resettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::DESTROY);
+
+            REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 1);
+            REQUIRE(object1->getValue() == 0);
+
+            SEFUtility::CachingFactory<ResettableObject>::UniquePtr object2 =
+                resettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
+
+            REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
+            REQUIRE(object2->getValue() == 0);
+
+            SEFUtility::CachingFactory<ResettableObject>::UniquePtr object3 =
+                resettableFactory.GetInstance(SEFUtility::CachingFactoryCacheOrDestroy::CACHE);
+
+            REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
+            REQUIRE(object3->getValue() == 0);
+
+            object3->setValue(3);
+        }
+
+        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 2);
+
+        SEFUtility::CachingFactory<ResettableObject>::clear();
+
+        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
     }
 
-    REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == NUM_THREADS);
-    REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == NUM_THREADS);
-
-    //	This is a resettable test, so all the objects should be at zero.
-
-    long resettableTotalCount = 0;
-    long nonResettableTotalCount = 0;
-
-    for (int i = 0; i < NUM_THREADS; i++)
+    SECTION("Caching Factory Threading Test")
     {
-        SEFUtility::CachingFactory<ResettableObject>::UniquePtr resettableObject =
-            SEFUtility::CachingFactory<ResettableObject>::GetInstance(
-                SEFUtility::CachingFactoryCacheOrDestroy::DESTROY);
-        SEFUtility::CachingFactory<NonResettableObject>::UniquePtr nonResettableObject =
-            SEFUtility::CachingFactory<NonResettableObject>::GetInstance(
-                SEFUtility::CachingFactoryCacheOrDestroy::DESTROY);
+        std::array<std::thread, NUM_THREADS> resettableThreads;
+        std::array<std::thread, NUM_THREADS> nonResettableThreads;
 
-        resettableTotalCount += resettableObject->getValue();
-        nonResettableTotalCount += nonResettableObject->getValue();
-    }
+        for (int i = 0; i < NUM_THREADS; i++)
+        {
+            resettableThreads[i] =
+                std::thread(ResettableThreadMain, SEFUtility::CachingFactoryCacheOrDestroy::CACHE, NUM_LOOPS);
+            nonResettableThreads[i] =
+                std::thread(NonResettableThreadMain, SEFUtility::CachingFactoryCacheOrDestroy::CACHE, NUM_LOOPS);
+        }
 
-    REQUIRE(resettableTotalCount == 0);
-    REQUIRE(nonResettableTotalCount == NUM_THREADS * NUM_LOOPS);
+        for (int i = 0; i < NUM_THREADS; i++)
+        {
+            resettableThreads[i].join();
+            nonResettableThreads[i].join();
+        }
 
-    REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
-    REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
+        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == NUM_THREADS);
+        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == NUM_THREADS);
 
-    for (int i = 0; i < NUM_THREADS; i++)
-    {
-        resettableThreads[i] = std::thread(ResettableThreadMain,
-                                           (i % 2) == 0 ? SEFUtility::CachingFactoryCacheOrDestroy::CACHE
-                                                        : SEFUtility::CachingFactoryCacheOrDestroy::DESTROY,
-                                           10000);
-    }
+        //	This is a resettable test, so all the objects should be at zero.
 
-    for (int i = 0; i < NUM_THREADS; i++)
-    {
-        resettableThreads[i].join();
+        long resettableTotalCount = 0;
+        long nonResettableTotalCount = 0;
+
+        for (int i = 0; i < NUM_THREADS; i++)
+        {
+            SEFUtility::CachingFactory<ResettableObject>::UniquePtr resettableObject =
+                SEFUtility::CachingFactory<ResettableObject>::GetInstance(
+                    SEFUtility::CachingFactoryCacheOrDestroy::DESTROY);
+            SEFUtility::CachingFactory<NonResettableObject>::UniquePtr nonResettableObject =
+                SEFUtility::CachingFactory<NonResettableObject>::GetInstance(
+                    SEFUtility::CachingFactoryCacheOrDestroy::DESTROY);
+
+            resettableTotalCount += resettableObject->getValue();
+            nonResettableTotalCount += nonResettableObject->getValue();
+        }
+
+        REQUIRE(resettableTotalCount == 0);
+        REQUIRE(nonResettableTotalCount == NUM_THREADS * NUM_LOOPS);
+
+        REQUIRE(SEFUtility::CachingFactory<ResettableObject>::numObjectsInCache() == 0);
+        REQUIRE(SEFUtility::CachingFactory<NonResettableObject>::numObjectsInCache() == 0);
+
+        for (int i = 0; i < NUM_THREADS; i++)
+        {
+            resettableThreads[i] = std::thread(ResettableThreadMain,
+                                               (i % 2) == 0 ? SEFUtility::CachingFactoryCacheOrDestroy::CACHE
+                                                            : SEFUtility::CachingFactoryCacheOrDestroy::DESTROY,
+                                               10000);
+        }
+
+        for (int i = 0; i < NUM_THREADS; i++)
+        {
+            resettableThreads[i].join();
+        }
     }
 }

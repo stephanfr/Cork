@@ -25,7 +25,7 @@
 // +-------------------------------------------------------------------------
 #pragma once
 
-#include "mesh/edge_graph_cache.hpp"
+#include "edge_graph_cache.hpp"
 #include "mesh_base.hpp"
 #include "primitives/self_intersecting_edge.hpp"
 #include "tbb/concurrent_vector.h"

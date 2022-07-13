@@ -31,7 +31,7 @@
 #include "file_formats/files.hpp"
 #include "intersection/self_intersection_finder.hpp"
 #include "intersection/triangulator.hpp"
-#include "mesh/triangle_mesh_builder.hpp"
+#include "triangle_mesh_builder.hpp"
 #include "primitives/remappers.hpp"
 #include "statistics/statistics_engines.hpp"
 

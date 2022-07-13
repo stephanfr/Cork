@@ -19,37 +19,30 @@
 
 #pragma once
 
-#include <vector>
-
-#include "primitives/primitives.hpp"
-
-namespace Cork::Primitives
+namespace SEFUtility::CompileTime
 {
-
-    class NonManifoldEdge
+    class conststr
     {
        public:
-        NonManifoldEdge() = delete;
+        template <std::size_t N>
+        constexpr conststr(const char (&a)[N]) : p_(a), sz_(N - 1)
+        {}
 
-        NonManifoldEdge(TriangleByIndicesIndex triangle_id, TriangleEdgeId edge_id)
-            : triangle_id_(triangle_id), edge_id_(edge_id)
-        {
-        }
+        //  In C++11, constexpr expressions signal errors by throwing exceptions from the conditional operator ?:
 
-        NonManifoldEdge(const NonManifoldEdge&) = default;
-        NonManifoldEdge(NonManifoldEdge&&) = default;
-
-        TriangleByIndicesIndex triangle_id() const { return triangle_id_; }
-        TriangleEdgeId edge_id() const { return edge_id_; }
+        constexpr char operator[](std::size_t n) const { return n < sz_ ? p_[n] : throw std::out_of_range(""); }
+        constexpr operator const char*() { return p_; }
+        constexpr std::size_t size() const { return sz_; }
 
        private:
-        TriangleByIndicesIndex triangle_id_;
-        TriangleEdgeId edge_id_;
+        const char* p_;
+        std::size_t sz_;
     };
-}
 
-namespace Cork
-{
-    using NonManifoldEdge = Primitives::NonManifoldEdge;
-}  // namespace Cork
-
+    constexpr unsigned count_char_occurances(conststr str, char c, unsigned i = 0, unsigned ans = 0)
+    {
+        return i == str.size() ? ans
+                               : str[i] == c ? count_char_occurances(str, c, i + 1, ans + 1)
+                                             : count_char_occurances(str, c, i + 1, ans);
+    }
+}  // namespace SEFUtility::CompileTime

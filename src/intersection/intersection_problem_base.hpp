@@ -27,7 +27,7 @@
 
 #include "tbb/tbb.h"
 
-#include "intersection/intersection_workspace.hpp"
+#include "intersection_workspace.hpp"
 #include "perturbation_epsilon.hpp"
 #include "mesh/mesh_base.hpp"
 

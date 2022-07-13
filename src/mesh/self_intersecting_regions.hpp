@@ -17,16 +17,29 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "thread_pool.hpp"
+#pragma once
 
-std::unique_ptr<ThreadPool> g_threadPool;
+#include "mesh_base.hpp"
+#include <vector>
 
-ThreadPool& ThreadPool::getPool()
+namespace Cork::Meshes
 {
-    if (!g_threadPool)
+    class SelfIntersectingRegions
     {
-        g_threadPool.reset(new ThreadPool());  //	NOLINT
-    }
+       public:
+        SelfIntersectingRegions(const MeshBase& mesh) : mesh_(mesh) {}
 
-    return (*g_threadPool);
-}
+        void find_regions();
+
+        const std::vector<TriangleByIndicesIndexSet>&   regions() const { return regions_; }
+
+       private:
+        const MeshBase& mesh_;
+
+        std::vector<TriangleByIndicesIndexSet> regions_;
+
+        void    merge_overlapping_regions();
+
+        void    scrub_regions();
+    };
+}  // namespace Cork::Meshes

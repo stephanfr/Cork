@@ -24,7 +24,7 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "mesh/surface_mesh.hpp"
+#include "surface_mesh.hpp"
 
 #include <numeric>
 
@@ -32,7 +32,7 @@
 #include "intersection/self_intersection_finder.hpp"
 #include "math/normal_projector.hpp"
 #include "math/plane.hpp"
-#include "mesh/edge_incidence_counter.hpp"
+#include "edge_incidence_counter.hpp"
 
 namespace Cork::Meshes
 {

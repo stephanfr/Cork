@@ -24,13 +24,13 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "mesh/topo_cache.hpp"
+#include "topo_cache.hpp"
 
 #include <tbb/spin_mutex.h>
 #include <tbb/task_group.h>
 
 #include "math/gmpext4.hpp"
-#include "mesh/mesh_base.hpp"
+#include "mesh_base.hpp"
 
 namespace Cork::Meshes
 {

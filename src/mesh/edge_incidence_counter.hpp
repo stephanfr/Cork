@@ -28,7 +28,7 @@
 #include <boost/container/small_vector.hpp>
 #include <unordered_set>
 
-#include "mesh/mesh_base.hpp"
+#include "mesh_base.hpp"
 
 namespace Cork::Meshes
 {

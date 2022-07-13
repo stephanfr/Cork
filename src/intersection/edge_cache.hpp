@@ -23,6 +23,7 @@
 // |    of the GNU Lesser General Public License
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
+
 #pragma once
 
 #include "intersection_problem_base.hpp"

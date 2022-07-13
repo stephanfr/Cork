@@ -38,7 +38,7 @@
 #endif
 
 #include "result_codes.hpp"
-#include "file_formats/files.hpp"
+#include "files.hpp"
 #include "util/file_helpers.hpp"
 
 namespace Cork::Files

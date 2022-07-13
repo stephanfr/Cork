@@ -26,9 +26,9 @@
 
 #pragma once
 
-#include "math/ray_3D_template.hpp"
-#include "math/vector_2D_template.hpp"
-#include "math/vector_3D_template.hpp"
+#include "ray_3D_template.hpp"
+#include "vector_2D_template.hpp"
+#include "vector_3D_template.hpp"
 
 namespace Cork::Math
 {

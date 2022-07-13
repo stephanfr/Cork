@@ -28,7 +28,7 @@
 #include "tbb/tbb.h"
 
 #include "util/managed_intrusive_list.hpp"
-#include "intersection/triangulator.hpp"
+#include "triangulator.hpp"
 
 
 namespace Cork::Intersection

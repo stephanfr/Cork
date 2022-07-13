@@ -23,7 +23,7 @@
 #include <iterator>
 
 #include "2d_geometry/polygon.hpp"
-#include "primitives/primitives.hpp"
+#include "primitives.hpp"
 #include "writeable_interfaces.hpp"
 #include "math/plane.hpp"
 

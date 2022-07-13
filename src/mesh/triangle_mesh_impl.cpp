@@ -24,15 +24,15 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "mesh/triangle_mesh_impl.hpp"
+#include "triangle_mesh_impl.hpp"
 
 #include <algorithm>
 
 #include "file_formats/files.hpp"
 #include "intersection/self_intersection_finder.hpp"
 #include "intersection/triangulator.hpp"
-#include "mesh/boundary_edge_builder.hpp"
-#include "mesh/surface_mesh.hpp"
+#include "boundary_edge_builder.hpp"
+#include "surface_mesh.hpp"
 #include "statistics/statistics_engines.hpp"
 
 namespace Cork::Meshes

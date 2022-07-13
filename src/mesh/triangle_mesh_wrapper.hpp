@@ -25,7 +25,7 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "mesh/triangle_mesh_impl.hpp"
+#include "triangle_mesh_impl.hpp"
 
 namespace Cork::Meshes
 {
