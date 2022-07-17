@@ -159,7 +159,7 @@ namespace Cork::Primitives
 
         TwoD::Polygon project(const Vector3D projection_surface_normal, const Vertex3D normal_surface_origin) const;
 
-        std::vector<double> get_point_deviations(const PlaneEquation&    plane);
+        std::vector<double> get_point_deviations(const PlaneEquationBase&    plane);
 
        private:
         Vertex3DVector vertices_;

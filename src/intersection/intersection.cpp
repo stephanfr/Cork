@@ -69,7 +69,7 @@ namespace Cork::Intersection
         IntersectionSolverImpl& operator=(const IntersectionSolverImpl&) = delete;
         IntersectionSolverImpl& operator=(IntersectionSolverImpl&&) = delete;
 
-        virtual ~IntersectionSolverImpl() final { reset(); }
+        ~IntersectionSolverImpl() final { reset(); }
 
         //	Implementation of IntersectionProblemIfx
 
@@ -98,7 +98,7 @@ namespace Cork::Intersection
 
             for (auto& tprob : m_triangleProblemList)
             {
-                for (IsctEdgeType* ie : tprob.iedges())
+                for (const auto& ie : tprob.iedges())
                 {
                     GenericVertType* gv0 = ie->ends()[0];
                     GenericVertType* gv1 = ie->ends()[1];
@@ -154,7 +154,7 @@ namespace Cork::Intersection
             //	Once all the pieces are hooked up, let's kill the old triangle!
             //		We need to cast away the const here as well...
 
-            topo_cache().delete_tri(&(const_cast<TopoTri&>(tprob.triangle())));
+            topo_cache().delete_tri(&(const_cast<TopoTri&>(tprob.triangle())));     //  NOLINT
         }
     };
 
@@ -189,9 +189,9 @@ namespace Cork::Intersection
                 break;
             }
 
-            TopoTri& triangle = ((TriangleAndIntersectingEdgesMessage&)(*currentMessage)).triangle();
+            TopoTri& triangle = (dynamic_cast<TriangleAndIntersectingEdgesMessage&>(*currentMessage)).triangle();
 
-            for (const TopoEdge& edge : ((TriangleAndIntersectingEdgesMessage&)(*currentMessage)).edges())
+            for (const TopoEdge& edge : (dynamic_cast<TriangleAndIntersectingEdgesMessage&>(*currentMessage)).edges())
             {
                 if (triangle.intersects_edge(edge, quantizer_, exact_arithmetic_context_))
                 {
@@ -202,7 +202,7 @@ namespace Cork::Intersection
 
                     IsctVertType* iv = getTprob(triangle).addInteriorEndpoint(edge, *glue);
 
-                    for (auto tri : edge.triangles())
+                    for (const auto* tri : edge.triangles())
                     {
                         getTprob(*tri).addBoundaryEndpoint(triangle, edge, iv);
                     }
@@ -425,7 +425,7 @@ namespace Cork::Intersection
                     allTris.insert(&edge->otherTriKey());
                 }
 
-                for (auto tri : allTris)
+                for (const auto* tri : allTris)
                 {
                     std::cout << tri->bool_alg_data() << "    (" << tri->verts()[0]->quantized_value().x() << ", "
                               << tri->verts()[0]->quantized_value().y() << ", " << tri->verts()[0]->quantized_value().z()

@@ -186,6 +186,8 @@ int main(int argc, char* argv[])
 
         cumulative_timing_results.open(cumulative_timing_results_file_path);
 
+        cumulative_timing_results << "Model Name" << "\t" << "Cumulative CPU Time" << "\t" << "Cumulative Wall Time" << std::endl << std::endl;
+
         //	Open a file for collecting statistics on the results
 
         geotopo_results_file_path += "/stats/geotopo_results.txt";
@@ -198,9 +200,6 @@ int main(int argc, char* argv[])
     }
 
     //	Accumulator for all boolean operation elapsed time
-
-    boost::timer::nanosecond_type grand_total_CPU_time = 0;
-    boost::timer::nanosecond_type grand_total_wall_time = 0;
 
     boost::timer::nanosecond_type cumulative_CPU_time = 0;
     boost::timer::nanosecond_type cumulative_wall_time = 0;
@@ -544,9 +543,6 @@ int main(int argc, char* argv[])
             cumulative_timing_results << first_model.first.filename() << "\t"
                                       << cumulative_CPU_time / NUM_NANOSECONDS_PER_SECOND << "\t"
                                       << cumulative_wall_time / NUM_NANOSECONDS_PER_SECOND << std::endl;
-
-            grand_total_CPU_time += cumulative_CPU_time;
-            grand_total_wall_time += cumulative_wall_time;
         }
     }
 
@@ -576,9 +572,9 @@ int main(int argc, char* argv[])
                                   << "\t" << total_num_triangles << std::endl;
 
         cumulative_timing_results << std::endl
-                                  << "Total CPU Time:\t" << grand_total_CPU_time / NUM_NANOSECONDS_PER_SECOND
+                                  << "Total CPU Time:\t" << cumulative_CPU_time / NUM_NANOSECONDS_PER_SECOND
                                   << std::endl
-                                  << "Total Wall Time:\t" << grand_total_wall_time / NUM_NANOSECONDS_PER_SECOND
+                                  << "Total Wall Time:\t" << cumulative_wall_time / NUM_NANOSECONDS_PER_SECOND
                                   << std::endl;
 
         cumulative_timing_results << std::endl << std::endl << asctime(localtime(&current_date_time)) << std::endl;

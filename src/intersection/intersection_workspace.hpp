@@ -38,8 +38,8 @@ namespace Cork::Intersection
         IntersectionWorkspace()
         {
             m_gluePointMarkerPool.reserve(100000);
-            m_isctVertexTypePool.reserve(200000);
-            m_isctEdgeTypePool.reserve(300000);
+            m_genericVertexTypePool.reserve(200000);
+            m_genericEdgeTypePool.reserve(300000);
             m_genericTriTypePool.reserve(100000);
             m_isctVertexPointerPool.reserve(200000);
             m_isctEdgePointerPool.reserve(100000);
@@ -51,8 +51,8 @@ namespace Cork::Intersection
         void reset()
         {
             m_gluePointMarkerPool.clear();
-            m_isctVertexTypePool.clear();
-            m_isctEdgeTypePool.clear();
+            m_genericVertexTypePool.clear();
+            m_genericEdgeTypePool.clear();
             m_genericTriTypePool.clear();
             m_isctVertexPointerPool.clear();
             m_isctEdgePointerPool.clear();
@@ -61,27 +61,26 @@ namespace Cork::Intersection
             m_AABVHWorkspace.reset();
         }
 
-        operator GluePointMarkerList::PoolType &() { return (m_gluePointMarkerPool); }
+        GluePointMarkerList::PoolType& getGluePointMarkerListPool() { return m_gluePointMarkerPool; }
 
-        operator IsctVertTypeList::PoolType &() { return (m_isctVertexTypePool); }
+        GenericVertTypeList::PoolType& getGenericVertexListPool() { return m_genericVertexTypePool; }
 
-        operator IsctEdgeTypeList::PoolType &() { return (m_isctEdgeTypePool); }
+        GenericEdgeTypeList::PoolType& getGenericEdgeListPool() { return m_genericEdgeTypePool; }
 
-        operator GenericTriTypeList::PoolType &() { return (m_genericTriTypePool); }
+        GenericTriTypeList::PoolType& getGenericTriTypeListPool() { return m_genericTriTypePool; }
 
-        operator IntersectionVertexPointerList::PoolType &() { return (m_isctVertexPointerPool); }
+        IntersectionVertexPointerList::PoolType& getIsctVertexPointerListPool() { return m_isctVertexPointerPool; }
 
-        operator IntersectionEdgePointerList::PoolType &() { return (m_isctEdgePointerPool); }
+        IntersectionEdgePointerList::PoolType& getIsctEdgePointerListPool() { return m_isctEdgePointerPool; }
 
-        operator GenericTriPointerList::PoolType &() { return (m_genericTriPointerPool); }
+        GenericTriPointerList::PoolType& getGenericTriPointerListPool() { return m_genericTriPointerPool; }
 
-        operator AABVH::Workspace &() { return (m_AABVHWorkspace); }
+        AABVH::Workspace& getAABVHWorkspace() { return m_AABVHWorkspace; }
 
        private:
         GluePointMarkerList::PoolType m_gluePointMarkerPool;
-        IsctVertTypeList::PoolType m_isctVertexTypePool;  //	Covers both the intersection and original vertex
-                                                          // types
-        IsctEdgeTypeList::PoolType m_isctEdgeTypePool;
+        GenericVertTypeList::PoolType m_genericVertexTypePool;  // Covers both the intersection and original vertex types
+        GenericEdgeTypeList::PoolType m_genericEdgeTypePool;    // Covers intersection, original and split edges
         GenericTriTypeList::PoolType m_genericTriTypePool;
 
         IntersectionVertexPointerList::PoolType m_isctVertexPointerPool;

@@ -140,11 +140,11 @@ TEST_CASE("Polygon Tests", "[2D Basic]")
 
         REQUIRE(self_intersections.size() == 2);
 
-        REQUIRE(self_intersections[0].edge1_.reference_index() == 3);
-        REQUIRE(self_intersections[0].edge2_.reference_index() == 9);
+        REQUIRE(self_intersections[0].edge1().reference_index() == 3);
+        REQUIRE(self_intersections[0].edge2().reference_index() == 9);
 
-        REQUIRE(self_intersections[1].edge1_.reference_index() == 4);
-        REQUIRE(self_intersections[1].edge2_.reference_index() == 9);
+        REQUIRE(self_intersections[1].edge1().reference_index() == 4);
+        REQUIRE(self_intersections[1].edge2().reference_index() == 9);
     }
 
     SECTION("Intersection 2")
@@ -167,8 +167,8 @@ TEST_CASE("Polygon Tests", "[2D Basic]")
         auto self_intersections = test_poly.self_intersections();
 
         REQUIRE(self_intersections.size() == 1);
-        REQUIRE(self_intersections[0].edge1_.reference_index() == 106);
-        REQUIRE(self_intersections[0].edge2_.reference_index() == 108);
+        REQUIRE(self_intersections[0].edge1().reference_index() == 106);
+        REQUIRE(self_intersections[0].edge2().reference_index() == 108);
     }
 
     SECTION("Centroid")

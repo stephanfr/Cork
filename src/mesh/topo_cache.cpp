@@ -34,6 +34,31 @@
 
 namespace Cork::Meshes
 {
+
+    //
+    //  The following looks strange but I was getting potential leak warnings from Valigrind I think b/c the
+    //      default allocator for the small_vector class was not releasing memory on exit.  Thus the static
+    //      manager class below.
+    //
+    //  This cleaned up the complaints from Valgrind.  I think that the TopoTri* and TopoEdge* pools decay to
+    //      the same pool, but I purge both just in case anything changes in the future.
+    //
+
+    class SingletonPoolManager
+    {
+        public :
+        SingletonPoolManager() = default;
+
+        ~SingletonPoolManager()
+        {
+            std::cout << "TopoTri pool purged with result: " << boost::singleton_pool<boost::pool_allocator_tag, sizeof(const TopoTri*)>::purge_memory() << std::endl;
+            std::cout << "TopoEdge pool purged with result: " << boost::singleton_pool<boost::pool_allocator_tag, sizeof(const TopoEdge*)>::purge_memory() << std::endl;
+        }
+    };
+
+    static SingletonPoolManager g_singletonPoolManager;
+
+
     TriangleUID TopoEdgeBoundary::triangle_on_boundary_uid() const
     {
         return edges_.front()->triangles().front()->source_triangle_uid();

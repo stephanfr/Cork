@@ -59,7 +59,7 @@ namespace Cork::Intersection
             }
 
             m_edgeBVH.reset(new AABVH::AxisAlignedBoundingVolumeHierarchy(
-                edge_geoms, *m_intersection_workspace, Cork::SolverControlBlock::get_default_control_block()));
+                edge_geoms, m_intersection_workspace->getAABVHWorkspace(), Cork::SolverControlBlock::get_default_control_block()));
         }
     };
 }

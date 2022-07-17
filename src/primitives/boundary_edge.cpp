@@ -60,7 +60,7 @@ namespace Cork::Primitives
         return TwoD::Polygon(std::move(projection_2D));
     }
 
-    std::vector<double> BoundaryEdge::get_point_deviations(const PlaneEquation&    plane)
+    std::vector<double> BoundaryEdge::get_point_deviations(const PlaneEquationBase&    plane)
     {
         std::vector<double>      deviations;
 

@@ -44,8 +44,8 @@
 #include <iostream>
 
 #include "ext4_base.hpp"
-#include "vector_3D_template.hpp"
 #include "quantization.hpp"
+#include "vector_3D_template.hpp"
 
 namespace Cork::Math::ExteriorCalculusR4
 {
@@ -64,7 +64,7 @@ namespace Cork::Math::ExteriorCalculusR4
         GMPExt4_1() = default;
 
         GMPExt4_1(const GMPExt4_1 &ext_to_copy) : GMPExt4_1Base(ext_to_copy) {}
-        GMPExt4_1(GMPExt4_1 &&ext_to_move) : GMPExt4_1Base(ext_to_move) {}
+        GMPExt4_1(GMPExt4_1 &&ext_to_move) noexcept : GMPExt4_1Base(ext_to_move) {}
 
         GMPExt4_1 &operator=(const GMPExt4_1 &ext_to_copy) = default;
         GMPExt4_1 &operator=(GMPExt4_1 &&ext_to_move) = default;
@@ -127,7 +127,9 @@ namespace Cork::Math::ExteriorCalculusR4
     {
        public:
         GMPExt4_2(const GMPExt4_2 &ext_to_copy) : GMPExt4_2Base(ext_to_copy) {}
-        GMPExt4_2(GMPExt4_2 &&ext_to_move) : GMPExt4_2Base(ext_to_move) {}
+        GMPExt4_2(GMPExt4_2 &&ext_to_move) noexcept : GMPExt4_2Base(ext_to_move) {}
+
+        ~GMPExt4_2() = default;
 
         GMPExt4_2 &operator=(const GMPExt4_2 &ext_to_copy) = default;
         GMPExt4_2 &operator=(GMPExt4_2 &&ext_to_move) = default;
@@ -178,7 +180,9 @@ namespace Cork::Math::ExteriorCalculusR4
         GMPExt4_3() = default;
 
         GMPExt4_3(const GMPExt4_3 &ext_to_copy) : GMPExt4_3Base(ext_to_copy) {}
-        GMPExt4_3(GMPExt4_3 &&ext_to_move) : GMPExt4_3Base(ext_to_move) {}
+        GMPExt4_3(GMPExt4_3 &&ext_to_move) noexcept : GMPExt4_3Base(ext_to_move) {}
+
+        ~GMPExt4_3() = default;
 
         GMPExt4_3 &operator=(const GMPExt4_3 &ext_to_copy) = default;
         GMPExt4_3 &operator=(GMPExt4_3 &&ext_to_move) = default;

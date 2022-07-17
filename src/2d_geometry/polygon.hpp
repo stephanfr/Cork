@@ -29,30 +29,31 @@ namespace Cork::TwoD
     {
        public:
         Edge2D() = delete;
+        Edge2D(const Edge2D& edge_to_copy) = default;
 
-        Edge2D(const Vertex2D& v0, const Vertex2D& v1, uint32_t reference_index)
-            : v0_(v0), v1_(v1), reference_index_(reference_index)
-        {
-        }
-
-        Edge2D(const Edge2D& edge_to_copy)
-            : v0_(edge_to_copy.v0_), v1_(edge_to_copy.v1_), reference_index_(edge_to_copy.reference_index_)
-        {
-        }
-
-        Edge2D(Edge2D&& edge_to_move)
+        Edge2D(Edge2D&& edge_to_move) noexcept
             : v0_(std::move(edge_to_move.v0_)),
               v1_(std::move(edge_to_move.v1_)),
               reference_index_(edge_to_move.reference_index_)
         {
         }
 
-        Vertex2D v0() const { return v0_; }
-        Vertex2D v1() const { return v1_; }
+        Edge2D(Vertex2D v0, Vertex2D v1, uint32_t reference_index)
+            : v0_(std::move(v0)), v1_(std::move(v1)), reference_index_(reference_index)
+        {
+        }
 
-        uint32_t reference_index() const { return reference_index_; }
+        ~Edge2D() = default;
 
-        bool intersects(const Edge2D& edge_to_check) const;
+        const Edge2D& operator=(const Edge2D& edge_to_copy) = delete;
+        const Edge2D& operator=(Edge2D&& edge_to_move) = delete;
+
+        [[nodiscard]] const Vertex2D& v0() const { return v0_; }
+        [[nodiscard]] const Vertex2D& v1() const { return v1_; }
+
+        [[nodiscard]] uint32_t reference_index() const { return reference_index_; }
+
+        [[nodiscard]] bool intersects(const Edge2D& edge_to_check) const;
 
        private:
         Vertex2D v0_;
@@ -64,7 +65,22 @@ namespace Cork::TwoD
     class IntersectingEdges2D
     {
        public:
-        IntersectingEdges2D(const Edge2D& edge1, const Edge2D& edge2) : edge1_(edge1), edge2_(edge2) {}
+        IntersectingEdges2D() = delete;
+        IntersectingEdges2D( const IntersectingEdges2D& ) = delete;
+        IntersectingEdges2D( IntersectingEdges2D&& ) = default;
+
+        IntersectingEdges2D(Edge2D edge1, Edge2D edge2) : edge1_(std::move(edge1)), edge2_(std::move(edge2)) {}
+
+        const IntersectingEdges2D& operator=( const IntersectingEdges2D& ) = delete;
+        const IntersectingEdges2D& operator=( IntersectingEdges2D&& ) = delete;
+
+        ~IntersectingEdges2D() = default;
+
+        [[nodiscard]] const Edge2D& edge1() const { return edge1_; }
+        [[nodiscard]] const Edge2D& edge2() const { return edge2_; }
+
+
+        private :
 
         Edge2D edge1_;
         Edge2D edge2_;
@@ -73,11 +89,14 @@ namespace Cork::TwoD
     class Polygon
     {
        public:
-        Polygon(const std::vector<Vertex2D>& vertices) : centroid_(0, 0)
+        Polygon() = delete;
+        Polygon( const Polygon& ) = delete;
+
+        explicit Polygon(const std::vector<Vertex2D>& vertices) : centroid_(0, 0)
         {
             edges_.reserve(vertices.size() + 4);
 
-            for (uint32_t i = 0; i < vertices.size() - 1; i++)
+            for (uint32_t i = 0; i < vertices.size() - 1; i++)      //  NOLINT(modernize-loop-convert)
             {
                 edges_.emplace_back(vertices[i], vertices[i + 1], i);
                 centroid_ += vertices[i];
@@ -90,14 +109,19 @@ namespace Cork::TwoD
             centroid_ /= vertices.size();
         }
 
-        Polygon(Polygon&& polygon_to_move)
-            : edges_(std::move(polygon_to_move.edges_)), centroid_(polygon_to_move.centroid_)
+        Polygon(Polygon&& polygon_to_move) noexcept
+            : edges_(std::move(polygon_to_move.edges_)), centroid_(std::move(polygon_to_move.centroid_))
         {
         }
 
-        const std::vector<Edge2D>& edges() const { return edges_; }
+        ~Polygon() = default;
 
-        Vertex2D centroid() const { return centroid_; }
+        const Polygon& operator=(const Polygon&) = delete;
+        const Polygon& operator=(Polygon&&) = delete;
+
+        [[nodiscard]] const std::vector<Edge2D>& edges() const { return edges_; }
+
+        [[nodiscard]] const Vertex2D& centroid() const { return centroid_; }
 
         Polygon translate(const Vertex2D& offset)
         {
@@ -105,7 +129,7 @@ namespace Cork::TwoD
 
             translated_vertices.reserve(edges_.size() + 4);
 
-            for (uint32_t i = 0; i < edges_.size(); i++)
+            for (uint32_t i = 0; i < edges_.size(); i++)        //  NOLINT(modernize-loop-convert)
             {
                 translated_vertices.emplace_back(edges_[i].v0() + offset);
             }
@@ -113,7 +137,7 @@ namespace Cork::TwoD
             return Polygon(translated_vertices);
         }
 
-        std::vector<IntersectingEdges2D> self_intersections() const;
+        [[nodiscard]] std::vector<IntersectingEdges2D> self_intersections() const;
 
        private:
         std::vector<Edge2D> edges_;

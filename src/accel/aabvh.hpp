@@ -36,10 +36,10 @@
 #include "oneapi/tbb/task_group.h"
 
 #include "cork.hpp"
-#include "Xoshiro256Plus.h"
 #include "mesh/topo_cache.hpp"
 #include "util/fast_stack.hpp"
 #include "util/managed_intrusive_list.hpp"
+#include "Xoshiro256Plus.h"
 
 //
 //	AABVH
@@ -57,65 +57,73 @@ namespace Cork::AABVH
 
     //	Maximum leaf size - needs to be a power of 2 (i.e. 2, 4, 8, 16, 32, 64)
 
-    const unsigned int LEAF_SIZE = 32;
+    const unsigned int MAXIMUM_LEAF_SIZE = 32;
+
+    //  Default initial sizes for various collections and lists
+
+    const unsigned int DEFAULT_NODE_LIST_COLLECTION_SIZE = 16;
+    const unsigned int DEFAULT_PRIMARY_NODE_LIST_SIZE = 1024;
+    const unsigned int DEFAULT_NODE_STACK_SIZE = 256;
+    
 
     class alignas(SIMD_MEMORY_ALIGNMENT) GeomBlob
     {
        public:
-        explicit GeomBlob(const Meshes::TopoEdge& idx) : m_id(idx)
+        explicit GeomBlob(const Meshes::TopoEdge& topo_edge) : topo_edge_(topo_edge)
         {
-            const Vector3D& p0 = (idx.verts()[0])->quantized_value();
-            const Vector3D& p1 = (idx.verts()[1])->quantized_value();
+            const Vector3D& p0 = (topo_edge_.verts()[0])->quantized_value();
+            const Vector3D& p1 = (topo_edge_.verts()[1])->quantized_value();
 
-            m_bbox = BBox3D(p0.min(p1), p0.max(p1));
+            bbox_ = BBox3D(p0.min(p1), p0.max(p1));
         }
 
-        const Meshes::TopoEdge& index() const { return (m_id); }
+        [[nodiscard]] const Meshes::TopoEdge& index() const { return (topo_edge_); }
 
-        const BBox3D& boundingBox() const { return (m_bbox); }
+        [[nodiscard]] const BBox3D& boundingBox() const { return (bbox_); }
 
        private:
-        BBox3D m_bbox;
+        BBox3D bbox_;
 
-        const Meshes::TopoEdge& m_id;
+        const Meshes::TopoEdge& topo_edge_;
     };
 
     using GeomBlobVector = std::vector<GeomBlob>;
 
-    //	A BlobIDList will never be larger than LEAF_SIZE so a static vector is OK
+    //	A BlobIDList will never be larger than MAXIMUM_LEAF_SIZE so a static vector is OK
 
-    using BlobIDList = boost::container::static_vector<IndexType, LEAF_SIZE>;
+    using BlobIDList = boost::container::static_vector<IndexType, MAXIMUM_LEAF_SIZE>;
 
-    class alignas(SIMD_MEMORY_ALIGNMENT) AABVHNode  // : public IntrusiveListHook
+    class alignas(SIMD_MEMORY_ALIGNMENT) AABVHNode      //  NOLINT(clang-analyzer-optin.performance.Padding)    Padding here for SIMD alignment
     {
        public:
-        AABVHNode() : m_left(nullptr), m_right(nullptr) {}
+        AABVHNode() = default;
 
-        AABVHNode(AABVHNode* left, AABVHNode* right) : m_left(left), m_right(right) {}
+        AABVHNode(AABVHNode* left, AABVHNode* right) : left_(left), right_(right) {}
 
-        inline bool isLeaf() const { return (m_left == nullptr); }
+        [[nodiscard]] inline bool isLeaf() const { return (left_ == nullptr); }
 
-        AABVHNode* left() const { return (m_left); }
+        [[nodiscard]] AABVHNode* left() const { return (left_); }
 
-        AABVHNode* right() const { return (m_right); }
+        [[nodiscard]] AABVHNode* right() const { return (right_); }
 
-        const BBox3D& boundingBox() const { return (m_bbox); }
+        [[nodiscard]] const BBox3D& boundingBox() const { return (bbox_); }
 
-        BBox3D& boundingBox() { return (m_bbox); }
+        [[nodiscard]] BBox3D& boundingBox() { return (bbox_); }
 
-        const std::array<BlobIDList, 2>& blobIDLists() const { return (m_blobids); }
+        [[nodiscard]] const std::array<BlobIDList, 2>& blobIDLists() const { return (blobids_); }
 
         void AddBlobID(IndexType listIndex, IndexType blobID)
         {
-            m_blobids[listIndex].emplace_back(blobID);
+            blobids_[listIndex].emplace_back(blobID);
         }
 
        private:
-        AABVHNode* m_left;
-        AABVHNode* m_right;
+        BBox3D bbox_;
 
-        BBox3D m_bbox;
-        std::array<BlobIDList, 2> m_blobids;
+        AABVHNode* left_{nullptr};
+        AABVHNode* right_{nullptr};
+
+        std::array<BlobIDList, 2> blobids_;
     };
 
     typedef std::vector<AABVHNode> AABVHNodeList;
@@ -123,7 +131,7 @@ namespace Cork::AABVH
     class AABVHNodeListCollection
     {
        public:
-        AABVHNodeListCollection() : num_collections_checked_out_(0) { node_collections_.reserve(16); }
+        AABVHNodeListCollection() { node_collections_.reserve(DEFAULT_NODE_LIST_COLLECTION_SIZE); }
 
         void reset()
         {
@@ -135,17 +143,17 @@ namespace Cork::AABVH
             num_collections_checked_out_ = 0;
         }
 
-        AABVHNodeList& getPrimaryNodeList()
+        [[nodiscard]] AABVHNodeList& getPrimaryNodeList()
         {
-            if (node_collections_.size() == 0)
+            if (node_collections_.empty())
             {
-                return (getNodeList(1024));
+                return (getNodeList(DEFAULT_PRIMARY_NODE_LIST_SIZE));
             }
 
             return (node_collections_[0]);
         }
 
-        AABVHNodeList& getNodeList(size_t reservation)
+        [[nodiscard]] AABVHNodeList& getNodeList(size_t reservation)
         {
             collections_mutex_.lock();
 
@@ -167,19 +175,24 @@ namespace Cork::AABVH
         boost::ptr_vector<AABVHNodeList> node_collections_;
         oneapi::tbb::spin_mutex collections_mutex_;
 
-        size_t num_collections_checked_out_;
+        size_t num_collections_checked_out_{0};
     };
 
     class Workspace
     {
        public:
-        Workspace() {}
+        Workspace() = default;
+        Workspace( const Workspace& ) = delete;
+        Workspace( Workspace&& ) = delete;
 
-        ~Workspace() {}
+        ~Workspace() = default;
+
+        const Workspace& operator=( const Workspace& ) = delete;
+        const Workspace& operator=( Workspace&& ) = delete;
 
         void reset() { nodeList_collection_.reset(); }
 
-        AABVHNodeListCollection& getAABVHNodeListCollection() { return (nodeList_collection_); }
+        [[nodiscard]] AABVHNodeListCollection& getAABVHNodeListCollection() { return (nodeList_collection_); }
 
        private:
         AABVHNodeListCollection nodeList_collection_;
@@ -194,6 +207,10 @@ namespace Cork::AABVH
     class AxisAlignedBoundingVolumeHierarchy : public boost::noncopyable
     {
        public:
+        AxisAlignedBoundingVolumeHierarchy() = delete;
+        AxisAlignedBoundingVolumeHierarchy( const AxisAlignedBoundingVolumeHierarchy& ) = delete;
+        AxisAlignedBoundingVolumeHierarchy( AxisAlignedBoundingVolumeHierarchy&& ) = delete;
+
         AxisAlignedBoundingVolumeHierarchy(std::unique_ptr<GeomBlobVector>& geoms, Workspace& workspace,
                                            const SolverControlBlock& solver_control_block)
             : root_(nullptr),
@@ -203,7 +220,7 @@ namespace Cork::AABVH
               random_number_generator_(RANDOM_SEED),
               solver_control_block_(solver_control_block)
         {
-            assert(blobs_->size() > 0);
+            assert( !blobs_->empty() );
 
             node_collections_.reset();
 
@@ -220,7 +237,7 @@ namespace Cork::AABVH
             {
                 Vector3D repPoint(
                     blob.boundingBox().minima() +
-                    ((blob.boundingBox().maxima() - blob.boundingBox().minima()) / (NUMERIC_PRECISION)2.0));
+                    ((blob.boundingBox().maxima() - blob.boundingBox().minima()) / (NUMERIC_PRECISION)2.0));    //  NOLINT(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 
                 representative_points_[0].emplace_back(repPoint.x());
                 representative_points_[1].emplace_back(repPoint.y());
@@ -232,20 +249,23 @@ namespace Cork::AABVH
 
         ~AxisAlignedBoundingVolumeHierarchy() { node_collections_.reset(); }
 
-        Meshes::TopoEdgeReferenceVector EdgesIntersectingTriangle(const Meshes::TopoTri& triangle,
-                                                                IntersectionType intersection_type) const
+        const AxisAlignedBoundingVolumeHierarchy& operator=( const AxisAlignedBoundingVolumeHierarchy& ) = delete;
+        const AxisAlignedBoundingVolumeHierarchy& operator=( AxisAlignedBoundingVolumeHierarchy&& ) = delete;
+
+        [[nodiscard]] Meshes::TopoEdgeReferenceVector EdgesIntersectingTriangle(const Meshes::TopoTri& triangle,
+                                                                  IntersectionType intersection_type) const
         {
             Meshes::TopoEdgeReferenceVector edges;
 
             //	Set the boolAlgData index for intersections between two bodies or for self-intersections.
 
             unsigned int blob_id_list_selector =
-                (intersection_type == IntersectionType::BOOLEAN_INTERSECTION ? triangle.bool_alg_data() ^ 1
+                (intersection_type == IntersectionType::BOOLEAN_INTERSECTION ? triangle.bool_alg_data() ^ (uint32_t)1
                                                                             : triangle.bool_alg_data());
 
             //	Use a recursive search and save edges that intersect the triangle
 
-            FastStack<AABVHNode*, 256> node_stack;
+            FastStack<AABVHNode*, DEFAULT_NODE_STACK_SIZE> node_stack;
 
             node_stack.reset();
             node_stack.push(root_);
@@ -303,7 +323,7 @@ namespace Cork::AABVH
 
         std::unique_ptr<GeomBlobVector> blobs_;
 
-        std::vector<NUMERIC_PRECISION> representative_points_[3];
+        std::array<std::vector<NUMERIC_PRECISION>,3> representative_points_;
 
         std::vector<IndexType> tmpids_;
 
@@ -316,8 +336,8 @@ namespace Cork::AABVH
 
         void QuickSelect(size_t select, size_t begin, size_t end, size_t dim);
 
-        AABVHNode* ConstructTree(size_t begin, size_t end, size_t last_dim);
+        [[nodiscard]] AABVHNode* ConstructTree(size_t begin, size_t end, size_t last_dim);
 
-        AABVHNode* ConstructTreeRecursive(AABVHNodeList& nod_storage, size_t begin, size_t end, size_t last_dim);
+        [[nodiscard]] AABVHNode* ConstructTreeRecursive(AABVHNodeList& node_storage, size_t begin, size_t end, size_t last_dim);
     };
 }  // namespace Cork::AABVH

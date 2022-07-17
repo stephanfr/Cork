@@ -38,8 +38,8 @@ namespace Cork::Intersection
         using TopoTri = Meshes::TopoTri;
 
        public:
-        explicit EdgeCache(IntersectionProblemBase& intersectionProblem)
-            : m_intersectionProblem(intersectionProblem), m_edges(intersectionProblem.owner_mesh().vertices().size())
+        explicit EdgeCache(IntersectionProblemBase& intersection_problem)
+            : intersection_problem_(intersection_problem), edges_(intersection_problem.owner_mesh().vertices().size())
         {
         }
 
@@ -53,30 +53,30 @@ namespace Cork::Intersection
                 std::swap(i, j);
             }
 
-            size_t N = m_edges[i].size();
+            size_t N = edges_[i].size();
 
             for (size_t k = 0; k < N; k++)
             {
-                if (m_edges[i][k].vertex_id() == VertexIndex(j))
+                if (edges_[i][k].vertex_id() == VertexIndex(j))
                 {
-                    return m_edges[i][k].edge().value();
+                    return edges_[i][k].edge().value();
                 }
             }
 
             // if not existing, create it
 
-            m_edges[i].emplace_back(EdgeEntry(j));
+            edges_[i].emplace_back(EdgeEntry(j));
 
-            TopoEdge& new_edge = m_edges[i][N].set_edge( *(m_intersectionProblem.topo_cache().new_edge(v0, v1)));
+            TopoEdge& new_edge = edges_[i][N].set_edge( *(intersection_problem_.topo_cache().new_edge(v0, v1)));
 
             return new_edge;
         }
 
         // k = 0, 1, or 2
-        TopoEdge& getTriangleEdge(GenericTriType* gt, uint k, const TopoTri& big_tri)
+        TopoEdge& getTriangleEdge(GenericTriType* tri, uint k, const TopoTri& big_tri)
         {
-            GenericVertType* gv0 = gt->vertices()[(k + 1) % 3];
-            GenericVertType* gv1 = gt->vertices()[(k + 2) % 3];
+            GenericVertType* gv0 = tri->vertices()[(k + 1) % 3];
+            GenericVertType* gv1 = tri->vertices()[(k + 2) % 3];
             TopoVert& v0 = gv0->concrete_vertex();
             TopoVert& v1 = gv1->concrete_vertex();
 
@@ -111,23 +111,23 @@ namespace Cork::Intersection
             return *edge;
         }
 
-        std::optional<std::reference_wrapper<TopoEdge>> maybeEdge(const GenericEdgeType& ge)
+        std::optional<std::reference_wrapper<TopoEdge>> maybeEdge(const GenericEdgeType& edge)
         {
-            size_t i = VertexIndex::integer_type(ge.ends()[0]->concrete_vertex().index());
-            size_t j = VertexIndex::integer_type(ge.ends()[1]->concrete_vertex().index());
+            size_t i = VertexIndex::integer_type(edge.ends()[0]->concrete_vertex().index());
+            size_t j = VertexIndex::integer_type(edge.ends()[1]->concrete_vertex().index());
 
             if (i > j)
             {
                 std::swap(i, j);
             }
 
-            size_t N = m_edges[i].size();
+            size_t N = edges_[i].size();
 
             for (size_t k = 0; k < N; k++)
             {
-                if (m_edges[i][k].vertex_id() == j)
+                if (edges_[i][k].vertex_id() == j)
                 {
-                    return m_edges[i][k].edge().value();
+                    return edges_[i][k].edge().value();
                 }
             }
 
@@ -144,7 +144,7 @@ namespace Cork::Intersection
 
             explicit EdgeEntry(IndexType vertex_id) : vertex_id_(vertex_id) {}
 
-            VertexIndex     vertex_id() const { return vertex_id_; }
+            [[nodiscard]] VertexIndex     vertex_id() const { return vertex_id_; }
 
             std::optional<std::reference_wrapper<TopoEdge>>&        edge() { return edge_; }
             TopoEdge&        set_edge( TopoEdge& edge ) { return edge_.emplace( edge ); }
@@ -157,8 +157,8 @@ namespace Cork::Intersection
 
         typedef std::vector<std::vector<EdgeEntry>> VectorOfEdgeEntryVectors;
 
-        IntersectionProblemBase& m_intersectionProblem;
+        IntersectionProblemBase& intersection_problem_;
 
-        VectorOfEdgeEntryVectors m_edges;
+        VectorOfEdgeEntryVectors edges_;
     };
 }  // namespace Cork::Intersection

@@ -40,9 +40,24 @@ namespace Cork::Math
         return centroid;
     }
 
-    class PlaneEquation
+    class PlaneEquationBase
+    {
+        public :
+
+        virtual const Vector3D& unit_normal() const = 0;
+
+        virtual const Vertex3D& centroid() const = 0;
+
+        double distance(Vertex3D point) const { return unit_normal().dot(point - centroid()); }
+    };
+
+    class PlaneEquation : public PlaneEquationBase
     {
        public:
+
+        PlaneEquation() = delete;
+
+
         PlaneEquation(const Vector3D& unit_normal, const Vertex3D& centroid)
             : unit_normal_(unit_normal), centroid_(centroid){};
 
@@ -55,114 +70,118 @@ namespace Cork::Math
 
         double distance(Vertex3D point) const { return unit_normal_.dot(point - centroid_); }
 
-
-       protected:
-        PlaneEquation() = default;
+       private:
 
         Vector3D unit_normal_;
         Vertex3D centroid_;
     };
 
-
-
-    class BestFitPlaneEquation : public PlaneEquation
+    class BestFitPlaneEquation : public PlaneEquationBase
     {
        public:
         BestFitPlaneEquation(const Vector3D& unit_normal, const Vertex3D& centroid) = delete;
         BestFitPlaneEquation(Vector3D&& unit_normal, Vertex3D&& centroid) = delete;
 
-//        template <typename T>
-        BestFitPlaneEquation(uint32_t num_verts, Vector3DVector::const_iterator itr_begin, Vector3DVector::const_iterator itr_end);
-/*        {
-            //  We will use SVD to determine the best-fit plane.  Since we are using a Nx3 matrix,
-            //      the normal to the best-fit plane will be the right singular vector associated
-            //      with the smallest singular value.
+        //        template <typename T>
+        BestFitPlaneEquation(uint32_t num_verts, Vector3DVector::const_iterator itr_begin,
+                             Vector3DVector::const_iterator itr_end);
+        /*        {
+                    //  We will use SVD to determine the best-fit plane.  Since we are using a Nx3 matrix,
+                    //      the normal to the best-fit plane will be the right singular vector associated
+                    //      with the smallest singular value.
 
-            centroid_ = Math::centroid(itr_begin, itr_end);
+                    centroid_ = Math::centroid(itr_begin, itr_end);
 
-            Eigen::MatrixXd A(num_verts, 3);
+                    Eigen::MatrixXd A(num_verts, 3);
 
-            int k = 0;
-            for (auto itr = itr_begin; itr != itr_end; itr++)
-            {
-                Vector3D translated_point = *itr - centroid_;
+                    int k = 0;
+                    for (auto itr = itr_begin; itr != itr_end; itr++)
+                    {
+                        Vector3D translated_point = *itr - centroid_;
 
-                A(k, 0) = translated_point.x();
-                A(k, 1) = translated_point.y();
-                A(k, 2) = translated_point.z();
+                        A(k, 0) = translated_point.x();
+                        A(k, 1) = translated_point.y();
+                        A(k, 2) = translated_point.z();
 
-                k++;
-            }
+                        k++;
+                    }
 
-            Eigen::BDCSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeFullV);
+                    Eigen::BDCSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeFullV);
 
-            //  The best-fit normal is the V column whose index is given by the index of the min svd value.
-            //      ONly three to check - not worth a loop.
+                    //  The best-fit normal is the V column whose index is given by the index of the min svd value.
+                    //      ONly three to check - not worth a loop.
 
-            double min_value = svd.singularValues()[0];
-            uint32_t min_index = 0;
+                    double min_value = svd.singularValues()[0];
+                    uint32_t min_index = 0;
 
-            if (svd.singularValues()[1] < min_value)
-            {
-                min_value = svd.singularValues()[1];
-                min_index = 1;
-            }
+                    if (svd.singularValues()[1] < min_value)
+                    {
+                        min_value = svd.singularValues()[1];
+                        min_index = 1;
+                    }
 
-            if (svd.singularValues()[2] < min_value)
-            {
-                min_value = svd.singularValues()[2];
-                min_index = 2;
-            }
+                    if (svd.singularValues()[2] < min_value)
+                    {
+                        min_value = svd.singularValues()[2];
+                        min_index = 2;
+                    }
 
-            //  Pull the values and return them in a Vector3D
+                    //  Pull the values and return them in a Vector3D
 
-            unit_normal_ =
-                Vector3D(svd.matrixV()(0, min_index), svd.matrixV()(1, min_index), svd.matrixV()(2, min_index));
+                    unit_normal_ =
+                        Vector3D(svd.matrixV()(0, min_index), svd.matrixV()(1, min_index), svd.matrixV()(2, min_index));
 
-            //  Compute the rms error
+                    //  Compute the rms error
 
-            rms_error_ = 0;
+                    rms_error_ = 0;
 
-            for (auto itr = itr_begin; itr != itr_end; itr++)
-            {
-                double dist = distance( *itr );
+                    for (auto itr = itr_begin; itr != itr_end; itr++)
+                    {
+                        double dist = distance( *itr );
 
-                rms_error_ += dist * dist;
-            }
+                        rms_error_ += dist * dist;
+                    }
 
-            rms_error_ = sqrt( rms_error_ );
-        }
-*/
+                    rms_error_ = sqrt( rms_error_ );
+                }
+        */
 
-        double  rms_error() const{
-            return rms_error_;
-        }
+        const Vector3D& unit_normal() const { return unit_normal_; }
+
+        const Vertex3D& centroid() const { return centroid_; }
+
+        double rms_error() const { return rms_error_; }
 
        private:
-        double  rms_error_;
+       
+        Vector3D unit_normal_;
+        Vertex3D centroid_;
+
+        double rms_error_;
     };
 
-/*
-        double  distance_from_point_to_plane( Vertex3D      point,
-                                              Vector3D      plane_normal,
-                                              Vertex3D      normal_intersection_with_plane )
-                                              {
-                                                  distance_from_point_to_plane_at_origin( point -
-       normal_intersection_with_plane, plane_normal );
-                                              }
+    /*
+            double  distance_from_point_to_plane( Vertex3D      point,
+                                                  Vector3D      plane_normal,
+                                                  Vertex3D      normal_intersection_with_plane )
+                                                  {
+                                                      distance_from_point_to_plane_at_origin( point -
+           normal_intersection_with_plane, plane_normal );
+                                                  }
 
 
-        double  distance_from_point_to_plane_at_origin( Vertex3D      point,
-                                              Vector3D      plane_normal )
-                                              {
-                                                  return(( plane_normal.dot( point ) /   )
-                                              }
-*/
-    
+            double  distance_from_point_to_plane_at_origin( Vertex3D      point,
+                                                  Vector3D      plane_normal )
+                                                  {
+                                                      return(( plane_normal.dot( point ) /   )
+                                                  }
+    */
+
 };  // namespace Cork::Math
 
 namespace Cork
 {
+    using PlaneEquationBase = Cork::Math::PlaneEquationBase;
     using PlaneEquation = Cork::Math::PlaneEquation;
     using BestFitPlaneEquation = Cork::Math::BestFitPlaneEquation;
 };  // namespace Cork

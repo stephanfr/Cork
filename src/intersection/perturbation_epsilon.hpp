@@ -51,21 +51,19 @@ namespace Cork::Intersection
         PerturbationEpsilon& operator=(const PerturbationEpsilon&) = delete;
         PerturbationEpsilon& operator=(PerturbationEpsilon&&) = delete;
 
-        bool sufficientRange() const
+        [[nodiscard]] bool sufficientRange() const
         {
             return ((bits_of_purturbation_range_ - num_adjustments_) >=
                     PERTURBATION_BUFFER_BITS + MINIMUM_PERTURBATION_RANGE_BITS);
         }
 
-        NUMERIC_PRECISION quantum() const { return (quantum_); }
+        [[nodiscard]] NUMERIC_PRECISION quantum() const { return (quantum_); }
 
-        int numAdjustments() const { return (num_adjustments_); }
+        [[nodiscard]] int numAdjustments() const { return (num_adjustments_); }
 
-        AdjustPerturbationResult adjust()
+        [[nodiscard]] AdjustPerturbationResult adjust()
         {
             num_adjustments_++;
-
-            random_range_ <<= 1;
 
             if (!sufficientRange())
             {
@@ -76,14 +74,12 @@ namespace Cork::Intersection
             return (AdjustPerturbationResult(num_adjustments_));
         }
 
-        Primitives::Vector3D getPerturbation() const;
+        [[nodiscard]] Primitives::Vector3D getPerturbation() const;
 
        private:
         int bits_of_purturbation_range_;
         double quantum_;
 
         int num_adjustments_;
-
-        int random_range_;
     };
 }  // namespace Cork::Intersection

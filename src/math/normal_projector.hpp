@@ -45,7 +45,7 @@ namespace Cork::Math
             flip_sign_ = (sign_flip_ != 1.0);
         }
 
-        NormalProjector(const TriangleByVertices& tri)
+        explicit NormalProjector(const TriangleByVertices& tri)
             : NormalProjector( tri.vertexA(), tri.vertexB(), tri.vertexC() )
         {}
 
@@ -56,7 +56,7 @@ namespace Cork::Math
         [[nodiscard]] double sign_flip() const { return sign_flip_; }
         [[nodiscard]] bool flip_sign() const { return flip_sign_; }
 
-        Vertex2D project(const Vector3D& point)
+        Vertex2D project(const Vector3D& point) const
         {
             double x = point[proj_dim0_];
             double y = flip_sign_ ? point[proj_dim1_] * sign_flip_ : point[proj_dim1_];
@@ -71,5 +71,5 @@ namespace Cork::Math
         double sign_flip_;
         bool flip_sign_;
     };
-}
+}   //  Cork::Math
 

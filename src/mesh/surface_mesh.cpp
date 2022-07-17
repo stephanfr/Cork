@@ -506,7 +506,7 @@ namespace Cork::Meshes
             }
 
             Vertex3D boundary_centroid = boundary.centroid();
-            PlaneEquation best_fit_plane = boundary.best_fit_plane();
+            BestFitPlaneEquation best_fit_plane = boundary.best_fit_plane();
 
             auto projected_boundary = boundary.project(best_fit_plane.unit_normal(), boundary_centroid);
 
@@ -529,7 +529,7 @@ namespace Cork::Meshes
                     current_section.append(boundary_centroid, Primitives::UNINITIALIZED_INDEX);
 
                     Vertex3D new_boundary_centroid = current_section.centroid();
-                    PlaneEquation new_best_fit_plane = current_section.best_fit_plane();
+                    BestFitPlaneEquation new_best_fit_plane = current_section.best_fit_plane();
 
                     auto new_projected_boundary = current_section.project(new_best_fit_plane.unit_normal(), new_boundary_centroid);
 

@@ -49,11 +49,32 @@ namespace Cork::Math
         {
         }
 
+        MinAndMaxLengths(MinAndMaxLengths&& obj_to_move)
+            : min_squared_(std::move(obj_to_move.min_squared_)), max_squared_(std::move(obj_to_move.max_squared_))
+        {
+        }
+
         ~MinAndMaxLengths() = default;
 
-        double min() const { return sqrt(min_squared_); }
+        MinAndMaxLengths& operator=(const MinAndMaxLengths& obj_to_copy)
+        {
+            min_squared_ = obj_to_copy.min_squared_;
+            max_squared_ = obj_to_copy.max_squared_;
 
-        double max() const { return sqrt(max_squared_); }
+            return *this;
+        }
+
+        MinAndMaxLengths& operator=(MinAndMaxLengths&& obj_to_move )
+        {
+            min_squared_ = std::move(obj_to_move.min_squared_);
+            max_squared_ = std::move( obj_to_move.max_squared_ );
+
+            return *this;
+        }
+
+        [[nodiscard]] double min() const { return sqrt(min_squared_); }
+
+        [[nodiscard]] double max() const { return sqrt(max_squared_); }
 
         void update(const MinAndMaxLengths& second)
         {

@@ -59,7 +59,7 @@ namespace Cork::Math
         }
 
         Quantizer(const Quantizer& quantizerToCopy)
-            : m_magnify(quantizerToCopy.m_magnify), m_reshrink(quantizerToCopy.m_reshrink)
+            : m_magnify(quantizerToCopy.m_magnify), m_reshrink(quantizerToCopy.m_reshrink), m_bitsOfPurturbationRange(quantizerToCopy.m_bitsOfPurturbationRange)
         {
         }
 

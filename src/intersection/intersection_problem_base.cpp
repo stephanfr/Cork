@@ -32,17 +32,16 @@ namespace Cork::Intersection
     IntersectionProblemBase::IntersectionProblemBase(MeshBaseImpl& owner_mesh, const Math::Quantizer& quantizer, const SolverControlBlock& solver_control_block)
         : workspace_(std::move(IntersectionWorkspaceFactory::GetInstance())),
           owner_mesh_(owner_mesh),
-//          topo_cache_(owner_mesh, quantizer),
           quantizer_(quantizer),
           perturbation_(quantizer_),
           solver_control_block_(solver_control_block),
-          glue_point_marker_list_(*(workspace_.get())),
-          isct_vert_type_list_(*(workspace_.get())),
-          orig_vert_type_list_(*(workspace_.get())),
-          isct_edge_type_list_(*(workspace_.get())),
-          orig_edge_type_list_(*(workspace_.get())),
-          split_edge_type_list_(*(workspace_.get())),
-          generic_tri_type_list_(*(workspace_.get()))
+          glue_point_marker_list_( workspace_->getGluePointMarkerListPool()),
+          isct_vert_type_list_( workspace_->getGenericVertexListPool() ),
+          orig_vert_type_list_( workspace_->getGenericVertexListPool() ),
+          isct_edge_type_list_( workspace_->getGenericEdgeListPool() ),
+          orig_edge_type_list_( workspace_->getGenericEdgeListPool() ),
+          split_edge_type_list_( workspace_->getGenericEdgeListPool() ),
+          generic_tri_type_list_( workspace_->getGenericTriTypeListPool() )
     {
         //	Initialize all the triangles to NOT have an associated tprob
         //		and set the boolAlgData value based on the input triangle
@@ -82,7 +81,7 @@ namespace Cork::Intersection
             edge_geoms->emplace_back(e);
         }
 
-        edge_bvh_.reset(new AABVH::AxisAlignedBoundingVolumeHierarchy(edge_geoms, workspace(),
+        edge_bvh_.reset(new AABVH::AxisAlignedBoundingVolumeHierarchy(edge_geoms, workspace().getAABVHWorkspace(),
                                                                       solver_control_block_));
     }
 
@@ -151,7 +150,7 @@ namespace Cork::Intersection
 
         for (auto& glue : glue_point_marker_list_)
         {
-            assert(glue.vertices_to_be_glued().size() > 0);
+            assert( !glue.vertices_to_be_glued().empty() );
             IsctVertType* iv = glue.vertices_to_be_glued()[0];
 
             (*points)[write] = iv->coordinate();

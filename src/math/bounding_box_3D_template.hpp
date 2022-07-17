@@ -53,6 +53,25 @@ namespace Cork::Math
         }
 
         BBox3DTemplate(const BBox3DTemplate& bb) : m_minp(bb.m_minp), m_maxp(bb.m_maxp) {}
+        BBox3DTemplate( BBox3DTemplate&& bb) noexcept : m_minp(std::move(bb.m_minp)), m_maxp(std::move(bb.m_maxp)) {}
+
+        ~BBox3DTemplate() = default;
+
+        BBox3DTemplate& operator=( const BBox3DTemplate& bb )
+        {
+            m_minp = bb.m_minp;
+            m_maxp = bb.m_maxp;
+
+            return *this;
+        }
+
+        BBox3DTemplate& operator=( BBox3DTemplate&& bb ) noexcept
+        {
+            m_minp = std::move( bb.m_minp );
+            m_maxp = std::move( bb.m_maxp );
+
+            return *this;
+        }
 
         const Vector3DTemplate<N, SIMD>& minima() const { return (m_minp); }
 
@@ -71,29 +90,29 @@ namespace Cork::Math
             }
             else
             {
-                return (m_minp + ((m_maxp - m_minp) / (NUMERIC_PRECISION)2.0));
+                return (m_minp + ((m_maxp - m_minp) / (NUMERIC_PRECISION)2.0));     //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
             }
         }
 
-        bool isEmpty() const { return ((m_maxp[0] < m_minp[0]) || (m_maxp[1] < m_minp[1]) || (m_maxp[2] < m_minp[2])); }
+        [[nodiscard]] bool isEmpty() const { return ((m_maxp[0] < m_minp[0]) || (m_maxp[1] < m_minp[1]) || (m_maxp[2] < m_minp[2])); }
 
-        bool isIn(const Vector3DTemplate<N, SIMD>& pointToTest) const
+        [[nodiscard]] bool isIn(const Vector3DTemplate<N, SIMD>& pointToTest) const
         {
             return ((m_minp[0] <= pointToTest[0]) && (pointToTest[0] <= m_maxp[0]) && (m_minp[1] <= pointToTest[1]) &&
                     (pointToTest[1] <= m_maxp[1]) && (m_minp[2] <= pointToTest[2]) && (pointToTest[2] <= m_maxp[2]));
         }
 
-        bool contains(const BBox3DTemplate& rhs) const
+        [[nodiscard]] bool contains(const BBox3DTemplate& rhs) const
         {
             return isIn( rhs.m_minp ) && isIn( rhs.m_maxp );
         }
 
-        bool intersects(const BBox3DTemplate& rhs) const
+        [[nodiscard]] bool intersects(const BBox3DTemplate& rhs) const
         {
             if constexpr (SIMD >= SIMDInstructionSet::AVX)
             {
                 return (_mm256_movemask_pd(_mm256_and_pd(_mm256_cmp_pd(m_minp, rhs.m_maxp, _CMP_LE_OQ),
-                                                         _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) == 0x0F);
+                                                         _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) == 0x0F);     //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
             }
             else
             {
@@ -102,12 +121,12 @@ namespace Cork::Math
             }
         }
 
-        inline bool doesNotIntersect(const BBox3DTemplate& rhs) const
+        [[nodiscard]] bool doesNotIntersect(const BBox3DTemplate& rhs) const
         {
             if constexpr (SIMD >= SIMDInstructionSet::AVX)
             {
                 return (_mm256_movemask_pd(_mm256_and_pd(_mm256_cmp_pd(m_minp, rhs.m_maxp, _CMP_LE_OQ),
-                                                         _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) != 0x0F);
+                                                         _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) != 0x0F);     //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
             }
             else
             {
@@ -166,25 +185,31 @@ namespace Cork::Math
             }
         }
 
-        BBox3DTemplate intersection(const BBox3DTemplate& rhs) const
+        [[nodiscard]] BBox3DTemplate intersection(const BBox3DTemplate& rhs) const
         {
             return (BBox3DTemplate(m_minp.max(rhs.m_minp), m_maxp.min(rhs.m_maxp)));
         }
 
-        Vector3DTemplate<N, SIMD> dim() const { return (m_maxp - m_minp); }
+        [[nodiscard]] Vector3DTemplate<N, SIMD> dim() const { return (m_maxp - m_minp); }
 
-        N surfaceArea() const
+        [[nodiscard]] N surfaceArea() const
         {
             auto d = dim();
             return (2 * (d[1] * d[2] + d[0] * d[2] + d[0] * d[1]));
         }
 
-        bool intersects(Ray3DWithInverseDirectionTemplate<N>& ray) const
+        [[nodiscard]] bool intersects(Ray3DWithInverseDirectionTemplate<N>& ray) const
         {
-            N txmin, txmax, tymin, tymax, tzmin, tzmax, txymin, txymax;
+            N txmin;
+            N txmax;
+            N tymin;
+            N tymax;
+            N tzmin;
+            N tzmax;
+            N txymin;
+            N txymax;
 
-            const std::array<Vector3DTemplate<N, SIMD>, 2>& bounds =
-                reinterpret_cast<const std::array<Vector3DTemplate<N, SIMD>, 2>&>(m_minp);
+            const auto& bounds = reinterpret_cast<const std::array<Vector3DTemplate<N, SIMD>, 2>&>(m_minp);
 
             txmin = (bounds[ray.signs()[0]].x() - ray.origin().x()) * ray.inverseDirection().x();
             tymax = (bounds[1 - ray.signs()[1]].y() - ray.origin().y()) * ray.inverseDirection().y();

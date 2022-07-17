@@ -82,6 +82,10 @@
         "format": "cpp",
         "gsl_assert": "cpp",
         "span": "cpp",
-        "charconv": "cpp"
+        "charconv": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "ranges": "cpp",
+        "stop_token": "cpp"
     }
 }

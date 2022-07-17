@@ -60,6 +60,8 @@ namespace Cork::Intersection
 
         TriTripleTemp(const Meshes::TopoTri& tp0, const Meshes::TopoTri& tp1, const Meshes::TopoTri& tp2) : t0_(tp0), t1_(tp1), t2_(tp2) {}
 
+        ~TriTripleTemp() = default;
+
         TriTripleTemp&      operator=( const TriTripleTemp& ) = delete;
         TriTripleTemp&      operator=( TriTripleTemp&& ) = delete;
 
@@ -96,7 +98,14 @@ namespace Cork::Intersection
                 END_OF_MESSAGES
             };
 
+            TriAndEdgeQueueMessage() = default;
+            TriAndEdgeQueueMessage( const TriAndEdgeQueueMessage& ) = delete;
+            TriAndEdgeQueueMessage( TriAndEdgeQueueMessage&& ) = delete;
+
             virtual ~TriAndEdgeQueueMessage() = default;
+
+            TriAndEdgeQueueMessage& operator=( const TriAndEdgeQueueMessage& ) = delete;
+            TriAndEdgeQueueMessage& operator=( TriAndEdgeQueueMessage&& ) = delete;
 
             virtual MessageType type() const = 0;
         };
@@ -113,6 +122,7 @@ namespace Cork::Intersection
             TriangleAndIntersectingEdgesMessage() = delete;
 
             TriangleAndIntersectingEdgesMessage(const TriangleAndIntersectingEdgesMessage&) = delete;
+            TriangleAndIntersectingEdgesMessage(TriangleAndIntersectingEdgesMessage&&) = delete;
 
             TriangleAndIntersectingEdgesMessage(TopoTri& tri, TopoEdgeReferenceVector& edges)
                 : m_triangle(tri), m_edges(edges)
@@ -122,6 +132,7 @@ namespace Cork::Intersection
             ~TriangleAndIntersectingEdgesMessage() = default;
 
             TriangleAndIntersectingEdgesMessage& operator=(const TriangleAndIntersectingEdgesMessage&) = delete;
+            TriangleAndIntersectingEdgesMessage& operator=(TriangleAndIntersectingEdgesMessage&&) = delete;
 
             MessageType type() const final { return (MessageType::TRI_AND_INTERSECTING_EDGES); }
 
@@ -139,10 +150,12 @@ namespace Cork::Intersection
         IntersectionProblemBase(MeshBaseImpl& owner_mesh, const Math::Quantizer& quantizer, const SolverControlBlock& solver_control_block);
 
         IntersectionProblemBase(const IntersectionProblemBase& isctProblemToCopy) = delete;
+        IntersectionProblemBase( IntersectionProblemBase&& ) = delete;
+
+        virtual ~IntersectionProblemBase() = default;
 
         IntersectionProblemBase& operator=(const IntersectionProblemBase&) = delete;
-
-        virtual ~IntersectionProblemBase() {}
+        IntersectionProblemBase& operator=( IntersectionProblemBase&& ) = delete;
 
         IntersectionWorkspace& workspace() { return *(workspace_.get()); }
 

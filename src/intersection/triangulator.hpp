@@ -25,7 +25,7 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "CPPResult.hpp"
 #include "math/normal_projector.hpp"
@@ -40,10 +40,10 @@ namespace Cork::Triangulator
         Point(Vertex2D vertex, bool boundary) : x_(vertex.x()), y_(vertex.y()), boundary_(boundary) {}
         Point(double x, double y, bool boundary) : x_(x), y_(y), boundary_(boundary) {}
 
-        double x() const { return x_; }
-        double y() const { return y_; }
-        const std::pair<double, double>& pair() const { return reinterpret_cast<const std::pair<double, double>&>(x_); }
-        bool boundary() const { return boundary_; }
+        [[nodiscard]] double x() const { return x_; }
+        [[nodiscard]] double y() const { return y_; }
+        [[nodiscard]] const std::pair<double, double>& pair() const { return reinterpret_cast<const std::pair<double, double>&>(x_); }
+        [[nodiscard]] bool boundary() const { return boundary_; }
 
        private:
         const double x_;
@@ -57,10 +57,10 @@ namespace Cork::Triangulator
        public:
         Segment(int start, int end, bool boundary) : start_(start), end_(end), boundary_(boundary) {}
 
-        int start() const { return start_; }
-        int end() const { return end_; }
-        const std::pair<int, int>& pair() const { return reinterpret_cast<const std::pair<int, int>&>(start_); }
-        bool boundary() const { return boundary_; }
+        [[nodiscard]] int start() const { return start_; }
+        [[nodiscard]] int end() const { return end_; }
+        [[nodiscard]] const std::pair<int, int>& pair() const { return reinterpret_cast<const std::pair<int, int>&>(start_); }
+        [[nodiscard]] bool boundary() const { return boundary_; }
 
        private:
         const int start_;
@@ -84,11 +84,9 @@ namespace Cork::Triangulator
             return (v0_ != tri_to_compare.v0_) || (v1_ != tri_to_compare.v1_) || (v2_ != tri_to_compare.v2_);
         }
 
-        int v0() const { return v0_; }
-        int v1() const { return v1_; }
-        int v2() const { return v2_; }
-
-        const std::array<int, 3>& tuple() const { return reinterpret_cast<const std::array<int, 3>&>(v1_); }
+        [[nodiscard]] int v0() const { return v0_; }
+        [[nodiscard]] int v1() const { return v1_; }
+        [[nodiscard]] int v2() const { return v2_; }
 
        private:
         const int v0_;
@@ -144,7 +142,7 @@ namespace Cork::Triangulator
             point_markers_[number_of_points_++] = point.boundary() ? 1 : 0;
         }
 
-        void add_point(Vertex2D vertex, bool boundary)
+        void add_point(const Vertex2D& vertex, bool boundary)
         {
             points_[number_of_points_].first = vertex.x();
             points_[number_of_points_].second = vertex.y();
@@ -181,7 +179,7 @@ namespace Cork::Triangulator
             segment_markers_[number_of_segments_++] = boundary ? 1 : 0;
         }
 
-        const std::array<std::pair<double, double>, MAX_POINTS + 1>& points() const { return points_; }
+        [[nodiscard]] const std::array<std::pair<double, double>, MAX_POINTS + 1>& points() const { return points_; }
 
         [[nodiscard]] TriangulateResult compute_triangulation();
 

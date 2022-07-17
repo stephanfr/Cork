@@ -26,6 +26,7 @@
 #pragma once
 
 #include <array>
+#include <boost/pool/pool_alloc.hpp>
 #include <boost/container/small_vector.hpp>
 #include <limits>
 #include <type_traits>
@@ -71,8 +72,8 @@ namespace Cork::Meshes
     class TopoTri;
     class TopoEdge;
 
-    using TopoTrianglePointerVector = boost::container::small_vector<const TopoTri*, 12>;
-    using TopoEdgePointerVector = boost::container::small_vector<const TopoEdge*, 25>;
+    using TopoTrianglePointerVector = boost::container::small_vector<const TopoTri*, 12, boost::pool_allocator<const TopoTri*>>;
+    using TopoEdgePointerVector = boost::container::small_vector<const TopoEdge*, 25, boost::pool_allocator<const TopoEdge*>>;
 
     class TopoVert final : public boost::noncopyable, public IntrusiveListHookNoDestructorOnElements
     {
@@ -85,7 +86,8 @@ namespace Cork::Meshes
         TopoVert(const TopoVert&) = delete;
         TopoVert(TopoVert&&) = delete;
 
-        ~TopoVert() {}
+        ~TopoVert()
+        {}
 
         TopoVert& operator=(const TopoVert&) = delete;
         TopoVert& operator=(TopoVert&&) = delete;
@@ -152,7 +154,8 @@ namespace Cork::Meshes
             vertex1.add_edge(this);
         }
 
-        ~TopoEdge() {}
+        ~TopoEdge()
+        {}
 
         TriangleByIndicesIndex source_triangle_id() const { return source_triangle_id_; }
         TriangleEdgeId edge_index() const { return tri_edge_id_; }

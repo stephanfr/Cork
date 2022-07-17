@@ -1,0 +1,310 @@
+==383339== Memcheck, a memory error detector
+==383339== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==383339== Using Valgrind-3.15.0-608cb11914-20190413 and LibVEX; rerun with -h for copyright info
+==383339== Command: /home/steve/dev/Cork/build/RegressionTest/CorkCLI --union --input-directory /home/steve/dev/Cork/RegressionTest/PerfTestSet --output-directory /home/steve/dev/Cork/RegressionTest/PerfResults/ --repair
+==383339== Parent PID: 377896
+==383339== 
+--383339-- 
+--383339-- Valgrind options:
+--383339--    --leak-check=full
+--383339--    --show-leak-kinds=all
+--383339--    --track-origins=yes
+--383339--    --verbose
+--383339--    --log-file=valgrind-out.txt
+--383339-- Contents of /proc/version:
+--383339--   Linux version 5.4.0-121-generic (buildd@lcy02-amd64-013) (gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04.1)) #137-Ubuntu SMP Wed Jun 15 13:33:07 UTC 2022
+--383339-- 
+--383339-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-ssse3-avx-avx2-bmi-f16c-rdrand
+--383339-- Page sizes: currently 4096, max supported 4096
+--383339-- Valgrind library directory: /usr/lib/x86_64-linux-gnu/valgrind
+--383339-- Reading syms from /home/steve/dev/Cork/build/RegressionTest/CorkCLI
+--383339-- Reading syms from /usr/lib/x86_64-linux-gnu/ld-2.31.so
+--383339--   Considering /usr/lib/x86_64-linux-gnu/ld-2.31.so ..
+--383339--   .. CRC mismatch (computed 0306b78c wanted 8d362b37)
+--383339--   Considering /lib/x86_64-linux-gnu/ld-2.31.so ..
+--383339--   .. CRC mismatch (computed 0306b78c wanted 8d362b37)
+--383339--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/ld-2.31.so ..
+--383339--   .. CRC is valid
+--383339-- Reading syms from /usr/lib/x86_64-linux-gnu/valgrind/memcheck-amd64-linux
+--383339--    object doesn't have a symbol table
+--383339--    object doesn't have a dynamic symbol table
+--383339-- Scheduler: using generic scheduler lock implementation.
+--383339-- Reading suppressions file: /usr/lib/x86_64-linux-gnu/valgrind/default.supp
+==383339== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-383339-by-steve-on-???
+==383339== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-383339-by-steve-on-???
+==383339== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-383339-by-steve-on-???
+==383339== 
+==383339== TO CONTROL THIS PROCESS USING vgdb (which you probably
+==383339== don't want to do, unless you know exactly what you're doing,
+==383339== or are doing some strange experiment):
+==383339==   /usr/lib/x86_64-linux-gnu/valgrind/../../bin/vgdb --pid=383339 ...command...
+==383339== 
+==383339== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==383339==   /path/to/gdb /home/steve/dev/Cork/build/RegressionTest/CorkCLI
+==383339== and then give GDB the following command
+==383339==   target remote | /usr/lib/x86_64-linux-gnu/valgrind/../../bin/vgdb --pid=383339
+==383339== --pid is optional if only one valgrind process is running
+==383339== 
+--383339-- REDIR: 0x4022e10 (ld-linux-x86-64.so.2:strlen) redirected to 0x580c9ce2 (???)
+--383339-- REDIR: 0x4022be0 (ld-linux-x86-64.so.2:index) redirected to 0x580c9cfc (???)
+--383339-- Reading syms from /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_core-amd64-linux.so
+--383339--    object doesn't have a symbol table
+--383339-- Reading syms from /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so
+--383339--    object doesn't have a symbol table
+==383339== WARNING: new redirection conflicts with existing -- ignoring it
+--383339--     old: 0x04022e10 (strlen              ) R-> (0000.0) 0x580c9ce2 ???
+--383339--     new: 0x04022e10 (strlen              ) R-> (2007.0) 0x0483f060 strlen
+--383339-- REDIR: 0x401f5f0 (ld-linux-x86-64.so.2:strcmp) redirected to 0x483ffd0 (strcmp)
+--383339-- REDIR: 0x4023370 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4843a20 (mempcpy)
+--383339-- Reading syms from /home/steve/dev/Cork/build/src/libCorklib.so
+--383339-- Reading syms from /usr/local/lib/libboost_program_options.so.1.77.0
+--383339-- Reading syms from /usr/local/lib/libboost_timer.so.1.77.0
+--383339-- Reading syms from /usr/local/lib/libboost_thread.so.1.77.0
+--383339-- Reading syms from /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28
+--383339--    object doesn't have a symbol table
+--383339-- Reading syms from /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+--383339--    object doesn't have a symbol table
+--383339-- Reading syms from /usr/lib/x86_64-linux-gnu/libc-2.31.so
+--383339--   Considering /usr/lib/x86_64-linux-gnu/libc-2.31.so ..
+--383339--   .. CRC mismatch (computed ef41b1a0 wanted f854b801)
+--383339--   Considering /lib/x86_64-linux-gnu/libc-2.31.so ..
+--383339--   .. CRC mismatch (computed ef41b1a0 wanted f854b801)
+--383339--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libc-2.31.so ..
+--383339--   .. CRC is valid
+--383339-- Reading syms from /usr/local/lib/libtbb.so.12
+--383339-- Reading syms from /usr/local/lib/libmpir.so.23.0.3
+--383339-- Reading syms from /usr/lib/x86_64-linux-gnu/libm-2.31.so
+--383339--   Considering /usr/lib/x86_64-linux-gnu/libm-2.31.so ..
+--383339--   .. CRC mismatch (computed 3cfca93f wanted 658b15c9)
+--383339--   Considering /lib/x86_64-linux-gnu/libm-2.31.so ..
+--383339--   .. CRC mismatch (computed 3cfca93f wanted 658b15c9)
+--383339--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libm-2.31.so ..
+--383339--   .. CRC is valid
+--383339-- Reading syms from /usr/lib/x86_64-linux-gnu/libpthread-2.31.so
+--383339--   Considering /usr/lib/debug/.build-id/f0/983025f0e0f327a6da752ff4ffa675e0be393f.debug ..
+--383339--   .. build-id is valid
+--383339-- Reading syms from /usr/local/lib/libboost_chrono.so.1.77.0
+--383339-- Reading syms from /usr/lib/x86_64-linux-gnu/libdl-2.31.so
+--383339--   Considering /usr/lib/x86_64-linux-gnu/libdl-2.31.so ..
+--383339--   .. CRC mismatch (computed 2bb25318 wanted f334bb32)
+--383339--   Considering /lib/x86_64-linux-gnu/libdl-2.31.so ..
+--383339--   .. CRC mismatch (computed 2bb25318 wanted f334bb32)
+--383339--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libdl-2.31.so ..
+--383339--   .. CRC is valid
+--383339-- REDIR: 0x4d124b0 (libc.so.6:memmove) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d117b0 (libc.so.6:strncpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d127e0 (libc.so.6:strcasecmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d110d0 (libc.so.6:strcat) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d11810 (libc.so.6:rindex) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d13c80 (libc.so.6:rawmemchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d2ed10 (libc.so.6:wmemchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d2e850 (libc.so.6:wcscmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d12610 (libc.so.6:mempcpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d12440 (libc.so.6:bcmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d11740 (libc.so.6:strncmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d11180 (libc.so.6:strcmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d12570 (libc.so.6:memset) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d2e810 (libc.so.6:wcschr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d116a0 (libc.so.6:strnlen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d11260 (libc.so.6:strcspn) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d12830 (libc.so.6:strncasecmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d11200 (libc.so.6:strcpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d12980 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d2ff80 (libc.so.6:wcsnlen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d2e890 (libc.so.6:wcscpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d11850 (libc.so.6:strpbrk) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d11130 (libc.so.6:index) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d11660 (libc.so.6:strlen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d1abd0 (libc.so.6:memrchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d12880 (libc.so.6:strcasecmp_l) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d12400 (libc.so.6:memchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d2e960 (libc.so.6:wcslen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d11b10 (libc.so.6:strspn) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d12780 (libc.so.6:stpncpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d12720 (libc.so.6:stpcpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d13cc0 (libc.so.6:strchrnul) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4d128d0 (libc.so.6:strncasecmp_l) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4dfa410 (libc.so.6:__strrchr_avx2) redirected to 0x483ea10 (rindex)
+--383339-- REDIR: 0x4d0c110 (libc.so.6:malloc) redirected to 0x483b780 (malloc)
+--383339-- REDIR: 0x4dfbeb0 (libc.so.6:__strncpy_avx2) redirected to 0x483f230 (strncpy)
+--383339-- REDIR: 0x4dfa5e0 (libc.so.6:__strlen_avx2) redirected to 0x483ef40 (strlen)
+--383339-- REDIR: 0x4d0c700 (libc.so.6:free) redirected to 0x483c9d0 (free)
+--383339-- REDIR: 0x4b1db20 (libstdc++.so.6:operator new(unsigned long)) redirected to 0x483bdf0 (operator new(unsigned long))
+--383339-- REDIR: 0x4df6bd0 (libc.so.6:__memcmp_avx2_movbe) redirected to 0x48421e0 (bcmp)
+--383339-- REDIR: 0x4df5ae0 (libc.so.6:__strcmp_avx2) redirected to 0x483fed0 (strcmp)
+--383339-- REDIR: 0x4dfd5f0 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x48429f0 (memmove)
+--383339-- REDIR: 0x4d0db40 (libc.so.6:calloc) redirected to 0x483dce0 (calloc)
+--383339-- REDIR: 0x4b1bd70 (libstdc++.so.6:operator delete(void*)) redirected to 0x483cf50 (operator delete(void*))
+--383339-- REDIR: 0x4df6440 (libc.so.6:__memchr_avx2) redirected to 0x4840050 (memchr)
+--383339-- REDIR: 0x4dfd5d0 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x4843660 (mempcpy)
+--383339-- REDIR: 0x4b1bd80 (libstdc++.so.6:operator delete(void*, unsigned long)) redirected to 0x483d160 (operator delete(void*, unsigned long))
+--383339-- REDIR: 0x4d11fd0 (libc.so.6:__GI_strstr) redirected to 0x4843ca0 (__strstr_sse2)
+--383339-- REDIR: 0x4b1db80 (libstdc++.so.6:operator new[](unsigned long)) redirected to 0x483c510 (operator new[](unsigned long))
+--383339-- REDIR: 0x4df6710 (libc.so.6:__rawmemchr_avx2) redirected to 0x4843580 (rawmemchr)
+--383339-- REDIR: 0x4d0d280 (libc.so.6:memalign) redirected to 0x483e2a0 (memalign)
+--383339-- REDIR: 0x4b1bda0 (libstdc++.so.6:operator delete[](void*)) redirected to 0x483d6e0 (operator delete[](void*))
+--383339-- REDIR: 0x4dfda70 (libc.so.6:__memset_avx2_unaligned_erms) redirected to 0x48428e0 (memset)
+--383339-- Reading syms from /usr/local/lib/libtbbmalloc.so.2
+--383339-- REDIR: 0x4dfc810 (libc.so.6:__stpcpy_avx2) redirected to 0x4842300 (stpcpy)
+--383339-- REDIR: 0x4dfa220 (libc.so.6:__strchrnul_avx2) redirected to 0x4843540 (strchrnul)
+--383339-- REDIR: 0x4d0ceb0 (libc.so.6:realloc) redirected to 0x483df30 (realloc)
+--383339-- REDIR: 0x4b1bdb0 (libstdc++.so.6:operator delete[](void*, unsigned long)) redirected to 0x483d8f0 (operator delete[](void*, unsigned long))
+--383339-- REDIR: 0x4d9f940 (libc.so.6:__memmove_chk) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--383339-- REDIR: 0x4dfd5e0 (libc.so.6:__memcpy_chk_avx_unaligned_erms) redirected to 0x48434d0 (__memmove_chk)
+==383339== 
+==383339== HEAP SUMMARY:
+==383339==     in use at exit: 6,307 bytes in 17 blocks
+==383339==   total heap usage: 18,209,272 allocs, 18,209,255 frees, 29,655,247,647 bytes allocated
+==383339== 
+==383339== Searching for pointers to 17 not-freed blocks
+==383339== Checked 1,655,713,616 bytes
+==383339== 
+==383339== 33 bytes in 1 blocks are still reachable in loss record 1 of 12
+==383339==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==383339==    by 0x401F5CE: strdup (strdup.c:42)
+==383339==    by 0x400A5A9: _dl_map_object (dl-load.c:2168)
+==383339==    by 0x4015D36: dl_open_worker (dl-open.c:513)
+==383339==    by 0x4DD2837: _dl_catch_exception (dl-error-skeleton.c:208)
+==383339==    by 0x40155F9: _dl_open (dl-open.c:837)
+==383339==    by 0x52D834B: dlopen_doit (dlopen.c:66)
+==383339==    by 0x4DD2837: _dl_catch_exception (dl-error-skeleton.c:208)
+==383339==    by 0x4DD2902: _dl_catch_error (dl-error-skeleton.c:227)
+==383339==    by 0x52D8B58: _dlerror_run (dlerror.c:170)
+==383339==    by 0x52D83D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==383339==    by 0x4E7BE95: tbb::detail::r1::dynamic_load(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long) (dynamic_link.cpp:424)
+==383339== 
+==383339== 33 bytes in 1 blocks are still reachable in loss record 2 of 12
+==383339==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==383339==    by 0x400D5A7: _dl_new_object (dl-object.c:196)
+==383339==    by 0x4006E96: _dl_map_object_from_fd (dl-load.c:997)
+==383339==    by 0x400A61A: _dl_map_object (dl-load.c:2236)
+==383339==    by 0x4015D36: dl_open_worker (dl-open.c:513)
+==383339==    by 0x4DD2837: _dl_catch_exception (dl-error-skeleton.c:208)
+==383339==    by 0x40155F9: _dl_open (dl-open.c:837)
+==383339==    by 0x52D834B: dlopen_doit (dlopen.c:66)
+==383339==    by 0x4DD2837: _dl_catch_exception (dl-error-skeleton.c:208)
+==383339==    by 0x4DD2902: _dl_catch_error (dl-error-skeleton.c:227)
+==383339==    by 0x52D8B58: _dlerror_run (dlerror.c:170)
+==383339==    by 0x52D83D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==383339== 
+==383339== 152 bytes in 1 blocks are still reachable in loss record 3 of 12
+==383339==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==383339==    by 0x48FE7DD: boost::container::vec_iterator<Cork::Meshes::TopoTri const**, false> boost::container::vector<Cork::Meshes::TopoTri const*, boost::container::small_vector_allocator<Cork::Meshes::TopoTri const*, boost::container::new_allocator<void>, void>, void>::priv_insert_forward_range_no_capacity<boost::container::dtl::insert_emplace_proxy<boost::container::small_vector_allocator<Cork::Meshes::TopoTri const*, boost::container::new_allocator<void>, void>, Cork::Meshes::TopoTri const**, Cork::Meshes::TopoTri const*&> >(Cork::Meshes::TopoTri const**, unsigned long, boost::container::dtl::insert_emplace_proxy<boost::container::small_vector_allocator<Cork::Meshes::TopoTri const*, boost::container::new_allocator<void>, void>, Cork::Meshes::TopoTri const**, Cork::Meshes::TopoTri const*&>, boost::move_detail::integral_constant<unsigned int, 1u>) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497CBAD: Cork::Meshes::TopoCacheBase<Cork::Primitives::TriangleByIndicesVector>::init() (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497599F: Cork::Meshes::TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(Cork::Primitives::TriangleByIndicesVector&, Cork::Primitives::Vertex3DVector&, unsigned int, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x4977E00: Cork::Meshes::MeshTopoCache::MeshTopoCache(Cork::Meshes::MeshBase&, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x499E453: Cork::Statistics::TopologicalStatisticsEngine::Analyze(Cork::Statistics::TopologicalProperties) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497EB52: Cork::Meshes::TriangleMeshImpl::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x498A578: Cork::Meshes::TriangleMeshWrapper::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x1115F5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==383339== 
+==383339== 208 bytes in 1 blocks are still reachable in loss record 4 of 12
+==383339==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==383339==    by 0x401540A: add_to_global_resize (dl-open.c:139)
+==383339==    by 0x40163F7: dl_open_worker (dl-open.c:702)
+==383339==    by 0x4DD2837: _dl_catch_exception (dl-error-skeleton.c:208)
+==383339==    by 0x40155F9: _dl_open (dl-open.c:837)
+==383339==    by 0x52D834B: dlopen_doit (dlopen.c:66)
+==383339==    by 0x4DD2837: _dl_catch_exception (dl-error-skeleton.c:208)
+==383339==    by 0x4DD2902: _dl_catch_error (dl-error-skeleton.c:227)
+==383339==    by 0x52D8B58: _dlerror_run (dlerror.c:170)
+==383339==    by 0x52D83D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==383339==    by 0x4E7BE95: tbb::detail::r1::dynamic_load(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long) (dynamic_link.cpp:424)
+==383339==    by 0x4E7BC52: tbb::detail::r1::dynamic_link(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long, void**, int) (dynamic_link.cpp:452)
+==383339== 
+==383339== 240 bytes in 1 blocks are still reachable in loss record 5 of 12
+==383339==    at 0x483DD99: calloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==383339==    by 0x401330A: _dl_check_map_versions (dl-version.c:274)
+==383339==    by 0x40160EC: dl_open_worker (dl-open.c:577)
+==383339==    by 0x4DD2837: _dl_catch_exception (dl-error-skeleton.c:208)
+==383339==    by 0x40155F9: _dl_open (dl-open.c:837)
+==383339==    by 0x52D834B: dlopen_doit (dlopen.c:66)
+==383339==    by 0x4DD2837: _dl_catch_exception (dl-error-skeleton.c:208)
+==383339==    by 0x4DD2902: _dl_catch_error (dl-error-skeleton.c:227)
+==383339==    by 0x52D8B58: _dlerror_run (dlerror.c:170)
+==383339==    by 0x52D83D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==383339==    by 0x4E7BE95: tbb::detail::r1::dynamic_load(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long) (dynamic_link.cpp:424)
+==383339==    by 0x4E7BC52: tbb::detail::r1::dynamic_link(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long, void**, int) (dynamic_link.cpp:452)
+==383339== 
+==383339== 352 bytes in 2 blocks are possibly lost in loss record 6 of 12
+==383339==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==383339==    by 0x499E441: Cork::Statistics::TopologicalStatisticsEngine::Analyze(Cork::Statistics::TopologicalProperties) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497EB52: Cork::Meshes::TriangleMeshImpl::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x498A578: Cork::Meshes::TriangleMeshWrapper::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x1115F5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==383339== 
+==383339== 384 bytes in 1 blocks are still reachable in loss record 7 of 12
+==383339==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==383339==    by 0x48FE7DD: boost::container::vec_iterator<Cork::Meshes::TopoTri const**, false> boost::container::vector<Cork::Meshes::TopoTri const*, boost::container::small_vector_allocator<Cork::Meshes::TopoTri const*, boost::container::new_allocator<void>, void>, void>::priv_insert_forward_range_no_capacity<boost::container::dtl::insert_emplace_proxy<boost::container::small_vector_allocator<Cork::Meshes::TopoTri const*, boost::container::new_allocator<void>, void>, Cork::Meshes::TopoTri const**, Cork::Meshes::TopoTri const*&> >(Cork::Meshes::TopoTri const**, unsigned long, boost::container::dtl::insert_emplace_proxy<boost::container::small_vector_allocator<Cork::Meshes::TopoTri const*, boost::container::new_allocator<void>, void>, Cork::Meshes::TopoTri const**, Cork::Meshes::TopoTri const*&>, boost::move_detail::integral_constant<unsigned int, 1u>) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497CB68: Cork::Meshes::TopoCacheBase<Cork::Primitives::TriangleByIndicesVector>::init() (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497599F: Cork::Meshes::TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(Cork::Primitives::TriangleByIndicesVector&, Cork::Primitives::Vertex3DVector&, unsigned int, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x4977E00: Cork::Meshes::MeshTopoCache::MeshTopoCache(Cork::Meshes::MeshBase&, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x499E453: Cork::Statistics::TopologicalStatisticsEngine::Analyze(Cork::Statistics::TopologicalProperties) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497EB52: Cork::Meshes::TriangleMeshImpl::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x498A578: Cork::Meshes::TriangleMeshWrapper::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x1115F5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==383339== 
+==383339== 448 bytes in 2 blocks are possibly lost in loss record 8 of 12
+==383339==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==383339==    by 0x4976A31: Cork::Meshes::TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(Cork::Primitives::TriangleByIndicesVector&, Cork::Primitives::Vertex3DVector&, unsigned int, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x4977E00: Cork::Meshes::MeshTopoCache::MeshTopoCache(Cork::Meshes::MeshBase&, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x499E453: Cork::Statistics::TopologicalStatisticsEngine::Analyze(Cork::Statistics::TopologicalProperties) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497EB52: Cork::Meshes::TriangleMeshImpl::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x498A578: Cork::Meshes::TriangleMeshWrapper::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x1115F5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==383339== 
+==383339== 512 bytes in 1 blocks are still reachable in loss record 9 of 12
+==383339==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==383339==    by 0x48FEA4D: boost::container::vec_iterator<Cork::Meshes::TopoEdge const**, false> boost::container::vector<Cork::Meshes::TopoEdge const*, boost::container::small_vector_allocator<Cork::Meshes::TopoEdge const*, boost::container::new_allocator<void>, void>, void>::priv_insert_forward_range_no_capacity<boost::container::dtl::insert_emplace_proxy<boost::container::small_vector_allocator<Cork::Meshes::TopoEdge const*, boost::container::new_allocator<void>, void>, Cork::Meshes::TopoEdge const**, Cork::Meshes::TopoEdge const*&> >(Cork::Meshes::TopoEdge const**, unsigned long, boost::container::dtl::insert_emplace_proxy<boost::container::small_vector_allocator<Cork::Meshes::TopoEdge const*, boost::container::new_allocator<void>, void>, Cork::Meshes::TopoEdge const**, Cork::Meshes::TopoEdge const*&>, boost::move_detail::integral_constant<unsigned int, 1u>) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497D758: Cork::Meshes::TopoCacheBase<Cork::Primitives::TriangleByIndicesVector>::init() (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497599F: Cork::Meshes::TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(Cork::Primitives::TriangleByIndicesVector&, Cork::Primitives::Vertex3DVector&, unsigned int, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x4977E00: Cork::Meshes::MeshTopoCache::MeshTopoCache(Cork::Meshes::MeshBase&, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x499E453: Cork::Statistics::TopologicalStatisticsEngine::Analyze(Cork::Statistics::TopologicalProperties) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497EB52: Cork::Meshes::TriangleMeshImpl::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x498A578: Cork::Meshes::TriangleMeshWrapper::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x1115F5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==383339== 
+==383339== 1,217 bytes in 1 blocks are still reachable in loss record 10 of 12
+==383339==    at 0x483DD99: calloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==383339==    by 0x400D273: _dl_new_object (dl-object.c:89)
+==383339==    by 0x4006E96: _dl_map_object_from_fd (dl-load.c:997)
+==383339==    by 0x400A61A: _dl_map_object (dl-load.c:2236)
+==383339==    by 0x4015D36: dl_open_worker (dl-open.c:513)
+==383339==    by 0x4DD2837: _dl_catch_exception (dl-error-skeleton.c:208)
+==383339==    by 0x40155F9: _dl_open (dl-open.c:837)
+==383339==    by 0x52D834B: dlopen_doit (dlopen.c:66)
+==383339==    by 0x4DD2837: _dl_catch_exception (dl-error-skeleton.c:208)
+==383339==    by 0x4DD2902: _dl_catch_error (dl-error-skeleton.c:227)
+==383339==    by 0x52D8B58: _dlerror_run (dlerror.c:170)
+==383339==    by 0x52D83D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
+==383339== 
+==383339== 1,304 bytes in 1 blocks are still reachable in loss record 11 of 12
+==383339==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==383339==    by 0x48FEA4D: boost::container::vec_iterator<Cork::Meshes::TopoEdge const**, false> boost::container::vector<Cork::Meshes::TopoEdge const*, boost::container::small_vector_allocator<Cork::Meshes::TopoEdge const*, boost::container::new_allocator<void>, void>, void>::priv_insert_forward_range_no_capacity<boost::container::dtl::insert_emplace_proxy<boost::container::small_vector_allocator<Cork::Meshes::TopoEdge const*, boost::container::new_allocator<void>, void>, Cork::Meshes::TopoEdge const**, Cork::Meshes::TopoEdge const*&> >(Cork::Meshes::TopoEdge const**, unsigned long, boost::container::dtl::insert_emplace_proxy<boost::container::small_vector_allocator<Cork::Meshes::TopoEdge const*, boost::container::new_allocator<void>, void>, Cork::Meshes::TopoEdge const**, Cork::Meshes::TopoEdge const*&>, boost::move_detail::integral_constant<unsigned int, 1u>) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497D72B: Cork::Meshes::TopoCacheBase<Cork::Primitives::TriangleByIndicesVector>::init() (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497599F: Cork::Meshes::TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(Cork::Primitives::TriangleByIndicesVector&, Cork::Primitives::Vertex3DVector&, unsigned int, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x4977E00: Cork::Meshes::MeshTopoCache::MeshTopoCache(Cork::Meshes::MeshBase&, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x499E453: Cork::Statistics::TopologicalStatisticsEngine::Analyze(Cork::Statistics::TopologicalProperties) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497EB52: Cork::Meshes::TriangleMeshImpl::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x498A578: Cork::Meshes::TriangleMeshWrapper::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x1115F5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==383339== 
+==383339== 1,424 bytes in 4 blocks are still reachable in loss record 12 of 12
+==383339==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==383339==    by 0x48FE7DD: boost::container::vec_iterator<Cork::Meshes::TopoTri const**, false> boost::container::vector<Cork::Meshes::TopoTri const*, boost::container::small_vector_allocator<Cork::Meshes::TopoTri const*, boost::container::new_allocator<void>, void>, void>::priv_insert_forward_range_no_capacity<boost::container::dtl::insert_emplace_proxy<boost::container::small_vector_allocator<Cork::Meshes::TopoTri const*, boost::container::new_allocator<void>, void>, Cork::Meshes::TopoTri const**, Cork::Meshes::TopoTri const*&> >(Cork::Meshes::TopoTri const**, unsigned long, boost::container::dtl::insert_emplace_proxy<boost::container::small_vector_allocator<Cork::Meshes::TopoTri const*, boost::container::new_allocator<void>, void>, Cork::Meshes::TopoTri const**, Cork::Meshes::TopoTri const*&>, boost::move_detail::integral_constant<unsigned int, 1u>) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497CB88: Cork::Meshes::TopoCacheBase<Cork::Primitives::TriangleByIndicesVector>::init() (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497599F: Cork::Meshes::TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(Cork::Primitives::TriangleByIndicesVector&, Cork::Primitives::Vertex3DVector&, unsigned int, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x4977E00: Cork::Meshes::MeshTopoCache::MeshTopoCache(Cork::Meshes::MeshBase&, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x499E453: Cork::Statistics::TopologicalStatisticsEngine::Analyze(Cork::Statistics::TopologicalProperties) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x497EB52: Cork::Meshes::TriangleMeshImpl::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x498A578: Cork::Meshes::TriangleMeshWrapper::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==383339==    by 0x1115F5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==383339== 
+==383339== LEAK SUMMARY:
+==383339==    definitely lost: 0 bytes in 0 blocks
+==383339==    indirectly lost: 0 bytes in 0 blocks
+==383339==      possibly lost: 800 bytes in 4 blocks
+==383339==    still reachable: 5,507 bytes in 13 blocks
+==383339==         suppressed: 0 bytes in 0 blocks
+==383339== 
+==383339== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)

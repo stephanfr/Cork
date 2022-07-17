@@ -31,8 +31,6 @@
 
 namespace Cork::AABVH
 {
-    // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-
     // precondition: begin <= select < end
 
     inline void AxisAlignedBoundingVolumeHierarchy::QuickSelect(size_t select, size_t begin, size_t end, size_t dim)
@@ -91,14 +89,12 @@ namespace Cork::AABVH
         }
     };
 
-    // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-
 
     // process range of tmpids including begin, excluding end
     // last_dim provides a hint by saying which dimension a
     // split was last made along
 
-    AABVHNode* AxisAlignedBoundingVolumeHierarchy::ConstructTree(size_t begin, size_t end, size_t lastDim)
+    AABVHNode* AxisAlignedBoundingVolumeHierarchy::ConstructTree(size_t begin, size_t end, size_t last_dim)
     {
         constexpr int INITIAL_NODE_LIST_SIZE = 8;
 
@@ -106,7 +102,7 @@ namespace Cork::AABVH
 
         // base case
 
-        if (end - begin <= LEAF_SIZE)
+        if (end - begin <= MAXIMUM_LEAF_SIZE)
         {
             AABVHNodeList& node_list = node_collections_.getNodeList(INITIAL_NODE_LIST_SIZE);
 
@@ -127,7 +123,7 @@ namespace Cork::AABVH
 
         // otherwise, let's try to split this geometry up
 
-        size_t dim = (lastDim + 1) % 3;
+        size_t dim = (last_dim + 1) % 3;
         size_t mid = (begin + end) / 2;
 
         QuickSelect(mid, begin, end, dim);
@@ -142,11 +138,11 @@ namespace Cork::AABVH
             //	Recurse - but by splitting into a pair of tasks
 
             task_group.run([&] {
-                node1 = ConstructTreeRecursive(node_collections_.getNodeList((end - begin) / (LEAF_SIZE / 2)), begin,
+                node1 = ConstructTreeRecursive(node_collections_.getNodeList((end - begin) / (MAXIMUM_LEAF_SIZE / 2)), begin,
                                                mid, dim);
             });
             node2 =
-                ConstructTreeRecursive(node_collections_.getNodeList((end - begin) / (LEAF_SIZE / 2)), mid, end, dim);
+                ConstructTreeRecursive(node_collections_.getNodeList((end - begin) / (MAXIMUM_LEAF_SIZE / 2)), mid, end, dim);
 
             //	Wait for the two tasks to complete
 
@@ -157,9 +153,9 @@ namespace Cork::AABVH
             //	Recurse directly
 
             node1 =
-                ConstructTreeRecursive(node_collections_.getNodeList((end - begin) / (LEAF_SIZE / 2)), begin, mid, dim);
+                ConstructTreeRecursive(node_collections_.getNodeList((end - begin) / (MAXIMUM_LEAF_SIZE / 2)), begin, mid, dim);
             node2 =
-                ConstructTreeRecursive(node_collections_.getNodeList((end - begin) / (LEAF_SIZE / 2)), mid, end, dim);
+                ConstructTreeRecursive(node_collections_.getNodeList((end - begin) / (MAXIMUM_LEAF_SIZE / 2)), mid, end, dim);
         }
 
         //	Create the final node and set the bounding box
@@ -183,7 +179,7 @@ namespace Cork::AABVH
 
         // base case
 
-        if (end - begin <= LEAF_SIZE)
+        if (end - begin <= MAXIMUM_LEAF_SIZE)
         {
             node_storage.emplace_back();
             AABVHNode* node = &node_storage.back();
@@ -220,3 +216,4 @@ namespace Cork::AABVH
         return node;
     };
 }  // namespace Cork::AABVH
+

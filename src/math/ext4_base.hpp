@@ -27,7 +27,7 @@ namespace Cork::Math::ExteriorCalculusR4
     namespace Constants
     {
         constexpr double DOUBLE_ONE = 1.0;
-    }
+    }   // Constants
 
     namespace Bases
     {
@@ -85,11 +85,11 @@ namespace Cork::Math::ExteriorCalculusR4
             {
             }
 
-            explicit Ext4_1Base(const Ext4_1Base &ext_to_copy) = default;
-            explicit Ext4_1Base(Ext4_1Base &&ext_to_copy) = default;
+            Ext4_1Base(const Ext4_1Base &ext_to_copy) = default;
+            Ext4_1Base(Ext4_1Base &&ext_to_copy) noexcept = default;
 
             Ext4_1Base &operator=(const Ext4_1Base &ext_to_copy) = default;
-            Ext4_1Base &operator=(Ext4_1Base &&ext_to_move) = default;
+            Ext4_1Base &operator=(Ext4_1Base &&ext_to_move) noexcept = default;
 
             T e0_;
             T e1_;
@@ -104,6 +104,9 @@ namespace Cork::Math::ExteriorCalculusR4
         class Ext4_2Base
         {
            public:
+
+            ~Ext4_2Base() = default;
+
             //  Operators
 
             [[nodiscard]] T &operator[](size_t index)
@@ -157,10 +160,10 @@ namespace Cork::Math::ExteriorCalculusR4
             }
 
             Ext4_2Base(const Ext4_2Base &ext_to_copy) = default;
-            Ext4_2Base(Ext4_2Base &&ext_to_copy) = default;
+            Ext4_2Base(Ext4_2Base &&ext_to_copy) noexcept = default;
 
             Ext4_2Base &operator=(const Ext4_2Base &ext_to_copy) = default;
-            Ext4_2Base &operator=(Ext4_2Base &&ext_to_move) = default;
+            Ext4_2Base &operator=(Ext4_2Base &&ext_to_move) noexcept = default;
 
             T e01_;
             T e02_;
@@ -177,6 +180,9 @@ namespace Cork::Math::ExteriorCalculusR4
         class Ext4_3Base
         {
            public:
+
+            ~Ext4_3Base() = default;
+
             //  Accessors
 
             [[nodiscard]] T e012() const { return e012_; }
@@ -222,10 +228,10 @@ namespace Cork::Math::ExteriorCalculusR4
             Ext4_3Base(T e012, T e013, T e023, T e123) : e012_(e012), e013_(e013), e023_(e023), e123_(e123) {}
 
             Ext4_3Base(const Ext4_3Base &ext_to_copy) = default;
-            Ext4_3Base(Ext4_3Base &&ext_to_copy) = default;
+            Ext4_3Base(Ext4_3Base &&ext_to_copy) noexcept = default;
 
             Ext4_3Base &operator=(const Ext4_3Base &ext_to_copy) = default;
-            Ext4_3Base &operator=(Ext4_3Base &&ext_to_move) = default;
+            Ext4_3Base &operator=(Ext4_3Base &&ext_to_move) noexcept = default;
 
             T e012_;
             T e013_;
@@ -265,4 +271,4 @@ namespace Cork::Math::ExteriorCalculusR4
     using Ext4_3Base = Bases::Ext4_3Base<double>;
     using AbsExt4_3Base = Bases::Ext4_3Base<double>;
 
-}  // namespace Cork::ExteriorCalculusR4
+}  // namespace Cork::Math::ExteriorCalculusR4

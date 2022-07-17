@@ -25,9 +25,7 @@
 // +-------------------------------------------------------------------------
 #pragma once
 
-#include "tbb/tbb.h"
-
-#include "util/managed_intrusive_list.hpp"
+#include "intersection_problem_base.hpp"
 #include "triangulator.hpp"
 
 
@@ -49,9 +47,9 @@ namespace Cork::Intersection
         TriangleProblem(IntersectionProblemBase& iprob, const TopoTri& triangle)
             : m_iprob(iprob),
               m_triangle(triangle),
-              m_iverts(iprob.workspace()),
-              m_iedges(iprob.workspace()),
-              m_gtris(iprob.workspace())
+              m_iverts(iprob.workspace().getIsctVertexPointerListPool()),
+              m_iedges(iprob.workspace().getIsctEdgePointerListPool()),
+              m_gtris(iprob.workspace().getGenericTriPointerListPool())
         {
             //	m_triangle can be const... just about everywhere.  This link is the only non-const operation,
             //		so let's explicitly cast away the const here but leave it everytwhere else.
