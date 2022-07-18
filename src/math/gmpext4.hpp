@@ -64,7 +64,7 @@ namespace Cork::Math::ExteriorCalculusR4
         GMPExt4_1() = default;
 
         GMPExt4_1(const GMPExt4_1 &ext_to_copy) : GMPExt4_1Base(ext_to_copy) {}
-        GMPExt4_1(GMPExt4_1 &&ext_to_move) noexcept : GMPExt4_1Base(ext_to_move) {}
+        GMPExt4_1(GMPExt4_1 &&ext_to_move) noexcept : GMPExt4_1Base(std::move(ext_to_move)) {}
 
         GMPExt4_1 &operator=(const GMPExt4_1 &ext_to_copy) = default;
         GMPExt4_1 &operator=(GMPExt4_1 &&ext_to_move) = default;

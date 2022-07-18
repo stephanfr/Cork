@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include "../constants.hpp"
+
 #include <boost/container/static_vector.hpp>
 
 #include "util/caching_factory.hpp"
@@ -39,50 +41,63 @@ namespace Cork::Meshes
     //	The TIDs vector length never seems to go beyond 4 but I will double that just to be sure
     //		as static vectors will return junk if they pass beyond their limit.
 
-    static constexpr int EGRAPH_ENTRY_TIDS_VEC_LENGTH = 8;
-
     using EGraphEntryTIDVector = boost::container::static_vector<TriangleByIndicesIndex, EGRAPH_ENTRY_TIDS_VEC_LENGTH>;
 
     class EGraphEntry : public SEFUtility::SparseVectorEntry
     {
        public:
-        EGraphEntry(IndexType index) : SEFUtility::SparseVectorEntry(index), vertex_id_(index) {}
+        EGraphEntry() = delete;
+        EGraphEntry( const EGraphEntry& ) = default;
+        EGraphEntry( EGraphEntry&& ) = default;
 
-        IndexType vid() const { return (vertex_id_); }
+        explicit EGraphEntry(IndexType index) : SEFUtility::SparseVectorEntry(index), vertex_id_(index) {}
 
-        const EGraphEntryTIDVector& tids() const { return (triangle_ids_); }
+        ~EGraphEntry() = default;
 
-        EGraphEntryTIDVector& tids() { return (triangle_ids_); }
+        EGraphEntry& operator=( const EGraphEntry& ) = delete;
+        EGraphEntry& operator=( EGraphEntry&& ) = delete;
 
-        bool intersects() const { return (intersects_); }
+        [[nodiscard]] IndexType vid() const { return (vertex_id_); }
+
+        [[nodiscard]] const EGraphEntryTIDVector& tids() const { return (triangle_ids_); }
+
+        [[nodiscard]] EGraphEntryTIDVector& tids() { return (triangle_ids_); }
+
+        [[nodiscard]] bool intersects() const { return (intersects_); }
 
         void set_intersects(bool newValue) { intersects_ = newValue; }
 
        private:
         IndexType vertex_id_;
         EGraphEntryTIDVector triangle_ids_;
-        bool intersects_;
+        bool intersects_{false};
     };
 
     class EGraphCache
     {
        public:
-        using EGraphSkeletonColumn = SEFUtility::SparseVector<EGraphEntry, 10>;
+        using EGraphSkeletonColumn = SEFUtility::SparseVector<EGraphEntry, EGRAPH_CACHE_SKELETON_COLUMN_INITIAL_SIZE>;
         using SkeletonColumnVector = SEFUtility::ConstructOnceResizeableVector<EGraphSkeletonColumn>;
 
         EGraphCache() : skeleton_column_vector_(SEFUtility::CachingFactory<SkeletonColumnVector>::GetInstance()), skeleton_(*skeleton_column_vector_) {}
 
-        ~EGraphCache() {}
+        EGraphCache( const EGraphCache& ) = delete;
+        EGraphCache( EGraphCache&& ) = delete;
+
+        ~EGraphCache() = default;
+
+        EGraphCache& operator=( const EGraphCache& ) = delete;
+        EGraphCache& operator=( EGraphCache&& ) = delete;
 
         void resize(size_t newSize) { skeleton_.resize(newSize); }
 
-        const SkeletonColumnVector& columns() const { return (skeleton_); }
+        [[nodiscard]] const SkeletonColumnVector& columns() const { return (skeleton_); }
 
-        SkeletonColumnVector& columns() { return (skeleton_); }
+        [[nodiscard]] SkeletonColumnVector& columns() { return (skeleton_); }
 
-        EGraphSkeletonColumn& operator[](VertexIndex index) { return (skeleton_[VertexIndex::integer_type(index)]); }
+        [[nodiscard]] EGraphSkeletonColumn& operator[](VertexIndex index) { return (skeleton_[VertexIndex::integer_type(index)]); }
 
-        const EGraphSkeletonColumn& operator[](VertexIndex index) const { return (skeleton_[VertexIndex::integer_type(index)]); }
+        [[nodiscard]] const EGraphSkeletonColumn& operator[](VertexIndex index) const { return (skeleton_[VertexIndex::integer_type(index)]); }
 
        private:
 

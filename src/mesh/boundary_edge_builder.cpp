@@ -54,7 +54,7 @@ namespace Cork::Meshes
         return extract_boundaries(edge_counts.edges_and_incidences());
     }
 
-    ExtractBoundariesResult BoundaryEdgeBuilder::extract_boundaries(const EdgeIncidenceSet& region_edges)
+    ExtractBoundariesResult BoundaryEdgeBuilder::extract_boundaries( const EdgeIncidenceSet& region_edges)
     {
         //  Return immediately with an empty list if there are no edges
 
@@ -67,11 +67,14 @@ namespace Cork::Meshes
 
         std::vector<EdgeByIndices> edges;
 
-        for (auto edge : region_edges)
+        for (const auto& edge_and_incidence_count : region_edges)
         {
-            if (edge.numIncidences() == 1)
+            if (edge_and_incidence_count.numIncidences() == 1)
             {
-                edges.emplace_back(mesh_.triangles()[edge.triangles()[0U].first].edge(edge.triangles()[0U].second));
+                TriangleByIndicesIndex  tri_index = edge_and_incidence_count.triangles()[0U].first;
+                TriangleEdgeId edge_id = edge_and_incidence_count.triangles()[0U].second;
+
+                edges.emplace_back(mesh_.triangles()[tri_index].edge(edge_id));
             }
         }
 
@@ -209,7 +212,7 @@ namespace Cork::Meshes
 
         auto result = std::make_unique<std::vector<BoundaryEdge>>();
 
-        for( auto current_boundary : *boundaries )
+        for( const auto& current_boundary : *boundaries )
         {
             Vertex3DVector      vertices;
             VertexIndexVector   vertex_indices;

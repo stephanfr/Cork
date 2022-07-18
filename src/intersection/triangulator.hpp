@@ -27,6 +27,8 @@
 
 #include <cstdint>
 
+#include "../constants.hpp"
+
 #include "CPPResult.hpp"
 #include "math/normal_projector.hpp"
 #include "primitives/primitives.hpp"
@@ -37,12 +39,12 @@ namespace Cork::Triangulator
     class Point
     {
        public:
-        Point(Vertex2D vertex, bool boundary) : x_(vertex.x()), y_(vertex.y()), boundary_(boundary) {}
+        Point(const Vertex2D& vertex, bool boundary) : x_(vertex.x()), y_(vertex.y()), boundary_(boundary) {}
         Point(double x, double y, bool boundary) : x_(x), y_(y), boundary_(boundary) {}
 
         [[nodiscard]] double x() const { return x_; }
         [[nodiscard]] double y() const { return y_; }
-        [[nodiscard]] const std::pair<double, double>& pair() const { return reinterpret_cast<const std::pair<double, double>&>(x_); }
+        [[nodiscard]] const std::pair<double, double>& pair() const { return reinterpret_cast<const std::pair<double, double>&>(x_); }  //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         [[nodiscard]] bool boundary() const { return boundary_; }
 
        private:
@@ -59,7 +61,7 @@ namespace Cork::Triangulator
 
         [[nodiscard]] int start() const { return start_; }
         [[nodiscard]] int end() const { return end_; }
-        [[nodiscard]] const std::pair<int, int>& pair() const { return reinterpret_cast<const std::pair<int, int>&>(start_); }
+        [[nodiscard]] const std::pair<int, int>& pair() const { return reinterpret_cast<const std::pair<int, int>&>(start_); }  //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         [[nodiscard]] bool boundary() const { return boundary_; }
 
        private:
@@ -101,10 +103,8 @@ namespace Cork::Triangulator
     class Triangulator
     {
        public:
-        static constexpr size_t MAX_POINTS = 2048;
 
-        Triangulator()
-            : number_of_points_(0), number_of_segments_(0), too_many_points_(false), too_many_segments_(false){};
+        Triangulator() = default;
         Triangulator(const Triangulator&) = delete;
         Triangulator(Triangulator&&) = delete;
 
@@ -115,12 +115,12 @@ namespace Cork::Triangulator
 
         [[nodiscard]] TriangulationResultCodes will_problem_fit(uint32_t num_points, uint32_t num_segments)
         {
-            if (num_points >= MAX_POINTS)
+            if (num_points >= MAX_TRIANGULATION_POINTS)
             {
                 return TriangulationResultCodes::TOO_MANY_POINTS;
             }
 
-            if (num_segments >= MAX_POINTS)
+            if (num_segments >= MAX_TRIANGULATION_POINTS)
             {
                 return TriangulationResultCodes::TOO_MANY_SEGMENTS;
             }
@@ -147,7 +147,7 @@ namespace Cork::Triangulator
             points_[number_of_points_].first = vertex.x();
             points_[number_of_points_].second = vertex.y();
 
-            point_markers_[number_of_points_++] = boundary;
+            point_markers_[number_of_points_++] = static_cast<int>(boundary);
         }
 
         void add_point(double x, double y, bool boundary)
@@ -155,16 +155,18 @@ namespace Cork::Triangulator
             points_[number_of_points_].first = x;
             points_[number_of_points_].second = y;
 
-            point_markers_[number_of_points_++] = boundary;
+            point_markers_[number_of_points_++] = static_cast<int>(boundary);
         }
 
         void add_point(const Primitives::Vector3D& point, bool boundary, const Math::NormalProjector& projector)
         {
             points_[number_of_points_].first = point[projector.proj_dim0()];
+            
             points_[number_of_points_].second = projector.flip_sign()
                                                     ? point[projector.proj_dim1()] * projector.sign_flip()
                                                     : point[projector.proj_dim1()];
-            point_markers_[number_of_points_++] = boundary;
+
+            point_markers_[number_of_points_++] = static_cast<int>(boundary);
         }
 
         void add_segment(Segment segment)
@@ -179,19 +181,19 @@ namespace Cork::Triangulator
             segment_markers_[number_of_segments_++] = boundary ? 1 : 0;
         }
 
-        [[nodiscard]] const std::array<std::pair<double, double>, MAX_POINTS + 1>& points() const { return points_; }
+        [[nodiscard]] const std::array<std::pair<double, double>, MAX_TRIANGULATION_POINTS + 1>& points() const { return points_; }
 
         [[nodiscard]] TriangulateResult compute_triangulation();
 
        private:
-        bool too_many_points_;
-        bool too_many_segments_;
-        uint32_t number_of_points_;
-        uint32_t number_of_segments_;
+        bool too_many_points_{false};
+        bool too_many_segments_{false};
+        uint32_t number_of_points_{0};
+        uint32_t number_of_segments_{0};
 
-        std::array<std::pair<double, double>, MAX_POINTS + 1> points_;
-        std::array<int, MAX_POINTS + 1> point_markers_;
-        std::array<std::pair<int, int>, MAX_POINTS + 1> segments_;
-        std::array<int, MAX_POINTS + 1> segment_markers_;
+        std::array<std::pair<double, double>, MAX_TRIANGULATION_POINTS + 1> points_;    //  NOLINT
+        std::array<int, MAX_TRIANGULATION_POINTS + 1> point_markers_;                   //  NOLINT
+        std::array<std::pair<int, int>, MAX_TRIANGULATION_POINTS + 1> segments_;        //  NOLINT
+        std::array<int, MAX_TRIANGULATION_POINTS + 1> segment_markers_;                 //  NOLINT
     };
 }  // namespace Cork::Triangulator

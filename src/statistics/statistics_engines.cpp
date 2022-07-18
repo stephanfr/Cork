@@ -94,7 +94,7 @@ namespace Cork::Statistics
     {}
 
     TopologicalStatisticsEngineAnalyzeResult TopologicalStatisticsEngine::Analyze(
-        TopologicalProperties props_to_compute)
+        TopologicalProperties props_to_compute) const
     {
         //  First, look for non 2 manifold edges
 

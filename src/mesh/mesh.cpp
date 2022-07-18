@@ -65,7 +65,7 @@ namespace Cork::Meshes
 
                         for (TriangleByIndicesIndex tid : entry.tids())
                         {
-                            if ((*tris_)[tid].bool_alg_data() & 1)
+                            if ((*tris_)[tid].bool_alg_data() & 1U)
                             {
                                 tid1s.push_back(tid);
                             }
@@ -102,7 +102,7 @@ namespace Cork::Meshes
         Ray3DWithInverseDirection directionRay(
             p, Vector3D::randomVector(0.5, 1.5));  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
-        long winding = 0;
+        int64_t winding = 0;
 
         //	Pass all triangles over ray
         //		Check for intersections with the triangle's bounding box to cull before the more
@@ -112,7 +112,7 @@ namespace Cork::Meshes
         {
             // ignore triangles from the same operand surface
 
-            if ((tri.bool_alg_data() & 1) == operand)
+            if ((tri.bool_alg_data() & 1U) == operand)
             {
                 continue;
             }
@@ -136,7 +136,7 @@ namespace Cork::Meshes
         return (winding > 0);
     }
 
-    inline void Mesh::RayTriangleIntersection(const TriangleByIndices& tri, Ray3D& r, long& winding)
+    inline void Mesh::RayTriangleIntersection(const TriangleByIndices& tri, Ray3D& r, int64_t& winding)
     {
         NUMERIC_PRECISION flip = 1.0;
 
@@ -208,7 +208,7 @@ namespace Cork::Meshes
 
         //	Fill the triangles
 
-        for (TriangleByIndicesIndex i = 0u; i < inputMesh.triangles().size(); i++)
+        for (TriangleByIndicesIndex i = 0U; i < inputMesh.triangles().size(); i++)
         {
             tris_->emplace_back(inputMesh.triangles()[i], 0);
         }
@@ -218,15 +218,17 @@ namespace Cork::Meshes
 
     Mesh::~Mesh() {}
 
-    void Mesh::operator=(Mesh&& src)
+    Mesh& Mesh::operator=(Mesh&& src) noexcept
     {
         tris_ = src.tris_;
         verts_ = src.verts_;
+
+        return *this;
     }
 
     bool Mesh::valid() const
     {
-        for (VertexIndex i = 0u; i < verts_->size(); i++)
+        for (VertexIndex i = 0U; i < verts_->size(); i++)
         {
             if (!std::isfinite((*verts_)[i].x()) || !std::isfinite((*verts_)[i].y()) ||
                 !std::isfinite((*verts_)[i].z()))
@@ -275,7 +277,7 @@ namespace Cork::Meshes
         verts_->resize(newVsize);
         tris_->resize(newTsize);
 
-        for (VertexIndex i = 0u; i < cpVsize; i++)
+        for (VertexIndex i = 0U; i < cpVsize; i++)
         {
             (*verts_)[oldVsize + i] = (*(meshToMerge.verts_))[i];
         }
@@ -298,8 +300,8 @@ namespace Cork::Meshes
 
         DisjointUnion(rhs);
 
-        performance_stats_.set_number_of_triangles_in_disjoint_union((unsigned long)this->tris_->size());
-        control_block_.set_num_triangles((unsigned long)this->tris_->size());
+        performance_stats_.set_number_of_triangles_in_disjoint_union((uint64_t)this->tris_->size());
+        control_block_.set_num_triangles((uint64_t)this->tris_->size());
 
         if (this->tris_->size() >= MAX_TRIANGLES_IN_DISJOINT_UNION)
         {
@@ -497,7 +499,7 @@ namespace Cork::Meshes
 
         // we re-organize the results of the union find as follows:
 
-        std::vector<long> uq_ids(tris_->size(), long(-1));
+        std::vector<int64_t> uq_ids(tris_->size(), int64_t(-1));
         std::unique_ptr<ComponentList> components(new ComponentList);
 
         components->reserve(256);
@@ -513,17 +515,20 @@ namespace Cork::Meshes
 
             retry:
 
-                if (uq_ids[ufid] == long(-1))
+                if (uq_ids[ufid] == int64_t(-1))
                 {
                     std::lock_guard<std::mutex> lock(vectorLock);
 
-                    if (uq_ids[ufid] != long(-1)) goto retry;
+                    if (uq_ids[ufid] != int64_t(-1))
+                    {
+                        goto retry;        //  NOLINT
+                    }
 
                     size_t N = components->size();
                     components->emplace_back();
                     //					(*components)[N].reserve(512);
 
-                    uq_ids[ufid] = uq_ids[i] = (long)N;
+                    uq_ids[ufid] = uq_ids[i] = (int64_t)N;
                     (*components)[N].push_back(i);
                 }
                 else
@@ -635,7 +640,7 @@ namespace Cork::Meshes
                 VertexIndex a = (*tris_)[curr_tid][k];
                 VertexIndex b = (*tris_)[curr_tid][(k + 1) % 3];
 
-                auto& entry = ecache[VertexIndex::integer_type(a)][VertexIndex::integer_type(b)];
+                const auto& entry = ecache[VertexIndex::integer_type(a)][VertexIndex::integer_type(b)];
 
                 uint32_t inside_sig = (*tris_)[curr_tid].bool_alg_data() & 2;
 
@@ -713,7 +718,7 @@ namespace Cork::Meshes
         return best_tid;
     }
 
-    void Mesh::doDeleteAndFlip(std::function<TriCode(uint32_t bool_alg_data)> classify)
+    void Mesh::doDeleteAndFlip(const std::function<TriCode(uint32_t bool_alg_data)>& classify)
     {
         Math::Quantizer::GetQuantizerResult get_quantizer_result = quantizer();
 
@@ -744,7 +749,7 @@ namespace Cork::Meshes
             }
         }
 
-        for (auto tptr : toDelete)
+        for (auto* tptr : toDelete)
         {
             topocache.delete_tri(tptr);
         }
@@ -799,7 +804,7 @@ namespace Cork::Meshes
         resultMesh->performance_stats_.set_elapsed_wall_time_in_nano_seconds(elapsedTime.elapsed().wall);
 
         resultMesh->performance_stats_.set_number_of_triangles_in_final_mesh(
-            (unsigned long)resultMesh->triangles().size());
+            (uint64_t)resultMesh->triangles().size());
         //		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
 
         //	Finished with success
@@ -858,7 +863,7 @@ namespace Cork::Meshes
         resultMesh->performance_stats_.set_elapsed_wall_time_in_nano_seconds(elapsedTime.elapsed().wall);
 
         resultMesh->performance_stats_.set_number_of_triangles_in_final_mesh(
-            (unsigned long)resultMesh->triangles().size());
+            (uint64_t)resultMesh->triangles().size());
         //		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
 
         //	Finished with success
@@ -915,7 +920,7 @@ namespace Cork::Meshes
         resultMesh->performance_stats_.set_elapsed_wall_time_in_nano_seconds(elapsedTime.elapsed().wall);
 
         resultMesh->performance_stats_.set_number_of_triangles_in_final_mesh(
-            (unsigned long)resultMesh->triangles().size());
+            (uint64_t)resultMesh->triangles().size());
         //		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
 
         //	Finished with success
@@ -974,7 +979,7 @@ namespace Cork::Meshes
         resultMesh->performance_stats_.set_elapsed_wall_time_in_nano_seconds(elapsedTime.elapsed().wall);
 
         resultMesh->performance_stats_.set_number_of_triangles_in_final_mesh(
-            (unsigned long)resultMesh->triangles().size());
+            (uint64_t)resultMesh->triangles().size());
         //		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
 
         //	Finished with success
@@ -987,7 +992,7 @@ namespace Cork::Meshes
         std::unique_ptr<IncrementalVertexIndexTriangleMeshBuilder> triangleMeshBuilder(
             IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(vertices().size(), triangles().size()));
 
-        for (auto& currentVertex : vertices())
+        for (const auto& currentVertex : vertices())
         {
             triangleMeshBuilder->add_vertex(Vertex3D((NUMERIC_PRECISION)currentVertex.x(),
                                                      (NUMERIC_PRECISION)currentVertex.y(),

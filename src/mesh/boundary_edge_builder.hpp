@@ -26,23 +26,24 @@
 #include "primitives/boundary_edge.hpp"
 #include "result_codes.hpp"
 
+#include "primitives/edge_and_incidence_count.hpp"
+
 namespace Cork::Meshes
 {
     using ExtractBoundariesResult =
         SEFUtility::ResultWithReturnUniquePtr<ExtractBoundariesResultCodes, std::vector<BoundaryEdge>>;
 
-    class EdgeIncidenceSet;
     class MeshBase;
 
     class BoundaryEdgeBuilder
     {
        public:
-        BoundaryEdgeBuilder(const MeshBase& mesh) : mesh_(mesh) {};
+        explicit BoundaryEdgeBuilder(const MeshBase& mesh) : mesh_(mesh) {};
 
-        ExtractBoundariesResult extract_boundaries(const TriangleByIndicesIndexSet& tris_in_region);
-        ExtractBoundariesResult extract_boundaries(const TriangleByIndicesIndexVector& tris_in_region);
-        ExtractBoundariesResult extract_boundaries(const EdgeIncidenceSet& region_edges);
-        ExtractBoundariesResult extract_boundaries(const EdgeByIndicesVector& region_edges);
+        [[nodiscard]] ExtractBoundariesResult extract_boundaries(const TriangleByIndicesIndexSet& tris_in_region);
+        [[nodiscard]] ExtractBoundariesResult extract_boundaries(const TriangleByIndicesIndexVector& tris_in_region);
+        [[nodiscard]] ExtractBoundariesResult extract_boundaries(const EdgeIncidenceSet& region_edges);
+        [[nodiscard]] ExtractBoundariesResult extract_boundaries(const EdgeByIndicesVector& region_edges);
 
        private:
 
@@ -57,16 +58,16 @@ namespace Cork::Meshes
             vertices_.push_back(starting_edge.second());
         }
 
-        bool empty() const { return vertices_.empty(); }
+        [[nodiscard]] bool empty() const { return vertices_.empty(); }
 
-        const std::deque<VertexIndex>& vertices() const { return vertices_; }
+        [[nodiscard]] const std::deque<VertexIndex>& vertices() const { return vertices_; }
 
-        bool add_edge(const EdgeByIndices& next_edge);
+        [[nodiscard]] bool add_edge(const EdgeByIndices& next_edge);
 
-        bool is_closed() { return vertices_.front() == vertices_.back(); }
+        [[nodiscard]] bool is_closed() { return vertices_.front() == vertices_.back(); }
 
-        ExtractBoundariesResult get_boundary_edges();
+        [[nodiscard]] ExtractBoundariesResult get_boundary_edges();
 
-        std::unique_ptr<std::vector<VertexIndexVector>> extract_boundaries_recursively(VertexIndexVector boundary);
+        [[nodiscard]] std::unique_ptr<std::vector<VertexIndexVector>> extract_boundaries_recursively(VertexIndexVector boundary);
     };
 }  // namespace Cork::Meshes

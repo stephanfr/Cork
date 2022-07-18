@@ -76,12 +76,12 @@ namespace Cork::Statistics
 
         ~TopologicalStatisticsEngine() = default;
 
-        TopologicalStatisticsEngineAnalyzeResult Analyze(TopologicalProperties props_to_compute);
+        TopologicalStatisticsEngineAnalyzeResult Analyze(TopologicalProperties props_to_compute) const;
 
        private:
         const Cork::Meshes::MeshBase& triangle_mesh_;
 
-        Meshes::EdgeIncidenceCounter edges_;
+        const Meshes::EdgeIncidenceCounter edges_;
     };
 
 }  // namespace Cork::Statistics

@@ -70,6 +70,9 @@
 
  */
 
+
+//  NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
+
 namespace Cork::Math::ExteriorCalculusR4
 {
     // types for k-vectors in R4:
@@ -515,3 +518,5 @@ namespace Cork::Math::ExteriorCalculusR4
     inline AbsExt4_1 AbsExt4_2::meet(const AbsExt4_3 &rhs) const { return (dual().join(rhs.dual())).reverse_dual(); }
 
 }  // namespace Cork::Math::ExteriorCalculusR4
+
+//  NOLINTEND

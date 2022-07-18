@@ -49,11 +49,11 @@ namespace Cork::Math
                 T m_y;
             };
 
-            struct
-            {
-                T m_s;
-                T m_t;
-            };
+//            struct
+//            {
+//                T m_s;
+//                T m_t;
+//            };
         };
 
         // +---------------------------------
@@ -72,14 +72,14 @@ namespace Cork::Math
 
         explicit Vector2DTemplate(const std::array<double, 2>& pair) : m_x(pair[0]), m_y(pair[1]) {}
 
-        const Vector2DTemplate& operator=(const Vector2DTemplate& cp)
+        Vector2DTemplate& operator=(const Vector2DTemplate& cp)
         {
             m_x = cp.m_x;
             m_y = cp.m_y;
             return (*this);
         }
 
-        const Vector2DTemplate& operator=(Vector2DTemplate&& cp)
+        Vector2DTemplate& operator=(Vector2DTemplate&& cp)
         {
             m_x = std::move(cp.m_x);
             m_y = std::move(cp.m_y);

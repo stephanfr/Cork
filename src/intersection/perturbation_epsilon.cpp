@@ -24,6 +24,8 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
+#include "../constants.hpp"
+
 #include "perturbation_epsilon.hpp"
 
 #include <random>
@@ -37,9 +39,6 @@ namespace Cork::Intersection
        public:
         PerturbationRandomizationMatrix() : mersenne_twister_(time(nullptr))  //  NOLINT(cert-msc32-c, cert-msc51-cpp)
         {
-            constexpr int32_t MIN_NUM_PERMUTATIONS = 4;
-            constexpr int32_t MAX_NUM_PERMUTATIONS = 32;
-
             for (uint32_t num_permutations = MIN_NUM_PERMUTATIONS; num_permutations <= MAX_NUM_PERMUTATIONS;
                  num_permutations <<= 1U)
             {

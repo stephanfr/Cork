@@ -35,11 +35,17 @@ namespace Cork::Math
     class Ray3DTemplate
     {
        public:
-        Ray3DTemplate() {}
+        Ray3DTemplate() = default;
 
         Ray3DTemplate(const Vector3DTemplate<N, SIMD>& point, const Vector3DTemplate<N>& dir) : m_origin(point), m_direction(dir) {}
 
-        Ray3DTemplate(const Ray3DTemplate& cp) : m_origin(cp.m_origin), m_direction(cp.m_direction) {}
+        Ray3DTemplate(const Ray3DTemplate& ) = default;
+        Ray3DTemplate( Ray3DTemplate&& ) noexcept = default;
+
+        ~Ray3DTemplate() = default;
+
+        Ray3DTemplate& operator=( const Ray3DTemplate& ) = default;
+        Ray3DTemplate& operator=( Ray3DTemplate&& ) noexcept = default;
 
         const Vector3DTemplate<N, SIMD>& origin() const { return (m_origin); }
 
@@ -54,7 +60,7 @@ namespace Cork::Math
     class Ray3DWithInverseDirectionTemplate : public Ray3DTemplate<N, SIMD>
     {
        public:
-        Ray3DWithInverseDirectionTemplate() {}
+        Ray3DWithInverseDirectionTemplate() = delete;
 
         Ray3DWithInverseDirectionTemplate(const Vector3DTemplate<N, SIMD>& point, const Vector3DTemplate<N, SIMD>& dir)
             : Ray3DTemplate<N, SIMD>(point, dir),
@@ -63,16 +69,16 @@ namespace Cork::Math
         {
         }
 
-        Ray3DWithInverseDirectionTemplate(const Ray3DTemplate<N, SIMD>& cp)
+        explicit Ray3DWithInverseDirectionTemplate(const Ray3DTemplate<N, SIMD>& cp)
             : Ray3DTemplate<N, SIMD>(cp),
               m_inverseDirection(1.0 / cp.direction().x(), 1.0 / cp.direction().y(), 1.0 / cp.direction().z()),
               m_signs({(m_inverseDirection.x() < 0), (m_inverseDirection.y() < 0), (m_inverseDirection.z() < 0)})
         {
         }
 
-        const Vector3DTemplate<N, SIMD>& inverseDirection() const { return (m_inverseDirection); }
+        [[nodiscard]] const Vector3DTemplate<N, SIMD>& inverseDirection() const { return (m_inverseDirection); }
 
-        const std::array<int, 3>& signs() const { return (m_signs); }
+        [[nodiscard]] const std::array<int, 3>& signs() const { return (m_signs); }
 
        private:
         Vector3DTemplate<N, SIMD> m_inverseDirection;
@@ -85,4 +91,4 @@ namespace Cork::Math
     {
         return out << '[' << ray.origin() << ';' << ray.direction() << ']';
     }
-}
+}   //  namespace Cork::Math

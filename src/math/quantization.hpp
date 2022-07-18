@@ -58,26 +58,30 @@ namespace Cork::Math
             return GetQuantizerResult::success(quantizer);
         }
 
-        Quantizer(const Quantizer& quantizerToCopy)
-            : m_magnify(quantizerToCopy.m_magnify), m_reshrink(quantizerToCopy.m_reshrink), m_bitsOfPurturbationRange(quantizerToCopy.m_bitsOfPurturbationRange)
-        {
-        }
+        Quantizer(const Quantizer& quantizerToCopy) = default;
 
-        int bitsOfPurturbationRange() const { return (m_bitsOfPurturbationRange); }
+        Quantizer( Quantizer&& ) = delete;
 
-        double purturbationQuantum() const { return (m_reshrink); }
+        ~Quantizer() = default;
 
-        int quantize2int(double number) const { return (int(number * m_magnify)); }
+        Quantizer& operator=( const Quantizer& ) = delete;
+        Quantizer& operator=(Quantizer&&) = delete;
 
-        double quantizedInt2double(int number) const { return (m_reshrink * double(number)); }
+        [[nodiscard]] int bitsOfPurturbationRange() const { return (m_bitsOfPurturbationRange); }
 
-        double quantize(double number) const { return (m_reshrink * double(int(number * m_magnify))); }
+        [[nodiscard]] double purturbationQuantum() const { return (m_reshrink); }
 
-        double quantize(float number) const { return ((float)m_reshrink * float(int(number * (float)m_magnify))); }
+        [[nodiscard]] int quantize2int(double number) const { return (int(number * m_magnify)); }
 
-        double reshrink(double number) const { return (m_reshrink * number); }
+        [[nodiscard]] double quantizedInt2double(int number) const { return (m_reshrink * double(number)); }
 
-        Primitives::Vertex3D quantize(const Primitives::Vector3D& vectorToQuantize) const
+        [[nodiscard]] double quantize(double number) const { return (m_reshrink * double(int(number * m_magnify))); }
+
+        [[nodiscard]] double quantize(float number) const { return ((float)m_reshrink * float(int(number * (float)m_magnify))); }
+
+        [[nodiscard]] double reshrink(double number) const { return (m_reshrink * number); }
+
+        [[nodiscard]] Primitives::Vertex3D quantize(const Primitives::Vector3D& vectorToQuantize) const
         {
             return (Primitives::Vertex3D(quantize(vectorToQuantize.x()), quantize(vectorToQuantize.y()),
                                          quantize(vectorToQuantize.z())));
@@ -125,7 +129,7 @@ namespace Cork::Math
             return QuantizerResultCodes::SUCCESS;
         }
 
-       private:
+
         double m_magnify;
         double m_reshrink;
 

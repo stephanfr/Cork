@@ -30,6 +30,8 @@
 #include "accel/aabvh.hpp"
 #include "mesh/topo_cache.hpp"
 
+#include "../constants.hpp"
+
 namespace Cork::Intersection
 {
     class IntersectionWorkspace 
@@ -37,16 +39,27 @@ namespace Cork::Intersection
        public:
         IntersectionWorkspace()
         {
-            m_gluePointMarkerPool.reserve(100000);
-            m_genericVertexTypePool.reserve(200000);
-            m_genericEdgeTypePool.reserve(300000);
-            m_genericTriTypePool.reserve(100000);
-            m_isctVertexPointerPool.reserve(200000);
-            m_isctEdgePointerPool.reserve(100000);
-            m_genericTriPointerPool.reserve(100000);
+            m_gluePointMarkerPool.reserve(GLUE_POINT_MARKER_POOL_INITIAL_SIZE);
+            m_genericVertexTypePool.reserve(GENERIC_VERTEX_POOL_INITIAL_SIZE);
+            m_genericEdgeTypePool.reserve(GENERIC_EDGE_POOL_INITIAL_SIZE);
+            m_genericTriTypePool.reserve(GENERIC_TRIANGLE_POOL_INITIAL_SIZE);
+            m_isctVertexPointerPool.reserve(INTERSECTION_VERTEX_POINTER_POOL_INITIAL_SIZE);
+            m_isctEdgePointerPool.reserve(INTERSECTION_EDGE_POINTER_POOL_INITIAL_SIZE);
+            m_genericTriPointerPool.reserve(GENERIC_TRIANGLE_POINTER_POOL_INITIAL_SIZE);
         }
 
-        virtual ~IntersectionWorkspace() noexcept {};
+        virtual ~IntersectionWorkspace() noexcept
+        {
+            std::cout << "Destroying Intersection Workspace" << std::endl;
+            std::cout << "    Glue Point Marker Pool final size: " << m_gluePointMarkerPool.capacity() << std::endl;
+            std::cout << "    Generic Vertex Pool final size: " << m_genericVertexTypePool.capacity() << std::endl;
+            std::cout << "    Generic Edge Pool final size: " << m_genericEdgeTypePool.capacity() << std::endl;
+            std::cout << "    Generic Triangle Pool final size: " << m_genericTriTypePool.capacity() << std::endl;
+            std::cout << "    Intersection Vertex Pointer Pool final size: " << m_isctVertexPointerPool.capacity() << std::endl;
+            std::cout << "    Intersection Edge Pointer Pool final size: " << m_isctEdgePointerPool.capacity() << std::endl;
+            std::cout << "    Generic Triangle Pointer Pool final size: " << m_genericTriPointerPool.capacity() << std::endl;
+            std::cout << std::endl;
+        };
 
         void reset()
         {

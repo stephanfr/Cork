@@ -51,7 +51,7 @@ namespace Cork::Meshes
 
         virtual ~Mesh();
 
-        void operator=(Mesh&& src);
+        Mesh& operator=(Mesh&& src) noexcept;
 
         //	Validity check:
         //		- all numbers are well-defined and finite
@@ -113,7 +113,7 @@ namespace Cork::Meshes
 
         TriangleByIndicesIndex FindTriForInsideTest(const ComponentType& trisInComponent);
 
-        void doDeleteAndFlip(std::function<TriCode(uint32_t bool_alg_data)> classify);
+        void doDeleteAndFlip(const std::function<TriCode(uint32_t bool_alg_data)>& classify);
 
         void for_ecache(EGraphCache& ecache, std::function<void(const EGraphEntryTIDVector& tids)> action,
                         int numThreads = 1) const;
