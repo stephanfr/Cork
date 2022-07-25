@@ -526,7 +526,7 @@ namespace Cork::Meshes
 
                 for (auto& current_section : sections)
                 {
-                    current_section.append(boundary_centroid, Primitives::UNINITIALIZED_INDEX);
+                    current_section.append(boundary_centroid, Primitives::UNINITIALIZED_VERTEX_INDEX);
 
                     Vertex3D new_boundary_centroid = current_section.centroid();
                     BestFitPlaneEquation new_best_fit_plane = current_section.best_fit_plane();

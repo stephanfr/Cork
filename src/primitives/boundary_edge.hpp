@@ -131,7 +131,7 @@ namespace Cork::Primitives
         {
             double len = 0;
 
-            for (VertexIndex i = 0u; i < vertex_indices_.size() - 1; i++)
+            for (VertexIndex i{0}; i < vertex_indices_.size() - 1; i++)
             {
                 Vector3D segment = vertices_[i] - vertices_[i + 1u];
 

@@ -45,8 +45,8 @@ namespace Cork::Intersection
 
         TopoEdge& operator()(TopoVert& v0, TopoVert& v1)
         {
-            auto i = VertexIndex::integer_type(v0.index());
-            auto j = VertexIndex::integer_type(v1.index());
+            auto i = v0.index();
+            auto j = v1.index();
 
             if (i > j)
             {
@@ -113,8 +113,8 @@ namespace Cork::Intersection
 
         std::optional<std::reference_wrapper<TopoEdge>> maybeEdge(const GenericEdgeType& edge)
         {
-            size_t i = VertexIndex::integer_type(edge.ends()[0]->concrete_vertex().index());
-            size_t j = VertexIndex::integer_type(edge.ends()[1]->concrete_vertex().index());
+            VertexIndex i = edge.ends()[0]->concrete_vertex().index();
+            VertexIndex j = edge.ends()[1]->concrete_vertex().index();
 
             if (i > j)
             {
@@ -142,7 +142,7 @@ namespace Cork::Intersection
 
             EdgeEntry() = delete;
 
-            explicit EdgeEntry(IndexType vertex_id) : vertex_id_(vertex_id) {}
+            explicit EdgeEntry(VertexIndex vertex_id) : vertex_id_(vertex_id) {}
 
             [[nodiscard]] VertexIndex     vertex_id() const { return vertex_id_; }
 
@@ -155,7 +155,19 @@ namespace Cork::Intersection
             std::optional<std::reference_wrapper<TopoEdge>> edge_;
         };
 
-        typedef std::vector<std::vector<EdgeEntry>> VectorOfEdgeEntryVectors;
+        class VectorOfEdgeEntryVectors : public std::vector<std::vector<EdgeEntry>>
+        {
+            public :
+
+            VectorOfEdgeEntryVectors( size_t    count )
+                : std::vector<std::vector<EdgeEntry>>( count )
+                {}
+
+            std::vector<EdgeEntry>& operator[]( VertexIndex     vi )
+            {
+                return std::vector<std::vector<EdgeEntry>>::operator[]( static_cast<size_t>(vi) );
+            }
+        };
 
         IntersectionProblemBase& intersection_problem_;
 

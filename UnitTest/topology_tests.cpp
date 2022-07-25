@@ -34,6 +34,9 @@
 #pragma diag_suppress 2486
 #endif
 
+using VertexIndex = Cork::Primitives::VertexIndex;
+using EdgeByIndices = Cork::Primitives::EdgeByIndices;
+
 TEST_CASE("Topology Tests", "[file io]")
 {
     SECTION("2 Manifold Single Body")
@@ -61,34 +64,34 @@ TEST_CASE("Topology Tests", "[file io]")
         //      of the vertices forming the hole may change as well.  The holes will be correct - but ordering may
         //      differ.
 
-        std::vector<Cork::Primitives::EdgeByIndices> hole_edges;
+        std::vector<EdgeByIndices> hole_edges;
 
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(31u, 50u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(2u, 3u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(1u, 2u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(0u, 1u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(3u, 4u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(11u, 12u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(4u, 5u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(5u, 6u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(21u, 22u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(7u, 0u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(1u, 10u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(30u, 31u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(10u, 11u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(12u, 13u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(40u, 50u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(13u, 1u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(4u, 20u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(20u, 21u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(22u, 4u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(6u, 7u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(21u, 30u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(31u, 21u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(22u, 40u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(40u, 41u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(31u, 40u));
-        hole_edges.emplace_back(Cork::Primitives::EdgeByIndices(41u, 22u));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(31), VertexIndex(50)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(2), VertexIndex(3)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(1), VertexIndex(2)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(0), VertexIndex(1)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(3), VertexIndex(4)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(11), VertexIndex(12)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(4), VertexIndex(5)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(5), VertexIndex(6)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(21), VertexIndex(22)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(7), VertexIndex(0)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(1), VertexIndex(10)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(30), VertexIndex(31)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(10), VertexIndex(11)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(12), VertexIndex(13)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(40), VertexIndex(50)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(13), VertexIndex(1)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(4), VertexIndex(20)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(20), VertexIndex(21)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(22), VertexIndex(4)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(6), VertexIndex(7)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(21), VertexIndex(30)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(31), VertexIndex(21)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(22), VertexIndex(40)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(40), VertexIndex(41)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(31), VertexIndex(40)));
+        hole_edges.emplace_back(EdgeByIndices(VertexIndex(41), VertexIndex(22)));
 
         auto fake_mesh = Cork::Meshes::MeshBase(100,0);
 
@@ -104,21 +107,37 @@ TEST_CASE("Topology Tests", "[file io]")
         std::vector<Cork::BoundaryEdge>& holes = *(extract_boundaries_result.return_ptr());
 
         REQUIRE(holes.size() == 6);
-        REQUIRE(((holes[0].vertex_indices()[0] == 13u) && (holes[0].vertex_indices()[1] == 12u) &&
-                 (holes[0].vertex_indices()[2] == 11u) && (holes[0].vertex_indices()[3] == 10ul) &&
-                 (holes[0].vertex_indices()[4] == 1ul)));
+        REQUIRE(((holes[0].vertex_indices()[0] == VertexIndex(13)) &&
+                 (holes[0].vertex_indices()[1] == VertexIndex(12)) &&
+                 (holes[0].vertex_indices()[2] == VertexIndex(11)) &&
+                 (holes[0].vertex_indices()[3] == VertexIndex(10)) &&
+                 (holes[0].vertex_indices()[4] == VertexIndex(1))));
+        REQUIRE(((holes[1].vertex_indices()[0] == VertexIndex(31)) &&
+                 (holes[1].vertex_indices()[1] == VertexIndex(21)) &&
+                 (holes[1].vertex_indices()[2] == VertexIndex(30))));
         REQUIRE(
-            ((holes[1].vertex_indices()[0] == 31u) && (holes[1].vertex_indices()[1] == 21u) && (holes[1].vertex_indices()[2] == 30u)));
+            ((holes[2].vertex_indices()[0] == VertexIndex(40)) &&
+            (holes[2].vertex_indices()[1] == VertexIndex(31)) &&
+            (holes[2].vertex_indices()[2] == VertexIndex(50))));
+
+        REQUIRE(((holes[3].vertex_indices()[0] == VertexIndex(4)) &&
+        (holes[3].vertex_indices()[1] == VertexIndex(5)) &&
+        (holes[3].vertex_indices()[2] == VertexIndex(6)) &&
+                 (holes[3].vertex_indices()[3] == VertexIndex(7)) &&
+                 (holes[3].vertex_indices()[4] == VertexIndex(0)) &&
+                 (holes[3].vertex_indices()[5] == VertexIndex(1)) &&
+                 (holes[3].vertex_indices()[6] == VertexIndex(2)) &&
+                 (holes[3].vertex_indices()[7] == VertexIndex(3))));
+
+        REQUIRE(((holes[4].vertex_indices()[0] == VertexIndex(22)) &&
+        (holes[4].vertex_indices()[1] == VertexIndex(4)) &&
+        (holes[4].vertex_indices()[2] == VertexIndex(20)) &&
+                 (holes[4].vertex_indices()[3] == VertexIndex(21))));
+
         REQUIRE(
-            ((holes[2].vertex_indices()[0] == 40u) && (holes[2].vertex_indices()[1] == 31u) && (holes[2].vertex_indices()[2] == 50u)));
-        REQUIRE(((holes[3].vertex_indices()[0] == 4u) && (holes[3].vertex_indices()[1] == 5u) && (holes[3].vertex_indices()[2] == 6u) &&
-                 (holes[3].vertex_indices()[3] == 7ul) && (holes[3].vertex_indices()[4] == 0ul) &&
-                 (holes[3].vertex_indices()[5] == 1ul) && (holes[3].vertex_indices()[6] == 2ul) &&
-                 (holes[3].vertex_indices()[7] == 3ul)));
-        REQUIRE(((holes[4].vertex_indices()[0] == 22u) && (holes[4].vertex_indices()[1] == 4u) && (holes[4].vertex_indices()[2] == 20u) &&
-                 (holes[4].vertex_indices()[3] == 21ul)));
-        REQUIRE(
-            ((holes[5].vertex_indices()[0] == 40u) && (holes[5].vertex_indices()[1] == 22u) && (holes[5].vertex_indices()[2] == 41u)));
+            ((holes[5].vertex_indices()[0] == VertexIndex(40)) &&
+            (holes[5].vertex_indices()[1] == VertexIndex(22)) &&
+            (holes[5].vertex_indices()[2] == VertexIndex(41))));
     }
 
     SECTION("Find Holes - One Hole")
@@ -137,9 +156,9 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(stats.succeeded());
         REQUIRE(stats.return_value().non_manifold_edges().size() != 0);
         REQUIRE(stats.return_value().holes().size() == 1);
-        REQUIRE(((stats.return_value().holes()[0].vertex_indices()[0] == 21u) &&
-                 (stats.return_value().holes()[0].vertex_indices()[1] == 5u) &&
-                 (stats.return_value().holes()[0].vertex_indices()[2] == 11u)));
+        REQUIRE(((stats.return_value().holes()[0].vertex_indices()[0] == VertexIndex(21)) &&
+                 (stats.return_value().holes()[0].vertex_indices()[1] == VertexIndex(5)) &&
+                 (stats.return_value().holes()[0].vertex_indices()[2] == VertexIndex(11))));
         REQUIRE(stats.return_value().self_intersecting_edges().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
     }
@@ -160,16 +179,16 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(stats.succeeded());
         REQUIRE(stats.return_value().non_manifold_edges().size() != 0);
         REQUIRE(stats.return_value().holes().size() == 3);
-        REQUIRE(((stats.return_value().holes()[0].vertex_indices()[0] == 21u) &&
-                 (stats.return_value().holes()[0].vertex_indices()[1] == 11u) &&
-                 (stats.return_value().holes()[0].vertex_indices()[2] == 5u) &&
-                 (stats.return_value().holes()[0].vertex_indices()[3] == 13u)));
-        REQUIRE(((stats.return_value().holes()[1].vertex_indices()[0] == 8u) &&
-                 (stats.return_value().holes()[1].vertex_indices()[1] == 16u) &&
-                 (stats.return_value().holes()[1].vertex_indices()[2] == 24u)));
-        REQUIRE(((stats.return_value().holes()[2].vertex_indices()[0] == 18u) &&
-                 (stats.return_value().holes()[2].vertex_indices()[1] == 12u) &&
-                 (stats.return_value().holes()[2].vertex_indices()[2] == 16u)));
+        REQUIRE(((stats.return_value().holes()[0].vertex_indices()[0] == VertexIndex(21)) &&
+                 (stats.return_value().holes()[0].vertex_indices()[1] == VertexIndex(11)) &&
+                 (stats.return_value().holes()[0].vertex_indices()[2] == VertexIndex(5)) &&
+                 (stats.return_value().holes()[0].vertex_indices()[3] == VertexIndex(13))));
+        REQUIRE(((stats.return_value().holes()[1].vertex_indices()[0] == VertexIndex(8)) &&
+                 (stats.return_value().holes()[1].vertex_indices()[1] == VertexIndex(16)) &&
+                 (stats.return_value().holes()[1].vertex_indices()[2] == VertexIndex(24))));
+        REQUIRE(((stats.return_value().holes()[2].vertex_indices()[0] == VertexIndex(18)) &&
+                 (stats.return_value().holes()[2].vertex_indices()[1] == VertexIndex(12)) &&
+                 (stats.return_value().holes()[2].vertex_indices()[2] == VertexIndex(16))));
         REQUIRE(stats.return_value().self_intersecting_edges().size() == 0);
         //        REQUIRE(stats.numBodies() == 1);
     }
@@ -293,7 +312,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats_after_se_removal.succeeded());
         REQUIRE(topo_stats_after_se_removal.return_value().non_manifold_edges().size() == 0);
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
-        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 110);
+        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 106);
 
         {
             auto write_result = Cork::Files::writeOFF("../../UnitTest/Test Results/tulipRepaired.off", *mesh);

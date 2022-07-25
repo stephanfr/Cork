@@ -169,32 +169,12 @@ template <typename T, typename TI>
 class ValuePool : public tbb::concurrent_vector<T>
 {
    public:
-    T& operator[](size_t) = delete;
-    const T& operator[](size_t) const = delete;
+    //    T& operator[](size_t) = delete;
+    //    const T& operator[](size_t) const = delete;
 
-    T& operator[](TI index)
-    {
-        if constexpr (std::is_base_of<type_safe::integer<uint32_t>, TI>::value)
-        {
-            return tbb::concurrent_vector<T>::operator[](typename TI::integer_type(index));
-        }
-        else
-        {
-            return tbb::concurrent_vector<T>::operator[](index);
-        }
-    }
+    T& operator[](TI index) { return tbb::concurrent_vector<T>::operator[](static_cast<size_t>(index)); }
 
-    const T& operator[](TI index) const
-    {
-        if constexpr (std::is_base_of<type_safe::integer<uint32_t>, TI>::value)
-        {
-            return tbb::concurrent_vector<T>::operator[](typename TI::integer_type(index));
-        }
-        else
-        {
-            return tbb::concurrent_vector<T>::operator[](index);
-        }
-    }
+    const T& operator[](TI index) const { return tbb::concurrent_vector<T>::operator[](static_cast<size_t>(index)); }
 };
 
 template <typename T, typename TI = uint32_t, typename TP = ValuePool<T, TI>>

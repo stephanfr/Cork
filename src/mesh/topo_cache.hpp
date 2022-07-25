@@ -352,7 +352,7 @@ namespace Cork::Meshes
        public:
         TopoEdgePrototype(IndexType v) : SparseVectorEntry(v), m_edge(nullptr) {}
 
-        IndexType vid() const { return (index()); }
+        VertexIndex vid() const { return VertexIndex(index()); }
 
         TopoEdge* edge() { return (m_edge); }
 
@@ -731,9 +731,9 @@ namespace Cork::Meshes
         {
             //	First lay out vertices
 
-            for (uint i = 0; i < mesh_vertices_.size(); i++)
+            for (VertexIndex i{0}; i < mesh_vertices_.size(); i++)
             {
-                topo_vertex_list_.emplace_back(i, quantizer_.quantize(mesh_vertices_[VertexIndex(i)]));
+                topo_vertex_list_.emplace_back(i, quantizer_.quantize(mesh_vertices_[i]));
             }
 
             // We need to still do the following
@@ -749,7 +749,26 @@ namespace Cork::Meshes
             //  * Hook up Triangles and Vertices
             // building a structure to handle the edges as we go:
 
-            std::vector<TopoEdgePrototypeVector> edgeacc(mesh_vertices_.size());
+            //  Create  specialized version of the EdgeAccelerator here to handle the fact we are
+            //      indexing with VertexIndex instances and not just vanilla size_t.
+
+            class EdgeAccelerator : public std::vector<TopoEdgePrototypeVector>
+            {
+                public :
+
+                EdgeAccelerator( size_t count ) 
+                    : std::vector<TopoEdgePrototypeVector>( count )
+                {}
+
+                TopoEdgePrototypeVector& operator[]( size_t ) = delete;
+
+                TopoEdgePrototypeVector& operator[]( VertexIndex    vi )
+                {
+                    return std::vector<TopoEdgePrototypeVector>::operator[](static_cast<size_t>(vi));
+                }
+            };
+            
+            EdgeAccelerator     edgeacc(mesh_vertices_.size());
 
             uint32_t i = -1;
 
@@ -804,8 +823,8 @@ namespace Cork::Meshes
                 TopoEdge* edge12;
 
                 {
-                    TopoEdgePrototype& edge01Proto = edgeacc[VertexIndex::integer_type(vertex0_index)].find_or_add(
-                        VertexIndex::integer_type(vertex1_index));
+                    TopoEdgePrototype& edge01Proto = edgeacc[vertex0_index].find_or_add(
+                        static_cast<size_t>(vertex1_index));
 
                     edge01 = edge01Proto.edge();
 
@@ -817,8 +836,8 @@ namespace Cork::Meshes
 
                     edge01->add_triangle(tri);
 
-                    TopoEdgePrototype& edge02Proto = edgeacc[VertexIndex::integer_type(vertex0_index)].find_or_add(
-                        VertexIndex::integer_type(vertex2_index));
+                    TopoEdgePrototype& edge02Proto = edgeacc[vertex0_index].find_or_add(
+                        static_cast<size_t>(vertex2_index));
 
                     edge02 = edge02Proto.edge();
 
@@ -830,8 +849,8 @@ namespace Cork::Meshes
 
                     edge02->add_triangle(tri);
 
-                    TopoEdgePrototype& edge12Proto = edgeacc[VertexIndex::integer_type(vertex1_index)].find_or_add(
-                        VertexIndex::integer_type(vertex2_index));
+                    TopoEdgePrototype& edge12Proto = edgeacc[vertex1_index].find_or_add(
+                        static_cast<size_t>(vertex2_index));
 
                     edge12 = edge12Proto.edge();
 
@@ -944,7 +963,7 @@ namespace Cork::Meshes
 
         TopoVert* new_vertex()
         {
-            VertexIndex::integer_type ref = mesh_vertices_.size();
+            VertexIndex ref{ mesh_vertices_.size() };
 
             mesh_vertices_.emplace_back();
 

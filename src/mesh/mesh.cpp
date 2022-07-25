@@ -228,7 +228,7 @@ namespace Cork::Meshes
 
     bool Mesh::valid() const
     {
-        for (VertexIndex i = 0U; i < verts_->size(); i++)
+        for (VertexIndex i{0}; i < verts_->size(); i++)
         {
             if (!std::isfinite((*verts_)[i].x()) || !std::isfinite((*verts_)[i].y()) ||
                 !std::isfinite((*verts_)[i].z()))
@@ -267,17 +267,18 @@ namespace Cork::Meshes
             t.set_bool_alg_data(0);
         }
 
-        uint32_t oldVsize = verts_->size();
+        VertexIndex oldVsize{verts_->size()};
+        VertexIndex cpVsize{ meshToMerge.verts_->size() };
+        VertexIndex newVsize{oldVsize + cpVsize};
+
         uint32_t oldTsize = tris_->size();
-        uint32_t cpVsize = meshToMerge.verts_->size();
         uint32_t cpTsize = meshToMerge.tris_->size();
-        uint32_t newVsize = oldVsize + cpVsize;
         uint32_t newTsize = oldTsize + cpTsize;
 
-        verts_->resize(newVsize);
+        verts_->resize(static_cast<size_t>(newVsize));
         tris_->resize(newTsize);
 
-        for (VertexIndex i = 0U; i < cpVsize; i++)
+        for (VertexIndex i{0}; i < cpVsize; i++)
         {
             (*verts_)[oldVsize + i] = (*(meshToMerge.verts_))[i];
         }
@@ -288,7 +289,7 @@ namespace Cork::Meshes
 
             tri = (*(meshToMerge.tris_))[i];
             tri.set_bool_alg_data(1);  //	These triangles are part of the RHS so label them as such
-            tri.offset_indices(oldVsize);
+            tri.offset_indices(static_cast<size_t>(oldVsize));
         }
     }
 
@@ -444,14 +445,14 @@ namespace Cork::Meshes
         {
             const TriangleByIndices& tri = (*tris_)[tid];
 
-            ecache[tri.a()].find_or_add(VertexIndex::integer_type(tri.b())).tids().push_back(tid);
-            ecache[tri.a()].find_or_add(VertexIndex::integer_type(tri.c())).tids().push_back(tid);
+            ecache[tri.a()].find_or_add(tri.b()).tids().push_back(tid);
+            ecache[tri.a()].find_or_add(tri.c()).tids().push_back(tid);
 
-            ecache[tri.b()].find_or_add(VertexIndex::integer_type(tri.a())).tids().push_back(tid);
-            ecache[tri.b()].find_or_add(VertexIndex::integer_type(tri.c())).tids().push_back(tid);
+            ecache[tri.b()].find_or_add(tri.a()).tids().push_back(tid);
+            ecache[tri.b()].find_or_add(tri.c()).tids().push_back(tid);
 
-            ecache[tri.c()].find_or_add(VertexIndex::integer_type(tri.a())).tids().push_back(tid);
-            ecache[tri.c()].find_or_add(VertexIndex::integer_type(tri.b())).tids().push_back(tid);
+            ecache[tri.c()].find_or_add(tri.a()).tids().push_back(tid);
+            ecache[tri.c()].find_or_add(tri.b()).tids().push_back(tid);
         }
 
         //	Label some of the edges as intersection edges and others as not
@@ -622,12 +623,12 @@ namespace Cork::Meshes
         std::vector<TriangleByIndicesIndex> work;
         work.reserve(trisInComponent.size());
 
-        Primitives::BooleanVector<TriangleByIndicesIndex> visited(tris_->size());
+        Primitives::BooleanVector<size_t> visited(tris_->size());
 
         // begin by tagging the first triangle
 
         (*tris_)[best_tid].set_bool_alg_data((*tris_)[best_tid].bool_alg_data() | (inside ? 2 : 0));
-        visited[best_tid] = true;
+        visited[best_tid.get()] = true;
         work.push_back(best_tid);
 
         while (!work.empty())
@@ -640,7 +641,7 @@ namespace Cork::Meshes
                 VertexIndex a = (*tris_)[curr_tid][k];
                 VertexIndex b = (*tris_)[curr_tid][(k + 1) % 3];
 
-                const auto& entry = ecache[VertexIndex::integer_type(a)][VertexIndex::integer_type(b)];
+                const auto& entry = ecache[a][b];
 
                 uint32_t inside_sig = (*tris_)[curr_tid].bool_alg_data() & 2;
 

@@ -158,11 +158,11 @@ namespace Cork::Meshes
 
         // record which triangles are live, and record connectivity
 
-        BooleanVector<TriangleByIndicesIndex> live_tris(mesh_triangles_.size());
+        BooleanVector<size_t> live_tris(mesh_triangles_.size());
 
         for (auto& tri : topo_tri_list_)
         {
-            live_tris[tri.ref()] = true;
+            live_tris[tri.ref().get()] = true;
 
             for (size_t k = 0; k < 3; k++)
             {
@@ -172,13 +172,23 @@ namespace Cork::Meshes
 
         // compact the vertices and build a remapping function
 
-        std::vector<VertexIndex> vertex_map;
+        class VertexMap : public std::vector<VertexIndex>
+        {
+            public :
+
+            VertexIndex& operator[]( VertexIndex vi )
+            {
+                return std::vector<VertexIndex>::operator[]( static_cast<size_t>(vi) );
+            }
+        };
+        
+        VertexMap vertex_map;
 
         vertex_map.reserve(mesh_vertices_.size());
 
         VertexIndex vert_write(0u);
 
-        for (VertexIndex::integer_type read = 0; read < mesh_vertices_.size(); read++)
+        for (VertexIndex read{0}; read < mesh_vertices_.size(); read++)
         {
             if (live_verts[read])
             {
@@ -192,13 +202,13 @@ namespace Cork::Meshes
             }
         }
 
-        mesh_vertices_.resize(VertexIndex::integer_type(vert_write));
+        mesh_vertices_.resize(static_cast<size_t>(vert_write));
 
         // rewrite the vertex reference ids
 
         for (auto& vert : topo_vertex_list_)
         {
-            vert.set_index(vertex_map[VertexIndex::integer_type(vert.index())]);
+            vert.set_index(vertex_map[vert.index()]);
         }
 
         std::vector<TriangleByIndicesIndex> tmap;
@@ -208,7 +218,7 @@ namespace Cork::Meshes
 
         for (TriangleByIndicesIndex read = 0U; read < mesh_triangles_.size(); read++)
         {
-            if (live_tris[read])
+            if (live_tris[read.get()])
             {
                 tmap.emplace_back(tri_write);
                 mesh_triangles_[tri_write] = mesh_triangles_[read];
@@ -216,7 +226,7 @@ namespace Cork::Meshes
                 for (uint k = 0; k < 3; k++)
                 {
                     mesh_triangles_[tri_write][k] =
-                        vertex_map[VertexIndex::integer_type(mesh_triangles_[tri_write][k])];
+                        vertex_map[mesh_triangles_[tri_write][k]];
                 }
 
                 tri_write++;

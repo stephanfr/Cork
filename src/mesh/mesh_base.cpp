@@ -207,9 +207,9 @@ namespace Cork::Meshes
 
         vertex_remapper.reserve(verts_->size());
 
-        VertexIndex new_index = 0U;
+        VertexIndex new_index{0};
 
-        for (VertexIndex i = 0U; i < live_verts.size(); i++)
+        for (VertexIndex i{0}; i < live_verts.size(); i++)
         {
             if (live_verts[i])
             {
@@ -219,7 +219,7 @@ namespace Cork::Meshes
             }
         }
 
-        verts_->resize(VertexIndex::integer_type(new_index));
+        verts_->resize(static_cast<size_t>(new_index));
 
         //  Remap the triangles
 

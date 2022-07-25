@@ -30,14 +30,13 @@ namespace Cork::Primitives
     class IndexRemapper : public std::vector<T>
     {
        public:
-        static_assert(std::is_base_of<type_safe::integer<uint32_t>, T>::value,
-                      "IndexRemapper requires a class based from type_safe::integer");
 
         T& operator[](size_t) = delete;
         const T& operator[](size_t) const = delete;
 
-        T& operator[](T index) { return std::vector<T>::operator[](typename T::integer_type(index)); }
-        const T& operator[](T index) const { return std::vector<T>::operator[](typename T::integer_type(index)); }
+        T& operator[](T index) { return std::vector<T>::operator[](static_cast<size_t>(index)); }
+        const T& operator[](T index) const { return std::vector<T>::operator[](static_cast<size_t>(index)); }
+
     };
 
 }  // namespace Cork::Primitives

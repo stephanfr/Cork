@@ -30,6 +30,7 @@
 #include <set>
 
 #include "type_safe/integer.hpp"
+#include "type_safe/strong_typedef.hpp"
 
 //	Setup the numeric precision and the vector implementation for the build.
 
@@ -67,7 +68,45 @@ namespace Cork::Primitives
     using IndexType = uint32_t;
     using IndexVector = std::vector<IndexType>;
 
-    using VertexIndex = type_safe::integer<uint32_t>;
+    //    using VertexIndex = size_t;
+
+    struct VertexIndex : type_safe::strong_typedef<VertexIndex, size_t>,
+                         type_safe::strong_typedef_op::equality_comparison<VertexIndex>,
+                         type_safe::strong_typedef_op::relational_comparison<VertexIndex>,
+                         type_safe::strong_typedef_op::integer_arithmetic<VertexIndex>
+    {
+        using strong_typedef::strong_typedef;
+
+        bool operator<( size_t value_to_compare ) const
+        {
+            return this->value_ < value_to_compare;
+        }
+
+        bool operator>=( size_t value_to_compare ) const
+        {
+            return this->value_ >= value_to_compare;
+        }
+
+        VertexIndex operator+( size_t value_to_add ) const
+        {
+            return VertexIndex( this->value_ + value_to_add );
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const VertexIndex& vi)
+        {
+            os << static_cast<size_t>(vi);
+            return os;
+        }
+
+        friend std::istream& operator>>(std::istream& is, VertexIndex& vi)
+        {
+            is >> vi;
+            return is;
+        }
+    };
+
+    constexpr VertexIndex   UNINITIALIZED_VERTEX_INDEX{size_t(-1)};
+
     using VertexIndexVector = std::vector<VertexIndex>;
 
     using TriangleByIndicesIndex = type_safe::integer<uint32_t>;
@@ -164,21 +203,16 @@ namespace Cork::Primitives
        public:
         Vertex3DVector() = default;
 
-        Vertex3DVector( const std::vector<Vertex3D>&        vec_to_copy )
-            : std::vector<Vertex3D>( vec_to_copy )
-        {}
+        Vertex3DVector(const std::vector<Vertex3D>& vec_to_copy) : std::vector<Vertex3D>(vec_to_copy) {}
 
-        Vertex3DVector( std::vector<Vertex3D>&&             vec_to_move )
-            : std::vector<Vertex3D>( std::move( vec_to_move ))
-        {}
-
+        Vertex3DVector(std::vector<Vertex3D>&& vec_to_move) : std::vector<Vertex3D>(std::move(vec_to_move)) {}
 
         const Vertex3D& operator[](size_t) const = delete;
         Vertex3D& operator[](size_t) = delete;
 
-        const Vertex3D& operator[](VertexIndex idx) const { return data()[VertexIndex::integer_type(idx)]; }
+        const Vertex3D& operator[](VertexIndex idx) const { return data()[static_cast<size_t>(idx)]; }
 
-        Vertex3D& operator[](VertexIndex idx) { return data()[VertexIndex::integer_type(idx)]; }
+        Vertex3D& operator[](VertexIndex idx) { return data()[static_cast<size_t>(idx)]; }
     };
 
     struct Vertex3DMapCompare
@@ -281,7 +315,7 @@ namespace Cork::Primitives
         {
             std::size_t operator()(const Primitives::EdgeByIndices& k) const
             {
-                return (VertexIndex::integer_type(k.first()) * 10000019 ^ VertexIndex::integer_type(k.second()));
+                return (static_cast<size_t>(k.first()) * 10000019 ^ static_cast<size_t>(k.second()));
             }
         };
 
@@ -327,13 +361,14 @@ namespace Cork::Primitives
     class TriangleByIndices
     {
        public:
-
         TriangleByIndices()
             : uid_(UNINITIALIZED_INDEX), a_(UNINITIALIZED_INDEX), b_(UNINITIALIZED_INDEX), c_(UNINITIALIZED_INDEX)
         {
         }
 
-        TriangleByIndices(TriangleUID uid, VertexIndex a, VertexIndex b, VertexIndex c) : uid_(uid), a_(a), b_(b), c_(c) {}
+        TriangleByIndices(TriangleUID uid, VertexIndex a, VertexIndex b, VertexIndex c) : uid_(uid), a_(a), b_(b), c_(c)
+        {
+        }
 
         TriangleByIndices(TriangleUID uid, VertexIndex a, VertexIndex b, VertexIndex c,
                           TriangleBooleanAlgData bool_alg_data)
@@ -400,11 +435,11 @@ namespace Cork::Primitives
 
         void flip() { std::swap(a_, b_); }
 
-        void offset_indices(uint32_t offset_value)
+        void offset_indices(size_t offset_value)
         {
-            a_ += offset_value;
-            b_ += offset_value;
-            c_ += offset_value;
+            a_ += VertexIndex(offset_value);
+            b_ += VertexIndex(offset_value);
+            c_ += VertexIndex(offset_value);
         }
 
        protected:
@@ -454,10 +489,11 @@ namespace Cork::Primitives
         {
         }
 
-        template< class InputIterator>
-        TriangleByIndicesIndexSet( InputIterator    first, InputIterator    last )
-            : std::set<TriangleByIndicesIndex>( first, last )
-            {}
+        template <class InputIterator>
+        TriangleByIndicesIndexSet(InputIterator first, InputIterator last)
+            : std::set<TriangleByIndicesIndex>(first, last)
+        {
+        }
 
         TriangleByIndicesIndexSet(const TriangleByIndicesIndexSet& set_to_copy,
                                   const TriangleByIndicesIndexSet& set_to_merge)
@@ -506,9 +542,10 @@ namespace Cork::Primitives
 
         TriangleByIndicesIndexSet difference(const TriangleByIndicesIndexSet& set_to_diff)
         {
-            TriangleByIndicesIndexSet   difference;
+            TriangleByIndicesIndexSet difference;
 
-            std::set_difference( begin(), end(), set_to_diff.begin(), set_to_diff.end(), std::inserter( difference, difference.begin()) );
+            std::set_difference(begin(), end(), set_to_diff.begin(), set_to_diff.end(),
+                                std::inserter(difference, difference.begin()));
 
             return difference;
         }
@@ -649,11 +686,11 @@ namespace Cork::Primitives
 
         unsigned char& operator[](IndexType index)
         {
-            unsigned char& return_value = vector_[TriangleByIndicesIndex::integer_type(index)];
+            unsigned char& return_value = vector_[static_cast<size_t>(index)];
             return return_value;
         }
 
-        bool operator[](IndexType index) const { return vector_[TriangleByIndicesIndex::integer_type(index)]; }
+        bool operator[](IndexType index) const { return vector_[static_cast<size_t>(index)]; }
 
        private:
         std::vector<unsigned char> vector_;

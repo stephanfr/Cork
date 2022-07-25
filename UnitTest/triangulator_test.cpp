@@ -19,6 +19,8 @@
  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "../src/constants.hpp"
+
 #include "intersection/triangulator.hpp"
 
 #include <catch2/catch_all.hpp>
@@ -109,7 +111,7 @@ TEST_CASE("Triangulator Tests", "[cork basic]")
     {
         Cork::Triangulator::Triangulator triangulator;
 
-        auto result = triangulator.will_problem_fit( Cork::Triangulator::Triangulator::MAX_POINTS + 1, 1 );
+        auto result = triangulator.will_problem_fit( MAX_TRIANGULATION_POINTS + 1, 1 );
 
         REQUIRE( result == Cork::TriangulationResultCodes::TOO_MANY_POINTS );
     }
@@ -119,7 +121,7 @@ TEST_CASE("Triangulator Tests", "[cork basic]")
     {
         Cork::Triangulator::Triangulator triangulator;
 
-        auto result = triangulator.will_problem_fit( 1, Cork::Triangulator::Triangulator::MAX_POINTS + 1 );
+        auto result = triangulator.will_problem_fit( 1, MAX_TRIANGULATION_POINTS + 1 );
 
         REQUIRE( result == Cork::TriangulationResultCodes::TOO_MANY_SEGMENTS );
     }

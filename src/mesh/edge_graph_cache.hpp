@@ -76,8 +76,36 @@ namespace Cork::Meshes
     class EGraphCache
     {
        public:
-        using EGraphSkeletonColumn = SEFUtility::SparseVector<EGraphEntry, EGRAPH_CACHE_SKELETON_COLUMN_INITIAL_SIZE>;
-        using SkeletonColumnVector = SEFUtility::ConstructOnceResizeableVector<EGraphSkeletonColumn>;
+
+        class EGraphSkeletonColumn : public SEFUtility::SparseVector<EGraphEntry, EGRAPH_CACHE_SKELETON_COLUMN_INITIAL_SIZE>
+        {
+            public :
+
+            EGraphEntry& find_or_add(VertexIndex index)
+            {
+                return SEFUtility::SparseVector<EGraphEntry, EGRAPH_CACHE_SKELETON_COLUMN_INITIAL_SIZE>::find_or_add( static_cast<size_t>(index) );
+            }
+
+            EGraphEntry& operator[]( VertexIndex index )
+            {
+                return SEFUtility::SparseVector<EGraphEntry, EGRAPH_CACHE_SKELETON_COLUMN_INITIAL_SIZE>::operator[]( static_cast<size_t>(index) );
+            }
+
+            const EGraphEntry& operator[]( VertexIndex index ) const
+            {
+                return SEFUtility::SparseVector<EGraphEntry, EGRAPH_CACHE_SKELETON_COLUMN_INITIAL_SIZE>::operator[]( static_cast<size_t>(index) );
+            }
+        };
+        
+        class SkeletonColumnVector : public SEFUtility::ConstructOnceResizeableVector<EGraphSkeletonColumn>
+        {
+            public :
+
+            EGraphSkeletonColumn& operator[]( VertexIndex vi )
+            {
+                return SEFUtility::ConstructOnceResizeableVector<EGraphSkeletonColumn>::operator[]( static_cast<size_t>(vi) );
+            }
+        };
 
         EGraphCache() : skeleton_column_vector_(SEFUtility::CachingFactory<SkeletonColumnVector>::GetInstance()), skeleton_(*skeleton_column_vector_) {}
 
@@ -95,9 +123,9 @@ namespace Cork::Meshes
 
         [[nodiscard]] SkeletonColumnVector& columns() { return (skeleton_); }
 
-        [[nodiscard]] EGraphSkeletonColumn& operator[](VertexIndex index) { return (skeleton_[VertexIndex::integer_type(index)]); }
+        [[nodiscard]] EGraphSkeletonColumn& operator[](VertexIndex index) { return (skeleton_[index]); }
 
-        [[nodiscard]] const EGraphSkeletonColumn& operator[](VertexIndex index) const { return (skeleton_[VertexIndex::integer_type(index)]); }
+        [[nodiscard]] const EGraphSkeletonColumn& operator[](VertexIndex index) const { return (skeleton_[index]); }
 
        private:
 

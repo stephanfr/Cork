@@ -47,8 +47,8 @@ TEST_CASE("Boundary Edge Tests", "[3D Basic]")
     {
         Cork::Primitives::Vertex3DVector vertices( NON_SELF_INTERSECTING_POLYGON_1 );
 
-        std::vector<Cork::Primitives::VertexIndex>      indices_raw(vertices.size(), 0u);
-        std::iota( indices_raw.begin(), indices_raw.end(), 0u );
+        std::vector<Cork::Primitives::VertexIndex>      indices_raw(vertices.size(), Cork::Primitives::VertexIndex{0});
+        std::iota( indices_raw.begin(), indices_raw.end(), Cork::Primitives::VertexIndex{0} );
 
         Cork::Primitives::VertexIndexVector     indices( std::move( indices_raw ) );
 

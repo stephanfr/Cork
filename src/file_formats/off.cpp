@@ -59,8 +59,7 @@ namespace Cork::Files
                                                             const Primitives::TriangleByIndices& triToWrite)
     {
         fmt::format_to(out_stream.back_insert_iterator(), FMT_COMPILE("3 {:d} {:d} {:d}"),
-                       VertexIndex::integer_type(triToWrite[0]), VertexIndex::integer_type(triToWrite[1]),
-                       VertexIndex::integer_type(triToWrite[2]));
+                       static_cast<size_t>(triToWrite[0]), static_cast<size_t>(triToWrite[1]), static_cast<size_t>(triToWrite[2]));
 
         return (out_stream);
     }
@@ -195,9 +194,9 @@ namespace Cork::Files
             {
                 uint32_t poly_sides(0);
 
-                VertexIndex::integer_type x_index(0U);
-                VertexIndex::integer_type y_index(0U);
-                VertexIndex::integer_type z_index(0U);
+                size_t x_index(0U);
+                size_t y_index(0U);
+                size_t z_index(0U);
 
                 //  We cannot use read_line_exactly as we want to detect non-triangular polygons
 
@@ -210,7 +209,7 @@ namespace Cork::Files
                 }
 
                 //  NOLINTNEXTLINE(cert-err34-c, cppcoreguidelines-pro-type-vararg, hicpp-vararg)
-                items_processed = std::sscanf(next_line.c_str(), "%u %u %u %u %n", &poly_sides, &x_index, &y_index,
+                items_processed = std::sscanf(next_line.c_str(), "%u %zu %zu %zu %n", &poly_sides, &x_index, &y_index,
                                               &z_index, &chars_processed);
 
                 if ((items_processed >= 1) && (poly_sides != 3))
@@ -226,7 +225,7 @@ namespace Cork::Files
                                                    "Error reading faces.");
                 }
 
-                if (meshBuilder->add_triangle(i, x_index, y_index, z_index) != TriangleMeshBuilderResultCodes::SUCCESS)
+                if (meshBuilder->add_triangle(i, VertexIndex(x_index), VertexIndex(y_index), VertexIndex(z_index)) != TriangleMeshBuilderResultCodes::SUCCESS)
                 {
                     return ReadFileResult::failure(
                         ReadFileResultCodes::OFF_ERROR_ADDING_FACE_TO_MESH,
