@@ -6,7 +6,7 @@
 
 #include "util/thread_pool.hpp"
 #include "util/union_find.hpp"
-#include "RandomGraphGenerator.h"
+#include "random_graph_generator.h"
 #include "tbb/tbb.h"
 
 std::unique_ptr<ThreadPool> g_threadPool;

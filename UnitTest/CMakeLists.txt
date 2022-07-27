@@ -43,10 +43,10 @@ add_executable( tests
   exterior_calculus_test.cpp
   performance_stream_test.cpp
   off_file_io_test.cpp
-  CachingFactoryTest.cpp
-  ConstructOnceResizeableVectorTest.cpp
-  Vector2DTest.cpp
-  Vector3DTest.cpp
+  caching_factory_test.cpp
+  construct_once_resizeable_vector_test.cpp
+  vector_2D_test.cpp
+  vector_3D_test.cpp
   topology_tests.cpp
   geometric_tests.cpp
   triangulator_test.cpp
@@ -55,15 +55,15 @@ add_executable( tests
   boundary_edge_tests.cpp
   svd_centroid_3d_tests.cpp
   topo_cache_tests.cpp
-  strong_typedefs.cpp
+  strong_typedefs_tests.cpp
 )
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain Corklib tbb mpir boost_program_options boost_filesystem boost_iostreams boost_system boost_timer boost_thread pthread)
 
 add_executable( benchmarks
   bounding_box_benchmark.cpp
-  UnionFindBenchmark.cpp
-  Vector3DBenchmark.cpp
+  union_find_benchmark.cpp
+  vector_3D_benchmark.cpp
   performance_stream_benchmark.cpp
   exterior_calculus_benchmark.cpp
 )
