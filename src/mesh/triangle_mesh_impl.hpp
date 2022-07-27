@@ -45,7 +45,7 @@ namespace Cork::Meshes
 
         void remove_triangle(TriangleByIndicesIndex triangle_index)
         {
-            tris_->erase(tris_->begin() + TriangleByIndicesIndex::integer_type(triangle_index));
+            tris_->erase(tris_->begin() + static_cast<size_t>(triangle_index));
         }
 
         [[nodiscard]] Statistics::GeometricStatistics ComputeGeometricStatistics(

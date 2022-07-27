@@ -71,7 +71,7 @@ namespace Cork::Meshes
 
         void remove_triangle( TriangleByIndicesIndex    index )
         {
-            tris_->erase( tris_->begin() + TriangleByIndicesIndex::integer_type( index ) );
+            tris_->erase( tris_->begin() + static_cast<size_t>(index) );
 
             clear_topo_cache();
         }

@@ -68,8 +68,6 @@ namespace Cork::Primitives
     using IndexType = uint32_t;
     using IndexVector = std::vector<IndexType>;
 
-    //    using VertexIndex = size_t;
-
     struct VertexIndex : type_safe::strong_typedef<VertexIndex, size_t>,
                          type_safe::strong_typedef_op::equality_comparison<VertexIndex>,
                          type_safe::strong_typedef_op::relational_comparison<VertexIndex>,
@@ -94,13 +92,13 @@ namespace Cork::Primitives
 
         friend std::ostream& operator<<(std::ostream& os, const VertexIndex& vi)
         {
-            os << static_cast<size_t>(vi);
+            os << vi.value_;
             return os;
         }
 
         friend std::istream& operator>>(std::istream& is, VertexIndex& vi)
         {
-            is >> vi;
+            is >> vi.value_;
             return is;
         }
     };
@@ -109,7 +107,56 @@ namespace Cork::Primitives
 
     using VertexIndexVector = std::vector<VertexIndex>;
 
-    using TriangleByIndicesIndex = type_safe::integer<uint32_t>;
+
+    struct TriangleByIndicesIndex : type_safe::strong_typedef<TriangleByIndicesIndex, uint32_t>,
+                         type_safe::strong_typedef_op::equality_comparison<TriangleByIndicesIndex>,
+                         type_safe::strong_typedef_op::relational_comparison<TriangleByIndicesIndex>,
+                         type_safe::strong_typedef_op::integer_arithmetic<TriangleByIndicesIndex>
+    {
+        using strong_typedef::strong_typedef;
+
+        explicit TriangleByIndicesIndex( size_t  value )
+        {
+            value_ = value;
+        }
+
+        TriangleByIndicesIndex( TriangleByIndicesIndex&& ) = default;
+        TriangleByIndicesIndex( const TriangleByIndicesIndex& ) = default;
+
+        TriangleByIndicesIndex& operator=( const TriangleByIndicesIndex& ) = default;
+
+        explicit operator size_t() const
+        {
+            return value_;
+        }
+
+        bool operator<( size_t value_to_compare ) const
+        {
+            return this->value_ < value_to_compare;
+        }
+
+        TriangleByIndicesIndex operator+( size_t value_to_add ) const
+        {
+            return TriangleByIndicesIndex( this->value_ + value_to_add );
+        }
+
+        TriangleByIndicesIndex operator+( uint32_t value_to_add ) const
+        {
+            return TriangleByIndicesIndex( this->value_ + value_to_add );
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const TriangleByIndicesIndex& vi)
+        {
+            os << vi.value_;
+            return os;
+        }
+
+        friend std::istream& operator>>(std::istream& is, TriangleByIndicesIndex& vi)
+        {
+            is >> vi.value_;
+            return is;
+        }
+    };
 
     using TriangleUID = type_safe::integer<uint64_t>;
 
@@ -362,7 +409,7 @@ namespace Cork::Primitives
     {
        public:
         TriangleByIndices()
-            : uid_(UNINITIALIZED_INDEX), a_(UNINITIALIZED_INDEX), b_(UNINITIALIZED_INDEX), c_(UNINITIALIZED_INDEX)
+            : uid_(UNINITIALIZED_INDEX), a_(UNINITIALIZED_VERTEX_INDEX), b_(UNINITIALIZED_VERTEX_INDEX), c_(UNINITIALIZED_VERTEX_INDEX)
         {
         }
 
@@ -462,21 +509,49 @@ namespace Cork::Primitives
     class TriangleByIndicesVector : public std::vector<TriangleByIndices>
     {
        public:
+
+        TriangleByIndicesVector() = default;
+
+        TriangleByIndicesVector( const TriangleByIndicesVector& ) = default;
+        TriangleByIndicesVector( TriangleByIndicesVector&& ) = default;
+
+        TriangleByIndicesVector( size_t count ) 
+            : std::vector<TriangleByIndices>( count )
+        {}
+
+
         const TriangleByIndices& operator[](size_t) const = delete;
         TriangleByIndices& operator[](size_t) = delete;
 
         const TriangleByIndices& operator[](TriangleByIndicesIndex idx) const
         {
-            return data()[TriangleByIndicesIndex::integer_type(idx)];
+            return std::vector<TriangleByIndices>::operator[](static_cast<size_t>(idx));
         }
 
         TriangleByIndices& operator[](TriangleByIndicesIndex idx)
         {
-            return data()[TriangleByIndicesIndex::integer_type(idx)];
+            return std::vector<TriangleByIndices>::operator[](static_cast<size_t>(idx));
         }
+
+
     };
 
-    using TriangleByIndicesIndexVector = std::vector<TriangleByIndicesIndex>;
+    class TriangleByIndicesIndexVector : public std::vector<TriangleByIndicesIndex>
+    {
+        public :
+
+        TriangleByIndicesIndexVector() = default;
+        TriangleByIndicesIndexVector( TriangleByIndicesIndexVector&& ) = default;
+
+        TriangleByIndicesIndexVector( size_t    count, const TriangleByIndicesIndex&  default_value )
+            : std::vector<TriangleByIndicesIndex>( count, default_value )
+        {}
+
+        TriangleByIndicesIndex& operator[]( TriangleByIndicesIndex index )
+        {
+            return std::vector<TriangleByIndicesIndex>::operator[]( static_cast<size_t>(index) );
+        }
+    };
 
     class TriangleByIndicesIndexSet : public std::set<TriangleByIndicesIndex>
     {

@@ -45,7 +45,7 @@ namespace Cork::Meshes
         {
             edges_and_incidences_.reserve((triangle_mesh.num_triangles() * 3) + 10);  //  Pad just a little bit
 
-            for (TriangleByIndicesIndex i = 0U; i < triangle_mesh.triangles().size(); i++)
+            for (TriangleByIndicesIndex i{0UL}; i < triangle_mesh.triangles().size(); i++)
             {
                 add_incidence( i, triangle_mesh.triangles()[i] );
             }

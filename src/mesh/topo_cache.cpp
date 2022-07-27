@@ -158,11 +158,11 @@ namespace Cork::Meshes
 
         // record which triangles are live, and record connectivity
 
-        BooleanVector<size_t> live_tris(mesh_triangles_.size());
+        BooleanVector<TriangleByIndicesIndex> live_tris(mesh_triangles_.size());
 
         for (auto& tri : topo_tri_list_)
         {
-            live_tris[tri.ref().get()] = true;
+            live_tris[tri.ref()] = true;
 
             for (size_t k = 0; k < 3; k++)
             {
@@ -210,15 +210,16 @@ namespace Cork::Meshes
         {
             vert.set_index(vertex_map[vert.index()]);
         }
+        
+        TriangleByIndicesIndexVector    tmap;
 
-        std::vector<TriangleByIndicesIndex> tmap;
         tmap.reserve(mesh_triangles_.size());
 
-        TriangleByIndicesIndex tri_write = 0U;
+        TriangleByIndicesIndex tri_write{0UL};
 
-        for (TriangleByIndicesIndex read = 0U; read < mesh_triangles_.size(); read++)
+        for (TriangleByIndicesIndex read{0UL}; read < mesh_triangles_.size(); read++)
         {
-            if (live_tris[read.get()])
+            if (live_tris[read])
             {
                 tmap.emplace_back(tri_write);
                 mesh_triangles_[tri_write] = mesh_triangles_[read];
@@ -237,13 +238,13 @@ namespace Cork::Meshes
             }
         }
 
-        mesh_triangles_.resize(TriangleByIndicesIndex::integer_type(tri_write));
+        mesh_triangles_.resize(static_cast<size_t>(tri_write));
 
         // rewrite the triangle reference ids
 
         for (auto& tri : triangles())
         {
-            tri.set_ref(tmap[TriangleByIndicesIndex::integer_type(tri.ref())]);
+            tri.set_ref(tmap[tri.ref()]);
         }
     }
 

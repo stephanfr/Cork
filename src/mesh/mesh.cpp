@@ -208,7 +208,7 @@ namespace Cork::Meshes
 
         //	Fill the triangles
 
-        for (TriangleByIndicesIndex i = 0U; i < inputMesh.triangles().size(); i++)
+        for (TriangleByIndicesIndex i{0UL}; i < inputMesh.triangles().size(); i++)
         {
             tris_->emplace_back(inputMesh.triangles()[i], 0);
         }
@@ -240,7 +240,7 @@ namespace Cork::Meshes
             }
         }
 
-        for (TriangleByIndicesIndex i = 0U; i < tris_->size(); i++)
+        for (TriangleByIndicesIndex i{0UL}; i < tris_->size(); i++)
         {
             if ((*tris_)[i].a() >= verts_->size() || (*tris_)[i].b() >= verts_->size() ||
                 (*tris_)[i].c() >= verts_->size())
@@ -267,29 +267,29 @@ namespace Cork::Meshes
             t.set_bool_alg_data(0);
         }
 
-        VertexIndex oldVsize{verts_->size()};
-        VertexIndex cpVsize{ meshToMerge.verts_->size() };
-        VertexIndex newVsize{oldVsize + cpVsize};
+        VertexIndex old_vsize{verts_->size()};
+        VertexIndex current_problem_vsize{ meshToMerge.verts_->size() };
+        VertexIndex new_vsize{old_vsize + current_problem_vsize};
 
-        uint32_t oldTsize = tris_->size();
-        uint32_t cpTsize = meshToMerge.tris_->size();
-        uint32_t newTsize = oldTsize + cpTsize;
+        TriangleByIndicesIndex old_tsize{tris_->size()};
+        TriangleByIndicesIndex current_problem_tsize{meshToMerge.tris_->size()};
+        TriangleByIndicesIndex new_tsize{old_tsize + current_problem_tsize};
 
-        verts_->resize(static_cast<size_t>(newVsize));
-        tris_->resize(newTsize);
+        verts_->resize(static_cast<size_t>(new_vsize));
+        tris_->resize(static_cast<size_t>(new_tsize));
 
-        for (VertexIndex i{0}; i < cpVsize; i++)
+        for (VertexIndex i{0}; i < current_problem_vsize; i++)
         {
-            (*verts_)[oldVsize + i] = (*(meshToMerge.verts_))[i];
+            (*verts_)[old_vsize + i] = (*(meshToMerge.verts_))[i];
         }
 
-        for (TriangleByIndicesIndex i = 0U; i < cpTsize; i++)
+        for (TriangleByIndicesIndex i{0UL}; i < current_problem_tsize; i++)
         {
-            auto& tri = (*tris_)[oldTsize + i];
+            auto& tri = (*tris_)[old_tsize + i];
 
             tri = (*(meshToMerge.tris_))[i];
             tri.set_bool_alg_data(1);  //	These triangles are part of the RHS so label them as such
-            tri.offset_indices(static_cast<size_t>(oldVsize));
+            tri.offset_indices(static_cast<size_t>(old_vsize));
         }
     }
 
@@ -441,7 +441,7 @@ namespace Cork::Meshes
 
         EGraphCache& ecache = *ecachePtr;
 
-        for (TriangleByIndicesIndex tid = 0U; tid < tris_->size(); tid++)
+        for (TriangleByIndicesIndex tid{0UL}; tid < tris_->size(); tid++)
         {
             const TriangleByIndices& tri = (*tris_)[tid];
 
@@ -494,7 +494,7 @@ namespace Cork::Meshes
 
             for (size_t k = 1U; k < tids.size(); k++)
             {
-                uf.unite(TriangleByIndicesIndex::integer_type(tid0), TriangleByIndicesIndex::integer_type(tids[k]));
+                uf.unite(static_cast<size_t>(tid0), static_cast<size_t>(tids[k]));
             }
         });
 
@@ -510,7 +510,7 @@ namespace Cork::Meshes
         ThreadPool::getPool().parallel_for(4, (size_t)0, tris_->size(), [&](size_t blockBegin, size_t blockEnd) {
             size_t ufid;
 
-            for (uint32_t i = blockBegin; i < blockEnd; i++)
+            for (size_t i = blockBegin; i < blockEnd; i++)
             {
                 ufid = uf.find(i);
 
@@ -530,12 +530,12 @@ namespace Cork::Meshes
                     //					(*components)[N].reserve(512);
 
                     uq_ids[ufid] = uq_ids[i] = (int64_t)N;
-                    (*components)[N].push_back(i);
+                    (*components)[N].push_back(TriangleByIndicesIndex(i));
                 }
                 else
                 {
                     uq_ids[i] = uq_ids[ufid];
-                    (*components)[uq_ids[i]].push_back(i);
+                    (*components)[uq_ids[i]].push_back(TriangleByIndicesIndex(i));
                 }
             }
         });
@@ -623,12 +623,12 @@ namespace Cork::Meshes
         std::vector<TriangleByIndicesIndex> work;
         work.reserve(trisInComponent.size());
 
-        Primitives::BooleanVector<size_t> visited(tris_->size());
+        Primitives::BooleanVector<TriangleByIndicesIndex> visited(tris_->size());
 
         // begin by tagging the first triangle
 
         (*tris_)[best_tid].set_bool_alg_data((*tris_)[best_tid].bool_alg_data() | (inside ? 2 : 0));
-        visited[best_tid.get()] = true;
+        visited[best_tid] = true;
         work.push_back(best_tid);
 
         while (!work.empty())
@@ -652,7 +652,7 @@ namespace Cork::Meshes
 
                 for (TriangleByIndicesIndex tid : entry.tids())
                 {
-                    if (visited[TriangleByIndicesIndex::integer_type(tid)])
+                    if (visited[tid])
                     {
                         continue;
                     }
@@ -663,7 +663,7 @@ namespace Cork::Meshes
                     }
 
                     (*tris_)[tid].set_bool_alg_data((*tris_)[tid].bool_alg_data() | inside_sig);
-                    visited[TriangleByIndicesIndex::integer_type(tid)] = true;
+                    visited[tid] = true;
                     work.push_back(tid);
                 }
             }
@@ -673,7 +673,7 @@ namespace Cork::Meshes
     TriangleByIndicesIndex Mesh::FindTriForInsideTest(const ComponentType& trisInComponent)
     {
         TriangleByIndicesIndex current_tid{0U};
-        TriangleByIndicesIndex best_tid = TriangleByIndicesIndex::integer_type(trisInComponent[0]);
+        TriangleByIndicesIndex best_tid = trisInComponent[0];
         double best_area = 0.0;
 
         size_t searchIncrement = 1;

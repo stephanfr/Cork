@@ -48,7 +48,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         REQUIRE(mesh.num_triangles() == 9998);
 
         {
-            auto surface1 = mesh.extract_surface(5000u, 1);
+            auto surface1 = mesh.extract_surface( Cork::Primitives::TriangleByIndicesIndex{5000UL}, 1);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_1.off", *surface1);
 
@@ -57,7 +57,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface2 = mesh.extract_surface(5000u, 2);
+            auto surface2 = mesh.extract_surface(Cork::Primitives::TriangleByIndicesIndex{5000UL}, 2);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_2.off", *surface2);
 
@@ -66,7 +66,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface3 = mesh.extract_surface(5000u, 3);
+            auto surface3 = mesh.extract_surface(Cork::Primitives::TriangleByIndicesIndex{5000UL}, 3);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_3.off", *surface3);
 
@@ -75,7 +75,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface4 = mesh.extract_surface(5000u, 4);
+            auto surface4 = mesh.extract_surface(Cork::Primitives::TriangleByIndicesIndex{5000UL}, 4);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_4.off", *surface4);
 
@@ -84,7 +84,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface5 = mesh.extract_surface(5000u, 5);
+            auto surface5 = mesh.extract_surface(Cork::Primitives::TriangleByIndicesIndex{5000UL}, 5);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_5.off", *surface5);
 
@@ -93,7 +93,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface6 = mesh.extract_surface(5000u, 6);
+            auto surface6 = mesh.extract_surface(Cork::Primitives::TriangleByIndicesIndex{5000UL}, 6);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_6.off", *surface6);
 
@@ -102,7 +102,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface7 = mesh.extract_surface(5000u, 7);
+            auto surface7 = mesh.extract_surface(Cork::Primitives::TriangleByIndicesIndex{5000UL}, 7);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_7.off", *surface7);
 
@@ -111,7 +111,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface8 = mesh.extract_surface(5000u, 8);
+            auto surface8 = mesh.extract_surface(Cork::Primitives::TriangleByIndicesIndex{5000UL}, 8);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_8.off", *surface8);
 
@@ -120,7 +120,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface9 = mesh.extract_surface(5000u, 9);
+            auto surface9 = mesh.extract_surface(Cork::Primitives::TriangleByIndicesIndex{5000UL}, 9);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_9.off", *surface9);
 
@@ -129,7 +129,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
 
         {
-            auto surface10 = mesh.extract_surface(5000u, 10);
+            auto surface10 = mesh.extract_surface(Cork::Primitives::TriangleByIndicesIndex{5000UL}, 10);
 
             Cork::Files::writeOFF("../../UnitTest/Test Results/surface_mesh_tests/ant_extract_10.off", *surface10);
 

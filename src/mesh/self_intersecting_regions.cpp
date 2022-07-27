@@ -222,7 +222,7 @@ namespace Cork::Meshes
                     boundaries.emplace_back(topo_edge_boundary);
                 }
 
-                uint32_t tri_in_region_index = TriangleByIndicesIndex::integer_type(*(itr->begin()));
+                TriangleByIndicesIndex tri_in_region_index = *(itr->begin());
 
                 const TopoTri& topo_tri_seed = mesh_.topo_cache().triangles().getPool()[tri_in_region_index];
 

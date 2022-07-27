@@ -621,7 +621,7 @@ namespace Cork::Meshes
 #endif
     };
 
-    typedef ManagedIntrusiveValueList<TopoTri> TopoTriList;
+    typedef ManagedIntrusiveValueList<TopoTri,TriangleByIndicesIndex> TopoTriList;
 
     class TopoCacheWorkspace : public SEFUtility::Resettable
     {
@@ -1012,8 +1012,7 @@ namespace Cork::Meshes
 
         TriangleByIndicesIndexSet triangles_sharing_edge(TriangleByIndicesIndex tri_index, TriangleEdgeId edge_id) const
         {
-            const TopoTri& triangle_containing_edge =
-                topo_tri_list_.getPool()[TriangleByIndicesIndex::integer_type(tri_index)];
+            const TopoTri& triangle_containing_edge = topo_tri_list_.getPool()[tri_index];
 
             const TopoEdge* topo_edge = nullptr;
 

@@ -142,7 +142,7 @@ namespace Cork::Meshes
 
         //	Fill the triangles
 
-        for (TriangleByIndicesIndex i = 0u; i < inputMesh.triangles().size(); i++)
+        for (TriangleByIndicesIndex i{0UL}; i < inputMesh.triangles().size(); i++)
         {
             tris_->emplace_back(inputMesh.triangles()[i], 0);
         }
@@ -464,7 +464,7 @@ namespace Cork::Meshes
 
             //            TriangleByIndicesIndexSet disconnected_tris;
 
-            for (TriangleByIndicesIndex i = 0u; i < tris_->size(); i++)
+            for (TriangleByIndicesIndex i{0UL}; i < tris_->size(); i++)
             {
                 if (!after_boundaries.return_value().tris_inside_boundary_.contains(i))
                 {
@@ -610,7 +610,7 @@ namespace Cork::Meshes
 
         TriangleByIndicesIndexSet tris_in_surface;
 
-        TriangleByIndicesIndex tri_index = 0u;
+        TriangleByIndicesIndex tri_index{0UL};
         for (auto tri : triangles())
         {
             tris_in_surface.insert(tri_index++);
@@ -628,13 +628,13 @@ namespace Cork::Meshes
 
         for (auto itr_element = all_tris_to_remove.rbegin(); itr_element != all_tris_to_remove.rend(); itr_element++)
         {
-            tris_->erase(tris_->begin() + TriangleByIndicesIndex::integer_type(*itr_element));
+            tris_->erase(tris_->begin() + static_cast<size_t>(*itr_element));
         }
 
         Cork::Files::writeOFF("../../UnitTest/Test Results/patch1.off", *this);
 
-        TriangleByIndicesIndexVector all_indices(tris_->size(), 0u);
-        std::iota(all_indices.begin(), all_indices.end(), 0u);
+        TriangleByIndicesIndexVector all_indices(tris_->size(), TriangleByIndicesIndex{0UL});
+        std::iota(all_indices.begin(), all_indices.end(), TriangleByIndicesIndex{0UL});
 
         auto patch_boundary_result = get_boundary_edge(all_indices);
 
