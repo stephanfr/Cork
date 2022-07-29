@@ -115,8 +115,6 @@ namespace Cork
     {
         SUCCESS = 0,
 
-        TOO_MANY_POINTS,
-        TOO_MANY_SEGMENTS,
         UNEQUAL_NUMBER_OF_INPUT_AND_OUTPUT_POINTS
     };
 

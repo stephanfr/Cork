@@ -47,21 +47,21 @@ namespace Cork::Triangulator
         struct triangulateio in;                    //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
         struct triangulateio out;                   //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
 
-        in.numberofpoints = (int)number_of_points_;
+        in.numberofpoints = (int)points_.size();
         in.numberofpointattributes = 0;
 
-        in.pointlist = reinterpret_cast<double*>(&points_);                     //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-        in.pointmarkerlist = reinterpret_cast<int*>(&point_markers_);           //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        in.pointlist = reinterpret_cast<double*>(points_.data());                     //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        in.pointmarkerlist = point_markers_.data();
         in.pointattributelist = nullptr;
 
         //  Define the segments linking the points into the edge of the region to be meshed
 
-        in.numberofsegments = (int)number_of_segments_;
+        in.numberofsegments = (int)segments_.size();
         in.numberofholes = 0;    // No holes
         in.numberofregions = 0;  // Not using regions
 
-        in.segmentlist = reinterpret_cast<int*>(&segments_);                    //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-        in.segmentmarkerlist = reinterpret_cast<int*>(&segment_markers_);       //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        in.segmentlist = reinterpret_cast<int*>(segments_.data());                    //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        in.segmentmarkerlist = segment_markers_.data();
 
         //  No number of triangles so also no triangle attributes
 

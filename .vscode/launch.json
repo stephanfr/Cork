@@ -5,6 +5,30 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(gdb) Regression Test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/RegressionTest/CorkCLI",
+            "args": ["--union", "--input-directory", "/home/steve/dev/Cork/RegressionTest/TestSet/", "--output-directory", "/home/steve/dev/Cork/RegressionTest/Results/", "--write-statistics"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/RegressionTest/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description":  "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "(gdb) Tests",
             "type": "cppdbg",
             "request": "launch",
@@ -19,26 +43,6 @@
                 "trace": true,
                 "traceResponse": true
               },
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ]
-        },
-        {
-            "name": "(gdb) Regression Test",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/build/RegressionTest/CorkCLI",
-            "args": ["--union", "--input-directory", "/home/steve/dev/Cork/RegressionTest/TestSet/", "--output-directory", "/home/steve/dev/Cork/RegressionTest/Results/", "--write-statistics"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/RegressionTest/",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "hardwareBreakpoints": { "require": true, "limit": 32 },
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

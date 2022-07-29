@@ -42,7 +42,7 @@ namespace Cork::Intersection
     class GluePointMarker;
     class GenericEdgeType;
 
-    class GenericVertType : public IntrusiveListHook
+    class GenericVertType : public IntrusiveListHookNoDestructorOnElements
     {
         using TopoVert = Meshes::TopoVert;
         using TopoEdge = Meshes::TopoEdge;
@@ -147,7 +147,7 @@ namespace Cork::Intersection
     using IntersectionVertexPointerList = ManagedIntrusivePointerList<IsctVertType>;
     using OrigVertTypeList = ManagedIntrusiveValueList<OrigVertType>;
 
-    class GluePointMarker : public IntrusiveListHook
+    class GluePointMarker : public IntrusiveListHookNoDestructorOnElements
     {
         using TopoVert = Meshes::TopoVert;
         using TopoEdge = Meshes::TopoEdge;
@@ -213,7 +213,7 @@ namespace Cork::Intersection
 
     using GluePointMarkerList = ManagedIntrusiveValueList<GluePointMarker>;
 
-    class GenericEdgeType : public IntrusiveListHook
+    class GenericEdgeType : public IntrusiveListHookNoDestructorOnElements
     {
         using TopoVert = Meshes::TopoVert;
         using TopoEdge = Meshes::TopoEdge;
@@ -349,7 +349,7 @@ namespace Cork::Intersection
 
     using IntersectionEdgePointerList = ManagedIntrusivePointerList<IsctEdgeType>;
 
-    class GenericTriType : public IntrusiveListHook
+    class GenericTriType : public IntrusiveListHookNoDestructorOnElements
     {
         using TopoVert = Meshes::TopoVert;
         using TopoEdge = Meshes::TopoEdge;

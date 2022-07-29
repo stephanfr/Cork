@@ -161,9 +161,6 @@ typedef boost::intrusive::list_base_hook<> IntrusiveListHook;
 typedef boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::normal_link>>
     IntrusiveListHookNoDestructorOnElements;
 
-//  For instances where we have strongly typed index types - we have the ValuePool below which will
-//      conditionally compile support for type_safe::integer<uint32_t> indices.  The list will default
-//      to uint32_t indices with an appropriate pool.
 
 template <typename T, typename TI>
 class ValuePool : public tbb::concurrent_vector<T>

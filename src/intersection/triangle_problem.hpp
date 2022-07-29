@@ -272,14 +272,6 @@ namespace Cork::Intersection
 
             Triangulator::Triangulator triangulator;
 
-            if (auto result = triangulator.will_problem_fit(points.size(), edges.size());
-                result != TriangulationResultCodes::SUCCESS)
-            {
-                return (SubdivideResult::failure(
-                    Triangulator::TriangulateResult::failure(result, "Too many points or segments for triangulation"),
-                    SubdivideResultCodes::FAILED_TRIANGULATION, "Failed Triangulation"));
-            }
-
             Math::NormalProjector normal_projector(overts[0]->coordinate(), overts[1]->coordinate(),
                                                            overts[2]->coordinate());
 

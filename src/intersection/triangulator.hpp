@@ -29,6 +29,8 @@
 
 #include "../constants.hpp"
 
+#include "boost/container/small_vector.hpp"
+
 #include "CPPResult.hpp"
 #include "math/normal_projector.hpp"
 #include "primitives/primitives.hpp"
@@ -39,36 +41,30 @@ namespace Cork::Triangulator
     class Point
     {
        public:
-        Point(const Vertex2D& vertex, bool boundary) : x_(vertex.x()), y_(vertex.y()), boundary_(boundary) {}
-        Point(double x, double y, bool boundary) : x_(x), y_(y), boundary_(boundary) {}
+        Point() = delete;
+        Point(const Vertex2D& vertex) : x_(vertex.x()), y_(vertex.y()) {}
+        Point(double x, double y) : x_(x), y_(y) {}
 
         [[nodiscard]] double x() const { return x_; }
         [[nodiscard]] double y() const { return y_; }
-        [[nodiscard]] const std::pair<double, double>& pair() const { return reinterpret_cast<const std::pair<double, double>&>(x_); }  //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-        [[nodiscard]] bool boundary() const { return boundary_; }
 
        private:
-        const double x_;
-        const double y_;
-
-        bool boundary_;
+        double x_;
+        double y_;
     };
 
     class Segment
     {
        public:
-        Segment(int start, int end, bool boundary) : start_(start), end_(end), boundary_(boundary) {}
+        Segment() = delete;
+        Segment(int start, int end) : start_(start), end_(end) {}
 
         [[nodiscard]] int start() const { return start_; }
         [[nodiscard]] int end() const { return end_; }
-        [[nodiscard]] const std::pair<int, int>& pair() const { return reinterpret_cast<const std::pair<int, int>&>(start_); }  //  NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-        [[nodiscard]] bool boundary() const { return boundary_; }
 
        private:
-        const int start_;
-        const int end_;
-
-        bool boundary_;
+        int start_;
+        int end_;
     };
 
     class Triangle
@@ -113,87 +109,43 @@ namespace Cork::Triangulator
         Triangulator& operator=(const Triangulator&) = delete;
         Triangulator& operator=(Triangulator&&) = delete;
 
-        [[nodiscard]] TriangulationResultCodes will_problem_fit(uint32_t num_points, uint32_t num_segments)
-        {
-            if (num_points >= MAX_TRIANGULATION_POINTS)
-            {
-                return TriangulationResultCodes::TOO_MANY_POINTS;
-            }
-
-            if (num_segments >= MAX_TRIANGULATION_POINTS)
-            {
-                return TriangulationResultCodes::TOO_MANY_SEGMENTS;
-            }
-
-            return TriangulationResultCodes::SUCCESS;
-        }
-
-        void reset()
-        {
-            number_of_points_ = 0;
-            number_of_segments_ = 0;
-            too_many_points_ = false;
-            too_many_segments_ = false;
-        }
-
-        void add_point(Point point)
-        {
-            points_[number_of_points_] = point.pair();
-            point_markers_[number_of_points_++] = point.boundary() ? 1 : 0;
-        }
 
         void add_point(const Vertex2D& vertex, bool boundary)
         {
-            points_[number_of_points_].first = vertex.x();
-            points_[number_of_points_].second = vertex.y();
+            points_.emplace_back( vertex );
 
-            point_markers_[number_of_points_++] = static_cast<int>(boundary);
+            point_markers_.emplace_back( static_cast<int>(boundary) );
         }
 
         void add_point(double x, double y, bool boundary)
         {
-            points_[number_of_points_].first = x;
-            points_[number_of_points_].second = y;
+            points_.emplace_back( x, y );
 
-            point_markers_[number_of_points_++] = static_cast<int>(boundary);
+            point_markers_.emplace_back( static_cast<int>(boundary) );
         }
 
         void add_point(const Primitives::Vector3D& point, bool boundary, const Math::NormalProjector& projector)
         {
-            points_[number_of_points_].first = point[projector.proj_dim0()];
-            
-            points_[number_of_points_].second = projector.flip_sign()
+            points_.emplace_back( point[projector.proj_dim0()], projector.flip_sign()
                                                     ? point[projector.proj_dim1()] * projector.sign_flip()
-                                                    : point[projector.proj_dim1()];
+                                                    : point[projector.proj_dim1()] );
 
-            point_markers_[number_of_points_++] = static_cast<int>(boundary);
-        }
-
-        void add_segment(Segment segment)
-        {
-            segments_[number_of_segments_] = segment.pair();
-            segment_markers_[number_of_segments_++] = segment.boundary() ? 1 : 0;
+            point_markers_.emplace_back( static_cast<int>(boundary) );
         }
 
         void add_segment(uint32_t start, uint32_t end, bool boundary)
         {
-            segments_[number_of_segments_] = std::pair<int, int>(start, end);
-            segment_markers_[number_of_segments_++] = boundary ? 1 : 0;
+            segments_.emplace_back(start, end);
+            segment_markers_.emplace_back( boundary ? 1 : 0 );
         }
-
-        [[nodiscard]] const std::array<std::pair<double, double>, MAX_TRIANGULATION_POINTS + 1>& points() const { return points_; }
 
         [[nodiscard]] TriangulateResult compute_triangulation();
 
        private:
-        bool too_many_points_{false};
-        bool too_many_segments_{false};
-        uint32_t number_of_points_{0};
-        uint32_t number_of_segments_{0};
 
-        std::array<std::pair<double, double>, MAX_TRIANGULATION_POINTS + 1> points_;    //  NOLINT
-        std::array<int, MAX_TRIANGULATION_POINTS + 1> point_markers_;                   //  NOLINT
-        std::array<std::pair<int, int>, MAX_TRIANGULATION_POINTS + 1> segments_;        //  NOLINT
-        std::array<int, MAX_TRIANGULATION_POINTS + 1> segment_markers_;                 //  NOLINT
+        boost::container::small_vector<Point, MAX_TRIANGULATION_POINTS> points_;
+        boost::container::small_vector<int, MAX_TRIANGULATION_POINTS> point_markers_;
+        boost::container::small_vector<Segment, MAX_TRIANGULATION_POINTS> segments_;
+        boost::container::small_vector<int, MAX_TRIANGULATION_POINTS> segment_markers_;
     };
 }  // namespace Cork::Triangulator
