@@ -35,30 +35,6 @@
 namespace Cork::Meshes
 {
 
-    //
-    //  The following looks strange but I was getting potential leak warnings from Valigrind I think b/c the
-    //      default allocator for the small_vector class was not releasing memory on exit.  Thus the static
-    //      manager class below.
-    //
-    //  This cleaned up the complaints from Valgrind.  I think that the TopoTri* and TopoEdge* pools decay to
-    //      the same pool, but I purge both just in case anything changes in the future.
-    //
-
-    class SingletonPoolManager
-    {
-        public :
-        SingletonPoolManager() = default;
-
-        ~SingletonPoolManager()
-        {
-            std::cout << "TopoTri pool purged with result: " << boost::singleton_pool<boost::pool_allocator_tag, sizeof(const TopoTri*)>::purge_memory() << std::endl;
-            std::cout << "TopoEdge pool purged with result: " << boost::singleton_pool<boost::pool_allocator_tag, sizeof(const TopoEdge*)>::purge_memory() << std::endl;
-        }
-    };
-
-    static SingletonPoolManager g_singletonPoolManager;
-
-
     TriangleUID TopoEdgeBoundary::triangle_on_boundary_uid() const
     {
         return edges_.front()->triangles().front()->source_triangle_uid();
@@ -174,14 +150,13 @@ namespace Cork::Meshes
 
         class VertexMap : public std::vector<VertexIndex>
         {
-            public :
-
-            VertexIndex& operator[]( VertexIndex vi )
+           public:
+            VertexIndex& operator[](VertexIndex vi)
             {
-                return std::vector<VertexIndex>::operator[]( static_cast<size_t>(vi) );
+                return std::vector<VertexIndex>::operator[](static_cast<size_t>(vi));
             }
         };
-        
+
         VertexMap vertex_map;
 
         vertex_map.reserve(mesh_vertices_.size());
@@ -210,8 +185,8 @@ namespace Cork::Meshes
         {
             vert.set_index(vertex_map[vert.index()]);
         }
-        
-        TriangleByIndicesIndexVector    tmap;
+
+        TriangleByIndicesIndexVector tmap;
 
         tmap.reserve(mesh_triangles_.size());
 
@@ -226,8 +201,7 @@ namespace Cork::Meshes
 
                 for (uint k = 0; k < 3; k++)
                 {
-                    mesh_triangles_[tri_write][k] =
-                        vertex_map[mesh_triangles_[tri_write][k]];
+                    mesh_triangles_[tri_write][k] = vertex_map[mesh_triangles_[tri_write][k]];
                 }
 
                 tri_write++;

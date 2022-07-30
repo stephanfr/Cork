@@ -58,74 +58,6 @@ namespace hidden
 
 }  // namespace hidden
 
-template <typename T, typename TI = size_t>
-class ContiguousStorage : public boost::noncopyable
-{
-   public:
-    ContiguousStorage(size_t starting_size = 10000)
-        : current_size_(starting_size), end_(0), block_(static_cast<T*>(malloc(sizeof(T) * (starting_size + 1))))
-    {
-    }
-
-    ~ContiguousStorage() { free(block_); }
-
-    void reserve(size_t new_minimum_size)
-    {
-        if (new_minimum_size > current_size_)
-        {
-            std::cout << "Growing ContiguousStorage from: " << current_size_ << " to " << new_minimum_size << std::endl;
-
-            current_size_ = new_minimum_size;
-            free(block_);
-            block_ = static_cast<T*>(malloc(sizeof(T) * (current_size_ + 1)));
-        }
-
-        end_ = 0;
-    }
-
-    void clear() { end_ = 0; }
-
-    T& operator[](TI index)
-    {
-        assert(index < end_);
-
-        return *(block_ + static_cast<uint32_t>(index));
-    }
-
-    const T& operator[](TI index) const
-    {
-        assert(index < end_);
-
-        return *(block_ + static_cast<uint32_t>(index));
-    }
-
-    T& back()
-    {
-        assert(end_ > 0);
-
-        return *(block_ + (end_ - 1));
-    }
-
-    const T& back() const
-    {
-        assert(end_ > 0);
-
-        return *(block_ + (end_ - 1));
-    }
-
-    template <class... _Valty>
-    T* emplace_back(_Valty&&... _Val)
-    {
-        assert(end_ < current_size_);
-        return new (block_ + end_++) T(std::forward<_Valty>(_Val)...);
-    }
-
-   private:
-    size_t current_size_;
-    size_t end_;
-    T* block_;
-};
-
 template <typename T>
 class ManagedIntrusivePointerList : public boost::noncopyable,
                                     protected boost::intrusive::list<hidden::PointerOnlyListElement<T>>
@@ -160,7 +92,6 @@ class ManagedIntrusivePointerList : public boost::noncopyable,
 typedef boost::intrusive::list_base_hook<> IntrusiveListHook;
 typedef boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::normal_link>>
     IntrusiveListHookNoDestructorOnElements;
-
 
 template <typename T, typename TI>
 class ValuePool : public tbb::concurrent_vector<T>

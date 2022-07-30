@@ -26,12 +26,12 @@
 #pragma once
 
 #include <array>
-#include <boost/pool/pool_alloc.hpp>
 #include <boost/container/small_vector.hpp>
 #include <limits>
 #include <type_traits>
 #include <unordered_set>
 
+#include "../constants.hpp"
 #include "intersection/empty3d.hpp"
 #include "math/quantization.hpp"
 #include "primitives/boundary_edge.hpp"
@@ -72,8 +72,10 @@ namespace Cork::Meshes
     class TopoTri;
     class TopoEdge;
 
-    using TopoTrianglePointerVector = boost::container::small_vector<const TopoTri*, 12, boost::pool_allocator<const TopoTri*>>;
-    using TopoEdgePointerVector = boost::container::small_vector<const TopoEdge*, 25, boost::pool_allocator<const TopoEdge*>>;
+    using TopoTrianglePointerVector =
+        boost::container::small_vector<const TopoTri*, TOPO_CACHE_INITIAL_TRIANGLE_POINTER_VECTOR_SIZE>;
+    using TopoEdgePointerVector =
+        boost::container::small_vector<const TopoEdge*, TOPO_CACHE_INITIAL_EDGE_POINTER_VECTOR_SIZE>;
 
     class TopoVert final : public boost::noncopyable, public IntrusiveListHookNoDestructorOnElements
     {
@@ -86,8 +88,7 @@ namespace Cork::Meshes
         TopoVert(const TopoVert&) = delete;
         TopoVert(TopoVert&&) = delete;
 
-        ~TopoVert()
-        {}
+        ~TopoVert() {}
 
         TopoVert& operator=(const TopoVert&) = delete;
         TopoVert& operator=(TopoVert&&) = delete;
@@ -154,8 +155,7 @@ namespace Cork::Meshes
             vertex1.add_edge(this);
         }
 
-        ~TopoEdge()
-        {}
+        ~TopoEdge() {}
 
         TriangleByIndicesIndex source_triangle_id() const { return source_triangle_id_; }
         TriangleEdgeId edge_index() const { return tri_edge_id_; }
@@ -621,7 +621,7 @@ namespace Cork::Meshes
 #endif
     };
 
-    typedef ManagedIntrusiveValueList<TopoTri,TriangleByIndicesIndex> TopoTriList;
+    typedef ManagedIntrusiveValueList<TopoTri, TriangleByIndicesIndex> TopoTriList;
 
     class TopoCacheWorkspace : public SEFUtility::Resettable
     {
@@ -754,21 +754,18 @@ namespace Cork::Meshes
 
             class EdgeAccelerator : public std::vector<TopoEdgePrototypeVector>
             {
-                public :
+               public:
+                EdgeAccelerator(size_t count) : std::vector<TopoEdgePrototypeVector>(count) {}
 
-                EdgeAccelerator( size_t count ) 
-                    : std::vector<TopoEdgePrototypeVector>( count )
-                {}
+                TopoEdgePrototypeVector& operator[](size_t) = delete;
 
-                TopoEdgePrototypeVector& operator[]( size_t ) = delete;
-
-                TopoEdgePrototypeVector& operator[]( VertexIndex    vi )
+                TopoEdgePrototypeVector& operator[](VertexIndex vi)
                 {
                     return std::vector<TopoEdgePrototypeVector>::operator[](static_cast<size_t>(vi));
                 }
             };
-            
-            EdgeAccelerator     edgeacc(mesh_vertices_.size());
+
+            EdgeAccelerator edgeacc(mesh_vertices_.size());
 
             uint32_t i = -1;
 
@@ -823,8 +820,8 @@ namespace Cork::Meshes
                 TopoEdge* edge12;
 
                 {
-                    TopoEdgePrototype& edge01Proto = edgeacc[vertex0_index].find_or_add(
-                        static_cast<size_t>(vertex1_index));
+                    TopoEdgePrototype& edge01Proto =
+                        edgeacc[vertex0_index].find_or_add(static_cast<size_t>(vertex1_index));
 
                     edge01 = edge01Proto.edge();
 
@@ -836,8 +833,8 @@ namespace Cork::Meshes
 
                     edge01->add_triangle(tri);
 
-                    TopoEdgePrototype& edge02Proto = edgeacc[vertex0_index].find_or_add(
-                        static_cast<size_t>(vertex2_index));
+                    TopoEdgePrototype& edge02Proto =
+                        edgeacc[vertex0_index].find_or_add(static_cast<size_t>(vertex2_index));
 
                     edge02 = edge02Proto.edge();
 
@@ -849,8 +846,8 @@ namespace Cork::Meshes
 
                     edge02->add_triangle(tri);
 
-                    TopoEdgePrototype& edge12Proto = edgeacc[vertex1_index].find_or_add(
-                        static_cast<size_t>(vertex2_index));
+                    TopoEdgePrototype& edge12Proto =
+                        edgeacc[vertex1_index].find_or_add(static_cast<size_t>(vertex2_index));
 
                     edge12 = edge12Proto.edge();
 
@@ -963,7 +960,7 @@ namespace Cork::Meshes
 
         TopoVert* new_vertex()
         {
-            VertexIndex ref{ mesh_vertices_.size() };
+            VertexIndex ref{mesh_vertices_.size()};
 
             mesh_vertices_.emplace_back();
 

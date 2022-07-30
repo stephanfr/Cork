@@ -2,7 +2,6 @@
 
 #include <cstddef>
 
-
 constexpr size_t GLUE_POINT_MARKER_POOL_INITIAL_SIZE = 100000;
 constexpr size_t GENERIC_VERTEX_POOL_INITIAL_SIZE = 200000;
 constexpr size_t GENERIC_EDGE_POOL_INITIAL_SIZE = 500000;
@@ -36,3 +35,10 @@ constexpr size_t EGRAPH_ENTRY_TIDS_VEC_LENGTH = 8;
 //
 
 constexpr size_t EDGE_AND_INCIDENCE_COUNT_NUM_TRIANGLEs_INITIAL_SIZE = 6;
+
+//
+//  Topo Cache sizes
+//
+
+constexpr size_t TOPO_CACHE_INITIAL_TRIANGLE_POINTER_VECTOR_SIZE = 6;
+constexpr size_t TOPO_CACHE_INITIAL_EDGE_POINTER_VECTOR_SIZE = 12;

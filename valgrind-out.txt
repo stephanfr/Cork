@@ -1,256 +1,1087 @@
-==406027== Memcheck, a memory error detector
-==406027== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==406027== Using Valgrind-3.15.0-608cb11914-20190413 and LibVEX; rerun with -h for copyright info
-==406027== Command: /home/steve/dev/Cork/build/RegressionTest/CorkCLI --union --input-directory /home/steve/dev/Cork/RegressionTest/PerfTestSet --output-directory /home/steve/dev/Cork/RegressionTest/PerfResults/ --repair
-==406027== Parent PID: 399989
-==406027== 
---406027-- 
---406027-- Valgrind options:
---406027--    --leak-check=full
---406027--    --show-leak-kinds=all
---406027--    --track-origins=yes
---406027--    --verbose
---406027--    --log-file=valgrind-out.txt
---406027-- Contents of /proc/version:
---406027--   Linux version 5.4.0-121-generic (buildd@lcy02-amd64-013) (gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04.1)) #137-Ubuntu SMP Wed Jun 15 13:33:07 UTC 2022
---406027-- 
---406027-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-ssse3-avx-avx2-bmi-f16c-rdrand
---406027-- Page sizes: currently 4096, max supported 4096
---406027-- Valgrind library directory: /usr/lib/x86_64-linux-gnu/valgrind
---406027-- Reading syms from /home/steve/dev/Cork/build/RegressionTest/CorkCLI
---406027-- Reading syms from /usr/lib/x86_64-linux-gnu/ld-2.31.so
---406027--   Considering /usr/lib/x86_64-linux-gnu/ld-2.31.so ..
---406027--   .. CRC mismatch (computed 0306b78c wanted 8d362b37)
---406027--   Considering /lib/x86_64-linux-gnu/ld-2.31.so ..
---406027--   .. CRC mismatch (computed 0306b78c wanted 8d362b37)
---406027--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/ld-2.31.so ..
---406027--   .. CRC is valid
---406027-- Reading syms from /usr/lib/x86_64-linux-gnu/valgrind/memcheck-amd64-linux
---406027--    object doesn't have a symbol table
---406027--    object doesn't have a dynamic symbol table
---406027-- Scheduler: using generic scheduler lock implementation.
---406027-- Reading suppressions file: /usr/lib/x86_64-linux-gnu/valgrind/default.supp
-==406027== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-406027-by-steve-on-???
-==406027== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-406027-by-steve-on-???
-==406027== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-406027-by-steve-on-???
-==406027== 
-==406027== TO CONTROL THIS PROCESS USING vgdb (which you probably
-==406027== don't want to do, unless you know exactly what you're doing,
-==406027== or are doing some strange experiment):
-==406027==   /usr/lib/x86_64-linux-gnu/valgrind/../../bin/vgdb --pid=406027 ...command...
-==406027== 
-==406027== TO DEBUG THIS PROCESS USING GDB: start GDB like this
-==406027==   /path/to/gdb /home/steve/dev/Cork/build/RegressionTest/CorkCLI
-==406027== and then give GDB the following command
-==406027==   target remote | /usr/lib/x86_64-linux-gnu/valgrind/../../bin/vgdb --pid=406027
-==406027== --pid is optional if only one valgrind process is running
-==406027== 
---406027-- REDIR: 0x4022e10 (ld-linux-x86-64.so.2:strlen) redirected to 0x580c9ce2 (???)
---406027-- REDIR: 0x4022be0 (ld-linux-x86-64.so.2:index) redirected to 0x580c9cfc (???)
---406027-- Reading syms from /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_core-amd64-linux.so
---406027--    object doesn't have a symbol table
---406027-- Reading syms from /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so
---406027--    object doesn't have a symbol table
-==406027== WARNING: new redirection conflicts with existing -- ignoring it
---406027--     old: 0x04022e10 (strlen              ) R-> (0000.0) 0x580c9ce2 ???
---406027--     new: 0x04022e10 (strlen              ) R-> (2007.0) 0x0483f060 strlen
---406027-- REDIR: 0x401f5f0 (ld-linux-x86-64.so.2:strcmp) redirected to 0x483ffd0 (strcmp)
---406027-- REDIR: 0x4023370 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4843a20 (mempcpy)
---406027-- Reading syms from /home/steve/dev/Cork/build/src/libCorklib.so
---406027-- Reading syms from /usr/local/lib/libboost_program_options.so.1.77.0
---406027-- Reading syms from /usr/local/lib/libboost_timer.so.1.77.0
---406027-- Reading syms from /usr/local/lib/libboost_thread.so.1.77.0
---406027-- Reading syms from /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28
---406027--    object doesn't have a symbol table
---406027-- Reading syms from /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
---406027--    object doesn't have a symbol table
---406027-- Reading syms from /usr/lib/x86_64-linux-gnu/libc-2.31.so
---406027--   Considering /usr/lib/x86_64-linux-gnu/libc-2.31.so ..
---406027--   .. CRC mismatch (computed ef41b1a0 wanted f854b801)
---406027--   Considering /lib/x86_64-linux-gnu/libc-2.31.so ..
---406027--   .. CRC mismatch (computed ef41b1a0 wanted f854b801)
---406027--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libc-2.31.so ..
---406027--   .. CRC is valid
---406027-- Reading syms from /usr/local/lib/libtbb.so.12
---406027-- Reading syms from /usr/local/lib/libmpir.so.23.0.3
---406027-- Reading syms from /usr/lib/x86_64-linux-gnu/libm-2.31.so
---406027--   Considering /usr/lib/x86_64-linux-gnu/libm-2.31.so ..
---406027--   .. CRC mismatch (computed 3cfca93f wanted 658b15c9)
---406027--   Considering /lib/x86_64-linux-gnu/libm-2.31.so ..
---406027--   .. CRC mismatch (computed 3cfca93f wanted 658b15c9)
---406027--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libm-2.31.so ..
---406027--   .. CRC is valid
---406027-- Reading syms from /usr/lib/x86_64-linux-gnu/libpthread-2.31.so
---406027--   Considering /usr/lib/debug/.build-id/f0/983025f0e0f327a6da752ff4ffa675e0be393f.debug ..
---406027--   .. build-id is valid
---406027-- Reading syms from /usr/local/lib/libboost_chrono.so.1.77.0
---406027-- Reading syms from /usr/lib/x86_64-linux-gnu/libdl-2.31.so
---406027--   Considering /usr/lib/x86_64-linux-gnu/libdl-2.31.so ..
---406027--   .. CRC mismatch (computed 2bb25318 wanted f334bb32)
---406027--   Considering /lib/x86_64-linux-gnu/libdl-2.31.so ..
---406027--   .. CRC mismatch (computed 2bb25318 wanted f334bb32)
---406027--   Considering /usr/lib/debug/lib/x86_64-linux-gnu/libdl-2.31.so ..
---406027--   .. CRC is valid
---406027-- REDIR: 0x4d174b0 (libc.so.6:memmove) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d167b0 (libc.so.6:strncpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d177e0 (libc.so.6:strcasecmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d160d0 (libc.so.6:strcat) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d16810 (libc.so.6:rindex) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d18c80 (libc.so.6:rawmemchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d33d10 (libc.so.6:wmemchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d33850 (libc.so.6:wcscmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d17610 (libc.so.6:mempcpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d17440 (libc.so.6:bcmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d16740 (libc.so.6:strncmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d16180 (libc.so.6:strcmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d17570 (libc.so.6:memset) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d33810 (libc.so.6:wcschr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d166a0 (libc.so.6:strnlen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d16260 (libc.so.6:strcspn) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d17830 (libc.so.6:strncasecmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d16200 (libc.so.6:strcpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d17980 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d34f80 (libc.so.6:wcsnlen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d33890 (libc.so.6:wcscpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d16850 (libc.so.6:strpbrk) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d16130 (libc.so.6:index) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d16660 (libc.so.6:strlen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d1fbd0 (libc.so.6:memrchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d17880 (libc.so.6:strcasecmp_l) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d17400 (libc.so.6:memchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d33960 (libc.so.6:wcslen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d16b10 (libc.so.6:strspn) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d17780 (libc.so.6:stpncpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d17720 (libc.so.6:stpcpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d18cc0 (libc.so.6:strchrnul) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4d178d0 (libc.so.6:strncasecmp_l) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4dff410 (libc.so.6:__strrchr_avx2) redirected to 0x483ea10 (rindex)
---406027-- REDIR: 0x4d11110 (libc.so.6:malloc) redirected to 0x483b780 (malloc)
---406027-- REDIR: 0x4e00eb0 (libc.so.6:__strncpy_avx2) redirected to 0x483f230 (strncpy)
---406027-- REDIR: 0x4dff5e0 (libc.so.6:__strlen_avx2) redirected to 0x483ef40 (strlen)
---406027-- REDIR: 0x4d11700 (libc.so.6:free) redirected to 0x483c9d0 (free)
---406027-- REDIR: 0x4b22b20 (libstdc++.so.6:operator new(unsigned long)) redirected to 0x483bdf0 (operator new(unsigned long))
---406027-- REDIR: 0x4dfbbd0 (libc.so.6:__memcmp_avx2_movbe) redirected to 0x48421e0 (bcmp)
---406027-- REDIR: 0x4dfaae0 (libc.so.6:__strcmp_avx2) redirected to 0x483fed0 (strcmp)
---406027-- REDIR: 0x4e025f0 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x48429f0 (memmove)
---406027-- REDIR: 0x4d12b40 (libc.so.6:calloc) redirected to 0x483dce0 (calloc)
---406027-- REDIR: 0x4b20d70 (libstdc++.so.6:operator delete(void*)) redirected to 0x483cf50 (operator delete(void*))
---406027-- REDIR: 0x4dfb440 (libc.so.6:__memchr_avx2) redirected to 0x4840050 (memchr)
---406027-- REDIR: 0x4e025d0 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x4843660 (mempcpy)
---406027-- REDIR: 0x4b20d80 (libstdc++.so.6:operator delete(void*, unsigned long)) redirected to 0x483d160 (operator delete(void*, unsigned long))
---406027-- REDIR: 0x4d16fd0 (libc.so.6:__GI_strstr) redirected to 0x4843ca0 (__strstr_sse2)
---406027-- REDIR: 0x4b22b80 (libstdc++.so.6:operator new[](unsigned long)) redirected to 0x483c510 (operator new[](unsigned long))
---406027-- REDIR: 0x4dfb710 (libc.so.6:__rawmemchr_avx2) redirected to 0x4843580 (rawmemchr)
---406027-- REDIR: 0x4d12280 (libc.so.6:memalign) redirected to 0x483e2a0 (memalign)
---406027-- REDIR: 0x4b20da0 (libstdc++.so.6:operator delete[](void*)) redirected to 0x483d6e0 (operator delete[](void*))
---406027-- REDIR: 0x4e02a70 (libc.so.6:__memset_avx2_unaligned_erms) redirected to 0x48428e0 (memset)
---406027-- Reading syms from /usr/local/lib/libtbbmalloc.so.2
---406027-- REDIR: 0x4b22b90 (libstdc++.so.6:operator new[](unsigned long, std::nothrow_t const&)) redirected to 0x483c7a0 (operator new[](unsigned long, std::nothrow_t const&))
---406027-- REDIR: 0x4e01810 (libc.so.6:__stpcpy_avx2) redirected to 0x4842300 (stpcpy)
---406027-- REDIR: 0x4dff220 (libc.so.6:__strchrnul_avx2) redirected to 0x4843540 (strchrnul)
---406027-- REDIR: 0x4d11eb0 (libc.so.6:realloc) redirected to 0x483df30 (realloc)
---406027-- REDIR: 0x4b20db0 (libstdc++.so.6:operator delete[](void*, unsigned long)) redirected to 0x483d8f0 (operator delete[](void*, unsigned long))
---406027-- REDIR: 0x4da4940 (libc.so.6:__memmove_chk) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
---406027-- REDIR: 0x4e025e0 (libc.so.6:__memcpy_chk_avx_unaligned_erms) redirected to 0x48434d0 (__memmove_chk)
-==406027== 
-==406027== HEAP SUMMARY:
-==406027==     in use at exit: 2,531 bytes in 9 blocks
-==406027==   total heap usage: 18,191,748 allocs, 18,191,739 frees, 29,660,394,255 bytes allocated
-==406027== 
-==406027== Searching for pointers to 9 not-freed blocks
-==406027== Checked 1,328,554,744 bytes
-==406027== 
-==406027== 33 bytes in 1 blocks are still reachable in loss record 1 of 7
-==406027==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-==406027==    by 0x401F5CE: strdup (strdup.c:42)
-==406027==    by 0x400A5A9: _dl_map_object (dl-load.c:2168)
-==406027==    by 0x4015D36: dl_open_worker (dl-open.c:513)
-==406027==    by 0x4DD7837: _dl_catch_exception (dl-error-skeleton.c:208)
-==406027==    by 0x40155F9: _dl_open (dl-open.c:837)
-==406027==    by 0x52DD34B: dlopen_doit (dlopen.c:66)
-==406027==    by 0x4DD7837: _dl_catch_exception (dl-error-skeleton.c:208)
-==406027==    by 0x4DD7902: _dl_catch_error (dl-error-skeleton.c:227)
-==406027==    by 0x52DDB58: _dlerror_run (dlerror.c:170)
-==406027==    by 0x52DD3D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
-==406027==    by 0x4E80E95: tbb::detail::r1::dynamic_load(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long) (dynamic_link.cpp:424)
-==406027== 
-==406027== 33 bytes in 1 blocks are still reachable in loss record 2 of 7
-==406027==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-==406027==    by 0x400D5A7: _dl_new_object (dl-object.c:196)
-==406027==    by 0x4006E96: _dl_map_object_from_fd (dl-load.c:997)
-==406027==    by 0x400A61A: _dl_map_object (dl-load.c:2236)
-==406027==    by 0x4015D36: dl_open_worker (dl-open.c:513)
-==406027==    by 0x4DD7837: _dl_catch_exception (dl-error-skeleton.c:208)
-==406027==    by 0x40155F9: _dl_open (dl-open.c:837)
-==406027==    by 0x52DD34B: dlopen_doit (dlopen.c:66)
-==406027==    by 0x4DD7837: _dl_catch_exception (dl-error-skeleton.c:208)
-==406027==    by 0x4DD7902: _dl_catch_error (dl-error-skeleton.c:227)
-==406027==    by 0x52DDB58: _dlerror_run (dlerror.c:170)
-==406027==    by 0x52DD3D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
-==406027== 
-==406027== 208 bytes in 1 blocks are still reachable in loss record 3 of 7
-==406027==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-==406027==    by 0x401540A: add_to_global_resize (dl-open.c:139)
-==406027==    by 0x40163F7: dl_open_worker (dl-open.c:702)
-==406027==    by 0x4DD7837: _dl_catch_exception (dl-error-skeleton.c:208)
-==406027==    by 0x40155F9: _dl_open (dl-open.c:837)
-==406027==    by 0x52DD34B: dlopen_doit (dlopen.c:66)
-==406027==    by 0x4DD7837: _dl_catch_exception (dl-error-skeleton.c:208)
-==406027==    by 0x4DD7902: _dl_catch_error (dl-error-skeleton.c:227)
-==406027==    by 0x52DDB58: _dlerror_run (dlerror.c:170)
-==406027==    by 0x52DD3D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
-==406027==    by 0x4E80E95: tbb::detail::r1::dynamic_load(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long) (dynamic_link.cpp:424)
-==406027==    by 0x4E80C52: tbb::detail::r1::dynamic_link(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long, void**, int) (dynamic_link.cpp:452)
-==406027== 
-==406027== 240 bytes in 1 blocks are still reachable in loss record 4 of 7
-==406027==    at 0x483DD99: calloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-==406027==    by 0x401330A: _dl_check_map_versions (dl-version.c:274)
-==406027==    by 0x40160EC: dl_open_worker (dl-open.c:577)
-==406027==    by 0x4DD7837: _dl_catch_exception (dl-error-skeleton.c:208)
-==406027==    by 0x40155F9: _dl_open (dl-open.c:837)
-==406027==    by 0x52DD34B: dlopen_doit (dlopen.c:66)
-==406027==    by 0x4DD7837: _dl_catch_exception (dl-error-skeleton.c:208)
-==406027==    by 0x4DD7902: _dl_catch_error (dl-error-skeleton.c:227)
-==406027==    by 0x52DDB58: _dlerror_run (dlerror.c:170)
-==406027==    by 0x52DD3D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
-==406027==    by 0x4E80E95: tbb::detail::r1::dynamic_load(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long) (dynamic_link.cpp:424)
-==406027==    by 0x4E80C52: tbb::detail::r1::dynamic_link(char const*, tbb::detail::r1::dynamic_link_descriptor const*, unsigned long, void**, int) (dynamic_link.cpp:452)
-==406027== 
-==406027== 352 bytes in 2 blocks are possibly lost in loss record 5 of 7
-==406027==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-==406027==    by 0x49A2EF1: Cork::Statistics::TopologicalStatisticsEngine::Analyze(Cork::Statistics::TopologicalProperties) (in /home/steve/dev/Cork/build/src/libCorklib.so)
-==406027==    by 0x4983632: Cork::Meshes::TriangleMeshImpl::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
-==406027==    by 0x498F028: Cork::Meshes::TriangleMeshWrapper::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
-==406027==    by 0x1115F5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
-==406027== 
-==406027== 448 bytes in 2 blocks are possibly lost in loss record 6 of 7
-==406027==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-==406027==    by 0x4979411: Cork::Meshes::TriangleByIndicesVectorTopoCache::TriangleByIndicesVectorTopoCache(Cork::Primitives::TriangleByIndicesVector&, Cork::Primitives::Vertex3DVector&, unsigned int, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
-==406027==    by 0x497A890: Cork::Meshes::MeshTopoCache::MeshTopoCache(Cork::Meshes::MeshBase&, Cork::Math::Quantizer const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
-==406027==    by 0x49A2F03: Cork::Statistics::TopologicalStatisticsEngine::Analyze(Cork::Statistics::TopologicalProperties) (in /home/steve/dev/Cork/build/src/libCorklib.so)
-==406027==    by 0x4983632: Cork::Meshes::TriangleMeshImpl::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
-==406027==    by 0x498F028: Cork::Meshes::TriangleMeshWrapper::ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties) const (in /home/steve/dev/Cork/build/src/libCorklib.so)
-==406027==    by 0x1115F5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
-==406027== 
-==406027== 1,217 bytes in 1 blocks are still reachable in loss record 7 of 7
-==406027==    at 0x483DD99: calloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-==406027==    by 0x400D273: _dl_new_object (dl-object.c:89)
-==406027==    by 0x4006E96: _dl_map_object_from_fd (dl-load.c:997)
-==406027==    by 0x400A61A: _dl_map_object (dl-load.c:2236)
-==406027==    by 0x4015D36: dl_open_worker (dl-open.c:513)
-==406027==    by 0x4DD7837: _dl_catch_exception (dl-error-skeleton.c:208)
-==406027==    by 0x40155F9: _dl_open (dl-open.c:837)
-==406027==    by 0x52DD34B: dlopen_doit (dlopen.c:66)
-==406027==    by 0x4DD7837: _dl_catch_exception (dl-error-skeleton.c:208)
-==406027==    by 0x4DD7902: _dl_catch_error (dl-error-skeleton.c:227)
-==406027==    by 0x52DDB58: _dlerror_run (dlerror.c:170)
-==406027==    by 0x52DD3D9: dlopen@@GLIBC_2.2.5 (dlopen.c:87)
-==406027== 
-==406027== LEAK SUMMARY:
-==406027==    definitely lost: 0 bytes in 0 blocks
-==406027==    indirectly lost: 0 bytes in 0 blocks
-==406027==      possibly lost: 800 bytes in 4 blocks
-==406027==    still reachable: 1,731 bytes in 5 blocks
-==406027==         suppressed: 0 bytes in 0 blocks
-==406027== 
-==406027== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)
+==2853== Memcheck, a memory error detector
+==2853== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==2853== Using Valgrind-3.15.0-608cb11914-20190413 and LibVEX; rerun with -h for copyright info
+==2853== Command: /home/steve/dev/Cork/build/RegressionTest/CorkCLI --union --input-directory /home/steve/dev/Cork/RegressionTest/PerfTestSet --output-directory /home/steve/dev/Cork/RegressionTest/PerfResults/ --repair
+==2853== Parent PID: 1663
+==2853== 
+--2853-- 
+--2853-- Valgrind options:
+--2853--    --leak-check=full
+--2853--    --show-leak-kinds=all
+--2853--    --track-origins=yes
+--2853--    --verbose
+--2853--    --log-file=valgrind-out.txt
+--2853-- Contents of /proc/version:
+--2853--   Linux version 5.4.0-122-generic (buildd@lcy02-amd64-095) (gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04.1)) #138-Ubuntu SMP Wed Jun 22 15:00:31 UTC 2022
+--2853-- 
+--2853-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-ssse3-avx-avx2-bmi-f16c-rdrand
+--2853-- Page sizes: currently 4096, max supported 4096
+--2853-- Valgrind library directory: /usr/lib/x86_64-linux-gnu/valgrind
+--2853-- Reading syms from /home/steve/dev/Cork/build/RegressionTest/CorkCLI
+--2853-- Reading syms from /usr/lib/x86_64-linux-gnu/ld-2.31.so
+--2853--   Considering /usr/lib/debug/.build-id/45/87364908de169dec62ffa538170118c1c3a078.debug ..
+--2853--   .. build-id is valid
+--2853-- Reading syms from /usr/lib/x86_64-linux-gnu/valgrind/memcheck-amd64-linux
+--2853--    object doesn't have a symbol table
+--2853--    object doesn't have a dynamic symbol table
+--2853-- Scheduler: using generic scheduler lock implementation.
+--2853-- Reading suppressions file: /usr/lib/x86_64-linux-gnu/valgrind/default.supp
+==2853== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-2853-by-steve-on-???
+==2853== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-2853-by-steve-on-???
+==2853== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-2853-by-steve-on-???
+==2853== 
+==2853== TO CONTROL THIS PROCESS USING vgdb (which you probably
+==2853== don't want to do, unless you know exactly what you're doing,
+==2853== or are doing some strange experiment):
+==2853==   /usr/lib/x86_64-linux-gnu/valgrind/../../bin/vgdb --pid=2853 ...command...
+==2853== 
+==2853== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==2853==   /path/to/gdb /home/steve/dev/Cork/build/RegressionTest/CorkCLI
+==2853== and then give GDB the following command
+==2853==   target remote | /usr/lib/x86_64-linux-gnu/valgrind/../../bin/vgdb --pid=2853
+==2853== --pid is optional if only one valgrind process is running
+==2853== 
+--2853-- REDIR: 0x4022e20 (ld-linux-x86-64.so.2:strlen) redirected to 0x580c9ce2 (???)
+--2853-- REDIR: 0x4022bf0 (ld-linux-x86-64.so.2:index) redirected to 0x580c9cfc (???)
+--2853-- Reading syms from /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_core-amd64-linux.so
+--2853--    object doesn't have a symbol table
+--2853-- Reading syms from /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so
+--2853--    object doesn't have a symbol table
+==2853== WARNING: new redirection conflicts with existing -- ignoring it
+--2853--     old: 0x04022e20 (strlen              ) R-> (0000.0) 0x580c9ce2 ???
+--2853--     new: 0x04022e20 (strlen              ) R-> (2007.0) 0x0483f060 strlen
+--2853-- REDIR: 0x401f600 (ld-linux-x86-64.so.2:strcmp) redirected to 0x483ffd0 (strcmp)
+--2853-- REDIR: 0x4023380 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4843a20 (mempcpy)
+--2853-- Reading syms from /home/steve/dev/Cork/build/src/libCorklib.so
+--2853-- Reading syms from /usr/local/lib/libboost_program_options.so.1.77.0
+--2853-- Reading syms from /usr/local/lib/libboost_timer.so.1.77.0
+--2853-- Reading syms from /usr/local/lib/libboost_thread.so.1.77.0
+--2853-- Reading syms from /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28
+--2853--    object doesn't have a symbol table
+--2853-- Reading syms from /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+--2853--    object doesn't have a symbol table
+--2853-- Reading syms from /usr/lib/x86_64-linux-gnu/libc-2.31.so
+--2853--   Considering /usr/lib/debug/.build-id/18/78e6b475720c7c51969e69ab2d276fae6d1dee.debug ..
+--2853--   .. build-id is valid
+--2853-- Reading syms from /usr/local/lib/libtbb.so.12
+--2853-- Reading syms from /usr/local/lib/libmpir.so.23.0.3
+--2853-- Reading syms from /usr/lib/x86_64-linux-gnu/libm-2.31.so
+--2853--   Considering /usr/lib/debug/.build-id/fe/91b4090ea04c1559ff71dd9290062776618891.debug ..
+--2853--   .. build-id is valid
+--2853-- Reading syms from /usr/lib/x86_64-linux-gnu/libpthread-2.31.so
+--2853--   Considering /usr/lib/debug/.build-id/7b/4536f41cdaa5888408e82d0836e33dcf436466.debug ..
+--2853--   .. build-id is valid
+--2853-- Reading syms from /usr/local/lib/libboost_chrono.so.1.77.0
+--2853-- Reading syms from /usr/lib/x86_64-linux-gnu/libdl-2.31.so
+--2853--   Considering /usr/lib/debug/.build-id/c0/f40155b3f8bf8c494fa800f9ab197ebe20ed6e.debug ..
+--2853--   .. build-id is valid
+--2853-- REDIR: 0x4d0e480 (libc.so.6:memmove) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0d780 (libc.so.6:strncpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0e7b0 (libc.so.6:strcasecmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0d0a0 (libc.so.6:strcat) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0d7e0 (libc.so.6:rindex) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0fc50 (libc.so.6:rawmemchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d2ace0 (libc.so.6:wmemchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d2a820 (libc.so.6:wcscmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0e5e0 (libc.so.6:mempcpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0e410 (libc.so.6:bcmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0d710 (libc.so.6:strncmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0d150 (libc.so.6:strcmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0e540 (libc.so.6:memset) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d2a7e0 (libc.so.6:wcschr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0d670 (libc.so.6:strnlen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0d230 (libc.so.6:strcspn) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0e800 (libc.so.6:strncasecmp) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0d1d0 (libc.so.6:strcpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0e950 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d2bf50 (libc.so.6:wcsnlen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d2a860 (libc.so.6:wcscpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0d820 (libc.so.6:strpbrk) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0d100 (libc.so.6:index) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0d630 (libc.so.6:strlen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d16bb0 (libc.so.6:memrchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0e850 (libc.so.6:strcasecmp_l) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0e3d0 (libc.so.6:memchr) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d2a930 (libc.so.6:wcslen) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0dae0 (libc.so.6:strspn) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0e750 (libc.so.6:stpncpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0e6f0 (libc.so.6:stpcpy) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0fc90 (libc.so.6:strchrnul) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4d0e8a0 (libc.so.6:strncasecmp_l) redirected to 0x48331d0 (_vgnU_ifunc_wrapper)
+--2853-- REDIR: 0x4df6500 (libc.so.6:__strrchr_avx2) redirected to 0x483ea10 (rindex)
+--2853-- REDIR: 0x4d080e0 (libc.so.6:malloc) redirected to 0x483b780 (malloc)
+--2853-- REDIR: 0x4df7fa0 (libc.so.6:__strncpy_avx2) redirected to 0x483f230 (strncpy)
+--2853-- REDIR: 0x4df66d0 (libc.so.6:__strlen_avx2) redirected to 0x483ef40 (strlen)
+--2853-- REDIR: 0x4d086d0 (libc.so.6:free) redirected to 0x483c9d0 (free)
+--2853-- REDIR: 0x4b19b20 (libstdc++.so.6:operator new(unsigned long)) redirected to 0x483bdf0 (operator new(unsigned long))
+--2853-- REDIR: 0x4df2cc0 (libc.so.6:__memcmp_avx2_movbe) redirected to 0x48421e0 (bcmp)
+--2853-- REDIR: 0x4df1bd0 (libc.so.6:__strcmp_avx2) redirected to 0x483fed0 (strcmp)
+--2853-- REDIR: 0x4df96e0 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x48429f0 (memmove)
+--2853-- REDIR: 0x4d09b10 (libc.so.6:calloc) redirected to 0x483dce0 (calloc)
+--2853-- REDIR: 0x4b17d70 (libstdc++.so.6:operator delete(void*)) redirected to 0x483cf50 (operator delete(void*))
+--2853-- REDIR: 0x4df2530 (libc.so.6:__memchr_avx2) redirected to 0x4840050 (memchr)
+--2853-- REDIR: 0x4df96c0 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x4843660 (mempcpy)
+--2853-- REDIR: 0x4b17d80 (libstdc++.so.6:operator delete(void*, unsigned long)) redirected to 0x483d160 (operator delete(void*, unsigned long))
+--2853-- REDIR: 0x4d0dfa0 (libc.so.6:__GI_strstr) redirected to 0x4843ca0 (__strstr_sse2)
+--2853-- REDIR: 0x4b19b80 (libstdc++.so.6:operator new[](unsigned long)) redirected to 0x483c510 (operator new[](unsigned long))
+--2853-- REDIR: 0x4df2800 (libc.so.6:__rawmemchr_avx2) redirected to 0x4843580 (rawmemchr)
+--2853-- REDIR: 0x4d09250 (libc.so.6:memalign) redirected to 0x483e2a0 (memalign)
+==2853== 
+==2853== Process terminating with default action of signal 2 (SIGINT)
+==2853==    at 0x4843590: rawmemchr (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4D01DB5: _IO_str_init_static_internal (strops.c:41)
+==2853==    by 0x4CD1342: _IO_strfile_read (strfile.h:95)
+==2853==    by 0x4CD1342: __isoc99_sscanf (isoc99_sscanf.c:28)
+==2853==    by 0x489EFF5: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== HEAP SUMMARY:
+==2853==     in use at exit: 20,305,066 bytes in 380 blocks
+==2853==   total heap usage: 914 allocs, 534 frees, 27,587,830 bytes allocated
+==2853== 
+==2853== Searching for pointers to 380 not-freed blocks
+==2853== Checked 4,142,520 bytes
+==2853== 
+==2853== 8 bytes in 1 blocks are still reachable in loss record 1 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4897C49: _GLOBAL__sub_I_mesh.cpp (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853==    by 0x1FFF000305: ???
+==2853== 
+==2853== 8 bytes in 1 blocks are still reachable in loss record 2 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4897F29: _GLOBAL__sub_I_topo_cache.cpp (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853==    by 0x1FFF000305: ???
+==2853== 
+==2853== 8 bytes in 1 blocks are still reachable in loss record 3 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0FEB9: std::vector<bool, std::allocator<bool> >::_M_insert_aux(std::_Bit_iterator, bool) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B39D: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A11: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 16 bytes in 1 blocks are still reachable in loss record 4 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B313: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A11: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 16 bytes in 1 blocks are still reachable in loss record 5 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B313: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A27: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 16 bytes in 1 blocks are still reachable in loss record 6 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B313: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A3D: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 16 bytes in 1 blocks are still reachable in loss record 7 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B313: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A53: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 16 bytes in 1 blocks are still reachable in loss record 8 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B313: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A69: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 16 bytes in 1 blocks are still reachable in loss record 9 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B313: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A7F: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 16 bytes in 1 blocks are still reachable in loss record 10 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B313: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110ADB: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 16 bytes in 1 blocks are still reachable in loss record 11 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B313: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AF1: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 17 bytes in 1 blocks are still reachable in loss record 12 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A00C5E: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0AA7F: boost::program_options::option_description::set_names(char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B11C: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B64B: boost::program_options::options_description_easy_init::operator()(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AC5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 17 bytes in 1 blocks are still reachable in loss record 13 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B167: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AF1: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 17 bytes in 1 blocks are still reachable in loss record 14 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A00C5E: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0AA7F: boost::program_options::option_description::set_names(char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B11C: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AF1: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 17 bytes in 1 blocks are still reachable in loss record 15 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A202F6: std::_Rb_tree_iterator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, boost::program_options::variable_value> > std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, boost::program_options::variable_value> >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, boost::program_options::variable_value> > >::_M_emplace_hint_unique<std::piecewise_construct_t const&, std::tuple<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>, std::tuple<> >(std::_Rb_tree_const_iterator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, boost::program_options::variable_value> >, std::piecewise_construct_t const&, std::tuple<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>&&, std::tuple<>&&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A1E01C: boost::program_options::store(boost::program_options::basic_parsed_options<char> const&, boost::program_options::variables_map&, bool) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110B40: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 17 bytes in 1 blocks are still reachable in loss record 16 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A1FCCE: std::_Rb_tree_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::_Identity<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_insert_<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::_Identity<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_Alloc_node>(std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::_Identity<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_Alloc_node&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A1D277: boost::program_options::store(boost::program_options::basic_parsed_options<char> const&, boost::program_options::variables_map&, bool) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110B40: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 20 bytes in 1 blocks are still reachable in loss record 17 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B167: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A27: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 20 bytes in 1 blocks are still reachable in loss record 18 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B167: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110ADB: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 21 bytes in 1 blocks are still reachable in loss record 19 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B167: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A11: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 22 bytes in 1 blocks are still reachable in loss record 20 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B167: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A3D: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 21 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A62CDD: boost::exception_ptr boost::exception_detail::get_static_exception_object<boost::exception_detail::bad_alloc_>() (in /usr/local/lib/libboost_thread.so.1.77.0)
+==2853==    by 0x4A5BFA1: _GLOBAL__sub_I_thread.cpp (in /usr/local/lib/libboost_thread.so.1.77.0)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 22 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A6300D: boost::exception_ptr boost::exception_detail::get_static_exception_object<boost::exception_detail::bad_exception_>() (in /usr/local/lib/libboost_thread.so.1.77.0)
+==2853==    by 0x4A5BFD0: _GLOBAL__sub_I_thread.cpp (in /usr/local/lib/libboost_thread.so.1.77.0)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 23 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B0D9: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A11: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 24 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B352: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A11: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 25 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B0D9: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A27: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 26 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B352: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A27: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 27 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B0D9: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A3D: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 28 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B352: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A3D: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 29 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B0D9: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A53: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 30 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B352: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A53: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 31 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B0D9: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A69: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 32 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B352: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A69: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 33 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B0D9: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A7F: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 34 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B352: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A7F: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 35 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B0D9: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B64B: boost::program_options::options_description_easy_init::operator()(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AA2: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 36 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B655: boost::program_options::options_description_easy_init::operator()(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AA2: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 37 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B0D9: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B64B: boost::program_options::options_description_easy_init::operator()(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AC5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 38 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B655: boost::program_options::options_description_easy_init::operator()(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AC5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 39 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B0D9: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110ADB: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 40 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B352: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110ADB: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 41 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B0D9: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AF1: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 42 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B352: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AF1: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 43 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4987615: Cork::Meshes::MeshBase::MeshBase(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x498CB81: Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x489EB1D: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 44 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x498763E: Cork::Meshes::MeshBase::MeshBase(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x498CB81: Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x489EB1D: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 45 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x498766C: Cork::Meshes::MeshBase::MeshBase(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x498CB81: Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x489EB1D: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 24 bytes in 1 blocks are still reachable in loss record 46 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4987695: Cork::Meshes::MeshBase::MeshBase(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x498CB81: Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x489EB1D: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 27 bytes in 1 blocks are still reachable in loss record 47 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B167: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A69: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 29 bytes in 1 blocks are still reachable in loss record 48 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B167: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A53: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 29 bytes in 1 blocks are still reachable in loss record 49 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B167: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A7F: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 32 bytes in 1 blocks are still reachable in loss record 50 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x48D4EA5: void std::vector<unsigned long, std::allocator<unsigned long> >::_M_realloc_insert<unsigned long>(__gnu_cxx::__normal_iterator<unsigned long*, std::vector<unsigned long, std::allocator<unsigned long> > >, unsigned long&&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x48D551B: Cork::Intersection::PerturbationRandomizationMatrix::PerturbationRandomizationMatrix() (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4897929: _GLOBAL__sub_I_perturbation_epsilon.cpp (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853== 
+==2853== 32 bytes in 1 blocks are still reachable in loss record 51 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A00A68: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0AA7F: boost::program_options::option_description::set_names(char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B11C: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A11: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 32 bytes in 1 blocks are still reachable in loss record 52 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A00A68: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0AA7F: boost::program_options::option_description::set_names(char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B11C: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A27: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 32 bytes in 1 blocks are still reachable in loss record 53 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A00A68: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0AA7F: boost::program_options::option_description::set_names(char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B11C: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A3D: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 32 bytes in 1 blocks are still reachable in loss record 54 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A00A68: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0AA7F: boost::program_options::option_description::set_names(char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B11C: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A53: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 32 bytes in 1 blocks are still reachable in loss record 55 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A00A68: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0AA7F: boost::program_options::option_description::set_names(char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B11C: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A69: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 32 bytes in 1 blocks are still reachable in loss record 56 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A00A68: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0AA7F: boost::program_options::option_description::set_names(char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B11C: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A7F: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 32 bytes in 1 blocks are still reachable in loss record 57 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A00A68: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0AA7F: boost::program_options::option_description::set_names(char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B11C: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B64B: boost::program_options::options_description_easy_init::operator()(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AA2: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 32 bytes in 1 blocks are still reachable in loss record 58 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A00A68: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0AA7F: boost::program_options::option_description::set_names(char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B11C: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B64B: boost::program_options::options_description_easy_init::operator()(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AC5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 32 bytes in 1 blocks are still reachable in loss record 59 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A00A68: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0AA7F: boost::program_options::option_description::set_names(char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B11C: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110ADB: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 32 bytes in 1 blocks are still reachable in loss record 60 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A00A68: void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0AA7F: boost::program_options::option_description::set_names(char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B11C: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B348: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AF1: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 34 bytes in 1 blocks are still reachable in loss record 61 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B167: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B64B: boost::program_options::options_description_easy_init::operator()(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AA2: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 34 bytes in 1 blocks are still reachable in loss record 62 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B167: boost::program_options::option_description::option_description(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B64B: boost::program_options::options_description_easy_init::operator()(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AC5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 48 bytes in 1 blocks are still reachable in loss record 63 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x48A1E40: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::reserve(unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4BDC4CE: std::filesystem::__cxx11::path::operator=(std::filesystem::__cxx11::path const&) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x4BCE84C: std::filesystem::__cxx11::directory_iterator::directory_iterator(std::filesystem::__cxx11::path const&, std::filesystem::directory_options, std::error_code*) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x1110C1: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 49 bytes in 1 blocks are still reachable in loss record 64 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x11A720: std::filesystem::__cxx11::path::path(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853==    by 0x111148: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 49 bytes in 1 blocks are still reachable in loss record 65 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x11A720: std::filesystem::__cxx11::path::path(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853==    by 0x1113A6: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 49 bytes in 1 blocks are still reachable in loss record 66 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x11A720: std::filesystem::__cxx11::path::path(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853==    by 0x1113BE: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 49 bytes in 1 blocks are still reachable in loss record 67 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x11A720: std::filesystem::__cxx11::path::path(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853==    by 0x1113D9: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 50 bytes in 1 blocks are still reachable in loss record 68 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A4B6D1: _GLOBAL__sub_I_auto_timers_construction.cpp (in /usr/local/lib/libboost_timer.so.1.77.0)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853==    by 0x1FFF000305: ???
+==2853== 
+==2853== 50 bytes in 1 blocks are still reachable in loss record 69 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A4B79B: _GLOBAL__sub_I_cpu_timer.cpp (in /usr/local/lib/libboost_timer.so.1.77.0)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853==    by 0x1FFF000305: ???
+==2853== 
+==2853== 56 bytes in 1 blocks are still reachable in loss record 70 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A62C61: boost::exception_ptr boost::exception_detail::get_static_exception_object<boost::exception_detail::bad_alloc_>() (in /usr/local/lib/libboost_thread.so.1.77.0)
+==2853==    by 0x4A5BFA1: _GLOBAL__sub_I_thread.cpp (in /usr/local/lib/libboost_thread.so.1.77.0)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853== 
+==2853== 56 bytes in 1 blocks are still reachable in loss record 71 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A62F91: boost::exception_ptr boost::exception_detail::get_static_exception_object<boost::exception_detail::bad_exception_>() (in /usr/local/lib/libboost_thread.so.1.77.0)
+==2853==    by 0x4A5BFD0: _GLOBAL__sub_I_thread.cpp (in /usr/local/lib/libboost_thread.so.1.77.0)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853== 
+==2853== 62 bytes in 1 blocks are still reachable in loss record 72 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x489E10F: void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag) [clone .constprop.0] (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x489E3E1: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 64 bytes in 1 blocks are still reachable in loss record 73 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4897867: _GLOBAL__sub_I_intersection_problem_base.cpp (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853==    by 0x1FFF000305: ???
+==2853== 
+==2853== 64 bytes in 1 blocks are still reachable in loss record 74 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4897BC7: _GLOBAL__sub_I_mesh.cpp (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853==    by 0x1FFF000305: ???
+==2853== 
+==2853== 64 bytes in 1 blocks are still reachable in loss record 75 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4897EA7: _GLOBAL__sub_I_topo_cache.cpp (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853==    by 0x1FFF000305: ???
+==2853== 
+==2853== 64 bytes in 1 blocks are still reachable in loss record 76 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4BCD718: ??? (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x4BCE15D: std::filesystem::__cxx11::directory_iterator::operator++() (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x117AA5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 80 bytes in 2 blocks are still reachable in loss record 77 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A251BC: boost::program_options::untyped_value::xparse(boost::any&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) const (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A220F5: boost::program_options::value_semantic_codecvt_helper<char>::parse(boost::any&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool) const (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A1E068: boost::program_options::store(boost::program_options::basic_parsed_options<char> const&, boost::program_options::variables_map&, bool) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110B40: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 80 bytes in 2 blocks are still reachable in loss record 78 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A253DF: boost::program_options::validate(boost::any&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, int) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A220F5: boost::program_options::value_semantic_codecvt_helper<char>::parse(boost::any&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool) const (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A1E068: boost::program_options::store(boost::program_options::basic_parsed_options<char> const&, boost::program_options::variables_map&, bool) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110B40: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 96 bytes in 1 blocks are still reachable in loss record 79 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x48D45F4: void std::vector<std::vector<std::tuple<int, int, int>, std::allocator<std::tuple<int, int, int> > >, std::allocator<std::vector<std::tuple<int, int, int>, std::allocator<std::tuple<int, int, int> > > > >::_M_realloc_insert<std::vector<std::tuple<int, int, int>, std::allocator<std::tuple<int, int, int> > > >(__gnu_cxx::__normal_iterator<std::vector<std::tuple<int, int, int>, std::allocator<std::tuple<int, int, int> > >*, std::vector<std::vector<std::tuple<int, int, int>, std::allocator<std::tuple<int, int, int> > >, std::allocator<std::vector<std::tuple<int, int, int>, std::allocator<std::tuple<int, int, int> > > > > >, std::vector<std::tuple<int, int, int>, std::allocator<std::tuple<int, int, int> > >&&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x48D54EA: Cork::Intersection::PerturbationRandomizationMatrix::PerturbationRandomizationMatrix() (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4897929: _GLOBAL__sub_I_perturbation_epsilon.cpp (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853== 
+==2853== 97 bytes in 2 blocks are still reachable in loss record 80 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A2547D: boost::program_options::validate(boost::any&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, int) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A220F5: boost::program_options::value_semantic_codecvt_helper<char>::parse(boost::any&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, bool) const (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A1E068: boost::program_options::store(boost::program_options::basic_parsed_options<char> const&, boost::program_options::variables_map&, bool) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110B40: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 112 bytes in 1 blocks are still reachable in loss record 81 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B334: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A11: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 112 bytes in 1 blocks are still reachable in loss record 82 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B334: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A27: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 112 bytes in 1 blocks are still reachable in loss record 83 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B334: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A3D: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 112 bytes in 1 blocks are still reachable in loss record 84 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B334: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A53: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 112 bytes in 1 blocks are still reachable in loss record 85 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B334: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A69: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 112 bytes in 1 blocks are still reachable in loss record 86 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B334: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110A7F: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 112 bytes in 1 blocks are still reachable in loss record 87 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B637: boost::program_options::options_description_easy_init::operator()(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AA2: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 112 bytes in 1 blocks are still reachable in loss record 88 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B637: boost::program_options::options_description_easy_init::operator()(char const*, boost::program_options::value_semantic const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AC5: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 112 bytes in 1 blocks are still reachable in loss record 89 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B334: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110ADB: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 112 bytes in 1 blocks are still reachable in loss record 90 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0B334: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110AF1: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 112 bytes in 1 blocks are still reachable in loss record 91 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4BCE618: std::filesystem::__cxx11::directory_iterator::directory_iterator(std::filesystem::__cxx11::path const&, std::filesystem::directory_options, std::error_code*) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x1110C1: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 144 bytes in 1 blocks are still reachable in loss record 92 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4997484: std::vector<std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > >, std::allocator<std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > > > >::vector(std::initializer_list<std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > > >, std::allocator<std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > > > const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4899779: __static_initialization_and_destruction_0(int, int) [clone .constprop.0] (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853== 
+==2853== 176 bytes in 1 blocks are still reachable in loss record 93 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x11B8D1: boost::program_options::typed_value<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, char>* boost::program_options::value<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*) (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853==    by 0x110A89: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 176 bytes in 1 blocks are still reachable in loss record 94 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x11B8D1: boost::program_options::typed_value<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, char>* boost::program_options::value<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*) (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853==    by 0x110AAC: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 224 bytes in 4 blocks are still reachable in loss record 95 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x117A75: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 245 bytes in 4 blocks are still reachable in loss record 96 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x11A720: std::filesystem::__cxx11::path::path(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853==    by 0x117A84: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 256 bytes in 1 blocks are still reachable in loss record 97 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A0FAF6: void std::vector<boost::shared_ptr<boost::program_options::option_description>, std::allocator<boost::shared_ptr<boost::program_options::option_description> > >::_M_realloc_insert<boost::shared_ptr<boost::program_options::option_description> const&>(__gnu_cxx::__normal_iterator<boost::shared_ptr<boost::program_options::option_description>*, std::vector<boost::shared_ptr<boost::program_options::option_description>, std::allocator<boost::shared_ptr<boost::program_options::option_description> > > >, boost::shared_ptr<boost::program_options::option_description> const&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B2B0: boost::program_options::options_description::add(boost::shared_ptr<boost::program_options::option_description>) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A0B39D: boost::program_options::options_description_easy_init::operator()(char const*, char const*) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110ADB: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 256 bytes in 4 blocks are still reachable in loss record 98 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A1FC22: std::_Rb_tree_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::_Identity<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_insert_<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::_Identity<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_Alloc_node>(std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::_Identity<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_Alloc_node&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A1D277: boost::program_options::store(boost::program_options::basic_parsed_options<char> const&, boost::program_options::variables_map&, bool) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110B40: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 288 bytes in 1 blocks are still reachable in loss record 99 of 123
+==2853==    at 0x483E340: memalign (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4B19BF5: operator new(unsigned long, std::align_val_t) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x498CB5C: Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x489EB1D: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 344 bytes in 1 blocks are still reachable in loss record 100 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4BDC28C: ??? (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x4BDC4DC: std::filesystem::__cxx11::path::operator=(std::filesystem::__cxx11::path const&) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x4BCE84C: std::filesystem::__cxx11::directory_iterator::directory_iterator(std::filesystem::__cxx11::path const&, std::filesystem::directory_options, std::error_code*) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x1110C1: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 384 bytes in 4 blocks are still reachable in loss record 101 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4A201F6: std::_Rb_tree_iterator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, boost::program_options::variable_value> > std::_Rb_tree<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, boost::program_options::variable_value>, std::_Select1st<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, boost::program_options::variable_value> >, std::less<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, boost::program_options::variable_value> > >::_M_emplace_hint_unique<std::piecewise_construct_t const&, std::tuple<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>, std::tuple<> >(std::_Rb_tree_const_iterator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, boost::program_options::variable_value> >, std::piecewise_construct_t const&, std::tuple<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>&&, std::tuple<>&&) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x4A1E01C: boost::program_options::store(boost::program_options::basic_parsed_options<char> const&, boost::program_options::variables_map&, bool) (in /usr/local/lib/libboost_program_options.so.1.77.0)
+==2853==    by 0x110B40: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 392 bytes in 1 blocks are still reachable in loss record 102 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4BDBFC6: std::filesystem::__cxx11::path::_List::_List(std::filesystem::__cxx11::path::_List const&) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x11A6E9: std::filesystem::__cxx11::path::path(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853==    by 0x111148: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 392 bytes in 1 blocks are still reachable in loss record 103 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4BDBFC6: std::filesystem::__cxx11::path::_List::_List(std::filesystem::__cxx11::path::_List const&) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x11A6E9: std::filesystem::__cxx11::path::path(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853==    by 0x1113A6: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 392 bytes in 1 blocks are still reachable in loss record 104 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4BDBFC6: std::filesystem::__cxx11::path::_List::_List(std::filesystem::__cxx11::path::_List const&) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x11A6E9: std::filesystem::__cxx11::path::path(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853==    by 0x1113BE: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 392 bytes in 1 blocks are still reachable in loss record 105 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4BDBFC6: std::filesystem::__cxx11::path::_List::_List(std::filesystem::__cxx11::path::_List const&) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x11A6E9: std::filesystem::__cxx11::path::path(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853==    by 0x1113D9: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 392 bytes in 1 blocks are still reachable in loss record 106 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4BDBFC6: std::filesystem::__cxx11::path::_List::_List(std::filesystem::__cxx11::path::_List const&) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x489E3FB: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 472 bytes in 1 blocks are still reachable in loss record 107 of 123
+==2853==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4CF092D: __fopen_internal (iofopen.c:65)
+==2853==    by 0x4CF092D: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+==2853==    by 0x4B3B633: std::__basic_file<char>::open(char const*, std::_Ios_Openmode, int) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x4B7EF4E: std::basic_filebuf<char, std::char_traits<char> >::open(char const*, std::_Ios_Openmode) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x489E5FB: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 512 bytes in 1 blocks are still reachable in loss record 108 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4897889: _GLOBAL__sub_I_intersection_problem_base.cpp (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853==    by 0x1FFF000305: ???
+==2853== 
+==2853== 512 bytes in 1 blocks are still reachable in loss record 109 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4897BE9: _GLOBAL__sub_I_mesh.cpp (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853==    by 0x1FFF000305: ???
+==2853== 
+==2853== 512 bytes in 1 blocks are still reachable in loss record 110 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4897EC9: _GLOBAL__sub_I_topo_cache.cpp (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853==    by 0x1FFF000305: ???
+==2853== 
+==2853== 1,024 bytes in 1 blocks are still reachable in loss record 111 of 123
+==2853==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x489E5D1: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 1,025 bytes in 1 blocks are still reachable in loss record 112 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x48A1E40: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::reserve(unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x489E5E3: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 1,040 bytes in 1 blocks are still reachable in loss record 113 of 123
+==2853==    at 0x483DD99: calloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4CB4C41: __new_exitfn (cxa_atexit.c:114)
+==2853==    by 0x4CB4E26: __internal_atexit (cxa_atexit.c:44)
+==2853==    by 0x4CB4E26: __cxa_atexit (cxa_atexit.c:70)
+==2853==    by 0x4897816: _GLOBAL__sub_I_intersection_problem_base.cpp (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853== 
+==2853== 1,284 bytes in 120 blocks are still reachable in loss record 114 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x499755A: std::vector<std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > >, std::allocator<std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > > > >::vector(std::initializer_list<std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > > >, std::allocator<std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > > > const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4899779: __static_initialization_and_destruction_0(int, int) [clone .constprop.0] (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853== 
+==2853== 1,568 bytes in 4 blocks are still reachable in loss record 115 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4BDBFC6: std::filesystem::__cxx11::path::_List::_List(std::filesystem::__cxx11::path::_List const&) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x11A6E9: std::filesystem::__cxx11::path::path(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853==    by 0x117A84: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 2,880 bytes in 6 blocks are still reachable in loss record 116 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4997504: std::vector<std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > >, std::allocator<std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > > > >::vector(std::initializer_list<std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > > >, std::allocator<std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > > > const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4899779: __static_initialization_and_destruction_0(int, int) [clone .constprop.0] (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853==    by 0x1FFF0002F2: ???
+==2853== 
+==2853== 8,192 bytes in 1 blocks are still reachable in loss record 117 of 123
+==2853==    at 0x483C583: operator new[](unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4B7AD03: std::basic_filebuf<char, std::char_traits<char> >::_M_allocate_internal_buffer() (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x4B7EF66: std::basic_filebuf<char, std::char_traits<char> >::open(char const*, std::_Ios_Openmode) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x489E5FB: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 10,848 bytes in 113 blocks are still reachable in loss record 118 of 123
+==2853==    at 0x483E340: memalign (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4B19BF5: operator new(unsigned long, std::align_val_t) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x498DB5B: Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilderImpl::add_vertex(Cork::Math::Vector3DTemplate<double, (SIMDInstructionSet)2> const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x489F062: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 32,816 bytes in 1 blocks are still reachable in loss record 119 of 123
+==2853==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4D4BF18: __alloc_dir (opendir.c:118)
+==2853==    by 0x4D4BF18: opendir_tail (opendir.c:69)
+==2853==    by 0x4D4BF18: opendir (opendir.c:92)
+==2853==    by 0x4BCE577: std::filesystem::__cxx11::directory_iterator::directory_iterator(std::filesystem::__cxx11::path const&, std::filesystem::directory_options, std::error_code*) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x1110C1: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 767,176 bytes in 1 blocks are still reachable in loss record 120 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x498CC1B: Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x489EB1D: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 3,068,704 bytes in 1 blocks are still reachable in loss record 121 of 123
+==2853==    at 0x483E340: memalign (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x4B19BF5: operator new(unsigned long, std::align_val_t) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==2853==    by 0x4987767: Cork::Meshes::MeshBase::MeshBase(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x498CB81: Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x489EB1D: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== 7,188,480 bytes in 4 blocks are still reachable in loss record 122 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x48D49F4: void std::vector<std::tuple<int, int, int>, std::allocator<std::tuple<int, int, int> > >::_M_realloc_insert<std::tuple<int, int, int> >(__gnu_cxx::__normal_iterator<std::tuple<int, int, int>*, std::vector<std::tuple<int, int, int>, std::allocator<std::tuple<int, int, int> > > >, std::tuple<int, int, int>&&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x48D546E: Cork::Intersection::PerturbationRandomizationMatrix::PerturbationRandomizationMatrix() (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4897929: _GLOBAL__sub_I_perturbation_epsilon.cpp (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4011B99: call_init.part.0 (dl-init.c:72)
+==2853==    by 0x4011CA0: call_init (dl-init.c:30)
+==2853==    by 0x4011CA0: _dl_init (dl-init.c:119)
+==2853==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==2853==    by 0x6: ???
+==2853==    by 0x1FFF000276: ???
+==2853==    by 0x1FFF0002A8: ???
+==2853==    by 0x1FFF0002B0: ???
+==2853==    by 0x1FFF0002C2: ???
+==2853== 
+==2853== 9,209,760 bytes in 1 blocks are still reachable in loss record 123 of 123
+==2853==    at 0x483BE63: operator new(unsigned long) (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==2853==    by 0x498BC5A: std::vector<Cork::Primitives::TriangleByIndices, std::allocator<Cork::Primitives::TriangleByIndices> >::reserve(unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x4987713: Cork::Meshes::MeshBase::MeshBase(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x498CB81: Cork::Meshes::IncrementalVertexIndexTriangleMeshBuilder::GetBuilder(unsigned long, unsigned long) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x489EB1D: Cork::Files::readOFF(std::filesystem::__cxx11::path const&) (in /home/steve/dev/Cork/build/src/libCorklib.so)
+==2853==    by 0x111458: main (in /home/steve/dev/Cork/build/RegressionTest/CorkCLI)
+==2853== 
+==2853== LEAK SUMMARY:
+==2853==    definitely lost: 0 bytes in 0 blocks
+==2853==    indirectly lost: 0 bytes in 0 blocks
+==2853==      possibly lost: 0 bytes in 0 blocks
+==2853==    still reachable: 20,305,066 bytes in 380 blocks
+==2853==         suppressed: 0 bytes in 0 blocks
+==2853== 
+==2853== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
