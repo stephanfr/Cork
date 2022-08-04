@@ -93,13 +93,13 @@ namespace Cork::Meshes
         TopoVert& operator=(const TopoVert&) = delete;
         TopoVert& operator=(TopoVert&&) = delete;
 
-        VertexIndex index() const { return (index_); }
+        [[nodiscard]] VertexIndex index() const { return (index_); }
         void set_index(VertexIndex newValue) { index_ = newValue; }
 
-        const Vertex3D& quantized_value() const { return (quantized_coordinates_); }
+        [[nodiscard]] const Vertex3D& quantized_value() const { return (quantized_coordinates_); }
         void perturb(const Vertex3D& perturbation) { quantized_coordinates_ += perturbation; }
 
-        const TopoTrianglePointerVector& triangles() const { return triangles_; }
+        [[nodiscard]] const TopoTrianglePointerVector& triangles() const { return triangles_; }
         void add_triangle(const TopoTri* triangle) { triangles_.emplace_back(triangle); }
         void remove_triangle(const TopoTri* tri)
         {
@@ -113,7 +113,7 @@ namespace Cork::Meshes
             }
         }
 
-        const TopoEdgePointerVector& edges() const { return edges_; }
+        [[nodiscard]] const TopoEdgePointerVector& edges() const { return edges_; }
         void add_edge(const TopoEdge* edge) { edges_.emplace_back(edge); }
         void remove_edge(const TopoEdge* edge)
         {
@@ -157,21 +157,21 @@ namespace Cork::Meshes
 
         ~TopoEdge() {}
 
-        TriangleByIndicesIndex source_triangle_id() const { return source_triangle_id_; }
-        TriangleEdgeId edge_index() const { return tri_edge_id_; }
+        [[nodiscard]] TriangleByIndicesIndex source_triangle_id() const { return source_triangle_id_; }
+        [[nodiscard]] TriangleEdgeId edge_index() const { return tri_edge_id_; }
 
-        uint32_t boolean_algorithm_data() const { return (boolean_algorithm_data_); }
+        [[nodiscard]] uint32_t boolean_algorithm_data() const { return (boolean_algorithm_data_); }
 
         void set_boolean_algorithm_data(uint32_t newValue) { boolean_algorithm_data_ = newValue; }
 
-        const TopoVert& vert_0() const { return *(vertices_[0]); }
-        const TopoVert& vert_1() const { return *(vertices_[1]); }
+        [[nodiscard]] const TopoVert& vert_0() const { return *(vertices_[0]); }
+        [[nodiscard]] const TopoVert& vert_1() const { return *(vertices_[1]); }
 
-        const std::array<TopoVert*, 2>& verts() const { return vertices_; }
+        [[nodiscard]] const std::array<TopoVert*, 2>& verts() const { return vertices_; }
 
-        std::array<TopoVert*, 2>& verts() { return vertices_; }
+        [[nodiscard]] std::array<TopoVert*, 2>& verts() { return vertices_; }
 
-        const TopoTrianglePointerVector& triangles() const { return triangles_; }
+        [[nodiscard]] const TopoTrianglePointerVector& triangles() const { return triangles_; }
 
         void add_triangle(const TopoTri* tri) { triangles_.emplace_back(tri); }
         void remove_triangle(const TopoTri* tri)
@@ -186,7 +186,7 @@ namespace Cork::Meshes
             }
         }
 
-        BBox3D bounding_box() const
+        [[nodiscard]] BBox3D bounding_box() const
         {
             const Vector3D& p0 = vertices_[0]->quantized_value();
             const Vector3D& p1 = vertices_[1]->quantized_value();
@@ -194,7 +194,7 @@ namespace Cork::Meshes
             return BBox3D(p0.min(p1), p0.max(p1));
         }
 
-        NUMERIC_PRECISION length() const
+        [[nodiscard]] NUMERIC_PRECISION length() const
         {
             const Vector3D& p0 = vertices_[0]->quantized_value();
             const Vector3D& p1 = vertices_[1]->quantized_value();
@@ -207,7 +207,7 @@ namespace Cork::Meshes
             return Empty3d::IntersectingEdge(vertices_[0]->quantized_value(), vertices_[1]->quantized_value());
         }
 
-        Math::ExteriorCalculusR4::GMPExt4_2 edge_exact_coordinates(const Math::Quantizer& quantizer) const
+        [[nodiscard]] Math::ExteriorCalculusR4::GMPExt4_2 edge_exact_coordinates(const Math::Quantizer& quantizer) const
         {
             Math::ExteriorCalculusR4::GMPExt4_1 ep[2];
 
@@ -240,7 +240,7 @@ namespace Cork::Meshes
               length_(0),
               bounding_box_(edges_.back()->vert_0().quantized_value(), edges_.back()->vert_0().quantized_value())
         {
-            for (auto current_edge : edges_)
+            for (const auto* current_edge : edges_)
             {
                 length_ += current_edge->length();
 
@@ -258,13 +258,13 @@ namespace Cork::Meshes
             edges_.emplace_back(edge);
         }
 
-        const std::vector<const TopoEdge*>& edges() const { return edges_; }
+        [[nodiscard]] const std::vector<const TopoEdge*>& edges() const { return edges_; }
 
-        double length() const { return length_; }
+        [[nodiscard]] double length() const { return length_; }
 
-        BBox3D bounding_box() const { return bounding_box_; }
+        [[nodiscard]] const BBox3D& bounding_box() const { return bounding_box_; }
 
-        TriangleUID triangle_on_boundary_uid() const;
+        [[nodiscard]] TriangleUID triangle_on_boundary_uid() const;
 
         void add_edge(const TopoEdge* edge)
         {
@@ -285,9 +285,9 @@ namespace Cork::Meshes
             bounding_box_.convex(edge->vert_1().quantized_value());
         }
 
-        const TopoVert* last_vert() const { return last_vert_; }
+        [[nodiscard]] const TopoVert* last_vert() const { return last_vert_; }
 
-        bool is_closed() const
+        [[nodiscard]] bool is_closed() const
         {
             if (edges_.size() < 3)
             {
@@ -423,12 +423,12 @@ namespace Cork::Meshes
             return bounding_box_.value();
         }
 
-        const NUMERIC_PRECISION minimum_edge_length() const
+        NUMERIC_PRECISION minimum_edge_length() const
         {
             return (std::min(edges_[0]->length(), std::min(edges_[1]->length(), edges_[2]->length())));
         }
 
-        const Math::ExteriorCalculusR4::GMPExt4_3 triangle_exact_coordinates(const Math::Quantizer& quantizer) const
+        Math::ExteriorCalculusR4::GMPExt4_3 triangle_exact_coordinates(const Math::Quantizer& quantizer) const
         {
             Math::ExteriorCalculusR4::GMPExt4_3 value;
 
@@ -676,7 +676,7 @@ namespace Cork::Meshes
 
         TopoVertexList& vertices() { return (topo_vertex_list_); }
 
-        const Math::Quantizer quantizer() const { return quantizer_; }
+        Math::Quantizer quantizer() const { return quantizer_; }
 
        private:
         TopoCacheBase() = delete;
@@ -991,7 +991,7 @@ namespace Cork::Meshes
 
             const TopoEdge* topo_edge = nullptr;
 
-            for (auto current_edge : triangle_containing_edge.edges())
+            for (const auto* current_edge : triangle_containing_edge.edges())
             {
                 if (current_edge->edge_index() == edge_id)
                 {

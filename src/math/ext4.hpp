@@ -96,7 +96,7 @@ namespace Cork::Math::ExteriorCalculusR4
             e3_ = Constants::DOUBLE_ONE;
         }
 
-        virtual ~Ext4_1() = default;
+        ~Ext4_1() override = default;
 
         Ext4_1 &operator=(const Vector3DTemplate<double> &vector)
         {
@@ -161,7 +161,7 @@ namespace Cork::Math::ExteriorCalculusR4
         Ext4_2(const Ext4_2 &ext_to_copy) : Ext4_2Base(ext_to_copy) {}
         Ext4_2(Ext4_2 &&ext_to_move) noexcept : Ext4_2Base(std::move(ext_to_move)) {}
 
-        virtual ~Ext4_2() = default;
+        ~Ext4_2() override = default;
 
         Ext4_2 &operator=(const Ext4_2 &ext_to_copy) = default;
         Ext4_2 &operator=(Ext4_2 &&ext_to_move) = default;
@@ -215,7 +215,7 @@ namespace Cork::Math::ExteriorCalculusR4
         Ext4_3(const Ext4_3 &ext_to_copy) : Ext4_3Base(ext_to_copy) {}
         Ext4_3(Ext4_3 &&ext_to_move) noexcept : Ext4_3Base(std::move(ext_to_move)) {}
 
-        virtual ~Ext4_3() = default;
+        ~Ext4_3() override = default;
 
         Ext4_3 &operator=(const Ext4_3 &ext_to_copy) = default;
         Ext4_3 &operator=(Ext4_3 &&ext_to_move) = default;
@@ -311,7 +311,7 @@ namespace Cork::Math::ExteriorCalculusR4
         AbsExt4_1(const AbsExt4_1 &ext_to_copy) : AbsExt4_1Base(ext_to_copy) {}
         AbsExt4_1(AbsExt4_1 &&ext_to_move) noexcept : AbsExt4_1Base(std::move(ext_to_move)) {}
 
-        virtual ~AbsExt4_1() = default;
+        ~AbsExt4_1() override = default;
 
         explicit AbsExt4_1(const Ext4_1 &element)
             : AbsExt4_1Base(fabs(element.e0()), fabs(element.e1()), fabs(element.e2()), fabs(element.e3()))
@@ -394,7 +394,7 @@ namespace Cork::Math::ExteriorCalculusR4
         {
         }
 
-        virtual ~AbsExt4_2() = default;
+        ~AbsExt4_2() override = default;
 
         AbsExt4_2 &operator=(const AbsExt4_2 &ext_to_copy) = default;
         AbsExt4_2 &operator=(AbsExt4_2 &&ext_to_move) = default;
@@ -440,7 +440,7 @@ namespace Cork::Math::ExteriorCalculusR4
         {
         }
 
-        virtual ~AbsExt4_3() = default;
+        ~AbsExt4_3() override = default;
 
         AbsExt4_3 &operator=(const AbsExt4_3 &ext_to_copy) = default;
         AbsExt4_3 &operator=(AbsExt4_3 &&ext_to_move) = default;

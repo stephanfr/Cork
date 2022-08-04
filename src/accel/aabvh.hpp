@@ -126,7 +126,7 @@ namespace Cork::AABVH
         std::array<BlobIDList, 2> blobids_;
     };
 
-    typedef std::vector<AABVHNode> AABVHNodeList;
+    using AABVHNodeList = std::vector<AABVHNode>;
 
     class AABVHNodeListCollection
     {

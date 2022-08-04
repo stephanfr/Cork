@@ -41,25 +41,25 @@ namespace Cork::Meshes
 
         TriangleMeshWrapper(MeshBase&& mesh_base) : mesh_(new TriangleMeshImpl(std::move(mesh_base))) {}
 
-        ~TriangleMeshWrapper(){};
+        ~TriangleMeshWrapper() override {};
 
         TriangleMeshImpl& implementation() { return *mesh_; }
 
         //	Methods follow
 
-        size_t num_triangles() const { return mesh_->num_triangles(); }
-        size_t num_vertices() const { return mesh_->num_vertices(); }
+        [[nodiscard]] size_t num_triangles() const override { return mesh_->num_triangles(); }
+        [[nodiscard]] size_t num_vertices() const override { return mesh_->num_vertices(); }
 
-        const Vertex3DVector& vertices() const { return mesh_->vertices(); }
-        const TriangleByIndicesVector& triangles() const { return mesh_->triangles(); }
+        [[nodiscard]] const Vertex3DVector& vertices() const override { return mesh_->vertices(); }
+        [[nodiscard]] const TriangleByIndicesVector& triangles() const override { return mesh_->triangles(); }
 
-        TriangleByVertices triangle_by_vertices(const TriangleByIndices& triangle_by_indices) const
+        [[nodiscard]] TriangleByVertices triangle_by_vertices(const TriangleByIndices& triangle_by_indices) const
         {
             return mesh_->triangle_by_vertices(triangle_by_indices);
         }
 
-        virtual std::unique_ptr<TriangleMesh> extract_surface(TriangleByIndicesIndex center_triangle,
-                                                              uint32_t num_rings)
+        std::unique_ptr<TriangleMesh> extract_surface(TriangleByIndicesIndex center_triangle,
+                                                              uint32_t num_rings) override
         {
             Cork::Primitives::TriangleByIndicesIndexSet single_triangle;
 
@@ -78,26 +78,26 @@ namespace Cork::Meshes
                 result.return_ptr()->merge(single_triangle)))));
         }
 
-        const BBox3D& bounding_box() const { return mesh_->bounding_box(); }
-        MinAndMaxEdgeLengths min_and_max_edge_lengths() const { return mesh_->min_and_max_edge_lengths(); }
-        double max_vertex_magnitude() const { return mesh_->max_vertex_magnitude(); }
+        [[nodiscard]] const BBox3D& bounding_box() const { return mesh_->bounding_box(); }
+        [[nodiscard]] MinAndMaxEdgeLengths min_and_max_edge_lengths() const { return mesh_->min_and_max_edge_lengths(); }
+        [[nodiscard]] double max_vertex_magnitude() const { return mesh_->max_vertex_magnitude(); }
 
-        GeometricStatistics ComputeGeometricStatistics(GeometricProperties props_to_compute) const
+        [[nodiscard]] GeometricStatistics ComputeGeometricStatistics(GeometricProperties props_to_compute) const
         {
             return mesh_->ComputeGeometricStatistics(props_to_compute);
         }
 
-        TopologicalStatisticsResult ComputeTopologicalStatistics(TopologicalProperties props_to_compute) const
+        [[nodiscard]] TopologicalStatisticsResult ComputeTopologicalStatistics(TopologicalProperties props_to_compute) const
         {
             return mesh_->ComputeTopologicalStatistics(props_to_compute);
         }
 
-        HoleClosingResult close_holes(const TopologicalStatistics& topo_stats)
+        [[nodiscard]] HoleClosingResult close_holes(const TopologicalStatistics& topo_stats)
         {
             return mesh_->close_holes(topo_stats);
         }
 
-        SelfIntersectionResolutionResults remove_self_intersections(const TopologicalStatistics& topo_stats)
+        [[nodiscard]] SelfIntersectionResolutionResults remove_self_intersections(const TopologicalStatistics& topo_stats)
         {
             return mesh_->remove_self_intersections(topo_stats);
         }

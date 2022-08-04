@@ -69,7 +69,7 @@ namespace Cork::Intersection
         IntersectionSolverImpl& operator=(const IntersectionSolverImpl&) = delete;
         IntersectionSolverImpl& operator=(IntersectionSolverImpl&&) = delete;
 
-        ~IntersectionSolverImpl() { reset(); }
+        ~IntersectionSolverImpl() override { reset(); }
 
         //	Implementation of IntersectionProblemIfx
 

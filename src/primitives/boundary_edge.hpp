@@ -59,7 +59,7 @@ namespace Cork::Primitives
                 };
                 return *this;
             }
-            const circularIterator operator++(int)
+            circularIterator operator++(int)
             {
                 circularIterator tmp = *this;
                 ++(*this);

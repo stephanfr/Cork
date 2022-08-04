@@ -64,12 +64,12 @@ namespace Cork::Intersection
 
                     std::set<const TopoTri*> topo_tris_with_se_vertex;
 
-                    for (auto triangle_sharing_edge : edge.vert_0().triangles())
+                    for (const auto* triangle_sharing_edge : edge.vert_0().triangles())
                     {
                         topo_tris_with_se_vertex.insert(triangle_sharing_edge);
                     }
 
-                    for (auto triangle_sharing_edge : edge.vert_1().triangles())
+                    for (const auto* triangle_sharing_edge : edge.vert_1().triangles())
                     {
                         topo_tris_with_se_vertex.insert(triangle_sharing_edge);
                     }
@@ -78,7 +78,7 @@ namespace Cork::Intersection
 
                     for (const auto& current_triangle_set : si_triangle_sets)
                     {
-                        for (auto topo_tri : topo_tris_with_se_vertex)
+                        for (const auto* topo_tri : topo_tris_with_se_vertex)
                         {
                             if (current_triangle_set.contains(topo_tri))
                             {

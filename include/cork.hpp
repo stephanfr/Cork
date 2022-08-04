@@ -190,8 +190,7 @@ namespace Cork
     class SolidObjectMesh
     {
        public:
-        typedef SEFUtility::ResultWithReturnUniquePtr<BooleanOperationResultCodes, SolidObjectMesh>
-            BooleanOperationResult;
+        using BooleanOperationResult = SEFUtility::ResultWithReturnUniquePtr<BooleanOperationResultCodes, SolidObjectMesh>;
 
         SolidObjectMesh() = default;
 

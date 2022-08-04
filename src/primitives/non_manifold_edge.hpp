@@ -41,7 +41,7 @@ namespace Cork::Primitives
         ~NonManifoldEdge() = default;
 
         NonManifoldEdge& operator=(const NonManifoldEdge&) = default;
-        NonManifoldEdge& operator=(NonManifoldEdge&&) = default;
+        NonManifoldEdge& operator=(NonManifoldEdge&&) = delete;
 
         [[nodiscard]] TriangleByIndicesIndex triangle_id() const { return triangle_id_; }
         [[nodiscard]] TriangleEdgeId edge_id() const { return edge_id_; }

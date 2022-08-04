@@ -59,6 +59,7 @@ namespace Cork::Meshes
     class MeshBase : public WriteableMesh
     {
        public:
+        MeshBase(const MeshBase&) = delete;
         MeshBase(MeshBase&& mesh_base_to_move) noexcept;
 
         MeshBase(size_t num_vertices, size_t num_triangles);
@@ -76,11 +77,11 @@ namespace Cork::Meshes
 
         [[nodiscard]] TriangleByIndicesVector& triangles() { return (*tris_); }
 
-        [[nodiscard]] const TriangleByIndicesVector& triangles() const { return (*tris_); }
+        [[nodiscard]] const TriangleByIndicesVector& triangles() const override { return (*tris_); }
 
         [[nodiscard]] Vertex3DVector& vertices() { return (*verts_); }
 
-        [[nodiscard]] const Vertex3DVector& vertices() const { return (*verts_); }
+        [[nodiscard]] const Vertex3DVector& vertices() const override { return (*verts_); }
 
         [[nodiscard]] const BBox3D& bounding_box() const { return bounding_box_; }
 
@@ -109,7 +110,7 @@ namespace Cork::Meshes
             min_and_max_edge_lengths_.update(tri_by_verts.min_and_max_edge_lengths());
         }
 
-        const Math::Quantizer::GetQuantizerResult quantizer() const
+        [[nodiscard]] const Math::Quantizer::GetQuantizerResult quantizer() const
         {
             return Math::Quantizer::get_quantizer(max_vertex_magnitude_, min_and_max_edge_lengths_.min());
         }

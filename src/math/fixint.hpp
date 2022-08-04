@@ -80,7 +80,7 @@ namespace Cork::Math::FixInt
     class LimbInt
     {
        public:
-        mp_limb_t limbs[Nlimbs];
+        std::array<mp_limb_t,Nlimbs> limbs;
 
         LimbInt() = default;
         LimbInt(const LimbInt &) = default;
@@ -108,7 +108,7 @@ namespace Cork::Math::FixInt
     template <int N>
     inline std::string to_string(const LimbInt<N> &num)
     {
-        char cbuf[(N * LIMB_BIT_SIZE * 3) / 10 + 3];
+        std::array<char, ((N * LIMB_BIT_SIZE * 3) / 10 + 3)> cbuf;
         LimbInt<N> garbage = num;
         bool neg = SIGN_BOOL(num.limbs, N);
 
@@ -213,13 +213,13 @@ namespace Cork::Math::FixInt
 
         if (Nlhs == Nrhs)
         {
-            carry = mpn_add_n(out.limbs, lhs.limbs, rhs.limbs, Nlhs);
+            carry = mpn_add_n(out.limbs.data(), lhs.limbs.data(), rhs.limbs.data(), Nlhs);
         }
         else if (Nlhs > Nrhs)
         {
             mp_limb_t rhs_is_neg = SIGN_BOOL(rhs.limbs, Nrhs);
-            carry = mpn_add(out.limbs, lhs.limbs, Nlhs, rhs.limbs, Nrhs);
-            mp_limb_t borrow = mpn_sub_1(out.limbs + Nrhs, out.limbs + Nrhs, Nlhs - Nrhs, rhs_is_neg);
+            carry = mpn_add(out.limbs.data(), lhs.limbs.data(), Nlhs, rhs.limbs.data(), Nrhs);
+            mp_limb_t borrow = mpn_sub_1(out.limbs.data() + Nrhs, out.limbs.data() + Nrhs, Nlhs - Nrhs, rhs_is_neg);
 
             if (Nout > Nmax)
             {
@@ -229,8 +229,8 @@ namespace Cork::Math::FixInt
         else
         {  // Nrhs > Nlhs
             mp_limb_t lhs_is_neg = SIGN_BOOL(lhs.limbs, Nlhs);
-            carry = mpn_add(out.limbs, rhs.limbs, Nrhs, lhs.limbs, Nlhs);
-            mp_limb_t borrow = mpn_sub_1(out.limbs + Nlhs, out.limbs + Nlhs, Nrhs - Nlhs, lhs_is_neg);
+            carry = mpn_add(out.limbs.data(), rhs.limbs.data(), Nrhs, lhs.limbs.data(), Nlhs);
+            mp_limb_t borrow = mpn_sub_1(out.limbs.data() + Nlhs, out.limbs.data() + Nlhs, Nrhs - Nlhs, lhs_is_neg);
 
             if (Nout > Nmax)
             {
@@ -258,7 +258,7 @@ namespace Cork::Math::FixInt
     inline void sub(LimbInt<Nout> &out, const LimbInt<Nlhs> &lhs, const LimbInt<Nrhs> &rhs)
     {
         LimbInt<Nrhs> tempright;
-        mpn_neg(tempright.limbs, rhs.limbs, Nrhs);
+        mpn_neg(tempright.limbs.data(), rhs.limbs.data(), Nrhs);
         add(out, lhs, tempright);
     }
 
@@ -271,7 +271,7 @@ namespace Cork::Math::FixInt
     {
         ASSERT_STATIC<(Nout >= Nin)>::test();
 
-        mpn_neg(out.limbs, in.limbs, Nin);
+        mpn_neg(out.limbs.data(), in.limbs.data(), Nin);
 
         if (Nout > Nin)
         {
@@ -292,39 +292,39 @@ namespace Cork::Math::FixInt
         // handle the possibility that we need to use more space
         // than we have...
 
-        mp_limb_t *res = out.limbs;
+        mp_limb_t *res = out.limbs.data();
         LimbInt<Nlhs + Nrhs> tempresult;
 
         if (Nout < Nlhs + Nrhs)
         {
-            res = tempresult.limbs;
+            res = tempresult.limbs.data();
         }
 
         // multiply
 
         if (Nlhs == Nrhs)
         {
-            mpn_mul_n(res, lhs.limbs, rhs.limbs, Nlhs);
+            mpn_mul_n(res, lhs.limbs.data(), rhs.limbs.data(), Nlhs);
         }
         else if (Nlhs > Nrhs)
         {
-            mpn_mul(res, lhs.limbs, Nlhs, rhs.limbs, Nrhs);
+            mpn_mul(res, lhs.limbs.data(), Nlhs, rhs.limbs.data(), Nrhs);
         }
         else  // need to flip in order to satisfy calling condition...
         {
-            mpn_mul(res, rhs.limbs, Nrhs, lhs.limbs, Nlhs);
+            mpn_mul(res, rhs.limbs.data(), Nrhs, lhs.limbs.data(), Nlhs);
         }
 
         mp_limb_t lhs_sign = SIGN_BOOL(lhs.limbs, Nlhs);
         mp_limb_t rhs_sign = SIGN_BOOL(rhs.limbs, Nrhs);
 
-        mpn_submul_1((res + Nlhs), rhs.limbs, Nrhs, lhs_sign);
-        mpn_submul_1((res + Nrhs), lhs.limbs, Nlhs, rhs_sign);
+        mpn_submul_1((res + Nlhs), rhs.limbs.data(), Nrhs, lhs_sign);
+        mpn_submul_1((res + Nrhs), lhs.limbs.data(), Nlhs, rhs_sign);
 
         // transfer large result if we had one...
         if (Nout < Nlhs + Nrhs)
         {
-            mpn_copyi(out.limbs, res, Nout);
+            mpn_copyi(out.limbs.data(), res, Nout);
         }
 
         // if we have more limbs than needed for the multiply,

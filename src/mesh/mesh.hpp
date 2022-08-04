@@ -51,7 +51,7 @@ namespace Cork::Meshes
 
         explicit Mesh(const TriangleMesh& inputMesh, const SolverControlBlock& controlBlock);
 
-        virtual ~Mesh();
+        ~Mesh() override;
 
         Mesh& operator=(Mesh&& src) noexcept;
         Mesh& operator=(const Mesh& src) = delete;
@@ -77,7 +77,7 @@ namespace Cork::Meshes
         [[nodiscard]] BooleanOperationResult SymmetricDifference(
             const SolidObjectMesh& rhs, const SolverControlBlock& solverControlBlock) const final;
 
-        [[nodiscard]] std::unique_ptr<TriangleMesh> ToTriangleMesh() const;
+        [[nodiscard]] std::unique_ptr<TriangleMesh> ToTriangleMesh() const override;
 
         [[nodiscard]] const SolverControlBlock& solver_control_block() const { return control_block_; }
         [[nodiscard]] const SolverPerformanceStatistics& GetPerformanceStats() const final

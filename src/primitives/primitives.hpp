@@ -322,27 +322,27 @@ namespace Cork::Primitives
         EdgeByIndices& operator=(const EdgeByIndices&) = default;
         EdgeByIndices& operator=(EdgeByIndices&&) = default;
 
-        VertexIndex first() const { return (first_vertex_); }
+        [[nodiscard]] VertexIndex first() const { return (first_vertex_); }
 
-        VertexIndex second() const { return (second_vertex_); }
+        [[nodiscard]] VertexIndex second() const { return (second_vertex_); }
 
         bool operator==(const EdgeByIndices& edgeToCompare) const
         {
             return ((first() == edgeToCompare.first()) && (second() == edgeToCompare.second()));
         }
 
-        bool contains_vertex(VertexIndex vert_index) const
+        [[nodiscard]] bool contains_vertex(VertexIndex vert_index) const
         {
             return (first_vertex_ == vert_index) || (second_vertex_ == vert_index);
         }
 
-        bool same_segment(const EdgeByIndices& edgeToCompare) const
+        [[nodiscard]] bool same_segment(const EdgeByIndices& edgeToCompare) const
         {
             return ((first() == edgeToCompare.first()) && (second() == edgeToCompare.second())) ||
                    ((first() == edgeToCompare.second()) && (second() == edgeToCompare.first()));
         }
 
-        bool shares_vertex(const EdgeByIndices& edgeToCompare) const
+        [[nodiscard]] bool shares_vertex(const EdgeByIndices& edgeToCompare) const
         {
             if (same_segment(edgeToCompare))
             {
@@ -353,7 +353,7 @@ namespace Cork::Primitives
                    (second() == edgeToCompare.first()) || (second() == edgeToCompare.second());
         }
 
-        EdgeByIndices flip_segment() const { return EdgeByIndices(second_vertex_, first_vertex_); }
+        [[nodiscard]] EdgeByIndices flip_segment() const { return EdgeByIndices(second_vertex_, first_vertex_); }
 
         struct HashFunction
         {
@@ -440,7 +440,7 @@ namespace Cork::Primitives
         TriangleByIndices& operator=(const TriangleByIndices&) = default;
         TriangleByIndices& operator=(TriangleByIndices&&) = default;
 
-        const VertexIndex operator[](size_t index) const
+        VertexIndex operator[](size_t index) const
         {
             assert(index < 3);
             return (reinterpret_cast<const VertexIndex*>(&a_))[index];
@@ -452,21 +452,21 @@ namespace Cork::Primitives
             return (reinterpret_cast<VertexIndex*>(&a_))[index];
         }
 
-        TriangleUID uid() const { return uid_; }
+        [[nodiscard]] TriangleUID uid() const { return uid_; }
 
-        const VertexIndex a() const { return a_; }
+        [[nodiscard]] VertexIndex a() const { return a_; }
 
-        VertexIndex& a() { return a_; }
+        [[nodiscard]] VertexIndex& a() { return a_; }
 
-        const VertexIndex b() const { return b_; }
+        [[nodiscard]] VertexIndex b() const { return b_; }
 
-        VertexIndex& b() { return b_; }
+        [[nodiscard]] VertexIndex& b() { return b_; }
 
-        const VertexIndex c() const { return c_; }
+        [[nodiscard]] VertexIndex c() const { return c_; }
 
-        VertexIndex& c() { return c_; }
+        [[nodiscard]] VertexIndex& c() { return c_; }
 
-        EdgeByIndices edge(TriangleEdgeId edge_id) const
+        [[nodiscard]] EdgeByIndices edge(TriangleEdgeId edge_id) const
         {
             switch (edge_id)
             {
@@ -482,7 +482,7 @@ namespace Cork::Primitives
             return EdgeByIndices(c_, a_);
         }
 
-        const TriangleBooleanAlgData bool_alg_data() const { return bool_alg_data_.value(); }
+        [[nodiscard]] TriangleBooleanAlgData bool_alg_data() const { return bool_alg_data_.value(); }
 
         void set_bool_alg_data(uint32_t new_value) { bool_alg_data_ = new_value; }
 
@@ -673,19 +673,19 @@ namespace Cork::Primitives
         {
         }
 
-        const Vertex3D& vertexA() const { return a_; }
+        [[nodiscard]] const Vertex3D& vertexA() const { return a_; }
 
-        const Vertex3D& vertexB() const { return b_; }
+        [[nodiscard]] const Vertex3D& vertexB() const { return b_; }
 
-        const Vertex3D& vertexC() const { return c_; }
+        [[nodiscard]] const Vertex3D& vertexC() const { return c_; }
 
-        Vector3D edgeAB_from_origin() const { return (a_ - b_); }
+        [[nodiscard]] Vector3D edgeAB_from_origin() const { return (a_ - b_); }
 
-        Vector3D edgeAC_from_origin() const { return (a_ - c_); }
+        [[nodiscard]] Vector3D edgeAC_from_origin() const { return (a_ - c_); }
 
-        Vector3D edgeBC_from_origin() const { return (b_ - c_); }
+        [[nodiscard]] Vector3D edgeBC_from_origin() const { return (b_ - c_); }
 
-        EdgeByVertices edge(TriangleEdgeId edge_id)
+        [[nodiscard]] EdgeByVertices edge(TriangleEdgeId edge_id)
         {
             switch (edge_id)
             {
@@ -703,7 +703,7 @@ namespace Cork::Primitives
 
         //        TriangleEdgeId
 
-        BBox3D bounding_box() const
+        [[nodiscard]] BBox3D bounding_box() const
         {
             return BBox3D(
                 Vector3D(std::min(a_.x(), std::min(b_.x(), c_.x())), std::min(a_.y(), std::min(b_.y(), c_.y())),
@@ -712,7 +712,7 @@ namespace Cork::Primitives
                          std::max(a_.z(), std::max(b_.z(), c_.z()))));
         }
 
-        MinAndMaxEdgeLengths min_and_max_edge_lengths()
+        [[nodiscard]] MinAndMaxEdgeLengths min_and_max_edge_lengths() const
         {
             double edge_ab_len = edgeAB_from_origin().len_squared();
             double edge_ac_len = edgeAC_from_origin().len_squared();
@@ -724,16 +724,16 @@ namespace Cork::Primitives
             return MinAndMaxEdgeLengths::from_squares(min_squared, max_squared);
         }
 
-        double max_magnitude_vertex() const
+        [[nodiscard]] double max_magnitude_vertex() const
         {
             return std::max(c_.abs().max(), std::max(a_.abs().max(), b_.abs().max()));
         }
 
-        Vector3D normal() const { return (b_ - a_).cross(c_ - a_); }
+        [[nodiscard]] Vector3D normal() const { return (b_ - a_).cross(c_ - a_); }
 
-        double tri_area() const { return ((b_ - a_).cross(c_ - a_).len()); }
+        [[nodiscard]] double tri_area() const { return ((b_ - a_).cross(c_ - a_).len()); }
 
-        double tri_area_squared() const { return ((b_ - a_).cross(c_ - a_).len_squared()); }
+        [[nodiscard]] double tri_area_squared() const { return ((b_ - a_).cross(c_ - a_).len_squared()); }
 
        private:
         Vertex3D a_;
@@ -757,7 +757,7 @@ namespace Cork::Primitives
 
         void resize(IndexType new_size) { vector_.resize(size_t(new_size)); }
 
-        size_t size() const { return vector_.size(); }
+        [[nodiscard]] size_t size() const { return vector_.size(); }
 
         unsigned char& operator[](IndexType index)
         {

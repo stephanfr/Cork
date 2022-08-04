@@ -843,14 +843,13 @@ namespace Cork::Meshes
             {
                 return TriCode::DELETE_TRI;
             }
-            else if (data == 3)  // part of op 1 INSIDE op 1
+            
+            if (data == 3)  // part of op 1 INSIDE op 1
             {
                 return TriCode::FLIP_TRI;
             }
-            else  // part of op 0 OUTSIDE op 1
-            {
-                return TriCode::KEEP_TRI;
-            }
+            
+            return TriCode::KEEP_TRI;
         });
 
         //	Collect the ending statistics
@@ -903,10 +902,8 @@ namespace Cork::Meshes
             {
                 return (TriCode::DELETE_TRI);
             }
-            else  // part of op 0/1 INSIDE op 1/0
-            {
-                return (TriCode::KEEP_TRI);
-            }
+            
+            return (TriCode::KEEP_TRI);
         });
 
         //	Collect the ending statistics
@@ -957,14 +954,13 @@ namespace Cork::Meshes
             {
                 return (TriCode::KEEP_TRI);
             }
-            else if ((data & 2UL) == 2UL)
+            
+            if ((data & 2UL) == 2UL)
             {
                 return (TriCode::DELETE_TRI);
             }
-            else
-            {
-                return (TriCode::FLIP_TRI);
-            }
+            
+            return (TriCode::FLIP_TRI);
         });
 
         //	Collect the ending statistics

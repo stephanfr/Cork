@@ -181,7 +181,7 @@ namespace Cork::Meshes
 
         HoleClosingSolution hole_solution(std::move(hole_closing_triangles), std::move(VertexIndexVector()));
 
-        return GetHoleClosingTrianglesResult::success(std::move(hole_solution));
+        return GetHoleClosingTrianglesResult::success(hole_solution);
     }
 
     void MeshBase::compact()
@@ -232,7 +232,7 @@ namespace Cork::Meshes
 
         //  Invalidate the topo cache
 
-        topo_cache_.release();
+        topo_cache_.release();      //  NOLINT(bugprone-unused-return-value)
 
         //  Done
     }
@@ -340,7 +340,7 @@ namespace Cork::Meshes
                         "Unable to recompute boundary");
                 }
 
-                current_boundaries.reset(result.return_ptr().release());
+                current_boundaries = std::move( result.return_ptr());
             }
         }
 

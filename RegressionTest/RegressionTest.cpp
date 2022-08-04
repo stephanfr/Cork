@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
 
     //	Create Unions, Intersections, Differences and XORs of all the files taken two at a time
 
-    typedef std::pair<std::filesystem::path, std::shared_ptr<Cork::TriangleMesh>> NameAndModel;
+    using NameAndModel = std::pair<std::filesystem::path, std::shared_ptr<Cork::TriangleMesh>>;
 
     std::list<NameAndModel> models;
 

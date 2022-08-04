@@ -77,7 +77,7 @@ namespace Cork::Math::ExteriorCalculusR4
             e3_ = 1;
         }
 
-        virtual ~GMPExt4_1() = default;
+        ~GMPExt4_1() override = default;
 
         Vector3DTemplate<double> operator()(const Math::Quantizer &quantizer)
         {
@@ -130,7 +130,7 @@ namespace Cork::Math::ExteriorCalculusR4
         GMPExt4_2(const GMPExt4_2 &ext_to_copy) : GMPExt4_2Base(ext_to_copy) {}
         GMPExt4_2(GMPExt4_2 &&ext_to_move) noexcept : GMPExt4_2Base(std::move(ext_to_move)) {}
 
-        virtual ~GMPExt4_2() = default;
+        ~GMPExt4_2() override = default;
 
         GMPExt4_2 &operator=(const GMPExt4_2 &ext_to_copy) = default;
         GMPExt4_2 &operator=(GMPExt4_2 &&ext_to_move) = default;
@@ -183,7 +183,7 @@ namespace Cork::Math::ExteriorCalculusR4
         GMPExt4_3(const GMPExt4_3 &ext_to_copy) : GMPExt4_3Base(ext_to_copy) {}
         GMPExt4_3(GMPExt4_3 &&ext_to_move) noexcept : GMPExt4_3Base(std::move(ext_to_move)) {}
 
-        virtual ~GMPExt4_3() = default;
+        ~GMPExt4_3() override = default;
 
         GMPExt4_3 &operator=(const GMPExt4_3 &ext_to_copy) = default;
         GMPExt4_3 &operator=(GMPExt4_3 &&ext_to_move) = default;
@@ -214,7 +214,7 @@ namespace Cork::Math::ExteriorCalculusR4
         [[nodiscard]] GMPExt4_1 meet(const GMPExt4_2 &rhs) const { return dual().join(rhs.dual()).reverse_dual(); }
 
        private:
-        GMPExt4_3(mpz_class e012, mpz_class e013, mpz_class e023, mpz_class e123) : Ext4_3Base(e012, e013, e023, e123)
+        GMPExt4_3(mpz_class e012, mpz_class e013, mpz_class e023, mpz_class e123) : Ext4_3Base( std::move(e012), std::move(e013), std::move(e023), std::move(e123))
         {
         }
 

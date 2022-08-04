@@ -32,9 +32,16 @@ namespace Cork::Intersection
     class SelfIntersectionFinder
     {
        public:
-        SelfIntersectionFinder(const Meshes::TriangleByIndicesVectorTopoCache&   topo_cache);
+        SelfIntersectionFinder() = delete;
+        SelfIntersectionFinder(const SelfIntersectionFinder&) = delete;
+        SelfIntersectionFinder(SelfIntersectionFinder&&) = delete;
+
+        explicit SelfIntersectionFinder(const Meshes::TriangleByIndicesVectorTopoCache&   topo_cache);
 
         virtual ~SelfIntersectionFinder() { reset(); }
+
+        SelfIntersectionFinder& operator=(const SelfIntersectionFinder&) = delete;
+        SelfIntersectionFinder& operator=(SelfIntersectionFinder&&) = delete;
 
         const std::vector<SelfIntersectingEdge> CheckSelfIntersection();
 
@@ -53,7 +60,7 @@ namespace Cork::Intersection
 
             edge_geoms->reserve(topo_cache_.edges().size());
 
-            for (auto& e : topo_cache_.edges())
+            for ( const auto& e : topo_cache_.edges())
             {
                 edge_geoms->emplace_back(e);
             }
@@ -62,4 +69,4 @@ namespace Cork::Intersection
                 edge_geoms, m_intersection_workspace->getAABVHWorkspace(), Cork::SolverControlBlock::get_default_control_block()));
         }
     };
-}
+}   // namespace Cork::Intersection
