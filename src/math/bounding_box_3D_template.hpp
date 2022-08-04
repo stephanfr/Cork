@@ -52,12 +52,17 @@ namespace Cork::Math
         {
         }
 
+        BBox3DTemplate(Vector3DTemplate<N, SIMD>&& minpp, Vector3DTemplate<N, SIMD>*& maxpp)
+            : m_minp(std::move(minpp)), m_maxp(std::move(maxpp))
+        {
+        }
+
         BBox3DTemplate(const BBox3DTemplate& bb) : m_minp(bb.m_minp), m_maxp(bb.m_maxp) {}
-        BBox3DTemplate( BBox3DTemplate&& bb) noexcept : m_minp(std::move(bb.m_minp)), m_maxp(std::move(bb.m_maxp)) {}
+        BBox3DTemplate(BBox3DTemplate&& bb) noexcept : m_minp(std::move(bb.m_minp)), m_maxp(std::move(bb.m_maxp)) {}
 
         ~BBox3DTemplate() = default;
 
-        BBox3DTemplate& operator=( const BBox3DTemplate& bb )
+        BBox3DTemplate& operator=(const BBox3DTemplate& bb)
         {
             m_minp = bb.m_minp;
             m_maxp = bb.m_maxp;
@@ -65,10 +70,10 @@ namespace Cork::Math
             return *this;
         }
 
-        BBox3DTemplate& operator=( BBox3DTemplate&& bb ) noexcept
+        BBox3DTemplate& operator=(BBox3DTemplate&& bb) noexcept
         {
-            m_minp = std::move( bb.m_minp );
-            m_maxp = std::move( bb.m_maxp );
+            m_minp = std::move(bb.m_minp);
+            m_maxp = std::move(bb.m_maxp);
 
             return *this;
         }
@@ -90,11 +95,14 @@ namespace Cork::Math
             }
             else
             {
-                return (m_minp + ((m_maxp - m_minp) / (NUMERIC_PRECISION)2.0));     //  NOLINT
+                return (m_minp + ((m_maxp - m_minp) / (NUMERIC_PRECISION)2.0));  //  NOLINT
             }
         }
 
-        [[nodiscard]] bool isEmpty() const { return ((m_maxp[0] < m_minp[0]) || (m_maxp[1] < m_minp[1]) || (m_maxp[2] < m_minp[2])); }
+        [[nodiscard]] bool isEmpty() const
+        {
+            return ((m_maxp[0] < m_minp[0]) || (m_maxp[1] < m_minp[1]) || (m_maxp[2] < m_minp[2]));
+        }
 
         [[nodiscard]] bool isIn(const Vector3DTemplate<N, SIMD>& pointToTest) const
         {
@@ -102,17 +110,15 @@ namespace Cork::Math
                     (pointToTest[1] <= m_maxp[1]) && (m_minp[2] <= pointToTest[2]) && (pointToTest[2] <= m_maxp[2]));
         }
 
-        [[nodiscard]] bool contains(const BBox3DTemplate& rhs) const
-        {
-            return isIn( rhs.m_minp ) && isIn( rhs.m_maxp );
-        }
+        [[nodiscard]] bool contains(const BBox3DTemplate& rhs) const { return isIn(rhs.m_minp) && isIn(rhs.m_maxp); }
 
         [[nodiscard]] bool intersects(const BBox3DTemplate& rhs) const
         {
             if constexpr (SIMD >= SIMDInstructionSet::AVX)
             {
                 return (_mm256_movemask_pd(_mm256_and_pd(_mm256_cmp_pd(m_minp, rhs.m_maxp, _CMP_LE_OQ),
-                                                         _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) == 0x0F);     //  NOLINT
+                                                         _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) ==
+                        0x0F);  //  NOLINT
             }
             else
             {
@@ -126,7 +132,8 @@ namespace Cork::Math
             if constexpr (SIMD >= SIMDInstructionSet::AVX)
             {
                 return (_mm256_movemask_pd(_mm256_and_pd(_mm256_cmp_pd(m_minp, rhs.m_maxp, _CMP_LE_OQ),
-                                                         _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) != 0x0F);     //  NOLINT
+                                                         _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) !=
+                        0x0F);  //  NOLINT
             }
             else
             {
@@ -209,7 +216,7 @@ namespace Cork::Math
             N txymin;
             N txymax;
 
-            const auto& bounds = reinterpret_cast<const std::array<Vector3DTemplate<N, SIMD>, 2>&>(m_minp);     
+            const auto& bounds = reinterpret_cast<const std::array<Vector3DTemplate<N, SIMD>, 2>&>(m_minp);
 
             txmin = (bounds[ray.signs()[0]].x() - ray.origin().x()) * ray.inverseDirection().x();
             tymax = (bounds[1 - ray.signs()[1]].y() - ray.origin().y()) * ray.inverseDirection().y();

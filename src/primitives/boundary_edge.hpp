@@ -23,14 +23,14 @@
 #include <iterator>
 
 #include "2d_geometry/polygon.hpp"
+#include "math/plane.hpp"
 #include "primitives.hpp"
 #include "writeable_interfaces.hpp"
-#include "math/plane.hpp"
 
 namespace Cork::Meshes
 {
     class BoundaryEdgeBuilder;
-}
+}  // namespace Cork::Meshes
 
 namespace Cork::Primitives
 {
@@ -59,7 +59,7 @@ namespace Cork::Primitives
                 };
                 return *this;
             }
-            circularIterator operator++(int)
+            const circularIterator operator++(int)
             {
                 circularIterator tmp = *this;
                 ++(*this);
@@ -76,7 +76,7 @@ namespace Cork::Primitives
             {
                 if (offset < 0)
                 {
-                    std::cout << (offset % vec_size ) << "    " << vec_size + (offset % vec_size) << std::endl;
+                    std::cout << (offset % vec_size) << "    " << vec_size + (offset % vec_size) << std::endl;
                     return vec_size + (offset % vec_size);
                 }
 
@@ -84,21 +84,29 @@ namespace Cork::Primitives
             };
         };
 
-        circularIterator ci_location(int32_t offset) const { return circularIterator(this->vertices_, offset); }
+        [[nodiscard]] circularIterator ci_location(int32_t offset) const
+        {
+            return circularIterator(this->vertices_, offset);
+        }
 
        public:
         BoundaryEdge(Vertex3DVector&& vertices, VertexIndexVector&& vertex_indices)
             : vertices_(std::move(vertices)), vertex_indices_(std::move(vertex_indices))
         {
         }
+
         BoundaryEdge(const BoundaryEdge&) = default;
+        BoundaryEdge(BoundaryEdge&&) = default;
+
+        ~BoundaryEdge() = default;
 
         BoundaryEdge& operator=(const BoundaryEdge&) = default;
+        BoundaryEdge& operator=(BoundaryEdge&&) = default;
 
-        const Vertex3DVector& vertices() const { return vertices_; }
-        const std::vector<VertexIndex>& vertex_indices() const { return vertex_indices_; }
+        [[nodiscard]] const Vertex3DVector& vertices() const override { return vertices_; }
+        [[nodiscard]] const std::vector<VertexIndex>& vertex_indices() const { return vertex_indices_; }
 
-        std::vector<BoundaryEdge> divide(size_t divisions)
+        [[nodiscard]] std::vector<BoundaryEdge> divide(size_t divisions)
         {
             std::vector<BoundaryEdge> new_boundaries;
             uint32_t points_per_division = vertex_indices_.size() / divisions;
@@ -127,13 +135,13 @@ namespace Cork::Primitives
             vertex_indices_.emplace_back(index);
         }
 
-        double length() const
+        [[nodiscard]] double length() const
         {
             double len = 0;
 
             for (VertexIndex i{0}; i < vertex_indices_.size() - 1; i++)
             {
-                Vector3D segment = vertices_[i] - vertices_[i + 1u];
+                Vector3D segment = vertices_[i] - vertices_[i + 1U];
 
                 len += sqrt((segment.x() * segment.x()) + (segment.y() * segment.y()) + (segment.z() * segment.z()));
             }
@@ -141,7 +149,7 @@ namespace Cork::Primitives
             return len;
         }
 
-        BBox3D bounding_box() const
+        [[nodiscard]] BBox3D bounding_box() const
         {
             BBox3D bounding_box;
 
@@ -153,13 +161,14 @@ namespace Cork::Primitives
             return bounding_box;
         }
 
-        Vertex3D centroid() const;
+        [[nodiscard]] Vertex3D centroid() const;
 
-        BestFitPlaneEquation best_fit_plane() const;
+        [[nodiscard]] BestFitPlaneEquation best_fit_plane() const;
 
-        TwoD::Polygon project(const Vector3D projection_surface_normal, const Vertex3D normal_surface_origin) const;
+        [[nodiscard]] TwoD::Polygon project(const Vector3D& projection_surface_normal,
+                                            const Vertex3D& normal_surface_origin) const;
 
-        std::vector<double> get_point_deviations(const PlaneEquationBase&    plane);
+        [[nodiscard]] std::vector<double> get_point_deviations(const PlaneEquationBase& plane);
 
        private:
         Vertex3DVector vertices_;

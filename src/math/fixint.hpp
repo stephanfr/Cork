@@ -84,10 +84,10 @@ namespace Cork::Math::FixInt
 
         LimbInt() = default;
         LimbInt(const LimbInt &) = default;
-        LimbInt(LimbInt &&) = default;
+        LimbInt(LimbInt &&) noexcept = default;
 
         LimbInt &operator=(const LimbInt &) = default;
-        LimbInt &operator=(LimbInt &&) = default;
+        LimbInt &operator=(LimbInt &&) noexcept = default;
 
         explicit inline LimbInt(long init)
         {
@@ -119,7 +119,7 @@ namespace Cork::Math::FixInt
 
         int count = mpn_get_str(reinterpret_cast<unsigned char *>(cbuf), 10, garbage.limbs, N);
 
-        std::string result = "";
+        std::string result;
 
         if (neg)
         {
@@ -130,7 +130,10 @@ namespace Cork::Math::FixInt
 
         for (; i < count - 1; i++)
         {
-            if (cbuf[i] != char(0)) break;
+            if (cbuf[i] != char(0))
+            {
+                break;
+            }
         }
 
         for (; i < count; i++)
@@ -217,14 +220,22 @@ namespace Cork::Math::FixInt
             mp_limb_t rhs_is_neg = SIGN_BOOL(rhs.limbs, Nrhs);
             carry = mpn_add(out.limbs, lhs.limbs, Nlhs, rhs.limbs, Nrhs);
             mp_limb_t borrow = mpn_sub_1(out.limbs + Nrhs, out.limbs + Nrhs, Nlhs - Nrhs, rhs_is_neg);
-            if (Nout > Nmax) carry = carry | (mp_limb_t(1) - borrow);
+
+            if (Nout > Nmax)
+            {
+                carry = carry | (mp_limb_t(1) - borrow);
+            }
         }
         else
         {  // Nrhs > Nlhs
             mp_limb_t lhs_is_neg = SIGN_BOOL(lhs.limbs, Nlhs);
             carry = mpn_add(out.limbs, rhs.limbs, Nrhs, lhs.limbs, Nlhs);
             mp_limb_t borrow = mpn_sub_1(out.limbs + Nlhs, out.limbs + Nlhs, Nrhs - Nlhs, lhs_is_neg);
-            if (Nout > Nmax) carry = carry | (mp_limb_t(1) - borrow);
+
+            if (Nout > Nmax)
+            {
+                carry = carry | (mp_limb_t(1) - borrow);
+            }
         }
 
         // fill out any new higher order bits
@@ -235,7 +246,11 @@ namespace Cork::Math::FixInt
             mp_limb_t lhs_is_neg = SIGN_BOOL(lhs.limbs, Nlhs);
             mp_limb_t fill_bit = rhs_is_neg ^ lhs_is_neg ^ carry;
             mp_limb_t fill = (fill_bit) ? ONES_PATTERN : ZERO_PATTERN;
-            for (int i = Nmax; i < Nout; i++) out.limbs[i] = fill;
+
+            for (int i = Nmax; i < Nout; i++)
+            {
+                out.limbs[i] = fill;
+            }
         }
     }
 
@@ -350,8 +365,7 @@ namespace Cork::Math::FixInt
        public:
         typedef LimbInt<BITS_TO_LIMBS(Nbits)> Rep;
 
-       private:
-        BitInt();
+        BitInt() = delete;
     };
 
-}  // namespace Cork::FixInt
+}  // namespace Cork::Math::FixInt

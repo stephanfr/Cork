@@ -26,14 +26,13 @@ THE SOFTWARE.
 
 #pragma once
 
-#include <memory>
+#include <boost/container/static_vector.hpp>
+#include <boost/integer/static_min_max.hpp>
+#include <boost/iterator/iterator_facade.hpp>
 #include <functional>
+#include <memory>
 #include <set>
 #include <unordered_map>
-
-#include <boost/container/static_vector.hpp>
-#include <boost/iterator/iterator_facade.hpp>
-#include <boost/integer/static_min_max.hpp>
 
 #include "resettable.hpp"
 
@@ -42,9 +41,9 @@ namespace SEFUtility
     class SparseVectorEntry
     {
        public:
-        SparseVectorEntry(size_t index) : index_(index) {}
+        explicit SparseVectorEntry(size_t index) : index_(index) {}
 
-        size_t index() const { return (index_); }
+        [[nodiscard]] size_t index() const { return (index_); }
 
        private:
         size_t index_;
@@ -69,16 +68,16 @@ namespace SEFUtility
         void release_map(std::unordered_map<size_t, T>* map) { delete map; }
     };
 
-    template <class T, long CUTOVER_SIZE>
+    template <class T, size_t CUTOVER_SIZE>
     class SparseVector : public Resettable
     {
        private:
-        typedef boost::container::static_vector<T, CUTOVER_SIZE> EntryVector;
-        typedef typename boost::container::static_vector<T, CUTOVER_SIZE>::iterator EntryVectorIterator;
-        typedef typename boost::container::static_vector<T, CUTOVER_SIZE>::const_iterator EntryVectorConstIterator;
+        using EntryVector = boost::container::static_vector<T, CUTOVER_SIZE>;
+        using EntryVectorIterator = typename boost::container::static_vector<T, CUTOVER_SIZE>::iterator;
+        using EntryVectorConstIterator = typename boost::container::static_vector<T, CUTOVER_SIZE>::const_iterator;
 
-        typedef std::unordered_map<size_t, T> EntryMap;
-        typedef typename EntryMap::iterator EntryMapIterator;
+        using EntryMap = std::unordered_map<size_t, T>;
+        using EntryMapIterator = typename EntryMap::iterator;
 
        public:
         using MapPoolType = UnorderedMapPool<T>;
@@ -88,12 +87,12 @@ namespace SEFUtility
            protected:
             friend class SparseVector;
 
-            iterator(const EntryVectorIterator& vectorIterator) : cut_over_(false)
+            explicit iterator(const EntryVectorIterator& vectorIterator) : cut_over_(false)
             {
                 vector_iterator_ = vectorIterator;
             }
 
-            iterator(const EntryMapIterator& setIterator) : cut_over_(true) { set_iterator_ = setIterator; }
+            explicit iterator(const EntryMapIterator& setIterator) : cut_over_(true) { set_iterator_ = setIterator; }
 
             friend class boost::iterator_core_access;
 
@@ -115,10 +114,8 @@ namespace SEFUtility
                 {
                     return (set_iterator_ == other.set_iterator_);
                 }
-                else
-                {
-                    return (vector_iterator_ == other.vector_iterator_);
-                }
+
+                return (vector_iterator_ == other.vector_iterator_);
             }
 
             T* dereference() const
@@ -127,10 +124,8 @@ namespace SEFUtility
                 {
                     return (&(set_iterator_->second));
                 }
-                else
-                {
-                    return (&*vector_iterator_);
-                }
+
+                return (&*vector_iterator_);
             }
 
             bool cut_over_;
@@ -144,12 +139,15 @@ namespace SEFUtility
            protected:
             friend class SparseVector;
 
-            const_iterator(const EntryVectorIterator& vectorIterator) : cut_over_(false)
+            explicit const_iterator(const EntryVectorIterator& vectorIterator) : cut_over_(false)
             {
                 vector_iterator_ = vectorIterator;
             }
 
-            const_iterator(const EntryMapIterator& setIterator) : cut_over_(true) { set_iterator_ = setIterator; }
+            explicit const_iterator(const EntryMapIterator& setIterator) : cut_over_(true)
+            {
+                set_iterator_ = setIterator;
+            }
 
             friend class boost::iterator_core_access;
 
@@ -171,10 +169,8 @@ namespace SEFUtility
                 {
                     return (set_iterator_ == other.m_setIterator);
                 }
-                else
-                {
-                    return (vector_iterator_ == other.m_vectorIterator);
-                }
+
+                return (vector_iterator_ == other.m_vectorIterator);
             }
 
             T* dereference() const
@@ -183,10 +179,8 @@ namespace SEFUtility
                 {
                     return (&(set_iterator_->second));
                 }
-                else
-                {
-                    return (vector_iterator_);
-                }
+
+                return (vector_iterator_);
             }
 
             bool cut_over_;
@@ -204,7 +198,7 @@ namespace SEFUtility
         {
         }
 
-        SparseVector(MapPoolType& map_pool)
+        explicit SparseVector(MapPoolType& map_pool)
             : cut_over_(false),
               inserter_(&SparseVector<T, CUTOVER_SIZE>::insertIntoArray),
               find_or_add_(&SparseVector<T, CUTOVER_SIZE>::findOrAddArray),
@@ -213,10 +207,13 @@ namespace SEFUtility
         {
         }
 
+        SparseVector(SparseVector&&) = delete;
+
         //	Need the copy constructor to keep the compiler quiet about being unable to copy fixed_vectors,
         //		but we should never call it - thus the assert.
 
-        SparseVector(const SparseVector& vectorToCopy) { assert(false); }
+        //  NOLINTNEXTLINE
+        explicit SparseVector(const SparseVector& vectorToCopy) { assert(false); }
 
         ~SparseVector()
         {
@@ -229,9 +226,12 @@ namespace SEFUtility
         //	Need the assignment operator to keep the compiler quiet about being unable to copy fixed_vectors,
         //		but we should never call it - thus the assert.
 
+        //  NOLINTNEXTLINE
         SparseVector& operator=(const SparseVector& vectorToCopy) { assert(false); }
 
-        void reset()
+        SparseVector& operator=(SparseVector&& vectorToCopy) = delete;
+
+        void reset() override
         {
             if (map_ != NULL)
             {
@@ -245,7 +245,7 @@ namespace SEFUtility
             map_ = NULL;
         }
 
-        size_t size() const
+        [[nodiscard]] size_t size() const
         {
             if (!cut_over_)
             {
@@ -255,7 +255,7 @@ namespace SEFUtility
             return (map_->size());
         }
 
-        bool empty() const
+        [[nodiscard]] bool empty() const
         {
             if (!cut_over_)
             {
@@ -408,8 +408,8 @@ namespace SEFUtility
        private:
         static std::unique_ptr<DefaultMapPool<T>> default_pool_;
 
-        typedef T& (SparseVector<T, CUTOVER_SIZE>::*InsertFunctionPointer)(size_t);
-        typedef T& (SparseVector<T, CUTOVER_SIZE>::*FindOrAddFunctionPointer)(size_t);
+        using InsertFunctionPointer = T& (SparseVector<T, CUTOVER_SIZE>::*)(size_t);
+        using FindOrAddFunctionPointer = T& (SparseVector<T, CUTOVER_SIZE>::*)(size_t);
 
         bool cut_over_;
 
@@ -476,7 +476,7 @@ namespace SEFUtility
         }
     };
 
-    template <class T, long CUTOVER_SIZE>
+    template <class T, size_t CUTOVER_SIZE>
     std::unique_ptr<DefaultMapPool<T>> SparseVector<T, CUTOVER_SIZE>::default_pool_(new DefaultMapPool<T>());
 
     template <class T>
@@ -495,17 +495,17 @@ namespace SEFUtility
         void release_set(std::set<T*>* set) { delete set; }
     };
 
-    template <class T, long CUTOVER_SIZE>
+    template <class T, size_t CUTOVER_SIZE>
     class SearchablePointerList
     {
        private:
-        typedef boost::container::static_vector<T*, CUTOVER_SIZE> EntryVector;
-        typedef typename boost::container::static_vector<T*, CUTOVER_SIZE>::iterator EntryVectorIterator;
-        typedef typename boost::container::static_vector<T*, CUTOVER_SIZE>::const_iterator EntryVectorConstIterator;
+        using EntryVector = boost::container::static_vector<T*, CUTOVER_SIZE>;
+        using EntryVectorIterator = typename boost::container::static_vector<T*, CUTOVER_SIZE>::iterator;
+        using EntryVectorConstIterator = typename boost::container::static_vector<T*, CUTOVER_SIZE>::const_iterator;
 
-        typedef std::set<T*> EntrySet;
-        typedef typename EntrySet::iterator EntrySetIterator;
-        typedef typename EntrySet::const_iterator EntrySetConstIterator;
+        using EntrySet = std::set<T*>;
+        using EntrySetIterator = typename EntrySet::iterator;
+        using EntrySetConstIterator = typename EntrySet::const_iterator;
 
        public:
         using SetPoolType = PointerSetPool<T>;
@@ -515,12 +515,12 @@ namespace SEFUtility
            protected:
             friend class SearchablePointerList;
 
-            iterator(const EntryVectorIterator& vectorIterator) : cut_over_(false)
+            explicit iterator(const EntryVectorIterator& vectorIterator) : cut_over_(false)
             {
                 vector_iterator_ = new (buffer_) EntryVectorIterator(vectorIterator);
             }
 
-            iterator(const EntrySetIterator& setIterator) : cut_over_(true)
+            explicit iterator(const EntrySetIterator& setIterator) : cut_over_(true)
             {
                 set_iterator_ = new (buffer_) EntrySetIterator(setIterator);
             }
@@ -545,10 +545,8 @@ namespace SEFUtility
                 {
                     return (*set_iterator_ == *(other.set_iterator_));
                 }
-                else
-                {
-                    return (*vector_iterator_ == *(other.vector_iterator_));
-                }
+
+                return (*vector_iterator_ == *(other.vector_iterator_));
             }
 
             T* dereference() const
@@ -557,14 +555,14 @@ namespace SEFUtility
                 {
                     return (*(*set_iterator_));
                 }
-                else
-                {
-                    return (*(*vector_iterator_));
-                }
+
+                return (*(*vector_iterator_));
             }
 
-            unsigned char
-                buffer_[boost::static_unsigned_max<sizeof(EntryVectorIterator), sizeof(EntrySetIterator)>::value];
+            static constexpr size_t BUFFER_SIZE =
+                boost::static_unsigned_max<sizeof(EntryVectorIterator), sizeof(EntrySetIterator)>::value;
+
+            std::array<unsigned char, BUFFER_SIZE> buffer_;
 
             bool cut_over_;
 
@@ -580,12 +578,12 @@ namespace SEFUtility
            protected:
             friend class SearchablePointerList;
 
-            const_iterator(const EntryVectorConstIterator& vectorIterator) : cut_over_(false)
+            explicit const_iterator(const EntryVectorConstIterator& vectorIterator) : cut_over_(false)
             {
                 vector_iterator_ = new (buffer_) EntryVectorConstIterator(vectorIterator);
             }
 
-            const_iterator(const EntrySetConstIterator& setIterator) : cut_over_(true)
+            explicit const_iterator(const EntrySetConstIterator& setIterator) : cut_over_(true)
             {
                 set_iterator_ = new (buffer_) EntrySetConstIterator(setIterator);
             }
@@ -610,10 +608,8 @@ namespace SEFUtility
                 {
                     return (*set_iterator_ == *(other.set_iterator_));
                 }
-                else
-                {
-                    return (*vector_iterator_ == *(other.vector_iterator_));
-                }
+
+                return (*vector_iterator_ == *(other.vector_iterator_));
             }
 
             T* dereference() const
@@ -622,14 +618,9 @@ namespace SEFUtility
                 {
                     return (*(*set_iterator_));
                 }
-                else
-                {
-                    return (*(*vector_iterator_));
-                }
-            }
 
-            unsigned char buffer_[boost::static_unsigned_max<sizeof(EntryVectorConstIterator),
-                                                              sizeof(EntrySetConstIterator)>::value];
+                return (*(*vector_iterator_));
+            }
 
             bool cut_over_;
 
@@ -638,6 +629,11 @@ namespace SEFUtility
                 EntryVectorConstIterator* vector_iterator_;
                 EntrySetConstIterator* set_iterator_;
             };
+
+            static constexpr size_t BUFFER_SIZE =
+                boost::static_unsigned_max<sizeof(EntryVectorConstIterator), sizeof(EntrySetConstIterator)>::value;
+
+            std::array<unsigned char, BUFFER_SIZE> buffer_;
         };
 
         SearchablePointerList()
@@ -648,7 +644,7 @@ namespace SEFUtility
         {
         }
 
-        SearchablePointerList( SetPoolType&      set_pool )
+        explicit SearchablePointerList(SetPoolType& set_pool)
             : cut_over_(false),
               inserter_(&SearchablePointerList<T, CUTOVER_SIZE>::insertIntoArray),
               map_(NULL),
@@ -659,22 +655,28 @@ namespace SEFUtility
         //	Need the copy constructor to keep the compiler quiet about being unable to copy fixed_vectors,
         //		but we should never call it - thus the assert.
 
+        //  NOLINTNEXTLINE
         SearchablePointerList(const SearchablePointerList& vectorToCopy) { assert(false); }
+
+        SearchablePointerList(SearchablePointerList&&) = delete;
 
         ~SearchablePointerList()
         {
             if (map_ != NULL)
             {
-                set_pool_.release_set( map_ );
+                set_pool_.release_set(map_);
             }
         }
 
         //	Need the assignment operator to keep the compiler quiet about being unable to copy fixed_vectors,
         //		but we should never call it - thus the assert.
 
+        //  NOLINTNEXTLINE
         SearchablePointerList& operator=(const SearchablePointerList& vectorToCopy) { assert(false); }
 
-        size_t size() const
+        SearchablePointerList& operator=(SearchablePointerList&&) = delete;
+
+        [[nodiscard]] size_t size() const
         {
             if (!cut_over_)
             {
@@ -684,7 +686,7 @@ namespace SEFUtility
             return (map_->size());
         }
 
-        bool empty() const
+        [[nodiscard]] bool empty() const
         {
             if (!cut_over_)
             {
@@ -853,7 +855,7 @@ namespace SEFUtility
         friend class iterator;
     };
 
-    template <class T, long CUTOVER_SIZE>
+    template <class T, size_t CUTOVER_SIZE>
     std::unique_ptr<DefaultPointerSetPool<T>> SearchablePointerList<T, CUTOVER_SIZE>::default_pool_(
         new DefaultPointerSetPool<T>());
 

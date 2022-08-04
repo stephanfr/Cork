@@ -28,7 +28,6 @@
 #include "intersection_problem_base.hpp"
 #include "triangulator.hpp"
 
-
 namespace Cork::Intersection
 {
     class TriangleProblem : public IntrusiveListHook
@@ -38,11 +37,10 @@ namespace Cork::Intersection
         using TopoTri = Meshes::TopoTri;
 
        public:
-
         TriangleProblem() = delete;
 
-        TriangleProblem( const TriangleProblem& ) = delete;
-        TriangleProblem( TriangleProblem&& ) = delete;
+        TriangleProblem(const TriangleProblem&) = delete;
+        TriangleProblem(TriangleProblem&&) = delete;
 
         TriangleProblem(IntersectionProblemBase& iprob, const TopoTri& triangle)
             : m_iprob(iprob),
@@ -54,7 +52,7 @@ namespace Cork::Intersection
             //	m_triangle can be const... just about everywhere.  This link is the only non-const operation,
             //		so let's explicitly cast away the const here but leave it everytwhere else.
 
-            const_cast<TopoTri&>(m_triangle).associate_triangle_problem(*this);
+            const_cast<TopoTri&>(m_triangle).associate_triangle_problem(*this);  //  NOLINT
 
             // extract original edges/verts
 
@@ -71,22 +69,22 @@ namespace Cork::Intersection
 
         ~TriangleProblem() {}
 
-        TriangleProblem&    operator=( const TriangleProblem& ) = delete;
-        TriangleProblem&    operator=( TriangleProblem&& ) = delete;
+        TriangleProblem& operator=(const TriangleProblem&) = delete;
+        TriangleProblem& operator=(TriangleProblem&&) = delete;
 
         //	Accessors and Mutators
 
-        const TopoTri& triangle() const { return (m_triangle); }
+        [[nodiscard]] const TopoTri& triangle() const { return (m_triangle); }
 
         void ResetTopoTriLink() { const_cast<TopoTri&>(m_triangle).clear_triangle_problem_association(); }
 
-        const IntersectionEdgePointerList& iedges() const { return (m_iedges); }
+        [[nodiscard]] const IntersectionEdgePointerList& iedges() const { return (m_iedges); }
 
-        IntersectionEdgePointerList& iedges() { return (m_iedges); }
+        [[nodiscard]] IntersectionEdgePointerList& iedges() { return (m_iedges); }
 
-        const GenericTriPointerList& gtris() const { return (m_gtris); }
+        [[nodiscard]] const GenericTriPointerList& gtris() const { return (m_gtris); }
 
-        GenericTriPointerList& gtris() { return (m_gtris); }
+        [[nodiscard]] GenericTriPointerList& gtris() { return (m_gtris); }
 
         // specify reference glue point and edge piercing this triangle.
         IsctVertType* addInteriorEndpoint(const TopoEdge& edge, GluePointMarker& glue)
@@ -94,7 +92,7 @@ namespace Cork::Intersection
             IsctVertType* iv = m_iprob.newIsctVert(edge, m_triangle, false, glue);
             m_iverts.push_back(iv);
 
-            for (auto tri_key : edge.triangles())
+            for (const auto* tri_key : edge.triangles())
             {
                 addEdge(iv, *tri_key);
             }
@@ -149,7 +147,7 @@ namespace Cork::Intersection
 
             // find the 2 interior edges
 
-            for (IsctEdgeType* ie : m_iedges)
+            for (auto ie : m_iedges)
             {
                 if ((&(ie->otherTriKey()) == &t0) || (&(ie->otherTriKey()) == &t1))
                 {
@@ -228,7 +226,7 @@ namespace Cork::Intersection
             return (ConsolidateResult::success());
         }
 
-        typedef SEFUtility::Result<SubdivideResultCodes> SubdivideResult;
+        using SubdivideResult = SEFUtility::Result<SubdivideResultCodes>;
 
         SubdivideResult Subdivide()
         {
@@ -273,7 +271,7 @@ namespace Cork::Intersection
             Triangulator::Triangulator triangulator;
 
             Math::NormalProjector normal_projector(overts[0]->coordinate(), overts[1]->coordinate(),
-                                                           overts[2]->coordinate());
+                                                   overts[2]->coordinate());
 
             for (auto& point : points)
             {
@@ -310,7 +308,7 @@ namespace Cork::Intersection
         }
 
        private:
-        typedef std::vector<GenericEdgeType*> VectorOfGenericEdgePointers;
+        using VectorOfGenericEdgePointers = std::vector<GenericEdgeType*>;
 
         IntersectionProblemBase& m_iprob;
         const TopoTri& m_triangle;
@@ -374,7 +372,7 @@ namespace Cork::Intersection
 
         void subdivideEdge(GenericEdgeType* ge, VectorOfGenericEdgePointers& edges)
         {
-            if (ge->interior().size() == 0)
+            if (ge->interior().empty())
             {
                 edges.push_back(ge);
             }
@@ -444,5 +442,5 @@ namespace Cork::Intersection
         }
     };
 
-    typedef tbb::concurrent_vector<TriangleProblem> TriangleProblemList;
+    using TriangleProblemList = tbb::concurrent_vector<TriangleProblem>;
 }  // namespace Cork::Intersection

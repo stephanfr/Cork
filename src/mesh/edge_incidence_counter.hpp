@@ -26,11 +26,8 @@
 #pragma once
 
 #include "../constants.hpp"
-
-#include "primitives/edge_and_incidence_count.hpp"
-
 #include "mesh_base.hpp"
-
+#include "primitives/edge_and_incidence_count.hpp"
 
 namespace Cork::Meshes
 {
@@ -38,8 +35,8 @@ namespace Cork::Meshes
     {
        public:
         EdgeIncidenceCounter() = delete;
-        EdgeIncidenceCounter( const EdgeIncidenceCounter& ) = delete;
-        EdgeIncidenceCounter( EdgeIncidenceCounter&& ) = delete;
+        EdgeIncidenceCounter(const EdgeIncidenceCounter&) = delete;
+        EdgeIncidenceCounter(EdgeIncidenceCounter&&) = delete;
 
         explicit EdgeIncidenceCounter(const Cork::Meshes::MeshBase& triangle_mesh)
         {
@@ -47,7 +44,7 @@ namespace Cork::Meshes
 
             for (TriangleByIndicesIndex i{0UL}; i < triangle_mesh.triangles().size(); i++)
             {
-                add_incidence( i, triangle_mesh.triangles()[i] );
+                add_incidence(i, triangle_mesh.triangles()[i]);
             }
         }
 
@@ -55,9 +52,9 @@ namespace Cork::Meshes
         {
             edges_and_incidences_.reserve((tris_in_region.size() * 3) + 10);  //  Pad just a little bit
 
-            for ( auto tri_index : tris_in_region )
+            for (auto tri_index : tris_in_region)
             {
-                add_incidence( tri_index, mesh.triangles()[tri_index] );
+                add_incidence(tri_index, mesh.triangles()[tri_index]);
             }
         }
 
@@ -65,35 +62,35 @@ namespace Cork::Meshes
         {
             edges_and_incidences_.reserve((tris_in_region.size() * 3) + 10);  //  Pad just a little bit
 
-            for ( auto tri_index : tris_in_region )
+            for (auto tri_index : tris_in_region)
             {
-                add_incidence( tri_index, mesh.triangles()[tri_index] );
+                add_incidence(tri_index, mesh.triangles()[tri_index]);
             }
         }
 
         ~EdgeIncidenceCounter() = default;
 
-        EdgeIncidenceCounter& operator=( const EdgeIncidenceCounter& ) = delete;
-        EdgeIncidenceCounter& operator=( EdgeIncidenceCounter&& ) = delete;
+        EdgeIncidenceCounter& operator=(const EdgeIncidenceCounter&) = delete;
+        EdgeIncidenceCounter& operator=(EdgeIncidenceCounter&&) = delete;
 
         [[nodiscard]] const EdgeIncidenceSet& edges_and_incidences() const { return edges_and_incidences_; }
 
        private:
         EdgeIncidenceSet edges_and_incidences_;
 
-        void add_incidence( TriangleByIndicesIndex i, const TriangleByIndices& tri )
+        void add_incidence(TriangleByIndicesIndex i, const TriangleByIndices& tri)
         {
             auto itr_edge_ab = edges_and_incidences_.emplace(tri.a(), tri.b()).first;
             auto itr_edge_bc = edges_and_incidences_.emplace(tri.b(), tri.c()).first;
             auto itr_edge_ca = edges_and_incidences_.emplace(tri.c(), tri.a()).first;
 
             //  Const casts are used here to deal with the fact that iterators into sets are const by definition.
-            //      This is safe only because the key for the set is the edge and we are conly changing the
+            //      This is safe only because the key for the set is the edge and we are only changing the
             //      triangle list and num_incidences in add_incidence() - so we know we are not changing the key.
 
-            const_cast<EdgeAndIncidenceCount&>(*itr_edge_ab).add_incidence(i, TriangleEdgeId::AB);
-            const_cast<EdgeAndIncidenceCount&>(*itr_edge_bc).add_incidence(i, TriangleEdgeId::BC);
-            const_cast<EdgeAndIncidenceCount&>(*itr_edge_ca).add_incidence(i, TriangleEdgeId::CA);
+            const_cast<EdgeAndIncidenceCount&>(*itr_edge_ab).add_incidence(i, TriangleEdgeId::AB);  //  NOLINT
+            const_cast<EdgeAndIncidenceCount&>(*itr_edge_bc).add_incidence(i, TriangleEdgeId::BC);  //  NOLINT
+            const_cast<EdgeAndIncidenceCount&>(*itr_edge_ca).add_incidence(i, TriangleEdgeId::CA);  //  NOLINT
         }
     };
 }  // namespace Cork::Meshes

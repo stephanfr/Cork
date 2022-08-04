@@ -34,7 +34,7 @@ class FastStack
    public:
     FastStack()
         : m_usingInitialStorage(true),
-          m_storage((T*)m_initialStorage),
+          m_storage(m_initialStorage.data()),
           m_storage_size((sizeof(T) + 16) * (INITIAL_SIZE + 4)),
           m_size(INITIAL_SIZE + 4),
           m_limit(INITIAL_SIZE),
@@ -42,6 +42,9 @@ class FastStack
     {
         size_t space = sizeof(m_initialStorage);
     }
+
+    FastStack(const FastStack&) = delete;
+    FastStack(FastStack&&) = delete;
 
     ~FastStack()
     {
@@ -51,7 +54,10 @@ class FastStack
         }
     }
 
-    bool isEmpty() const { return (m_nextEmptyElement == 0); }
+    FastStack& operator=(const FastStack&) = delete;
+    FastStack& operator=(FastStack&&) = delete;
+
+    [[nodiscard]] bool isEmpty() const { return (m_nextEmptyElement == 0); }
 
     void reset() { m_nextEmptyElement = 0; }
 
@@ -96,7 +102,7 @@ class FastStack
     unsigned int m_storage_size;
 
     bool m_usingInitialStorage;
-    unsigned char m_initialStorage[(sizeof(T) + 16) * (INITIAL_SIZE + 4)];  //	Should be safely way overallocated
+    std::array<T, (INITIAL_SIZE + 8)> m_initialStorage;  //	Should be safely overallocated
 
     unsigned int m_nextEmptyElement;
 

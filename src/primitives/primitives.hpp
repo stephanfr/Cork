@@ -75,20 +75,11 @@ namespace Cork::Primitives
     {
         using strong_typedef::strong_typedef;
 
-        bool operator<( size_t value_to_compare ) const
-        {
-            return this->value_ < value_to_compare;
-        }
+        bool operator<(size_t value_to_compare) const { return this->value_ < value_to_compare; }
 
-        bool operator>=( size_t value_to_compare ) const
-        {
-            return this->value_ >= value_to_compare;
-        }
+        bool operator>=(size_t value_to_compare) const { return this->value_ >= value_to_compare; }
 
-        VertexIndex operator+( size_t value_to_add ) const
-        {
-            return VertexIndex( this->value_ + value_to_add );
-        }
+        VertexIndex operator+(size_t value_to_add) const { return VertexIndex(this->value_ + value_to_add); }
 
         friend std::ostream& operator<<(std::ostream& os, const VertexIndex& vi)
         {
@@ -103,46 +94,41 @@ namespace Cork::Primitives
         }
     };
 
-    constexpr VertexIndex   UNINITIALIZED_VERTEX_INDEX{size_t(-1)};
+    constexpr VertexIndex UNINITIALIZED_VERTEX_INDEX{size_t(-1)};
 
     using VertexIndexVector = std::vector<VertexIndex>;
 
-
     struct TriangleByIndicesIndex : type_safe::strong_typedef<TriangleByIndicesIndex, uint32_t>,
-                         type_safe::strong_typedef_op::equality_comparison<TriangleByIndicesIndex>,
-                         type_safe::strong_typedef_op::relational_comparison<TriangleByIndicesIndex>,
-                         type_safe::strong_typedef_op::integer_arithmetic<TriangleByIndicesIndex>
+                                    type_safe::strong_typedef_op::equality_comparison<TriangleByIndicesIndex>,
+                                    type_safe::strong_typedef_op::relational_comparison<TriangleByIndicesIndex>,
+                                    type_safe::strong_typedef_op::integer_arithmetic<TriangleByIndicesIndex>
     {
         using strong_typedef::strong_typedef;
 
-        explicit TriangleByIndicesIndex( size_t  value )
+        TriangleByIndicesIndex() = default;
+
+        explicit TriangleByIndicesIndex(size_t value) { value_ = value; }
+
+        TriangleByIndicesIndex(TriangleByIndicesIndex&&) = default;
+        TriangleByIndicesIndex(const TriangleByIndicesIndex&) = default;
+
+        ~TriangleByIndicesIndex() = default;
+
+        TriangleByIndicesIndex& operator=(const TriangleByIndicesIndex&) = default;
+        TriangleByIndicesIndex& operator=(TriangleByIndicesIndex&&) = delete;
+
+        explicit operator size_t() const { return value_; }
+
+        bool operator<(size_t value_to_compare) const { return this->value_ < value_to_compare; }
+
+        TriangleByIndicesIndex operator+(size_t value_to_add) const
         {
-            value_ = value;
+            return TriangleByIndicesIndex(this->value_ + value_to_add);
         }
 
-        TriangleByIndicesIndex( TriangleByIndicesIndex&& ) = default;
-        TriangleByIndicesIndex( const TriangleByIndicesIndex& ) = default;
-
-        TriangleByIndicesIndex& operator=( const TriangleByIndicesIndex& ) = default;
-
-        explicit operator size_t() const
+        TriangleByIndicesIndex operator+(uint32_t value_to_add) const
         {
-            return value_;
-        }
-
-        bool operator<( size_t value_to_compare ) const
-        {
-            return this->value_ < value_to_compare;
-        }
-
-        TriangleByIndicesIndex operator+( size_t value_to_add ) const
-        {
-            return TriangleByIndicesIndex( this->value_ + value_to_add );
-        }
-
-        TriangleByIndicesIndex operator+( uint32_t value_to_add ) const
-        {
-            return TriangleByIndicesIndex( this->value_ + value_to_add );
+            return TriangleByIndicesIndex(this->value_ + value_to_add);
         }
 
         friend std::ostream& operator<<(std::ostream& os, const TriangleByIndicesIndex& vi)
@@ -178,6 +164,9 @@ namespace Cork::Primitives
         CA
     };
 
+    //  The from_vertices method has a number of issues with the linter, but is fine - so we will simply not lint
+
+    // NOLINTBEGIN
     inline TriangleEdgeId from_vertices(TriangleVertexId vert_one, TriangleVertexId vert_two)
     {
         TriangleEdgeId result;
@@ -226,6 +215,7 @@ namespace Cork::Primitives
 
         return result;
     }
+    //  NOLINTEND
 
     inline std::ostream& operator<<(std::ostream& out, TriangleVertexId tri_vertex_id)
     {
@@ -315,6 +305,10 @@ namespace Cork::Primitives
     class EdgeByIndices
     {
        public:
+        EdgeByIndices() = default;
+        EdgeByIndices(const EdgeByIndices&) = default;
+        EdgeByIndices(EdgeByIndices&&) = default;
+
         //  Edges are always smaller vertex index first, larger index second
 
         EdgeByIndices(VertexIndex first_vertex, VertexIndex second_vertex)
@@ -323,7 +317,10 @@ namespace Cork::Primitives
         {
         }
 
-        virtual ~EdgeByIndices() {}
+        virtual ~EdgeByIndices() = default;
+
+        EdgeByIndices& operator=(const EdgeByIndices&) = default;
+        EdgeByIndices& operator=(EdgeByIndices&&) = default;
 
         VertexIndex first() const { return (first_vertex_); }
 
@@ -409,7 +406,10 @@ namespace Cork::Primitives
     {
        public:
         TriangleByIndices()
-            : uid_(UNINITIALIZED_INDEX), a_(UNINITIALIZED_VERTEX_INDEX), b_(UNINITIALIZED_VERTEX_INDEX), c_(UNINITIALIZED_VERTEX_INDEX)
+            : uid_(UNINITIALIZED_INDEX),
+              a_(UNINITIALIZED_VERTEX_INDEX),
+              b_(UNINITIALIZED_VERTEX_INDEX),
+              c_(UNINITIALIZED_VERTEX_INDEX)
         {
         }
 
@@ -432,7 +432,13 @@ namespace Cork::Primitives
         {
         }
 
+        TriangleByIndices(const TriangleByIndices&) = default;
+        TriangleByIndices(TriangleByIndices&&) = default;
+
         virtual ~TriangleByIndices() {}
+
+        TriangleByIndices& operator=(const TriangleByIndices&) = default;
+        TriangleByIndices& operator=(TriangleByIndices&&) = default;
 
         const VertexIndex operator[](size_t index) const
         {
@@ -509,16 +515,12 @@ namespace Cork::Primitives
     class TriangleByIndicesVector : public std::vector<TriangleByIndices>
     {
        public:
-
         TriangleByIndicesVector() = default;
 
-        TriangleByIndicesVector( const TriangleByIndicesVector& ) = default;
-        TriangleByIndicesVector( TriangleByIndicesVector&& ) = default;
+        TriangleByIndicesVector(const TriangleByIndicesVector&) = default;
+        TriangleByIndicesVector(TriangleByIndicesVector&&) = default;
 
-        TriangleByIndicesVector( size_t count ) 
-            : std::vector<TriangleByIndices>( count )
-        {}
-
+        TriangleByIndicesVector(size_t count) : std::vector<TriangleByIndices>(count) {}
 
         const TriangleByIndices& operator[](size_t) const = delete;
         TriangleByIndices& operator[](size_t) = delete;
@@ -532,24 +534,22 @@ namespace Cork::Primitives
         {
             return std::vector<TriangleByIndices>::operator[](static_cast<size_t>(idx));
         }
-
-
     };
 
     class TriangleByIndicesIndexVector : public std::vector<TriangleByIndicesIndex>
     {
-        public :
-
+       public:
         TriangleByIndicesIndexVector() = default;
-        TriangleByIndicesIndexVector( TriangleByIndicesIndexVector&& ) = default;
+        TriangleByIndicesIndexVector(TriangleByIndicesIndexVector&&) = default;
 
-        TriangleByIndicesIndexVector( size_t    count, const TriangleByIndicesIndex&  default_value )
-            : std::vector<TriangleByIndicesIndex>( count, default_value )
-        {}
-
-        TriangleByIndicesIndex& operator[]( TriangleByIndicesIndex index )
+        TriangleByIndicesIndexVector(size_t count, const TriangleByIndicesIndex& default_value)
+            : std::vector<TriangleByIndicesIndex>(count, default_value)
         {
-            return std::vector<TriangleByIndicesIndex>::operator[]( static_cast<size_t>(index) );
+        }
+
+        TriangleByIndicesIndex& operator[](TriangleByIndicesIndex index)
+        {
+            return std::vector<TriangleByIndicesIndex>::operator[](static_cast<size_t>(index));
         }
     };
 

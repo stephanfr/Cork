@@ -24,244 +24,175 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-
 #pragma once
-
 
 #include <boost/iterator/iterator_facade.hpp>
 
 #include "resettable.hpp"
 
-
-
 namespace SEFUtility
 {
+    template <class T>
+    class ConstructOnceResizeableVector : public Resettable
+    {
+       public:
+        class iterator : public boost::iterator_facade<iterator, T, boost::forward_traversal_tag, T&>
+        {
+           public:
+            bool operator<(const iterator& itrToCompare) const
+            {
+                return (m_vectorIterator < itrToCompare.m_vectorIterator);
+            }
 
-	template<class T>
-	class ConstructOnceResizeableVector : public Resettable
-	{
-	public :
+            iterator operator+(const size_t offset) const { return (iterator(m_vectorIterator + offset, m_end)); }
 
-		class iterator : public boost::iterator_facade<iterator, T, boost::forward_traversal_tag, T&>
-		{
-		public :
+            iterator& operator+=(const size_t offset)
+            {
+                m_vectorIterator += offset;
 
-			bool		operator<(const iterator&		itrToCompare) const
-			{
-				return(m_vectorIterator < itrToCompare.m_vectorIterator);
-			}
+                return (*this);
+            }
 
-			iterator	operator+(const size_t			offset) const
-			{
-				return( iterator( m_vectorIterator + offset, m_end ));
-			}
+            size_t operator-(const iterator& itrToSubtract) const
+            {
+                return (m_vectorIterator - itrToSubtract.m_vectorIterator);
+            }
 
-			iterator&	operator+=(const size_t			offset)
-			{
-				m_vectorIterator += offset;
+           protected:
+            friend class ConstructOnceResizeableVector;
 
-				return(*this);
-			}
+            iterator(T* vectorIterator, T* end)
+            {
+                m_vectorIterator = vectorIterator;
+                m_end = end;
+            }
 
-			size_t		operator-(const iterator&		itrToSubtract) const
-			{
-				return(m_vectorIterator - itrToSubtract.m_vectorIterator);
-			}
+            friend class boost::iterator_core_access;
 
-		protected:
+            void increment() { m_vectorIterator < m_end ? m_vectorIterator++ : m_vectorIterator = m_end; }
 
-			friend class ConstructOnceResizeableVector;
+            bool equal(iterator const& other) const { return (m_vectorIterator == other.m_vectorIterator); }
 
+            T& dereference() const { return (*m_vectorIterator); }
 
-			iterator( T*		vectorIterator,
-					  T*		end )
-			{
-				m_vectorIterator = vectorIterator;
-				m_end = end;
-			}
+            T* m_vectorIterator;
 
+            T* m_end;
+        };
 
-			friend class boost::iterator_core_access;
+        class const_iterator : public boost::iterator_facade<const_iterator, T, boost::forward_traversal_tag, const T&>
+        {
+           public:
 
-			void increment()
-			{
-				m_vectorIterator < m_end ? m_vectorIterator++ : m_vectorIterator = m_end;
-			}
+            const_iterator(const const_iterator& ) = default;
+            const_iterator(const_iterator&&) = default;
 
-			bool equal( iterator const& other ) const
-			{
-				return( m_vectorIterator == other.m_vectorIterator);
-			}
+            const_iterator(const iterator& vectorIterator)
+            {
+                m_vectorIterator = vectorIterator.m_vectorIterator;
+                m_end = vectorIterator.m_end;
+            }
 
+            ~const_iterator() = default;
 
-			T&		dereference() const
-			{
-				return( *m_vectorIterator );
-			}
+           protected:
+            friend class ConstructOnceResizeableVector;
 
+            const_iterator(const T* vectorIterator, const T* end)
+            {
+                m_vectorIterator = vectorIterator;
+                m_end = end;
+            }
 
-			T*			m_vectorIterator;
-			
-			T*			m_end;
-		};
+            friend class boost::iterator_core_access;
 
-		class const_iterator : public boost::iterator_facade<const_iterator, T, boost::forward_traversal_tag, const T&>
-		{
-		public :
+            void increment() { m_vectorIterator < m_end ? m_vectorIterator++ : m_vectorIterator = m_end; }
 
-			const_iterator( const iterator&			vectorIterator)
-			{
-				m_vectorIterator = vectorIterator.m_vectorIterator;
-				m_end = vectorIterator.m_end;
-			}
+            bool equal(const_iterator const& other) const { return (m_vectorIterator == other.m_vectorIterator); }
 
-		protected:
+            const T& dereference() const { return (*m_vectorIterator); }
 
-			friend class ConstructOnceResizeableVector;
+            const T* m_vectorIterator;
 
+            const T* m_end;
+        };
 
-			const_iterator( const T*			vectorIterator,
-							const T*			end )
-			{
-				m_vectorIterator = vectorIterator;
-				m_end = end;
-			}
+        ConstructOnceResizeableVector(const ConstructOnceResizeableVector&) = delete;
+        ConstructOnceResizeableVector(ConstructOnceResizeableVector&&) = delete;
 
+        explicit ConstructOnceResizeableVector(const size_t initialReservation = 10)
+            : m_size(0), m_elementsArraySize(initialReservation)
+        {
+            m_elements = new T[initialReservation];
+        }
 
-			friend class boost::iterator_core_access;
+        ~ConstructOnceResizeableVector() { delete[] m_elements; }
 
-			void increment()
-			{
-				m_vectorIterator < m_end ? m_vectorIterator++ : m_vectorIterator = m_end;
-			}
+        ConstructOnceResizeableVector& operator=(const ConstructOnceResizeableVector&) = delete;
+        ConstructOnceResizeableVector& operator=(ConstructOnceResizeableVector&&) = delete;
 
-			bool equal( const_iterator const& other ) const
-			{
-				return( m_vectorIterator == other.m_vectorIterator);
-			}
+        void resize(const size_t newSize)
+        {
+            //	Resize invalidates everything and resets all elements.
 
-			const T&		dereference() const
-			{
-				return( *m_vectorIterator );
-			}
+            if (m_elementsArraySize < newSize)
+            {
+                delete[] m_elements;
 
+                m_elements = new T[newSize];
+                m_elementsArraySize = newSize;
+            }
+            else
+            {
+                for (size_t i = 0; i < m_size; i++)
+                {
+                    static_cast<Resettable&>(m_elements[i]).reset();
+                }
+            }
 
-			const T*	m_vectorIterator;
+            m_size = newSize;
 
-			const T*	m_end;
-		};
+            m_end = m_elements + m_size;
+            m_constEnd = m_elements + m_size;
+        }
 
+        void reset() override
+        {
+                for (int i = 0; i < m_size; i++)
+                {
+                    m_elements[i].reset();
+                }
 
+            m_size = 0;
 
-		ConstructOnceResizeableVector( const size_t		initialReservation = 10 )
-			: m_size( 0 ),
-			  m_elementsArraySize( initialReservation )
-		{
-			m_elements = new T[initialReservation];
-		}
+            m_end = m_elements;
+            m_constEnd = m_elements;
+        }
 
-		~ConstructOnceResizeableVector()
-		{
-			delete [] m_elements;
-		}
+        [[nodiscard]] size_t size() const { return (m_size); }
 
+        [[nodiscard]] size_t reservedSize() const { return (m_elementsArraySize); }
 
-		void		resize( const size_t		newSize )
-		{
-			//	Resize invalidates everything and resets all elements.
+        [[nodiscard]] T& operator[](const size_t index) { return (m_elements[index]); }
 
-			if( m_elementsArraySize < newSize )
-			{
-				delete [] m_elements;
+        [[nodiscard]] const T& operator[](const size_t index) const { return (m_elements[index]); }
 
-				m_elements = new T[newSize];
-				m_elementsArraySize = newSize;
-			}
-			else
-			{
-				for (size_t i = 0; i < m_size; i++)
-				{
-					static_cast<Resettable&>(m_elements[i]).reset();
-				}
-			}
+        iterator begin() { return (iterator(m_elements, m_end)); }
 
-			m_size = newSize;
+        const_iterator begin() const { return (const_iterator(m_elements, m_constEnd)); }
 
-			m_end = m_elements + m_size;
-			m_constEnd = m_elements + m_size;
-		}
+        iterator end() { return (iterator(m_end, m_end)); }
 
+        const_iterator end() const { return (const_iterator(m_constEnd, m_constEnd)); }
 
-		void		reset()
-		{
-			for( int i = 0; i < m_size; i++ )
-			{
-				m_elements[i].reset();
-			}
+       private:
+        size_t m_size;
 
-			m_size = 0;
+        T* m_end;
+        const T* m_constEnd;
 
-			m_end = m_elements;
-			m_constEnd = m_elements;
-		}
+        T* m_elements;
+        size_t m_elementsArraySize;
+    };
 
-
-
-		const size_t		size() const
-		{
-			return( m_size );
-		}
-
-		const size_t		reservedSize() const
-		{
-			return(m_elementsArraySize);
-		}
-
-
-		T&		operator[]( const size_t		index )
-		{
-			return( m_elements[index] );
-		}
-
-		const T&	operator[]( const size_t	index ) const
-		{
-			return( m_elements[index] );
-		}
-
-
-		iterator			begin()
-		{
-			return( iterator( m_elements, m_end ) );
-		}
-
-		const_iterator		begin() const
-		{
-			return( const_iterator( m_elements, m_constEnd ) );
-		}
-
-		iterator			end()
-		{
-			return( iterator(m_end, m_end ) );
-		}
-
-		const_iterator		end() const
-		{
-			return( const_iterator(m_constEnd, m_constEnd ) );
-		}
-
-
-	private :
-
-		size_t						m_size;
-
-		T*							m_end;
-		const T*					m_constEnd;
-
-		T*							m_elements;
-		size_t						m_elementsArraySize;
-	};
-
-}
-
-
-
+}  // namespace SEFUtility

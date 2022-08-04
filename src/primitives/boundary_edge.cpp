@@ -34,8 +34,8 @@ namespace Cork::Primitives
         return BestFitPlaneEquation(vertices_.size(), vertices_.cbegin(), vertices_.cend());
     }
 
-    TwoD::Polygon BoundaryEdge::project(const Vector3D projection_surface_normal,
-                                        const Vertex3D normal_surface_origin) const
+    TwoD::Polygon BoundaryEdge::project(const Vector3D& projection_surface_normal,
+                                        const Vertex3D& normal_surface_origin) const
     {
         std::vector<Vertex3D> projected_vertices;
 
@@ -51,13 +51,14 @@ namespace Cork::Primitives
         Math::NormalProjector normal_projector(projected_vertices[0], projected_vertices[1], projected_vertices[2]);
 
         std::vector<Vertex2D> projection_2D;
+        projection_2D.reserve( projected_vertices.size() );
 
         for (auto current_vert : projected_vertices)
         {
             projection_2D.emplace_back(normal_projector.project(current_vert));
         }
 
-        return TwoD::Polygon(std::move(projection_2D));
+        return TwoD::Polygon( projection_2D );
     }
 
     std::vector<double> BoundaryEdge::get_point_deviations(const PlaneEquationBase&    plane)

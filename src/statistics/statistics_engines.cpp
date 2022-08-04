@@ -29,8 +29,6 @@
 #include "intersection/self_intersection_finder.hpp"
 #include "mesh/boundary_edge_builder.hpp"
 
-
-
 namespace Cork::Statistics
 {
     using MeshBase = Meshes::MeshBase;
@@ -89,9 +87,9 @@ namespace Cork::Statistics
     }
 
     TopologicalStatisticsEngine::TopologicalStatisticsEngine(const MeshBase& triangle_mesh)
-        : triangle_mesh_(triangle_mesh),
-          edges_( triangle_mesh )
-    {}
+        : triangle_mesh_(triangle_mesh), edges_(triangle_mesh)
+    {
+    }
 
     TopologicalStatisticsEngineAnalyzeResult TopologicalStatisticsEngine::Analyze(
         TopologicalProperties props_to_compute) const
@@ -101,17 +99,18 @@ namespace Cork::Statistics
         int num_non_2_manifold = 0;
         int num_edges = 0;
 
-        std::vector<NonManifoldEdge>    non_manifold_edges;
+        std::vector<NonManifoldEdge> non_manifold_edges;
         std::vector<BoundaryEdge> holes;
         std::vector<SelfIntersectingEdge> si_stats;
 
         if (props_to_compute & TopologicalProperties::TOPO_BASE)
         {
-            for (auto& edge : edges_.edges_and_incidences())
+            for (const auto& edge : edges_.edges_and_incidences())
             {
                 if (edge.numIncidences() != 2)
                 {
-                    non_manifold_edges.emplace_back( NonManifoldEdge( edge.triangles().front().first, edge.triangles().front().second ));
+                    non_manifold_edges.emplace_back(
+                        NonManifoldEdge(edge.triangles().front().first, edge.triangles().front().second));
                 }
             }
 
@@ -122,7 +121,7 @@ namespace Cork::Statistics
         {
             std::vector<Primitives::EdgeByIndices> hole_edges;
 
-            for (auto& edge : edges_.edges_and_incidences())
+            for (const auto& edge : edges_.edges_and_incidences())
             {
                 if (edge.numIncidences() != 2)
                 {
@@ -133,9 +132,11 @@ namespace Cork::Statistics
                 }
             }
 
-            auto extract_boundaries_result = BoundaryEdgeBuilder(triangle_mesh_).extract_boundaries(hole_edges);  //  TODO fix this - maybe success/failure
+            auto extract_boundaries_result =
+                BoundaryEdgeBuilder(triangle_mesh_)
+                    .extract_boundaries(hole_edges);  //  TODO fix this - maybe success/failure
 
-            if( extract_boundaries_result.succeeded() )
+            if (extract_boundaries_result.succeeded())
             {
                 holes = *(extract_boundaries_result.return_ptr());
             }

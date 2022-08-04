@@ -31,13 +31,13 @@
 #include "file_formats/files.hpp"
 #include "intersection/self_intersection_finder.hpp"
 #include "intersection/triangulator.hpp"
-#include "triangle_mesh_builder.hpp"
 #include "primitives/remappers.hpp"
 #include "statistics/statistics_engines.hpp"
+#include "triangle_mesh_builder.hpp"
 
 namespace Cork::Meshes
 {
-    std::unique_ptr<TriangleMesh>        get_triangle_mesh_wrapper( MeshBase&& mesh_base );
+    std::unique_ptr<TriangleMesh> get_triangle_mesh_wrapper(MeshBase&& mesh_base);
 
     //
     //	IncrementalVertexIndexTriangleMeshBuilderImpl implements an incremental triangle mesh builder
@@ -98,7 +98,7 @@ namespace Cork::Meshes
 
             //	The index we return should always be the remapper size minus 1
 
-            return VertexIndex(vertex_index_remapper_.size() - 1u);
+            return VertexIndex(vertex_index_remapper_.size() - 1U);
         }
 
         TriangleMeshBuilderResultCodes add_triangle(TriangleUID uid, VertexIndex a, VertexIndex b, VertexIndex c) final
@@ -113,8 +113,8 @@ namespace Cork::Meshes
 
             //	Remap the triangle indices
 
-            TriangleByIndices remappedTriangle(uid, vertex_index_remapper_[a],
-                                               vertex_index_remapper_[b], vertex_index_remapper_[c]);
+            TriangleByIndices remappedTriangle(uid, vertex_index_remapper_[a], vertex_index_remapper_[b],
+                                               vertex_index_remapper_[c]);
 
             //	Add the triangle to the vector
 
@@ -127,7 +127,7 @@ namespace Cork::Meshes
 
         std::unique_ptr<TriangleMesh> mesh() final
         {
-            std::unique_ptr<TriangleMesh> return_value( get_triangle_mesh_wrapper(std::move(mesh_)).release() );
+            std::unique_ptr<TriangleMesh> return_value(get_triangle_mesh_wrapper(std::move(mesh_)).release());
 
             mesh_.clear();
 

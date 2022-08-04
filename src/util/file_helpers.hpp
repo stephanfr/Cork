@@ -38,9 +38,11 @@ namespace Cork::Files
        public:
         static constexpr size_t DEFAULT_BUFFER_SIZE = 1024;
 
-        LineByLineFileReader(std::filesystem::path file_path, size_t buffer_size = DEFAULT_BUFFER_SIZE,
-                             std::string comment_delimiter = "")
-            : file_path_(std::move(file_path)), buffer_size_(buffer_size), comment_delimiter_(comment_delimiter)
+        explicit LineByLineFileReader(std::filesystem::path file_path, size_t buffer_size = DEFAULT_BUFFER_SIZE,
+                                      std::string comment_delimiter = "")
+            : file_path_(std::move(file_path)),
+              buffer_size_(buffer_size),
+              comment_delimiter_(std::move(comment_delimiter))
         {
             char_buffer_.reset(static_cast<char*>(malloc(buffer_size)));
             string_buffer_.reserve(buffer_size);
@@ -62,13 +64,13 @@ namespace Cork::Files
         template <typename... Args>
         bool read_line_exactly(SEFUtility::CompileTime::conststr format_string, Args... args)
         {
-            int num_fields = SEFUtility::CompileTime::count_char_occurances(format_string, '%');
+            unsigned int num_fields = SEFUtility::CompileTime::count_char_occurances(format_string, '%');
 
             return read_line_exactly_internal(format_string, num_fields, args...);
         }
 
         template <typename... Args>
-        bool read_line_exactly(const std::string& format_string, int num_fields, Args... args)
+        bool read_line_exactly(const std::string& format_string, unsigned int num_fields, Args... args)
         {
             return read_line_exactly_internal(format_string.c_str(), num_fields, args...);
         }

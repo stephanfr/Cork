@@ -204,7 +204,7 @@ TEST_CASE("Construct Once Resizeable Vector Test", "[cork-base]")
 
     CheckSize(testVector, 6);
 
-    REQUIRE(CheckAllReset(RESIZE_VALUE + 1));
+    REQUIRE(CheckAllReset(testVector));
 
     i = 0;
     runningSum = 0;

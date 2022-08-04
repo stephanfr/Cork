@@ -55,13 +55,13 @@ namespace Cork::Math
             standard_deviation_ = sqrt(standard_deviation_ / count_);
         }
 
-        uint32_t count() const { return count_; }
+        [[nodiscard]] uint32_t count() const { return count_; }
 
-        double sum() const { return sum_; }
+        [[nodiscard]] double sum() const { return sum_; }
 
-        std::pair<double, double> range() const { return range_; }
+        [[nodiscard]] std::pair<double, double> range() const { return range_; }
 
-        double standard_deviation() const { return standard_deviation_; }
+        [[nodiscard]] double standard_deviation() const { return standard_deviation_; }
 
        private:
         uint32_t count_;
@@ -70,4 +70,4 @@ namespace Cork::Math
         std::pair<double, double> range_;
         double standard_deviation_;
     };
-}  // namespace Math::BasicStats
+}  // namespace Cork::Math

@@ -70,7 +70,6 @@
 
  */
 
-
 //  NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
 
 namespace Cork::Math::ExteriorCalculusR4
@@ -89,7 +88,7 @@ namespace Cork::Math::ExteriorCalculusR4
     {
        public:
         Ext4_1(const Ext4_1 &ext_to_copy) : Ext4_1Base(ext_to_copy) {}
-        Ext4_1(Ext4_1 &&ext_to_move) noexcept : Ext4_1Base(ext_to_move) {}
+        Ext4_1(Ext4_1 &&ext_to_move) noexcept : Ext4_1Base(std::move(ext_to_move)) {}
 
         explicit Ext4_1(const Vector3DTemplate<double> &vector)
             : Ext4_1Base(reinterpret_cast<const std::array<double, 4> &>(vector))
@@ -97,9 +96,9 @@ namespace Cork::Math::ExteriorCalculusR4
             e3_ = Constants::DOUBLE_ONE;
         }
 
-        ~Ext4_1() = default;
+        virtual ~Ext4_1() = default;
 
-        Ext4_1& operator=(const Vector3DTemplate<double> &vector)
+        Ext4_1 &operator=(const Vector3DTemplate<double> &vector)
         {
             reinterpret_cast<std::array<double, 4> &>(e0_) = reinterpret_cast<const std::array<double, 4> &>(vector);
             e3_ = Constants::DOUBLE_ONE;
@@ -107,7 +106,7 @@ namespace Cork::Math::ExteriorCalculusR4
             return *this;
         }
 
-        operator Vector3DTemplate<double>() const
+        operator Vector3DTemplate<double>() const  //  NOLINT
         {
             assert(e3_ != 0);  //  Trap any divisions by zero!
 
@@ -117,10 +116,8 @@ namespace Cork::Math::ExteriorCalculusR4
             return vec;
         }
 
-
-        Ext4_1 &operator=(const Ext4_1 &ext_to_copy ) = default;
-        Ext4_1 &operator=(Ext4_1 &&ext_to_move ) = default;
-
+        Ext4_1 &operator=(const Ext4_1 &ext_to_copy) = default;
+        Ext4_1 &operator=(Ext4_1 &&ext_to_move) = default;
 
         // Negation takes a k-vector and returns its negation neg(X,Y) and is safe for X=Y
 
@@ -161,14 +158,13 @@ namespace Cork::Math::ExteriorCalculusR4
     class Ext4_2 : public Ext4_2Base
     {
        public:
-
         Ext4_2(const Ext4_2 &ext_to_copy) : Ext4_2Base(ext_to_copy) {}
-        Ext4_2(Ext4_2 &&ext_to_move) noexcept : Ext4_2Base(ext_to_move) {}
+        Ext4_2(Ext4_2 &&ext_to_move) noexcept : Ext4_2Base(std::move(ext_to_move)) {}
 
-        ~Ext4_2() = default;
+        virtual ~Ext4_2() = default;
 
-        Ext4_2 &operator=(const Ext4_2 &ext_to_copy ) = default;
-        Ext4_2 &operator=(Ext4_2 &&ext_to_move ) = default;
+        Ext4_2 &operator=(const Ext4_2 &ext_to_copy) = default;
+        Ext4_2 &operator=(Ext4_2 &&ext_to_move) = default;
 
         //  Negation
 
@@ -217,12 +213,12 @@ namespace Cork::Math::ExteriorCalculusR4
         Ext4_3() = default;
 
         Ext4_3(const Ext4_3 &ext_to_copy) : Ext4_3Base(ext_to_copy) {}
-        Ext4_3(Ext4_3 &&ext_to_move) noexcept : Ext4_3Base(ext_to_move) {}
+        Ext4_3(Ext4_3 &&ext_to_move) noexcept : Ext4_3Base(std::move(ext_to_move)) {}
 
-        ~Ext4_3() = default;
+        virtual ~Ext4_3() = default;
 
-        Ext4_3 &operator=(const Ext4_3 &ext_to_copy ) = default;
-        Ext4_3 &operator=(Ext4_3 &&ext_to_move ) = default;
+        Ext4_3 &operator=(const Ext4_3 &ext_to_copy) = default;
+        Ext4_3 &operator=(Ext4_3 &&ext_to_move) = default;
 
         //  Negation
 
@@ -313,9 +309,9 @@ namespace Cork::Math::ExteriorCalculusR4
         AbsExt4_1() = default;
 
         AbsExt4_1(const AbsExt4_1 &ext_to_copy) : AbsExt4_1Base(ext_to_copy) {}
-        AbsExt4_1(AbsExt4_1 &&ext_to_move) noexcept : AbsExt4_1Base(ext_to_move) {}
+        AbsExt4_1(AbsExt4_1 &&ext_to_move) noexcept : AbsExt4_1Base(std::move(ext_to_move)) {}
 
-        ~AbsExt4_1() = default;
+        virtual ~AbsExt4_1() = default;
 
         explicit AbsExt4_1(const Ext4_1 &element)
             : AbsExt4_1Base(fabs(element.e0()), fabs(element.e1()), fabs(element.e2()), fabs(element.e3()))
@@ -327,9 +323,8 @@ namespace Cork::Math::ExteriorCalculusR4
         {
         }
 
-
-        AbsExt4_1 &operator=(const AbsExt4_1 &ext_to_copy ) = default;
-        AbsExt4_1 &operator=(AbsExt4_1 &&ext_to_move ) = default;
+        AbsExt4_1 &operator=(const AbsExt4_1 &ext_to_copy) = default;
+        AbsExt4_1 &operator=(AbsExt4_1 &&ext_to_move) = default;
 
         AbsExt4_1 &operator=(const Ext4_1 &element)
         {
@@ -391,7 +386,7 @@ namespace Cork::Math::ExteriorCalculusR4
         AbsExt4_2() = default;
 
         AbsExt4_2(const AbsExt4_2 &ext_to_copy) : AbsExt4_2Base(ext_to_copy) {}
-        AbsExt4_2(AbsExt4_2 &&ext_to_move) noexcept : AbsExt4_2Base(ext_to_move) {}
+        AbsExt4_2(AbsExt4_2 &&ext_to_move) noexcept : AbsExt4_2Base(std::move(ext_to_move)) {}
 
         explicit AbsExt4_2(Ext4_2 &ext_to_abs)
             : AbsExt4_2Base(fabs(ext_to_abs.e01()), fabs(ext_to_abs.e02()), fabs(ext_to_abs.e03()),
@@ -399,10 +394,10 @@ namespace Cork::Math::ExteriorCalculusR4
         {
         }
 
-        ~AbsExt4_2() = default;
+        virtual ~AbsExt4_2() = default;
 
-        AbsExt4_2 &operator=(const AbsExt4_2 &ext_to_copy ) = default;
-        AbsExt4_2 &operator=(AbsExt4_2 &&ext_to_move ) = default;
+        AbsExt4_2 &operator=(const AbsExt4_2 &ext_to_copy) = default;
+        AbsExt4_2 &operator=(AbsExt4_2 &&ext_to_move) = default;
 
         //  Negation does not change anything for the AbsExt classes
 
@@ -424,7 +419,9 @@ namespace Cork::Math::ExteriorCalculusR4
 
        private:
         AbsExt4_2(double e01, double e02, double e03, double e12, double e13, double e23)
-            : AbsExt4_2Base(e01, e02, e03, e12, e13, e23) {}
+            : AbsExt4_2Base(e01, e02, e03, e12, e13, e23)
+        {
+        }
 
         friend class AbsExt4_1;
     };
@@ -435,7 +432,7 @@ namespace Cork::Math::ExteriorCalculusR4
         AbsExt4_3() = default;
 
         AbsExt4_3(const AbsExt4_3 &ext_to_copy) : AbsExt4_3Base(ext_to_copy) {}
-        AbsExt4_3(AbsExt4_3 &&ext_to_move) noexcept : AbsExt4_3Base(ext_to_move) {}
+        AbsExt4_3(AbsExt4_3 &&ext_to_move) noexcept : AbsExt4_3Base(std::move(ext_to_move)) {}
 
         explicit AbsExt4_3(const Ext4_3 &ext_to_abs)
             : AbsExt4_3Base(fabs(ext_to_abs.e012()), fabs(ext_to_abs.e013()), fabs(ext_to_abs.e023()),
@@ -443,10 +440,10 @@ namespace Cork::Math::ExteriorCalculusR4
         {
         }
 
-        ~AbsExt4_3() = default;
+        virtual ~AbsExt4_3() = default;
 
-        AbsExt4_3 &operator=(const AbsExt4_3 &ext_to_copy ) = default;
-        AbsExt4_3 &operator=(AbsExt4_3 &&ext_to_move ) = default;
+        AbsExt4_3 &operator=(const AbsExt4_3 &ext_to_copy) = default;
+        AbsExt4_3 &operator=(AbsExt4_3 &&ext_to_move) = default;
 
         //  Negation does not change anything for the AbsExt classes
 

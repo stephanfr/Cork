@@ -28,13 +28,13 @@
 
 #include <numeric>
 
-#include "intersection/triangulator.hpp"
 #include "boundary_edge_builder.hpp"
+#include "intersection/triangulator.hpp"
 #include "primitives/remappers.hpp"
 
 namespace Cork::Meshes
 {
-    MeshBase::MeshBase(MeshBase&& mesh_base_to_move)
+    MeshBase::MeshBase(MeshBase&& mesh_base_to_move) noexcept
         : bounding_box_(mesh_base_to_move.bounding_box_),
           min_and_max_edge_lengths_(mesh_base_to_move.min_and_max_edge_lengths_),
           max_vertex_magnitude_(mesh_base_to_move.max_vertex_magnitude_),
@@ -126,9 +126,8 @@ namespace Cork::Meshes
 
         auto self_intersections = projected_hole.self_intersections();
 
-        if (self_intersections.size() > 0)
+        if (self_intersections.empty())
         {
-
             return GetHoleClosingTrianglesResult::failure(HoleClosingResultCodes::HOLE_BOUNDARY_SELF_INTERSECTS,
                                                           "Hole boundary hsa self intersections");
         }
@@ -180,9 +179,9 @@ namespace Cork::Meshes
 
         //  Return the triangles to close the hole
 
-        HoleClosingSolution     hole_solution( std::move(hole_closing_triangles),std::move(VertexIndexVector()) );
+        HoleClosingSolution hole_solution(std::move(hole_closing_triangles), std::move(VertexIndexVector()));
 
-        return GetHoleClosingTrianglesResult::success( std::move( hole_solution ));
+        return GetHoleClosingTrianglesResult::success(std::move(hole_solution));
     }
 
     void MeshBase::compact()
@@ -313,7 +312,7 @@ namespace Cork::Meshes
                 TopoEdgeBoundary topo_edges(std::move(topo_cache().topo_edge_boundary(boundary)));
                 std::set<const TopoTri*> tris_on_edge(std::move(topo_cache().tris_along_edges(topo_edges)));
 
-                for (auto next_tri : tris_on_edge)
+                for (const auto* next_tri : tris_on_edge)
                 {
                     if (!interior_triangles.contains(next_tri->ref()))
                     {

@@ -32,7 +32,6 @@ namespace Cork::Intersection
 {
     class EdgeCache
     {
-
         using TopoVert = Meshes::TopoVert;
         using TopoEdge = Meshes::TopoEdge;
         using TopoTri = Meshes::TopoTri;
@@ -67,7 +66,7 @@ namespace Cork::Intersection
 
             edges_[i].emplace_back(EdgeEntry(j));
 
-            TopoEdge& new_edge = edges_[i][N].set_edge( *(intersection_problem_.topo_cache().new_edge(v0, v1)));
+            TopoEdge& new_edge = edges_[i][N].set_edge(*(intersection_problem_.topo_cache().new_edge(v0, v1)));
 
             return new_edge;
         }
@@ -138,34 +137,29 @@ namespace Cork::Intersection
        private:
         class EdgeEntry
         {
-            public :
-
+           public:
             EdgeEntry() = delete;
 
             explicit EdgeEntry(VertexIndex vertex_id) : vertex_id_(vertex_id) {}
 
-            [[nodiscard]] VertexIndex     vertex_id() const { return vertex_id_; }
+            [[nodiscard]] VertexIndex vertex_id() const { return vertex_id_; }
 
-            std::optional<std::reference_wrapper<TopoEdge>>&        edge() { return edge_; }
-            TopoEdge&        set_edge( TopoEdge& edge ) { return edge_.emplace( edge ); }
+            std::optional<std::reference_wrapper<TopoEdge>>& edge() { return edge_; }
+            TopoEdge& set_edge(TopoEdge& edge) { return edge_.emplace(edge); }
 
-            private :
-
+           private:
             VertexIndex vertex_id_;
             std::optional<std::reference_wrapper<TopoEdge>> edge_;
         };
 
         class VectorOfEdgeEntryVectors : public std::vector<std::vector<EdgeEntry>>
         {
-            public :
+           public:
+            explicit VectorOfEdgeEntryVectors(size_t count) : std::vector<std::vector<EdgeEntry>>(count) {}
 
-            VectorOfEdgeEntryVectors( size_t    count )
-                : std::vector<std::vector<EdgeEntry>>( count )
-                {}
-
-            std::vector<EdgeEntry>& operator[]( VertexIndex     vi )
+            std::vector<EdgeEntry>& operator[](VertexIndex vi)
             {
-                return std::vector<std::vector<EdgeEntry>>::operator[]( static_cast<size_t>(vi) );
+                return std::vector<std::vector<EdgeEntry>>::operator[](static_cast<size_t>(vi));
             }
         };
 

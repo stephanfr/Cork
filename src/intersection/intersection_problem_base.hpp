@@ -25,16 +25,15 @@
 // +-------------------------------------------------------------------------
 #pragma once
 
-#include "tbb/tbb.h"
-
 #include "intersection_workspace.hpp"
-#include "perturbation_epsilon.hpp"
 #include "mesh/mesh_base.hpp"
+#include "perturbation_epsilon.hpp"
+#include "tbb/tbb.h"
 
 namespace Cork::Intersection
 {
-    
-    inline Primitives::Vector3D computeCoords(const Meshes::TopoEdge& e, const Meshes::TopoTri& t, const Math::Quantizer& quantizer)
+    inline Primitives::Vector3D computeCoords(const Meshes::TopoEdge& e, const Meshes::TopoTri& t,
+                                              const Math::Quantizer& quantizer)
     {
         Math::ExteriorCalculusR4::GMPExt4_2 edgeCoordinates(e.edge_exact_coordinates(quantizer));
         Math::ExteriorCalculusR4::GMPExt4_3 triangleCoordinates(t.triangle_exact_coordinates(quantizer));
@@ -42,45 +41,43 @@ namespace Cork::Intersection
         return (Empty3d::coordsExact(edgeCoordinates, triangleCoordinates, quantizer));
     }
 
-    inline Primitives::Vector3D computeCoords(const Meshes::TopoTri& t0, const Meshes::TopoTri& t1, const Meshes::TopoTri& t2,
-                                              const Math::Quantizer& quantizer)
+    inline Primitives::Vector3D computeCoords(const Meshes::TopoTri& t0, const Meshes::TopoTri& t1,
+                                              const Meshes::TopoTri& t2, const Math::Quantizer& quantizer)
     {
         return (Empty3d::coordsExact(t0.triangle_exact_coordinates(quantizer), t1.triangle_exact_coordinates(quantizer),
                                      t2.triangle_exact_coordinates(quantizer), quantizer));
     }
 
-
     class TriTripleTemp
     {
        public:
+        TriTripleTemp() = delete;
+        TriTripleTemp(const TriTripleTemp&) = delete;
+        TriTripleTemp(TriTripleTemp&&) = default;
 
-       TriTripleTemp() = delete;
-       TriTripleTemp( const TriTripleTemp& ) = delete;
-       TriTripleTemp( TriTripleTemp&& ) = default;
-
-        TriTripleTemp(const Meshes::TopoTri& tp0, const Meshes::TopoTri& tp1, const Meshes::TopoTri& tp2) : t0_(tp0), t1_(tp1), t2_(tp2) {}
+        TriTripleTemp(const Meshes::TopoTri& tp0, const Meshes::TopoTri& tp1, const Meshes::TopoTri& tp2)
+            : t0_(tp0), t1_(tp1), t2_(tp2)
+        {
+        }
 
         ~TriTripleTemp() = default;
 
-        TriTripleTemp&      operator=( const TriTripleTemp& ) = delete;
-        TriTripleTemp&      operator=( TriTripleTemp&& ) = delete;
+        TriTripleTemp& operator=(const TriTripleTemp&) = delete;
+        TriTripleTemp& operator=(TriTripleTemp&&) = delete;
 
-        const Meshes::TopoTri& t0() const { return t0_; }
-        const Meshes::TopoTri& t1() const { return t0_; };
-        const Meshes::TopoTri& t2() const { return t0_; };
+        [[nodiscard]] const Meshes::TopoTri& t0() const { return t0_; }
+        [[nodiscard]] const Meshes::TopoTri& t1() const { return t0_; };
+        [[nodiscard]] const Meshes::TopoTri& t2() const { return t0_; };
 
-        private :
-
+       private:
         const Meshes::TopoTri& t0_;
         const Meshes::TopoTri& t1_;
         const Meshes::TopoTri& t2_;
     };
 
-
     class IntersectionProblemBase
     {
-        protected :
-
+       protected:
         using TopoVert = Meshes::TopoVert;
         using TopoEdge = Meshes::TopoEdge;
         using TopoTri = Meshes::TopoTri;
@@ -99,21 +96,21 @@ namespace Cork::Intersection
             };
 
             TriAndEdgeQueueMessage() = default;
-            TriAndEdgeQueueMessage( const TriAndEdgeQueueMessage& ) = delete;
-            TriAndEdgeQueueMessage( TriAndEdgeQueueMessage&& ) = delete;
+            TriAndEdgeQueueMessage(const TriAndEdgeQueueMessage&) = delete;
+            TriAndEdgeQueueMessage(TriAndEdgeQueueMessage&&) = delete;
 
             virtual ~TriAndEdgeQueueMessage() = default;
 
-            TriAndEdgeQueueMessage& operator=( const TriAndEdgeQueueMessage& ) = delete;
-            TriAndEdgeQueueMessage& operator=( TriAndEdgeQueueMessage&& ) = delete;
+            TriAndEdgeQueueMessage& operator=(const TriAndEdgeQueueMessage&) = delete;
+            TriAndEdgeQueueMessage& operator=(TriAndEdgeQueueMessage&&) = delete;
 
-            virtual MessageType type() const = 0;
+            [[nodiscard]] virtual MessageType type() const = 0;
         };
 
         class TriAndEdgeQueueEnd : public TriAndEdgeQueueMessage
         {
            public:
-            MessageType type() const final { return (MessageType::END_OF_MESSAGES); }
+            [[nodiscard]] MessageType type() const final { return (MessageType::END_OF_MESSAGES); }
         };
 
         class TriangleAndIntersectingEdgesMessage : public TriAndEdgeQueueMessage
@@ -134,11 +131,11 @@ namespace Cork::Intersection
             TriangleAndIntersectingEdgesMessage& operator=(const TriangleAndIntersectingEdgesMessage&) = delete;
             TriangleAndIntersectingEdgesMessage& operator=(TriangleAndIntersectingEdgesMessage&&) = delete;
 
-            MessageType type() const final { return (MessageType::TRI_AND_INTERSECTING_EDGES); }
+            [[nodiscard]] MessageType type() const final { return (MessageType::TRI_AND_INTERSECTING_EDGES); }
 
-            TopoTri& triangle() { return (m_triangle); }
+            [[nodiscard]] TopoTri& triangle() { return (m_triangle); }
 
-            TopoEdgeReferenceVector& edges() { return (m_edges); }
+            [[nodiscard]] TopoEdgeReferenceVector& edges() { return (m_edges); }
 
            private:
             TopoTri& m_triangle;
@@ -147,35 +144,36 @@ namespace Cork::Intersection
 
         using TriangleAndIntersectingEdgesQueue = tbb::concurrent_bounded_queue<TriAndEdgeQueueMessage*>;
 
-        IntersectionProblemBase(MeshBaseImpl& owner_mesh, const Math::Quantizer& quantizer, const SolverControlBlock& solver_control_block);
+        IntersectionProblemBase(MeshBaseImpl& owner_mesh, const Math::Quantizer& quantizer,
+                                const SolverControlBlock& solver_control_block);
 
         IntersectionProblemBase(const IntersectionProblemBase& isctProblemToCopy) = delete;
-        IntersectionProblemBase( IntersectionProblemBase&& ) = delete;
+        IntersectionProblemBase(IntersectionProblemBase&&) = delete;
 
         virtual ~IntersectionProblemBase() = default;
 
         IntersectionProblemBase& operator=(const IntersectionProblemBase&) = delete;
-        IntersectionProblemBase& operator=( IntersectionProblemBase&& ) = delete;
+        IntersectionProblemBase& operator=(IntersectionProblemBase&&) = delete;
 
-        IntersectionWorkspace& workspace() { return *(workspace_.get()); }
+        [[nodiscard]] IntersectionWorkspace& workspace() { return *(workspace_.get()); }
 
-        MeshBaseImpl& owner_mesh() { return owner_mesh_; }
+        [[nodiscard]] MeshBaseImpl& owner_mesh() { return owner_mesh_; }
 
-        const MeshBaseImpl& owner_mesh() const { return owner_mesh_; }
+        [[nodiscard]] const MeshBaseImpl& owner_mesh() const { return owner_mesh_; }
 
-        MeshTopoCache&      topo_cache() { return owner_mesh_.topo_cache(); }
+        [[nodiscard]] MeshTopoCache& topo_cache() { return owner_mesh_.topo_cache(); }
 
         IsctVertType* newIsctVert(const TopoEdge& e, const TopoTri& t, bool boundary, GluePointMarker& glue)
         {
             return (isct_vert_type_list_.emplace_back(GenericVertType::VertexType::INTERSECTION,
-                                                    computeCoords(e, t, quantizer_), boundary, glue));
+                                                      computeCoords(e, t, quantizer_), boundary, glue));
         }
 
         IsctVertType* newIsctVert(const TopoTri& t0, const TopoTri& t1, const TopoTri& t2, bool boundary,
                                   GluePointMarker& glue)
         {
             return (isct_vert_type_list_.emplace_back(GenericVertType::VertexType::INTERSECTION,
-                                                    computeCoords(t0, t1, t2, quantizer_), boundary, glue));
+                                                      computeCoords(t0, t1, t2, quantizer_), boundary, glue));
         }
 
         IsctVertType* newSplitIsctVert(const Primitives::Vector3D& coords, GluePointMarker& glue)
@@ -186,18 +184,19 @@ namespace Cork::Intersection
         IsctVertType* copyIsctVert(IsctVertType* orig)
         {
             return (isct_vert_type_list_.emplace_back(GenericVertType::VertexType::INTERSECTION, orig->coordinate(),
-                                                    orig->is_boundary(), orig->glueMarker()));
+                                                      orig->is_boundary(), orig->glueMarker()));
         }
 
         IsctEdgeType* newIsctEdge(IsctVertType* endpoint, const TopoTri& tri_key)
         {
-            return (isct_edge_type_list_.emplace_back(GenericEdgeType::EdgeType::INTERSECTION, false, endpoint, tri_key));
+            return (
+                isct_edge_type_list_.emplace_back(GenericEdgeType::EdgeType::INTERSECTION, false, endpoint, tri_key));
         }
 
         OrigVertType* newOrigVert(TopoVert* v)
         {
-            return (
-                orig_vert_type_list_.emplace_back(GenericVertType::VertexType::ORIGINAL, *v, v->quantized_value(), true));
+            return (orig_vert_type_list_.emplace_back(GenericVertType::VertexType::ORIGINAL, *v, v->quantized_value(),
+                                                      true));
         }
 
         OrigEdgeType* newOrigEdge(const TopoEdge& e, OrigVertType* v0, OrigVertType* v1)
@@ -240,7 +239,7 @@ namespace Cork::Intersection
         {
             ge->disconnect();
 
-            IsctEdgeType* ie = dynamic_cast<IsctEdgeType*>(ge);
+            auto ie = dynamic_cast<IsctEdgeType*>(ge);
 
             switch (ge->edgeType())
             {
@@ -262,7 +261,7 @@ namespace Cork::Intersection
         {
             iv->removeFromGlueMarkerCopies();
 
-            if (iv->glueMarker().vertices_to_be_glued().size() == 0)
+            if (iv->glueMarker().vertices_to_be_glued().empty())
             {
                 glue_point_marker_list_.free(iv->glueMarker());
             }
@@ -335,8 +334,10 @@ namespace Cork::Intersection
 
             //	Visual Studio's IDE gripes about the following when the explicit operator call is omitted
 
-            Empty3d::TriangleTriangleTriangleIntersection input(triangles.t0().operator Empty3d::IntersectingTriangle(), triangles.t1().operator Empty3d::IntersectingTriangle(),
-                                       triangles.t2().operator Empty3d::IntersectingTriangle());
+            Empty3d::TriangleTriangleTriangleIntersection input(
+                triangles.t0().operator Empty3d::IntersectingTriangle(),
+                triangles.t1().operator Empty3d::IntersectingTriangle(),
+                triangles.t2().operator Empty3d::IntersectingTriangle());
 
             return input.emptyExact(quantizer_, exact_arithmetic_context_) != Empty3d::HasIntersection::YES;
         }
@@ -344,7 +345,7 @@ namespace Cork::Intersection
         void fillOutTriData(const TopoTri& piece, const TopoTri& parent)
         {
             owner_mesh_.triangles()[piece.ref()].set_bool_alg_data(
-                owner_mesh_.triangles()[parent.ref()].bool_alg_data() );
+                owner_mesh_.triangles()[parent.ref()].bool_alg_data());
         }
 
         std::unique_ptr<std::vector<Primitives::Vector3D>> dumpIsctPoints();

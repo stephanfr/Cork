@@ -21,23 +21,34 @@
 
 #pragma once
 
-#include <streambuf>
-
 #include <fmt/compile.h>
 #include <fmt/format-inl.h>
+
+#include <streambuf>
 
 namespace SEFUtility
 {
     class GrowableStreambuf : public std::streambuf
     {
        public:
-        GrowableStreambuf(size_t initial_size) { buffer_.reserve(initial_size); }
+        GrowableStreambuf() = delete;
 
-        ~GrowableStreambuf() {}
+        explicit GrowableStreambuf(size_t initial_size) { buffer_.reserve(initial_size); }
 
-        std::streamsize xsputn(const char_type* s, std::streamsize count) { return buffer_.append(s, count), count; }
+        GrowableStreambuf(const GrowableStreambuf&) = delete;
+        GrowableStreambuf(GrowableStreambuf&&) = delete;
 
-        int overflow(int_type character) { return 1; }
+        ~GrowableStreambuf() override = default;
+
+        GrowableStreambuf& operator=(const GrowableStreambuf&) = delete;
+        GrowableStreambuf& operator=(GrowableStreambuf&&) = delete;
+
+        std::streamsize xsputn(const char_type* s, std::streamsize count) override
+        {
+            return buffer_.append(s, count), count;
+        }
+
+        int overflow([[maybe_unused]] int_type character) override { return 1; }
 
        protected:
         std::string buffer_;
@@ -46,9 +57,9 @@ namespace SEFUtility
     class PerformanceOStringStream : protected GrowableStreambuf, public std::ostream
     {
        public:
-        PerformanceOStringStream(size_t initial_size) : GrowableStreambuf(initial_size), std::ostream(this) {}
+        explicit PerformanceOStringStream(size_t initial_size) : GrowableStreambuf(initial_size), std::ostream(this) {}
 
-        std::back_insert_iterator<std::string>      back_insert_iterator(){ return std::back_insert_iterator( buffer_ ); }
+        std::back_insert_iterator<std::string> back_insert_iterator() { return std::back_insert_iterator(buffer_); }
 
         const std::string& str() const { return buffer_; }
 
@@ -60,14 +71,14 @@ namespace SEFUtility
         }
 
         template <int N>
-        PerformanceOStringStream& operator<<(char (&value)[N])
+        PerformanceOStringStream& operator<<(std::array<char, N>& value)
         {
             xsputn(value, N - 1);
             return *this;
         }
 
         template <int N>
-        PerformanceOStringStream& operator<<(char const (&value)[N])
+        PerformanceOStringStream& operator<<(const std::array<char, N>& value)
         {
             xsputn(value, N - 1);
             return *this;
@@ -105,7 +116,7 @@ namespace SEFUtility
     template <>
     inline PerformanceOStringStream& PerformanceOStringStream::operator<<(int32_t& value)
     {
-        fmt::format_to( std::back_insert_iterator(buffer_), FMT_COMPILE( "{}" ), value );
+        fmt::format_to(std::back_insert_iterator(buffer_), FMT_COMPILE("{}"), value);
 
         return (*this);
     }
@@ -113,7 +124,7 @@ namespace SEFUtility
     template <>
     inline PerformanceOStringStream& PerformanceOStringStream::operator<<(int32_t const& value)
     {
-        fmt::format_to( std::back_insert_iterator(buffer_), FMT_COMPILE( "{}" ), value );
+        fmt::format_to(std::back_insert_iterator(buffer_), FMT_COMPILE("{}"), value);
 
         return (*this);
     }
@@ -121,7 +132,7 @@ namespace SEFUtility
     template <>
     inline PerformanceOStringStream& PerformanceOStringStream::operator<<(uint32_t& value)
     {
-        fmt::format_to( std::back_insert_iterator(buffer_), FMT_COMPILE( "{}" ), value );
+        fmt::format_to(std::back_insert_iterator(buffer_), FMT_COMPILE("{}"), value);
 
         return (*this);
     }
@@ -129,7 +140,7 @@ namespace SEFUtility
     template <>
     inline PerformanceOStringStream& PerformanceOStringStream::operator<<(uint32_t const& value)
     {
-        fmt::format_to( std::back_insert_iterator(buffer_), FMT_COMPILE( "{}" ), value );
+        fmt::format_to(std::back_insert_iterator(buffer_), FMT_COMPILE("{}"), value);
 
         return (*this);
     }
@@ -137,7 +148,7 @@ namespace SEFUtility
     template <>
     inline PerformanceOStringStream& PerformanceOStringStream::operator<<(double& value)
     {
-        fmt::format_to( std::back_insert_iterator(buffer_), FMT_COMPILE( "{}" ), value );
+        fmt::format_to(std::back_insert_iterator(buffer_), FMT_COMPILE("{}"), value);
 
         return (*this);
     }
@@ -145,7 +156,7 @@ namespace SEFUtility
     template <>
     inline PerformanceOStringStream& PerformanceOStringStream::operator<<(double const& value)
     {
-        fmt::format_to( std::back_insert_iterator(buffer_), FMT_COMPILE( "{}" ), value );
+        fmt::format_to(std::back_insert_iterator(buffer_), FMT_COMPILE("{}"), value);
 
         return (*this);
     }

@@ -41,19 +41,13 @@ namespace Cork::Math
        private:  // names
         union
         {
-            alignas(SIMD_MEMORY_ALIGNMENT) T v[2];
+            alignas(SIMD_MEMORY_ALIGNMENT) std::array<T, 2> v;
 
             struct
             {
                 T m_x;
                 T m_y;
             };
-
-//            struct
-//            {
-//                T m_s;
-//                T m_t;
-//            };
         };
 
         // +---------------------------------
@@ -66,11 +60,13 @@ namespace Cork::Math
 
         Vector2DTemplate(const Vector2DTemplate& cp) : m_x(cp.m_x), m_y(cp.m_y) {}
 
-        Vector2DTemplate(Vector2DTemplate&& cp) : m_x(std::move(cp.m_x)), m_y(std::move(cp.m_y)) {}
+        Vector2DTemplate(Vector2DTemplate&& cp) noexcept : m_x(std::move(cp.m_x)), m_y(std::move(cp.m_y)) {}
 
         explicit Vector2DTemplate(const std::array<float, 2>& pair) : m_x(pair[0]), m_y(pair[1]) {}
 
         explicit Vector2DTemplate(const std::array<double, 2>& pair) : m_x(pair[0]), m_y(pair[1]) {}
+
+        ~Vector2DTemplate() = default;
 
         Vector2DTemplate& operator=(const Vector2DTemplate& cp)
         {
@@ -79,7 +75,7 @@ namespace Cork::Math
             return (*this);
         }
 
-        Vector2DTemplate& operator=(Vector2DTemplate&& cp)
+        Vector2DTemplate& operator=(Vector2DTemplate&& cp) noexcept
         {
             m_x = std::move(cp.m_x);
             m_y = std::move(cp.m_y);
@@ -192,9 +188,17 @@ namespace Cork::Math
         // normalization functions
         //
 
-        Vector2DTemplate<T>& normalize() { *this /= len();  return *this; }
+        Vector2DTemplate<T>& normalize()
+        {
+            *this /= len();
+            return *this;
+        }
 
-        Vector2DTemplate<T> normalize() const { *this /= len(); return *this; }
+        Vector2DTemplate<T> normalize() const
+        {
+            *this /= len();
+            return *this;
+        }
 
         Vector2DTemplate<T> normalized() const
         {

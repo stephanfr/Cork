@@ -41,7 +41,9 @@ namespace Cork::Meshes
        public:
         Mesh() = delete;
 
-        Mesh(Mesh&& src)
+        Mesh(const Mesh& src) = delete;
+
+        Mesh(Mesh&& src) noexcept
             : MeshBase(std::move(src)), control_block_(SolverControlBlock::get_default_control_block()){};
 
         Mesh(MeshBase&& src, const SolverControlBlock& control_block)
@@ -52,12 +54,13 @@ namespace Cork::Meshes
         virtual ~Mesh();
 
         Mesh& operator=(Mesh&& src) noexcept;
+        Mesh& operator=(const Mesh& src) = delete;
 
         //	Validity check:
         //		- all numbers are well-defined and finite
         //		- all triangle vertex indices are in the right range
 
-        bool valid() const;
+        [[nodiscard]] bool valid() const;
 
         // form the disjoint union of two meshes
 
@@ -65,25 +68,24 @@ namespace Cork::Meshes
 
         //	Boolean operations
 
-        // NOLINTBEGIN(google-default-arguments)
-
-        BooleanOperationResult Union(const SolidObjectMesh& rhs,
-                                     const SolverControlBlock& solverControlBlock) const final;
-        BooleanOperationResult Difference(const SolidObjectMesh& rhs,
-                                          const SolverControlBlock& solverControlBlock) const final;
-        BooleanOperationResult Intersection(const SolidObjectMesh& rhs,
-                                            const SolverControlBlock& solverControlBlock) const final;
-        BooleanOperationResult SymmetricDifference(const SolidObjectMesh& rhs,
+        [[nodiscard]] BooleanOperationResult Union(const SolidObjectMesh& rhs,
                                                    const SolverControlBlock& solverControlBlock) const final;
+        [[nodiscard]] BooleanOperationResult Difference(const SolidObjectMesh& rhs,
+                                                        const SolverControlBlock& solverControlBlock) const final;
+        [[nodiscard]] BooleanOperationResult Intersection(const SolidObjectMesh& rhs,
+                                                          const SolverControlBlock& solverControlBlock) const final;
+        [[nodiscard]] BooleanOperationResult SymmetricDifference(
+            const SolidObjectMesh& rhs, const SolverControlBlock& solverControlBlock) const final;
 
-        // NOLINTEND(google-default-arguments)
+        [[nodiscard]] std::unique_ptr<TriangleMesh> ToTriangleMesh() const;
 
-        std::unique_ptr<TriangleMesh> ToTriangleMesh() const;
+        [[nodiscard]] const SolverControlBlock& solver_control_block() const { return control_block_; }
+        [[nodiscard]] const SolverPerformanceStatistics& GetPerformanceStats() const final
+        {
+            return performance_stats_;
+        }
 
-        const SolverControlBlock& solver_control_block() const { return control_block_; }
-        const SolverPerformanceStatistics& GetPerformanceStats() const final { return performance_stats_; }
-
-        size_t CountComponents() const final;
+        [[nodiscard]] size_t CountComponents() const final;
 
        private:
         SolverControlBlock control_block_;
@@ -103,23 +105,23 @@ namespace Cork::Meshes
         using ComponentType = tbb::concurrent_vector<TriangleByIndicesIndex>;
         using ComponentList = tbb::concurrent_vector<ComponentType>;
 
-        SetupBooleanProblemResult SetupBooleanProblem(const Mesh& rhs);
+        [[nodiscard]] SetupBooleanProblemResult SetupBooleanProblem(const Mesh& rhs);
 
-        BuildEGraphCacheResult BuildEdgeGraphCache() const;
+        [[nodiscard]] BuildEGraphCacheResult BuildEdgeGraphCache() const;
 
-        std::unique_ptr<ComponentList> FindComponents(EGraphCache& ecache) const;
+        [[nodiscard]] std::unique_ptr<ComponentList> FindComponents(EGraphCache& ecache) const;
 
         void ProcessComponent(const EGraphCache& ecache, const ComponentType& trisInComponent);
 
-        TriangleByIndicesIndex FindTriForInsideTest(const ComponentType& trisInComponent);
+        [[nodiscard]] TriangleByIndicesIndex FindTriForInsideTest(const ComponentType& trisInComponent);
 
         void doDeleteAndFlip(const std::function<TriCode(uint32_t bool_alg_data)>& classify);
 
         void for_ecache(EGraphCache& ecache, std::function<void(const EGraphEntryTIDVector& tids)> action,
                         int numThreads = 1) const;
 
-        bool isInside(TriangleByIndicesIndex tid, uint32_t operand);
+        [[nodiscard]] bool isInside(TriangleByIndicesIndex tid, uint32_t operand);
 
-        void RayTriangleIntersection(const TriangleByIndices& tri, Primitives::Ray3D& ray, long& winding);
+        void RayTriangleIntersection(const TriangleByIndices& tri, Primitives::Ray3D& ray, int64_t& winding);
     };
 }  // namespace Cork::Meshes

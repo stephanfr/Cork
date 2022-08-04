@@ -43,9 +43,12 @@ namespace hidden
        public:
         explicit PointerOnlyListElement(T* pointer) : pointer_(pointer) {}
 
-        operator T*() { return (pointer_); }
+        operator T*() { return (pointer_); }  //  NOLINT(hicpp-explicit-conversions, google-explicit-constructor)
 
-        operator const T*() const { return (pointer_); }
+        operator const T*() const
+        {
+            return (pointer_);
+        }  //  NOLINT(hicpp-explicit-conversions, google-explicit-constructor)
 
         T* operator->() { return (pointer_); }
 
@@ -63,14 +66,22 @@ class ManagedIntrusivePointerList : public boost::noncopyable,
                                     protected boost::intrusive::list<hidden::PointerOnlyListElement<T>>
 {
    private:
-    typedef boost::intrusive::list<hidden::PointerOnlyListElement<T>> BaseType;
+    using BaseType = boost::intrusive::list<hidden::PointerOnlyListElement<T>>;
 
    public:
-    typedef tbb::concurrent_vector<hidden::PointerOnlyListElement<T>> PoolType;
+    using PoolType = tbb::concurrent_vector<hidden::PointerOnlyListElement<T>>;
+
+    ManagedIntrusivePointerList() = delete;
 
     explicit ManagedIntrusivePointerList(PoolType& pool) : pool_(pool) {}
 
     ManagedIntrusivePointerList(const ManagedIntrusivePointerList&) = delete;
+    ManagedIntrusivePointerList(ManagedIntrusivePointerList&&) = delete;
+
+    virtual ~ManagedIntrusivePointerList() = default;
+
+    ManagedIntrusivePointerList& operator=(const ManagedIntrusivePointerList&) = delete;
+    ManagedIntrusivePointerList& operator=(ManagedIntrusivePointerList&&) = delete;
 
     using BaseType::iterator;
 
@@ -89,9 +100,9 @@ class ManagedIntrusivePointerList : public boost::noncopyable,
     PoolType& pool_;
 };
 
-typedef boost::intrusive::list_base_hook<> IntrusiveListHook;
-typedef boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::normal_link>>
-    IntrusiveListHookNoDestructorOnElements;
+using IntrusiveListHook = boost::intrusive::list_base_hook<>;
+using IntrusiveListHookNoDestructorOnElements =
+    boost::intrusive::list_base_hook<boost::intrusive::link_mode<boost::intrusive::normal_link>>;
 
 template <typename T, typename TI>
 class ValuePool : public tbb::concurrent_vector<T>
@@ -141,7 +152,7 @@ class ManagedIntrusiveValueList : public boost::noncopyable,
         return (&newValue);
     }
 
-    bool isCompact() const { return (pool_.size() == size()); }
+    [[nodiscard]] bool isCompact() const { return (pool_.size() == size()); }
 
     PoolType& getPool() { return (pool_); }
     const PoolType& getPool() const { return (pool_); }

@@ -77,7 +77,7 @@ namespace Cork::Math::ExteriorCalculusR4
             e3_ = 1;
         }
 
-        ~GMPExt4_1() = default;
+        virtual ~GMPExt4_1() = default;
 
         Vector3DTemplate<double> operator()(const Math::Quantizer &quantizer)
         {
@@ -117,7 +117,8 @@ namespace Cork::Math::ExteriorCalculusR4
         [[nodiscard]] GMPExt4_2 join(const GMPExt4_1 &rhs) const;
 
        private:
-        GMPExt4_1(mpz_class e0, mpz_class e1, mpz_class e2, mpz_class e3) : Ext4_1Base(e0, e1, e2, e3){};
+        GMPExt4_1(const mpz_class &e0, const mpz_class &e1, const mpz_class &e2, const mpz_class &e3)
+            : Ext4_1Base(e0, e1, e2, e3){};
 
         friend class GMPExt4_2;
         friend class GMPExt4_3;
@@ -127,9 +128,9 @@ namespace Cork::Math::ExteriorCalculusR4
     {
        public:
         GMPExt4_2(const GMPExt4_2 &ext_to_copy) : GMPExt4_2Base(ext_to_copy) {}
-        GMPExt4_2(GMPExt4_2 &&ext_to_move) noexcept : GMPExt4_2Base(ext_to_move) {}
+        GMPExt4_2(GMPExt4_2 &&ext_to_move) noexcept : GMPExt4_2Base(std::move(ext_to_move)) {}
 
-        ~GMPExt4_2() = default;
+        virtual ~GMPExt4_2() = default;
 
         GMPExt4_2 &operator=(const GMPExt4_2 &ext_to_copy) = default;
         GMPExt4_2 &operator=(GMPExt4_2 &&ext_to_move) = default;
@@ -167,7 +168,7 @@ namespace Cork::Math::ExteriorCalculusR4
         GMPExt4_2() = default;
 
         GMPExt4_2(mpz_class e01, mpz_class e02, mpz_class e03, mpz_class e12, mpz_class e13, mpz_class e23)
-            : Ext4_2Base(e01, e02, e03, e12, e13, e23)
+            : Ext4_2Base(std::move(e01), std::move(e02), std::move(e03), std::move(e12), std::move(e13), std::move(e23))
         {
         }
 
@@ -180,9 +181,9 @@ namespace Cork::Math::ExteriorCalculusR4
         GMPExt4_3() = default;
 
         GMPExt4_3(const GMPExt4_3 &ext_to_copy) : GMPExt4_3Base(ext_to_copy) {}
-        GMPExt4_3(GMPExt4_3 &&ext_to_move) noexcept : GMPExt4_3Base(ext_to_move) {}
+        GMPExt4_3(GMPExt4_3 &&ext_to_move) noexcept : GMPExt4_3Base(std::move(ext_to_move)) {}
 
-        ~GMPExt4_3() = default;
+        virtual ~GMPExt4_3() = default;
 
         GMPExt4_3 &operator=(const GMPExt4_3 &ext_to_copy) = default;
         GMPExt4_3 &operator=(GMPExt4_3 &&ext_to_move) = default;

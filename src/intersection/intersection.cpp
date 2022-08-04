@@ -69,7 +69,7 @@ namespace Cork::Intersection
         IntersectionSolverImpl& operator=(const IntersectionSolverImpl&) = delete;
         IntersectionSolverImpl& operator=(IntersectionSolverImpl&&) = delete;
 
-        ~IntersectionSolverImpl() final { reset(); }
+        ~IntersectionSolverImpl() { reset(); }
 
         //	Implementation of IntersectionProblemIfx
 
@@ -154,7 +154,7 @@ namespace Cork::Intersection
             //	Once all the pieces are hooked up, let's kill the old triangle!
             //		We need to cast away the const here as well...
 
-            topo_cache().delete_tri(&(const_cast<TopoTri&>(tprob.triangle())));     //  NOLINT
+            topo_cache().delete_tri(&(const_cast<TopoTri&>(tprob.triangle())));  //  NOLINT
         }
     };
 
@@ -428,12 +428,14 @@ namespace Cork::Intersection
                 for (const auto* tri : allTris)
                 {
                     std::cout << tri->bool_alg_data() << "    (" << tri->verts()[0]->quantized_value().x() << ", "
-                              << tri->verts()[0]->quantized_value().y() << ", " << tri->verts()[0]->quantized_value().z()
-                              << ")    (" << tri->verts()[1]->quantized_value().x() << ", "
-                              << tri->verts()[1]->quantized_value().y() << ", " << tri->verts()[1]->quantized_value().z()
-                              << ")    (" << tri->verts()[2]->quantized_value().x() << ", "
-                              << tri->verts()[2]->quantized_value().y() << ", " << tri->verts()[2]->quantized_value().z()
-                              << ")" << std::endl;
+                              << tri->verts()[0]->quantized_value().y() << ", "
+                              << tri->verts()[0]->quantized_value().z() << ")    ("
+                              << tri->verts()[1]->quantized_value().x() << ", "
+                              << tri->verts()[1]->quantized_value().y() << ", "
+                              << tri->verts()[1]->quantized_value().z() << ")    ("
+                              << tri->verts()[2]->quantized_value().x() << ", "
+                              << tri->verts()[2]->quantized_value().y() << ", "
+                              << tri->verts()[2]->quantized_value().z() << ")" << std::endl;
                     std::cout.flush();
 
                     TopoEdgeReferenceVector edges(std::move(
@@ -488,8 +490,10 @@ namespace Cork::Intersection
         return (IntersectionProblemResult::success());
     }
 
-    std::unique_ptr<IntersectionSolver> IntersectionSolver::GetSolver(MeshBase& owner, const Math::Quantizer& quantizer, const SolverControlBlock& solver_control_block)
+    std::unique_ptr<IntersectionSolver> IntersectionSolver::GetSolver(MeshBase& owner, const Math::Quantizer& quantizer,
+                                                                      const SolverControlBlock& solver_control_block)
     {
-        return (std::unique_ptr<IntersectionSolver>(new IntersectionSolverImpl(owner, quantizer, solver_control_block)));
+        return (
+            std::unique_ptr<IntersectionSolver>(new IntersectionSolverImpl(owner, quantizer, solver_control_block)));
     }
 }  // namespace Cork::Intersection

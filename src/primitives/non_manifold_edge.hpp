@@ -25,7 +25,6 @@
 
 namespace Cork::Primitives
 {
-
     class NonManifoldEdge
     {
        public:
@@ -39,17 +38,21 @@ namespace Cork::Primitives
         NonManifoldEdge(const NonManifoldEdge&) = default;
         NonManifoldEdge(NonManifoldEdge&&) = default;
 
-        TriangleByIndicesIndex triangle_id() const { return triangle_id_; }
-        TriangleEdgeId edge_id() const { return edge_id_; }
+        ~NonManifoldEdge() = default;
+
+        NonManifoldEdge& operator=(const NonManifoldEdge&) = default;
+        NonManifoldEdge& operator=(NonManifoldEdge&&) = default;
+
+        [[nodiscard]] TriangleByIndicesIndex triangle_id() const { return triangle_id_; }
+        [[nodiscard]] TriangleEdgeId edge_id() const { return edge_id_; }
 
        private:
         TriangleByIndicesIndex triangle_id_;
         TriangleEdgeId edge_id_;
     };
-}
+}  // namespace Cork::Primitives
 
 namespace Cork
 {
     using NonManifoldEdge = Primitives::NonManifoldEdge;
 }  // namespace Cork
-

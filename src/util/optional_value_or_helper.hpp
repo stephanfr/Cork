@@ -20,8 +20,13 @@
 
 #include <optional>
 
-template<typename T, typename F>
-T optional_value_or_lambda(const std::optional<T> &opt, F fn) {
-    if(opt) return opt.value();
+template <typename T, typename F>
+T optional_value_or_lambda(const std::optional<T> &opt, F fn)
+{
+    if (opt)
+    {
+        return opt.value();
+    }
+
     return fn();
 }

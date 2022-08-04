@@ -37,8 +37,8 @@
 
 #include "ext4_base.hpp"
 #include "fixint.hpp"
-#include "vector_3D_template.hpp"
 #include "quantization.hpp"
+#include "vector_3D_template.hpp"
 
 namespace Cork::Math::ExteriorCalculusR4
 {
@@ -58,7 +58,7 @@ namespace Cork::Math::ExteriorCalculusR4
         FixExt4_1() = default;
 
         FixExt4_1(const FixExt4_1& ext_to_copy) : FixExt4_1Base(ext_to_copy) {}
-        FixExt4_1(FixExt4_1&& ext_to_move) : FixExt4_1Base(ext_to_move) {}
+        FixExt4_1(FixExt4_1&& ext_to_move) noexcept : FixExt4_1Base(ext_to_move) {}
 
         explicit FixExt4_1(const Vector3DTemplate<double>& vec, const Math::Quantizer& quantizer)
             : FixExt4_1Base(IntegerType(quantizer.quantize2int(vec.x())), IntegerType(quantizer.quantize2int(vec.y())),
@@ -66,8 +66,10 @@ namespace Cork::Math::ExteriorCalculusR4
         {
         }
 
+        virtual ~FixExt4_1() = default;
+
         FixExt4_1& operator=(const FixExt4_1& ext_to_copy) = default;
-        FixExt4_1& operator=(FixExt4_1&& ext_to_move) = default;
+        FixExt4_1& operator=(FixExt4_1&& ext_to_move) noexcept = default;
 
         // Negation takes a k-vector and returns its negation neg(X,Y) and is safe for X=Y
 
@@ -136,10 +138,12 @@ namespace Cork::Math::ExteriorCalculusR4
         FixExt4_2() = default;
 
         FixExt4_2(const FixExt4_2& ext_to_copy) : FixExt4_2Base(ext_to_copy) {}
-        FixExt4_2(FixExt4_2&& ext_to_move) : FixExt4_2Base(ext_to_move) {}
+        FixExt4_2(FixExt4_2&& ext_to_move) noexcept : FixExt4_2Base(ext_to_move) {}
+
+        virtual ~FixExt4_2() = default;
 
         FixExt4_2& operator=(const FixExt4_2& ext_to_copy) = default;
-        FixExt4_2& operator=(FixExt4_2&& ext_to_move) = default;
+        FixExt4_2& operator=(FixExt4_2&& ext_to_move) noexcept = default;
 
         FixExt4_2& negate()
         {
@@ -245,10 +249,12 @@ namespace Cork::Math::ExteriorCalculusR4
         FixExt4_3(){};
 
         FixExt4_3(const FixExt4_3& ext_to_copy) : FixExt4_3Base(ext_to_copy) {}
-        FixExt4_3(FixExt4_3&& ext_to_move) : FixExt4_3Base(ext_to_move) {}
+        FixExt4_3(FixExt4_3&& ext_to_move) noexcept : FixExt4_3Base(ext_to_move) {}
+
+        virtual ~FixExt4_3() = default;
 
         FixExt4_3& operator=(const FixExt4_3& ext_to_copy) = default;
-        FixExt4_3& operator=(FixExt4_3&& ext_to_move) = default;
+        FixExt4_3& operator=(FixExt4_3&& ext_to_move) noexcept = default;
 
         FixExt4_3& negate()
         {
@@ -451,4 +457,4 @@ namespace Cork::Math::ExteriorCalculusR4
         return (dual().join(rhs.dual())).reverse_dual();
     }
 
-}  // namespace Cork::ExteriorCalculusR4
+}  // namespace Cork::Math::ExteriorCalculusR4

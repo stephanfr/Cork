@@ -25,115 +25,102 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-
 #pragma once
 
 #include <atomic>
 #include <tuple>
+#include <vector>
 
 #include "Xoshiro256Plus.h"
-
+#include "cork_defs.hpp"
 
 typedef SEFUtility::RNG::Xoshiro256Plus<g_SIMD_Level> Xoroshiro256Plus;
 
-
 class IUnionFind
 {
-public:
+   public:
+    [[nodiscard]] virtual size_t size() const = 0;
 
-	virtual size_t			size() const = 0;
+    [[nodiscard]] virtual size_t find(size_t i) = 0;
+    virtual void unite(size_t i, size_t j) = 0;
 
-	virtual size_t			find(size_t		i) = 0;
-	virtual void			unite(size_t i, size_t j) = 0;
+    [[nodiscard]] std::vector<size_t> dump()
+    {
+        std::vector<size_t> result(size());
 
-	std::vector<size_t> dump()
-	{
-		std::vector<size_t> result(size());
+        for (size_t i = 0; i < size(); i++)
+        {
+            result[i] = find(i);
+        }
 
-		for (size_t i = 0; i < size(); i++)
-		{
-			result[i] = find(i);
-		}
-
-		return(result);
-	}
+        return (result);
+    }
 };
-
-
 
 //
 //	Straightforward Serial Ranked Weighted UnionFind with path compression
 //
 
-
 class RankWeightedSerialUnionFind : public IUnionFind
 {
-public:
+   public:
+    explicit RankWeightedSerialUnionFind(size_t N) : rank_(N, 0)
+    {
+        ids_.reserve(N);
 
-	RankWeightedSerialUnionFind(size_t   N)
-		: rank_(N, 0)
-	{
-		ids_.reserve(N);
+        for (size_t i = 0; i < N; i++)
+        {
+            ids_.emplace_back(i);
+        }
+    }
 
-		for (size_t i = 0; i < N; i++)
-		{
-			ids_.emplace_back(i);
-		}
-	}
+    [[nodiscard]] size_t size() const override { return (ids_.size()); }
 
+    [[nodiscard]] size_t find(size_t i) override
+    {
+        size_t id = i;
 
-	size_t			size() const
-	{
-		return(ids_.size());
-	}
+        while (ids_[id] != id)
+        {
+            id = ids_[id];
+        }
 
-	size_t find(size_t	i)
-	{
-		size_t id = i;
+        ids_[i] = id;  // path compression optimization
 
-		while (ids_[id] != id)
-		{
-			id = ids_[id];
-		}
+        return (id);
+    }
 
-		ids_[i] = id;					// path compression optimization
+    void unite(size_t i, size_t j) override
+    {
+        size_t iid = find(i);
+        size_t jid = find(j);
 
-		return(id);
-	}
+        if (iid == jid)  // no need to merge the same tree with itself
+        {
+            return;
+        }
 
-	void unite(size_t i, size_t j)
-	{
-		size_t iid = find(i);
-		size_t jid = find(j);
+        //	Attempt to rank balance
 
-		if (iid == jid) // no need to merge the same tree with itself
-		{
-			return;
-		}
+        if (rank_[iid] > rank_[jid])
+        {
+            ids_[jid] = iid;
+        }
+        else if (rank_[iid] < rank_[jid])
+        {
+            ids_[iid] = jid;
+        }
+        else
+        {  // equal ranks
+            rank_[jid]++;
+            ids_[jid] = iid;
+        }
+    }
 
-		//	Attempt to rank balance
-
-		if (rank_[iid] > rank_[jid])
-		{
-			ids_[jid] = iid;
-		}
-		else if (rank_[iid] < rank_[jid])
-		{
-			ids_[iid] = jid;
-		}
-		else
-		{ // equal ranks
-			rank_[jid]++;
-			ids_[jid] = iid;
-		}
-	}
-
-private:
-
-	std::vector<size_t>		ids_;
-	std::vector<size_t>		rank_;
+   private:
+    std::vector<size_t> ids_;
+    std::vector<size_t> rank_;
 };
-
 
 //
 //	Serial Union Find implementation based on:
@@ -150,319 +137,297 @@ private:
 //	This implementation is single threaded but fast and efficient.
 //
 
-
-
 class RandomWeightedSerialUnionFind : public IUnionFind
 {
-public:
+   public:
+    RandomWeightedSerialUnionFind() = delete;
 
-	RandomWeightedSerialUnionFind(size_t   N)
-		: size_(N)
-	{
-		parents_ = new size_t[size_];
-		rank_ = new size_t[size_];
+    explicit RandomWeightedSerialUnionFind(size_t N) : size_(N)
+    {
+        parents_ = new size_t[size_];
+        rank_ = new size_t[size_];
 
-		//	The choice of Xororshiro128+ here is all about speed.  We absolutely do not
-		//		need the statistical purity it provides - we just need random values to
-		//		determine the ranking of entries.
+        //	The choice of Xororshiro128+ here is all about speed.  We absolutely do not
+        //		need the statistical purity it provides - we just need random values to
+        //		determine the ranking of entries.
 
-		Xoroshiro256Plus		randomGenerator(N);
+        Xoroshiro256Plus randomGenerator(N);
 
-		//	Make each element it's own parent to start.  We can use the relaxed memory ordering here
-		//		as there should not be any memory read issues - we are just storing values.
+        //	Make each element it's own parent to start.  We can use the relaxed memory ordering here
+        //		as there should not be any memory read issues - we are just storing values.
 
-		for (size_t i = 0; i < size_; i++)
-		{
-			parents_[i] = i;
-			rank_[i] = randomGenerator.next();
-		}
-	}
+        for (size_t i = 0; i < size_; i++)
+        {
+            parents_[i] = i;
+            rank_[i] = randomGenerator.next();
+        }
+    }
 
-	~RandomWeightedSerialUnionFind()
-	{
-		delete[] parents_;
-		delete[] rank_;
-	}
+    RandomWeightedSerialUnionFind(const RandomWeightedSerialUnionFind&) = delete;
+    RandomWeightedSerialUnionFind(RandomWeightedSerialUnionFind&&) = delete;
 
+    ~RandomWeightedSerialUnionFind()
+    {
+        delete[] parents_;
+        delete[] rank_;
+    }
 
-	size_t			size() const
-	{
-		return(size_);
-	}
+    RandomWeightedSerialUnionFind& operator=(const RandomWeightedSerialUnionFind&) = delete;
+    RandomWeightedSerialUnionFind& operator=(RandomWeightedSerialUnionFind&&) = delete;
 
+    [[nodiscard]] size_t size() const override { return (size_); }
 
-	size_t find(size_t	i)
-	{
-		size_t id = i;
+    [[nodiscard]] size_t find(size_t i) override
+    {
+        size_t id = i;
 
-		while (true)
-		{
-			size_t parent = parents_[id];
-			size_t grandParent = parents_[parent];
+        while (true)
+        {
+            size_t parent = parents_[id];
+            size_t grandParent = parents_[parent];
 
-			if (id == parent)
-			{
-				return(parent);
-			}
+            if (id == parent)
+            {
+                return (parent);
+            }
 
-			parents_[id] = grandParent;
-			id = parent;
-		}
-	}
+            parents_[id] = grandParent;
+            id = parent;
+        }
+    }
 
-	void unite(size_t i, size_t j)
-	{
-		//	The while loop is to handle failures of the CAS operation that updates the parent.
+    void unite(size_t i, size_t j) override
+    {
+        //	The while loop is to handle failures of the CAS operation that updates the parent.
 
-		size_t iid = find(i);
-		size_t jid = find(j);
+        size_t iid = find(i);
+        size_t jid = find(j);
 
-		if (iid == jid) // no need to merge the same tree with itself
-		{
-			return;
-		}
+        if (iid == jid)  // no need to merge the same tree with itself
+        {
+            return;
+        }
 
-		//	Balance based on the random values
+        //	Balance based on the random values
 
-		if (rank_[iid] < rank_[jid])
-		{
-			parents_[jid] = iid;
-		}
-		else
-		{
-			parents_[iid] = jid;
-		}
-	}
+        if (rank_[iid] < rank_[jid])
+        {
+            parents_[jid] = iid;
+        }
+        else
+        {
+            parents_[iid] = jid;
+        }
+    }
 
-private:
+   private:
+    size_t size_;
 
-	size_t				size_;
-
-	size_t*				parents_;
-	size_t*				rank_;
+    size_t* parents_;
+    size_t* rank_;
 };
-
-
-
 
 class RandomWeightedParallelUnionFind : public IUnionFind
 {
-public:
+   public:
+    RandomWeightedParallelUnionFind() = delete;
 
-		RandomWeightedParallelUnionFind(size_t   N)
-		: size_( N )
-	{
-		parents_ = new std::atomic<size_t>[size_];
-		rank_ = new size_t[size_];
+    explicit RandomWeightedParallelUnionFind(size_t N) : size_(N)
+    {
+        parents_ = new std::atomic<size_t>[size_];
+        rank_ = new size_t[size_];
 
-		//	The choice of Xororshiro256+ here is all about speed.  We absolutely do not
-		//		need the statistical purity it provides - we just need random values to
-		//		determine the ranking of entries.
+        //	The choice of Xororshiro256+ here is all about speed.  We absolutely do not
+        //		need the statistical purity it provides - we just need random values to
+        //		determine the ranking of entries.
 
-		Xoroshiro256Plus		randomGenerator(N);
+        Xoroshiro256Plus randomGenerator(N);
 
-		//	Make each element it's own parent to start.  We can use the relaxed memory ordering here
-		//		as there should not be any memory read issues - we are just storing values.
+        //	Make each element it's own parent to start.  We can use the relaxed memory ordering here
+        //		as there should not be any memory read issues - we are just storing values.
 
-		for (size_t i = 0; i < size_; i++)
-		{
-			parents_[i] = i;
-			rank_[i] = randomGenerator.next();
-		}
-	}
+        for (size_t i = 0; i < size_; i++)
+        {
+            parents_[i] = i;
+            rank_[i] = randomGenerator.next();
+        }
+    }
 
-	~RandomWeightedParallelUnionFind()
-	{
-		delete[] parents_;
-		delete[] rank_;
-	}
+    RandomWeightedParallelUnionFind(const RandomWeightedParallelUnionFind&) = delete;
+    RandomWeightedParallelUnionFind(RandomWeightedParallelUnionFind&&) = delete;
 
+    ~RandomWeightedParallelUnionFind()
+    {
+        delete[] parents_;
+        delete[] rank_;
+    }
 
+    RandomWeightedParallelUnionFind& operator=(const RandomWeightedParallelUnionFind&) = delete;
+    RandomWeightedParallelUnionFind& operator=(RandomWeightedParallelUnionFind&&) = delete;
 
-	size_t			size() const
-	{
-		return(size_);
-	}
+    [[nodiscard]] size_t size() const override { return (size_); }
 
-	size_t find(size_t	i)
-	{
-		size_t id = i;
-		size_t initialParent = parents_[i];
+    [[nodiscard]] size_t find(size_t i) override
+    {
+        size_t id = i;
+        size_t initialParent = parents_[i];
 
-		while (parents_[id] != id)
-		{
-			id = parents_[id];
-		}
+        while (parents_[id] != id)
+        {
+            id = parents_[id];
+        }
 
-		parents_[i].compare_exchange_strong(initialParent, id,std::memory_order_relaxed);
+        parents_[i].compare_exchange_strong(initialParent, id, std::memory_order_relaxed);
 
-		return(id);
-	}
+        return (id);
+    }
 
-	void unite(size_t i, size_t j)
-	{
-		//	The while loop is to handle failures of the CAS operation that updates the parent.
+    void unite(size_t i, size_t j) override
+    {
+        //	The while loop is to handle failures of the CAS operation that updates the parent.
 
-		while (true)
-		{
-			size_t iid = find(i);
-			size_t jid = find(j);
+        while (true)
+        {
+            size_t iid = find(i);
+            size_t jid = find(j);
 
-			if (iid == jid) // no need to merge the same tree with itself
-			{
-				return;
-			}
+            if (iid == jid)  // no need to merge the same tree with itself
+            {
+                return;
+            }
 
-			//	Balance based on the random values
+            //	Balance based on the random values
 
-			if (rank_[iid] < rank_[jid])
-			{
-				if (parents_[jid].compare_exchange_strong(j, iid, std::memory_order_relaxed))
-				{
-					return;
-				}
-			}
-			else
-			{
-				if (parents_[iid].compare_exchange_strong(i, jid, std::memory_order_relaxed))
-				{
-					return;
-				}
-			}
-		}
-	}
+            if (rank_[iid] < rank_[jid])
+            {
+                if (parents_[jid].compare_exchange_strong(j, iid, std::memory_order_relaxed))
+                {
+                    return;
+                }
+            }
+            else
+            {
+                if (parents_[iid].compare_exchange_strong(i, jid, std::memory_order_relaxed))
+                {
+                    return;
+                }
+            }
+        }
+    }
 
+   private:
+    size_t size_;
 
-private:
-
-	size_t							size_;
-
-	std::atomic<size_t>*			parents_;
-	size_t*							rank_;
+    std::atomic<size_t>* parents_;
+    size_t* rank_;
 };
-
-
-
-
 
 class RandomWeightedParallelUnionFind1 : public IUnionFind
 {
-public:
+   public:
+    explicit RandomWeightedParallelUnionFind1(size_t N) : size_(N)
+    {
+        parents_ = new std::atomic<size_t>[size_];
+        rank_ = new size_t[size_];
 
-	RandomWeightedParallelUnionFind1(size_t   N)
-		: size_(N)
-	{
-		parents_ = new std::atomic<size_t>[size_];
-		rank_ = new size_t[size_];
+        //	The choice of Xororshiro256+ here is all about speed.  We absolutely do not
+        //		need the statistical purity it provides - we just need random values to
+        //		determine the ranking of entries.
 
-		//	The choice of Xororshiro256+ here is all about speed.  We absolutely do not
-		//		need the statistical purity it provides - we just need random values to
-		//		determine the ranking of entries.
+        Xoroshiro256Plus randomGenerator(N);
 
-		Xoroshiro256Plus		randomGenerator(N);
+        //	Make each element it's own parent to start.  We can use the relaxed memory ordering here
+        //		as there should not be any memory read issues - we are just storing values.
 
-		//	Make each element it's own parent to start.  We can use the relaxed memory ordering here
-		//		as there should not be any memory read issues - we are just storing values.
+        for (size_t i = 0; i < size_; i++)
+        {
+            parents_[i] = i;
+            rank_[i] = randomGenerator.next();
+        }
+    }
 
-		for (size_t i = 0; i < size_; i++)
-		{
-			parents_[i] = i;
-			rank_[i] = randomGenerator.next();
-		}
-	}
+    ~RandomWeightedParallelUnionFind1()
+    {
+        delete[] parents_;
+        delete[] rank_;
+    }
 
-	~RandomWeightedParallelUnionFind1()
-	{
-		delete[] parents_;
-		delete[] rank_;
-	}
+    [[nodiscard]] size_t size() const override { return (size_); }
 
+    [[nodiscard]] size_t find(size_t i) override
+    {
+        size_t id = i;
 
+        while (true)
+        {
+            size_t parent = parents_[id];
+            size_t grandParent = parents_[parent];
 
-	size_t			size() const
-	{
-		return(size_);
-	}
+            if (id == parent)
+            {
+                return (parent);
+            }
 
-	size_t find(size_t	i)
-	{
-		size_t id = i;
+            parents_[id] = grandParent;
+            id = parent;
+        }
+    }
 
-		while (true)
-		{
-			size_t parent = parents_[id];
-			size_t grandParent = parents_[parent];
+    void unite(size_t i, size_t j) override
+    {
+        //	The while loop is to handle failures of the CAS operation that updates the parent.
 
-			if (id == parent)
-			{
-				return(parent);
-			}
+        while (true)
+        {
+            std::pair<size_t, size_t> iid = findUnoptimized(i);
+            std::pair<size_t, size_t> jid = findUnoptimized(j);
 
-			parents_[id] = grandParent;
-			id = parent;
-		}
-	}
+            if (iid.first == jid.first)
+            {
+                return;
+            }
 
-	void unite(size_t i, size_t j)
-	{
-		//	The while loop is to handle failures of the CAS operation that updates the parent.
+            //	Balance based on the random values
 
-		while (true)
-		{
-			std::pair<size_t, size_t>	iid = findUnoptimized(i);
-			std::pair<size_t, size_t>	jid = findUnoptimized(j);
+            if (rank_[iid.first] < rank_[jid.first])
+            {
+                parents_[i].compare_exchange_weak(iid.second, iid.first, std::memory_order_relaxed);
+                parents_[j].compare_exchange_weak(jid.second, jid.first, std::memory_order_relaxed);
 
-			if( iid.first == jid.first )
-			{
-				return;
-			}
+                if (parents_[jid.first].compare_exchange_strong(j, iid.first, std::memory_order_relaxed))
+                {
+                    return;
+                }
+            }
+            else
+            {
+                parents_[i].compare_exchange_weak(iid.second, iid.first, std::memory_order_relaxed);
+                parents_[j].compare_exchange_weak(jid.second, jid.first, std::memory_order_relaxed);
 
-			//	Balance based on the random values
+                if (parents_[iid.first].compare_exchange_strong(i, jid.first, std::memory_order_relaxed))
+                {
+                    return;
+                }
+            }
+        }
+    }
 
-			if (rank_[iid.first] < rank_[jid.first])
-			{
-				parents_[i].compare_exchange_weak(iid.second, iid.first, std::memory_order_relaxed);
-				parents_[j].compare_exchange_weak(jid.second, jid.first, std::memory_order_relaxed);
+   private:
+    size_t size_;
 
-				if (parents_[jid.first].compare_exchange_strong(j, iid.first, std::memory_order_relaxed))
-				{
-					return;
-				}
-			}
-			else
-			{
-				parents_[i].compare_exchange_weak(iid.second, iid.first, std::memory_order_relaxed);
-				parents_[j].compare_exchange_weak(jid.second, jid.first, std::memory_order_relaxed);
+    std::atomic<size_t>* parents_;
+    size_t* rank_;
 
-				if (parents_[iid.first].compare_exchange_strong(i, jid.first, std::memory_order_relaxed))
-				{
-					return;
-				}
-			}
-		}
-	}
+    inline std::pair<size_t, size_t> findUnoptimized(size_t i)
+    {
+        size_t id = i;
+        size_t initialParent = parents_[i];
 
+        while (parents_[id] != id)
+        {
+            id = parents_[id];
+        }
 
-
-private:
-
-	size_t							size_;
-
-	std::atomic<size_t>*			parents_;
-	size_t*							rank_;
-
-	inline
-	std::pair<size_t, size_t> findUnoptimized(size_t	i)
-	{
-		size_t id = i;
-		size_t initialParent = parents_[i];
-
-		while (parents_[id] != id)
-		{
-			id = parents_[id];
-		}
-
-		return(std::make_pair(id, initialParent));
-	}
-
+        return (std::make_pair(id, initialParent));
+    }
 };

@@ -41,12 +41,14 @@ namespace Cork::Primitives
         {
         }
 
+        ~SelfIntersectingEdge() = default;
+
         SelfIntersectingEdge& operator=(const SelfIntersectingEdge&) = default;
         SelfIntersectingEdge& operator=(SelfIntersectingEdge&&) = default;
 
-        TriangleByIndicesIndex edge_triangle_id() const { return edge_triangle_id_; }
-        TriangleEdgeId edge_index() const { return edge_index_; }
-        TriangleByIndicesIndex triangle_instersected_id() const { return triangle_instersected_id_; }
+        [[nodiscard]] TriangleByIndicesIndex edge_triangle_id() const { return edge_triangle_id_; }
+        [[nodiscard]] TriangleEdgeId edge_index() const { return edge_index_; }
+        [[nodiscard]] TriangleByIndicesIndex triangle_instersected_id() const { return triangle_instersected_id_; }
 
        private:
         TriangleByIndicesIndex edge_triangle_id_;

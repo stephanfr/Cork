@@ -38,7 +38,7 @@ namespace Cork::Statistics
         explicit GeometricStatisticsEngine(const Meshes::MeshBase& triangle_mesh,
                                            GeometricProperties propertiesToCompute = GeometricProperties::GEOM_ALL);
 
-        GeometricStatistics statistics() const
+        [[nodiscard]] GeometricStatistics statistics() const
         {
             return GeometricStatistics(num_triangles_, num_vertices_, area_, volume_, min_edge_length_,
                                        max_edge_length_, bounding_box_);
@@ -72,9 +72,15 @@ namespace Cork::Statistics
     class TopologicalStatisticsEngine
     {
        public:
-        TopologicalStatisticsEngine(const Cork::Meshes::MeshBase& triangle_mesh);
+        explicit TopologicalStatisticsEngine(const Cork::Meshes::MeshBase& triangle_mesh);
+
+        TopologicalStatisticsEngine(const TopologicalStatisticsEngine&) = delete;
+        TopologicalStatisticsEngine(TopologicalStatisticsEngine&&) = delete;
 
         ~TopologicalStatisticsEngine() = default;
+
+        TopologicalStatisticsEngine& operator=(const TopologicalStatisticsEngine&) = delete;
+        TopologicalStatisticsEngine& operator=(TopologicalStatisticsEngine&&) = delete;
 
         TopologicalStatisticsEngineAnalyzeResult Analyze(TopologicalProperties props_to_compute) const;
 

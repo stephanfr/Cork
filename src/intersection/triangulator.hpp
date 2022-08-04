@@ -42,7 +42,7 @@ namespace Cork::Triangulator
     {
        public:
         Point() = delete;
-        Point(const Vertex2D& vertex) : x_(vertex.x()), y_(vertex.y()) {}
+        explicit Point(const Vertex2D& vertex) : x_(vertex.x()), y_(vertex.y()) {}
         Point(double x, double y) : x_(x), y_(y) {}
 
         [[nodiscard]] double x() const { return x_; }

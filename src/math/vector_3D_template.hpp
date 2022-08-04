@@ -36,9 +36,8 @@
 #include <iostream>
 
 #include "cork_defs.hpp"
-#include "vector_2D_template.hpp"
 #include "Xoshiro256Plus.h"
-
+#include "vector_2D_template.hpp"
 
 namespace Cork::Math
 {
@@ -48,7 +47,7 @@ namespace Cork::Math
        protected:  // names
         union
         {
-            std::array<N,4> v_;
+            std::array<N, 4> v_;
 
             struct
             {
@@ -66,7 +65,8 @@ namespace Cork::Math
         inline static SEFUtility::RNG::Xoshiro256Plus<SIMD> random_generator_ =
             SEFUtility::RNG::Xoshiro256Plus<SIMD>(1);
 
-        template<typename T, SIMDInstructionSet SIMDT> friend class BBox3DTemplate;
+        template <typename T, SIMDInstructionSet SIMDT>
+        friend class BBox3DTemplate;
 
        public:
         //	Constructors
@@ -85,13 +85,13 @@ namespace Cork::Math
             __CHECK_ALIGNMENT__(ymm_);
         }
 
-        Vector3DTemplate(const std::array<float, 3> &threeTuple)
+        explicit Vector3DTemplate(const std::array<float, 3> &threeTuple)
             : x_((N)threeTuple[0]), y_((N)threeTuple[1]), z_((N)threeTuple[2]), spare_(0.0)
         {
             __CHECK_ALIGNMENT__(ymm_);
         }
 
-        Vector3DTemplate(const std::array<double, 3> &threeTuple)
+        explicit Vector3DTemplate(const std::array<double, 3> &threeTuple)
             : x_((N)threeTuple[0]), y_((N)threeTuple[1]), z_((N)threeTuple[2]), spare_(0.0)
         {
             __CHECK_ALIGNMENT__(ymm_);

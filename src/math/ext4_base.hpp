@@ -27,7 +27,7 @@ namespace Cork::Math::ExteriorCalculusR4
     namespace Constants
     {
         constexpr double DOUBLE_ONE = 1.0;
-    }   // Constants
+    }  // namespace Constants
 
     namespace Bases
     {
@@ -35,7 +35,7 @@ namespace Cork::Math::ExteriorCalculusR4
         class Ext4_1Base
         {
            public:
-            ~Ext4_1Base() = default;
+            virtual ~Ext4_1Base() = default;
 
             [[nodiscard]] T e0() const { return e0_; }
             [[nodiscard]] T e1() const { return e1_; }
@@ -78,7 +78,8 @@ namespace Cork::Math::ExteriorCalculusR4
            protected:
             Ext4_1Base() = default;
 
-            Ext4_1Base(T e0, T e1, T e2, T e3) : e0_(e0), e1_(e1), e2_(e2), e3_(e3){};
+            Ext4_1Base(T e0, T e1, T e2, T e3)
+                : e0_(std::move(e0)), e1_(std::move(e1)), e2_(std::move(e2)), e3_(std::move(e3)){};
 
             explicit Ext4_1Base(const std::array<T, 4> &array_to_copy)
                 : e0_(array_to_copy[0]), e1_(array_to_copy[1]), e2_(array_to_copy[2]), e3_(array_to_copy[3])
@@ -104,8 +105,7 @@ namespace Cork::Math::ExteriorCalculusR4
         class Ext4_2Base
         {
            public:
-
-            ~Ext4_2Base() = default;
+            virtual ~Ext4_2Base() = default;
 
             //  Operators
 
@@ -180,8 +180,7 @@ namespace Cork::Math::ExteriorCalculusR4
         class Ext4_3Base
         {
            public:
-
-            ~Ext4_3Base() = default;
+            virtual ~Ext4_3Base() = default;
 
             //  Accessors
 

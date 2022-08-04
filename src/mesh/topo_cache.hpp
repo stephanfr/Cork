@@ -409,37 +409,19 @@ namespace Cork::Meshes
 
         void clear_triangle_problem_association() { associated_triangle_problem_.reset(); }
 
-#ifndef __AVX_AVAILABLE__
-        //	Without SSE, the min/max computations as slow enough that caching the computed value is most efficient
-
-        const BBox3D& boundingBox() const
+        const BBox3D& bounding_box() const
         {
-            if (m_boundingBox.has_value())
+            if (!bounding_box_.has_value())
             {
-                return (m_boundingBox.value());
+                const Vector3D& p0 = vertices_[0]->quantized_value();
+                const Vector3D& p1 = vertices_[1]->quantized_value();
+                const Vector3D& p2 = vertices_[2]->quantized_value();
+
+                const_cast<std::optional<BBox3D>&>(bounding_box_).emplace(p0.min(p1, p2), p0.max(p1, p2));
             }
 
-            const Vector3D& p0 = m_verts[0]->quantizedValue();
-            const Vector3D& p1 = m_verts[1]->quantizedValue();
-            const Vector3D& p2 = m_verts[2]->quantizedValue();
-
-            const_cast<std::optional<BBox3D>&>(m_boundingBox).emplace(p0.min(p1, p2), p0.max(p1, p2));
-
-            return (m_boundingBox.value());
+            return bounding_box_.value();
         }
-#else
-        //	With SSE, the min/max functions and bounding box computation is quick enough that computing the
-        //		value every time is actually most efficient.
-
-        const BBox3D bounding_box() const
-        {
-            const Vector3D& p0 = vertices_[0]->quantized_value();
-            const Vector3D& p1 = vertices_[1]->quantized_value();
-            const Vector3D& p2 = vertices_[2]->quantized_value();
-
-            return (BBox3D(p0.min(p1, p2), p0.max(p1, p2)));
-        }
-#endif
 
         const NUMERIC_PRECISION minimum_edge_length() const
         {
@@ -471,9 +453,7 @@ namespace Cork::Meshes
             vertices_[1]->add_triangle(this);
             vertices_[2]->add_triangle(this);
 
-#ifndef __AVX_AVAILABLE__
-            m_boundingBox.reset();
-#endif
+            bounding_box_.reset();
         }
 
         const std::array<TopoVert*, 3>& verts() const { return (vertices_); }
@@ -616,9 +596,7 @@ namespace Cork::Meshes
         std::array<TopoVert*, 3> vertices_;  // vertices of this triangle
         std::array<TopoEdge*, 3> edges_;     // edges of this triangle opposite to the given vertex
 
-#ifndef __AVX_AVAILABLE__
-        std::optional<BBox3D> m_boundingBox;
-#endif
+        std::optional<BBox3D> bounding_box_;
     };
 
     typedef ManagedIntrusiveValueList<TopoTri, TriangleByIndicesIndex> TopoTriList;

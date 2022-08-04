@@ -29,9 +29,9 @@
 #include <optional>
 #include <vector>
 
+#include "boundary_edge_builder.hpp"
 #include "cork.hpp"
 #include "math/quantization.hpp"
-#include "boundary_edge_builder.hpp"
 #include "topo_cache.hpp"
 #include "triangle_remapper.hpp"
 #include "writeable_interfaces.hpp"
@@ -40,29 +40,26 @@ namespace Cork::Meshes
 {
     class HoleClosingSolution
     {
-        public :
+       public:
+        HoleClosingSolution(TriangleByIndicesVector&& triangles_to_add, VertexIndexVector&& vertices_added)
+            : triangles_to_add_(triangles_to_add), vertices_added_(vertices_added)
+        {
+        }
 
-        HoleClosingSolution( TriangleByIndicesVector&&     triangles_to_add,
-            VertexIndexVector&&           vertices_added )
-            : triangles_to_add_(triangles_to_add),
-              vertices_added_( vertices_added )
-              {}
-
-            TriangleByIndicesVector     triangles_to_add_;
-            VertexIndexVector           vertices_added_;
+        TriangleByIndicesVector triangles_to_add_;
+        VertexIndexVector vertices_added_;
     };
 
     using FindEnclosingTrianglesResult =
         SEFUtility::ResultWithReturnUniquePtr<FindEnclosingTrianglesResultCodes, TriangleByIndicesIndexSet>;
 
     using GetHoleClosingTrianglesResult =
-            SEFUtility::ResultWithReturnValue<HoleClosingResultCodes, HoleClosingSolution>;
-
+        SEFUtility::ResultWithReturnValue<HoleClosingResultCodes, HoleClosingSolution>;
 
     class MeshBase : public WriteableMesh
     {
        public:
-        MeshBase(MeshBase&& mesh_base_to_move);
+        MeshBase(MeshBase&& mesh_base_to_move) noexcept;
 
         MeshBase(size_t num_vertices, size_t num_triangles);
 
@@ -70,26 +67,26 @@ namespace Cork::Meshes
 
         void clear();
 
-        MeshBase clone() const;
+        [[nodiscard]] MeshBase clone() const;
 
         MeshBase& operator=(const MeshBase&) = delete;
 
-        size_t num_triangles() const { return tris_->size(); }
-        size_t num_vertices() const { return verts_->size(); }
+        [[nodiscard]] size_t num_triangles() const { return tris_->size(); }
+        [[nodiscard]] size_t num_vertices() const { return verts_->size(); }
 
-        TriangleByIndicesVector& triangles() { return (*tris_); }
+        [[nodiscard]] TriangleByIndicesVector& triangles() { return (*tris_); }
 
-        const TriangleByIndicesVector& triangles() const { return (*tris_); }
+        [[nodiscard]] const TriangleByIndicesVector& triangles() const { return (*tris_); }
 
-        Vertex3DVector& vertices() { return (*verts_); }
+        [[nodiscard]] Vertex3DVector& vertices() { return (*verts_); }
 
-        const Vertex3DVector& vertices() const { return (*verts_); }
+        [[nodiscard]] const Vertex3DVector& vertices() const { return (*verts_); }
 
-        const BBox3D& bounding_box() const { return bounding_box_; }
+        [[nodiscard]] const BBox3D& bounding_box() const { return bounding_box_; }
 
-        MinAndMaxEdgeLengths min_and_max_edge_lengths() const { return min_and_max_edge_lengths_; }
+        [[nodiscard]] MinAndMaxEdgeLengths min_and_max_edge_lengths() const { return min_and_max_edge_lengths_; }
 
-        double max_vertex_magnitude() const { return max_vertex_magnitude_; }
+        [[nodiscard]] double max_vertex_magnitude() const { return max_vertex_magnitude_; }
 
         [[nodiscard]] TriangleByVertices triangle_by_vertices(const TriangleByIndices& triangle_by_indices) const
         {
@@ -147,21 +144,21 @@ namespace Cork::Meshes
 
         void clear_topo_cache() { topo_cache_.reset(); }
 
-        ExtractBoundariesResult get_boundary_edge(const TriangleByIndicesIndexSet& tris_to_outline) const;
-        ExtractBoundariesResult get_boundary_edge(const TriangleByIndicesIndexVector& tris_to_outline) const;
+        [[nodiscard]] ExtractBoundariesResult get_boundary_edge(const TriangleByIndicesIndexSet& tris_to_outline) const;
+        [[nodiscard]] ExtractBoundariesResult get_boundary_edge(
+            const TriangleByIndicesIndexVector& tris_to_outline) const;
 
+        [[nodiscard]] FindEnclosingTrianglesResult find_enclosing_triangles(
+            const TriangleByIndicesIndexVector& triangles, uint32_t num_layers) const;
 
-        FindEnclosingTrianglesResult find_enclosing_triangles(const TriangleByIndicesIndexVector& triangles,
-                                                              uint32_t num_layers) const;
+        [[nodiscard]] FindEnclosingTrianglesResult find_enclosing_triangles(
+            const TriangleByIndicesIndexSet& interior_triangles, uint32_t num_layers) const;
 
-        FindEnclosingTrianglesResult find_enclosing_triangles(const TriangleByIndicesIndexSet& interior_triangles,
-                                                              uint32_t num_layers) const;
+        [[nodiscard]] FindEnclosingTrianglesResult find_enclosing_triangles(
+            const BoundaryEdge& boundary, const TriangleByIndicesIndexSet& interior_triangles,
+            uint32_t num_layers) const;
 
-        FindEnclosingTrianglesResult find_enclosing_triangles(const BoundaryEdge& boundary,
-                                                              const TriangleByIndicesIndexSet& interior_triangles,
-                                                              uint32_t num_layers) const;
-
-        TriangleByIndicesIndexSet find_triangles_including_vertex(VertexIndex vertex_index)
+        [[nodiscard]] TriangleByIndicesIndexSet find_triangles_including_vertex(VertexIndex vertex_index)
         {
             TriangleByIndicesIndexSet triangles_including_vertex;
 
@@ -173,18 +170,20 @@ namespace Cork::Meshes
             return (triangles_including_vertex);
         }
 
-        std::optional<TriangleByIndicesIndex> tri_containing_all_three_vertices(VertexIndex vert1, VertexIndex vert2,
-                                                                                VertexIndex vert3) const;
+        [[nodiscard]] std::optional<TriangleByIndicesIndex> tri_containing_all_three_vertices(VertexIndex vert1,
+                                                                                              VertexIndex vert2,
+                                                                                              VertexIndex vert3) const;
 
-        std::unique_ptr<MeshBase> extract_surface(TriangleRemapper& remapper,
-                                                  TriangleByIndicesIndex center_triangle, uint32_t num_rings) const;
+        [[nodiscard]] std::unique_ptr<MeshBase> extract_surface(TriangleRemapper& remapper,
+                                                                TriangleByIndicesIndex center_triangle,
+                                                                uint32_t num_rings) const;
 
-        std::unique_ptr<MeshBase> extract_surface(TriangleRemapper& remapper,
-                                                  const TriangleByIndicesVector& tris_to_extract) const;
-        std::unique_ptr<MeshBase> extract_surface(TriangleRemapper& remapper,
-                                                  const TriangleByIndicesIndexSet& tris_to_extract) const;
+        [[nodiscard]] std::unique_ptr<MeshBase> extract_surface(TriangleRemapper& remapper,
+                                                                const TriangleByIndicesVector& tris_to_extract) const;
+        [[nodiscard]] std::unique_ptr<MeshBase> extract_surface(TriangleRemapper& remapper,
+                                                                const TriangleByIndicesIndexSet& tris_to_extract) const;
 
-        GetHoleClosingTrianglesResult close_hole(const BoundaryEdge& hole);
+        [[nodiscard]] GetHoleClosingTrianglesResult close_hole(const BoundaryEdge& hole);
 
         void compact();
 
@@ -218,7 +217,7 @@ namespace Cork::Meshes
        private:
         MeshBase() = default;
 
-        MeshBase&   operator=( MeshBase&& ) = default;
+        MeshBase& operator=(MeshBase&&) = default;
 
         MeshBase(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>& vertices,
                  const Primitives::BBox3D& boundingBox, const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths,

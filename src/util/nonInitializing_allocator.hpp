@@ -19,11 +19,14 @@
 
 #pragma once
 
+#include <memory>
 
 template <class T>
 class no_init_alloc : public std::allocator<T>
 {
-public:
-    template <class U, class... Args> void construct(U*, Args&&...) {}
+   public:
+    template <class U, class... Args>
+    void construct(U*, Args&&...)
+    {
+    }  //  NOLINT(readability-named-parameter)
 };
-

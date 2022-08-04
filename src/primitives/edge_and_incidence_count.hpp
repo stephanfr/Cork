@@ -19,35 +19,35 @@
 
 #pragma once
 
-#include "../constants.hpp"
-
-#include <unordered_set>
 #include <boost/container/small_vector.hpp>
+#include <unordered_set>
 
+#include "../constants.hpp"
 #include "primitives.hpp"
-
 
 namespace Cork::Meshes
 {
-    using EdgeAndIncidenceCountTriangleVector = boost::container::small_vector<std::pair<TriangleByIndicesIndex, TriangleEdgeId>, EDGE_AND_INCIDENCE_COUNT_NUM_TRIANGLEs_INITIAL_SIZE>;
+    using EdgeAndIncidenceCountTriangleVector =
+        boost::container::small_vector<std::pair<TriangleByIndicesIndex, TriangleEdgeId>,
+                                       EDGE_AND_INCIDENCE_COUNT_NUM_TRIANGLEs_INITIAL_SIZE>;
 
     class EdgeAndIncidenceCount : public Primitives::EdgeByIndices
     {
        public:
         EdgeAndIncidenceCount() = delete;
 
-        EdgeAndIncidenceCount( const EdgeAndIncidenceCount& ) = delete;
-        EdgeAndIncidenceCount( EdgeAndIncidenceCount&& ) = delete;
+        EdgeAndIncidenceCount(const EdgeAndIncidenceCount&) = delete;
+        EdgeAndIncidenceCount(EdgeAndIncidenceCount&&) = delete;
 
         EdgeAndIncidenceCount(const Primitives::VertexIndex a, const Primitives::VertexIndex b)
             : Primitives::EdgeByIndices(a, b), num_incidences_(0)
         {
         }
 
-        virtual ~EdgeAndIncidenceCount() = default;
+        ~EdgeAndIncidenceCount() override = default;
 
-        EdgeAndIncidenceCount& operator=( const EdgeAndIncidenceCount& ) = delete;
-        EdgeAndIncidenceCount& operator=( EdgeAndIncidenceCount&& ) = delete;
+        EdgeAndIncidenceCount& operator=(const EdgeAndIncidenceCount&) = delete;
+        EdgeAndIncidenceCount& operator=(EdgeAndIncidenceCount&&) = delete;
 
         int add_incidence(TriangleByIndicesIndex tri_index, TriangleEdgeId edge_id)
         {
@@ -57,10 +57,7 @@ namespace Cork::Meshes
 
         [[nodiscard]] int numIncidences() const { return (num_incidences_); }
 
-        [[nodiscard]] const EdgeAndIncidenceCountTriangleVector& triangles() const
-        {
-            return triangles_;
-        }
+        [[nodiscard]] const EdgeAndIncidenceCountTriangleVector& triangles() const { return triangles_; }
 
        private:
         int num_incidences_;
@@ -69,4 +66,4 @@ namespace Cork::Meshes
 
     using EdgeIncidenceSet = std::unordered_set<EdgeAndIncidenceCount, EdgeAndIncidenceCount::HashFunction>;
 
-}   //  namespace Cork::Meshes
+}  //  namespace Cork::Meshes

@@ -24,18 +24,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-
 #pragma once
-
 
 namespace SEFUtility
 {
-	class Resettable
-	{
-	public:
-
-		virtual void		reset() = 0;
-	};
-}
-
-
+    class Resettable
+    {
+       public:
+        virtual void reset() = 0;
+    };
+}  // namespace SEFUtility

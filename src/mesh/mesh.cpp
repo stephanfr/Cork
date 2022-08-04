@@ -32,9 +32,9 @@
 
 #include "intersection/intersection_problem.hpp"
 #include "intersection/unsafe_ray_triangle_intersection.hpp"
+#include "tbb/parallel_for.h"
 #include "topo_cache.hpp"
 #include "triangle_mesh_builder.hpp"
-#include "tbb/parallel_for.h"
 #include "util/thread_pool.hpp"
 #include "util/union_find.hpp"
 
@@ -268,7 +268,7 @@ namespace Cork::Meshes
         }
 
         VertexIndex old_vsize{verts_->size()};
-        VertexIndex current_problem_vsize{ meshToMerge.verts_->size() };
+        VertexIndex current_problem_vsize{meshToMerge.verts_->size()};
         VertexIndex new_vsize{old_vsize + current_problem_vsize};
 
         TriangleByIndicesIndex old_tsize{tris_->size()};
@@ -295,8 +295,6 @@ namespace Cork::Meshes
 
     Mesh::SetupBooleanProblemResult Mesh::SetupBooleanProblem(const Mesh& rhs)
     {
-        auto intersectionBBox = bounding_box_.intersection(rhs.bounding_box());
-
         //	Form the disjoint union of this mesh and the second operand mesh
 
         DisjointUnion(rhs);
@@ -522,7 +520,7 @@ namespace Cork::Meshes
 
                     if (uq_ids[ufid] != int64_t(-1))
                     {
-                        goto retry;        //  NOLINT
+                        goto retry;  //  NOLINT
                     }
 
                     size_t N = components->size();
@@ -627,7 +625,7 @@ namespace Cork::Meshes
 
         // begin by tagging the first triangle
 
-        (*tris_)[best_tid].set_bool_alg_data((*tris_)[best_tid].bool_alg_data() | (inside ? 2 : 0));
+        (*tris_)[best_tid].set_bool_alg_data((*tris_)[best_tid].bool_alg_data() | (inside ? 2UL : 0UL));
         visited[best_tid] = true;
         work.push_back(best_tid);
 
@@ -643,11 +641,11 @@ namespace Cork::Meshes
 
                 const auto& entry = ecache[a][b];
 
-                uint32_t inside_sig = (*tris_)[curr_tid].bool_alg_data() & 2;
+                uint32_t inside_sig = (*tris_)[curr_tid].bool_alg_data() & 2UL;
 
                 if (entry.intersects())
                 {
-                    inside_sig ^= 2;
+                    inside_sig ^= 2UL;
                 }
 
                 for (TriangleByIndicesIndex tid : entry.tids())
@@ -657,7 +655,7 @@ namespace Cork::Meshes
                         continue;
                     }
 
-                    if (((*tris_)[tid].bool_alg_data() & 1) != operand)
+                    if (((*tris_)[tid].bool_alg_data() & 1UL) != operand)
                     {
                         continue;
                     }
@@ -787,14 +785,14 @@ namespace Cork::Meshes
         }
 
         resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
-            if ((data & 2) == 2)  // part of op 0/1 INSIDE op 1/0
+            if ((data & 2UL) == 2UL)  // part of op 0/1 INSIDE op 1/0
             {
                 return TriCode::DELETE_TRI;
             }
-            else  // part of op 0/1 OUTSIDE op 1/0
-            {
-                return TriCode::KEEP_TRI;
-            }
+
+            // part of op 0/1 OUTSIDE op 1/0
+
+            return TriCode::KEEP_TRI;
         });
 
         //	Collect the ending statistics
@@ -804,8 +802,7 @@ namespace Cork::Meshes
                                                                             elapsedTime.elapsed().user);
         resultMesh->performance_stats_.set_elapsed_wall_time_in_nano_seconds(elapsedTime.elapsed().wall);
 
-        resultMesh->performance_stats_.set_number_of_triangles_in_final_mesh(
-            (uint64_t)resultMesh->triangles().size());
+        resultMesh->performance_stats_.set_number_of_triangles_in_final_mesh((uint64_t)resultMesh->triangles().size());
         //		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
 
         //	Finished with success
@@ -863,8 +860,7 @@ namespace Cork::Meshes
                                                                             elapsedTime.elapsed().user);
         resultMesh->performance_stats_.set_elapsed_wall_time_in_nano_seconds(elapsedTime.elapsed().wall);
 
-        resultMesh->performance_stats_.set_number_of_triangles_in_final_mesh(
-            (uint64_t)resultMesh->triangles().size());
+        resultMesh->performance_stats_.set_number_of_triangles_in_final_mesh((uint64_t)resultMesh->triangles().size());
         //		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
 
         //	Finished with success
@@ -903,7 +899,7 @@ namespace Cork::Meshes
         //	Don't let the returns below confuse you - the code is a lambda
 
         resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
-            if ((data & 2) == 0)  // part of op 0/1 OUTSIDE op 1/0
+            if ((data & 2UL) == 0UL)  // part of op 0/1 OUTSIDE op 1/0
             {
                 return (TriCode::DELETE_TRI);
             }
@@ -920,8 +916,7 @@ namespace Cork::Meshes
                                                                             elapsedTime.elapsed().user);
         resultMesh->performance_stats_.set_elapsed_wall_time_in_nano_seconds(elapsedTime.elapsed().wall);
 
-        resultMesh->performance_stats_.set_number_of_triangles_in_final_mesh(
-            (uint64_t)resultMesh->triangles().size());
+        resultMesh->performance_stats_.set_number_of_triangles_in_final_mesh((uint64_t)resultMesh->triangles().size());
         //		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
 
         //	Finished with success
@@ -958,11 +953,11 @@ namespace Cork::Meshes
         //	Don't let the returns below confuse you - the code is a lambda
 
         resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
-            if ((data & 2) == 0)  // part of op 0/1 OUTSIDE op 1/0
+            if ((data & 2UL) == 0UL)  // part of op 0/1 OUTSIDE op 1/0
             {
                 return (TriCode::KEEP_TRI);
             }
-            else if ((data & 2) == 2)
+            else if ((data & 2UL) == 2UL)
             {
                 return (TriCode::DELETE_TRI);
             }
@@ -979,8 +974,7 @@ namespace Cork::Meshes
                                                                             elapsedTime.elapsed().user);
         resultMesh->performance_stats_.set_elapsed_wall_time_in_nano_seconds(elapsedTime.elapsed().wall);
 
-        resultMesh->performance_stats_.set_number_of_triangles_in_final_mesh(
-            (uint64_t)resultMesh->triangles().size());
+        resultMesh->performance_stats_.set_number_of_triangles_in_final_mesh((uint64_t)resultMesh->triangles().size());
         //		resultMesh->m_performanceStats.setEndingVirtualMemorySizeInMB( GetConsumedVirtualMemory() );
 
         //	Finished with success
@@ -1000,7 +994,9 @@ namespace Cork::Meshes
                                                      (NUMERIC_PRECISION)currentVertex.z()));
         }
 
-        for_raw_tris([&](TriangleUID uid, VertexIndex a, VertexIndex b, VertexIndex c) { triangleMeshBuilder->add_triangle(uid, a, b, c); });
+        for_raw_tris([&](TriangleUID uid, VertexIndex a, VertexIndex b, VertexIndex c) {
+            triangleMeshBuilder->add_triangle(uid, a, b, c);
+        });
 
         return (triangleMeshBuilder->mesh());
     }

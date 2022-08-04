@@ -81,7 +81,15 @@ namespace SEFUtility
         class CacheType : public std::deque<T1*>
         {
            public:
+            CacheType() = default;
+
+            CacheType(const CacheType&) = delete;
+            CacheType(CacheType&&) = delete;
+
             ~CacheType() { clear(); }
+
+            CacheType& operator=(const CacheType&) = delete;
+            CacheType& operator=(CacheType&&) = delete;
 
             void clear()
             {
