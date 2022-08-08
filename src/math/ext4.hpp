@@ -25,7 +25,6 @@
 // +-------------------------------------------------------------------------
 #pragma once
 
-#include <immintrin.h>
 
 #include "ext4_base.hpp"
 #include "vector_3D_template.hpp"
@@ -516,4 +515,4 @@ namespace Cork::Math::ExteriorCalculusR4
 
 }  // namespace Cork::Math::ExteriorCalculusR4
 
-//  NOLINTEND
+//  NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)

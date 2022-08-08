@@ -28,6 +28,7 @@
 
 #include <fmt/compile.h>
 #include <fmt/format-inl.h>
+
 #include <immintrin.h>
 
 #include <array>

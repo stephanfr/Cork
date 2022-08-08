@@ -1,6 +1,18 @@
 #pragma once
 
 #include <cstddef>
+#include <stdint.h>
+
+//
+//  Threading control
+//
+
+constexpr uint32_t MIN_TRIANGLES_FOR_MULTITHREADING = 50000;
+
+
+//
+//  Object pool initial sizes
+//
 
 constexpr size_t GLUE_POINT_MARKER_POOL_INITIAL_SIZE = 100000;
 constexpr size_t GENERIC_VERTEX_POOL_INITIAL_SIZE = 200000;

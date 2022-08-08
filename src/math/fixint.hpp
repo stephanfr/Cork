@@ -108,16 +108,16 @@ namespace Cork::Math::FixInt
     template <int N>
     inline std::string to_string(const LimbInt<N> &num)
     {
-        std::array<char, ((N * LIMB_BIT_SIZE * 3) / 10 + 3)> cbuf;
+        std::array<unsigned char, ((N * LIMB_BIT_SIZE * 3) / 10 + 3)> cbuf;
         LimbInt<N> garbage = num;
         bool neg = SIGN_BOOL(num.limbs, N);
 
         if (neg)
         {
-            mpn_neg(garbage.limbs, garbage.limbs, N);
+            mpn_neg(garbage.limbs.data(), garbage.limbs.data(), N);
         }
 
-        int count = mpn_get_str(reinterpret_cast<unsigned char *>(cbuf), 10, garbage.limbs, N);
+        int count = mpn_get_str(cbuf.data(), 10, garbage.limbs.data(), N);
 
         std::string result;
 
@@ -175,13 +175,13 @@ namespace Cork::Math::FixInt
     {
         assert(Nlhs == Nrhs);
 
-        return mpn_cmp(lhs.limbs, rhs.limbs, Nlhs) == 0;
+        return mpn_cmp(lhs.limbs.data(), rhs.limbs.data(), Nlhs) == 0;
     }
 
     template <int Nlhs>
     bool operator==(const LimbInt<Nlhs> &lhs, long rhs)
     {
-        return mpn_cmp(lhs.limbs, LimbInt<Nlhs>(rhs).limbs, Nlhs) == 0;
+        return mpn_cmp(lhs.limbs.data(), LimbInt<Nlhs>(rhs).limbs.data(), Nlhs) == 0;
     }
 
     template <int Nlhs, int Nrhs>
@@ -189,13 +189,13 @@ namespace Cork::Math::FixInt
     {
         assert(Nlhs == Nrhs);
 
-        return mpn_cmp(lhs.limbs, rhs.limbs, Nlhs) != 0;
+        return mpn_cmp(lhs.limbs.data(), rhs.limbs.data(), Nlhs) != 0;
     }
 
     template <int Nlhs>
     bool operator!=(const LimbInt<Nlhs> &lhs, long rhs)
     {
-        return mpn_cmp(lhs.limbs, LimbInt<Nlhs>(rhs).limbs, Nlhs) != 0;
+        return mpn_cmp(lhs.limbs.data(), LimbInt<Nlhs>(rhs).limbs.data(), Nlhs) != 0;
     }
 
     template <int Nout, int Nlhs, int Nrhs>
