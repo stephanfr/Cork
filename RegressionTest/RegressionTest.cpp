@@ -45,23 +45,26 @@ constexpr double NUM_NANOSECONDS_PER_SECOND = 1E09;
 
 //	Accumulator for geotopo metrics
 
-int num_successful_operations = 0;
-int num_failed_operations = 0;
+struct GeoTopoMetricsAccumulator
+{
+    int num_successful_operations = 0;
+    int num_failed_operations = 0;
+    int num_two_manifold_results = 0;
 
-int num_two_manifold_results = 0;
+    uint64_t total_num_vertices = 0;
+    uint64_t total_num_edges = 0;
+    uint64_t total_num_triangles = 0;
+};
 
-uint64_t total_num_vertices = 0;
-uint64_t total_num_edges = 0;
-uint64_t total_num_triangles = 0;
-
-void WriteMeshStatistics(const Cork::TriangleMesh& mesh, const std::string& filename, std::ofstream& geotopoResults)
+void WriteMeshStatistics(const Cork::TriangleMesh& mesh, GeoTopoMetricsAccumulator& metrics,
+                         const std::string& filename, std::ofstream& geotopoResults)
 {
     Cork::Statistics::GeometricStatistics stats =
         mesh.ComputeGeometricStatistics(Cork::Statistics::GeometricProperties::GEOM_ALL);
     Cork::Statistics::TopologicalStatisticsResult topo_stats =
         mesh.ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_BASE);
 
-    geotopoResults << filename << "\t" << ( topo_stats.return_value().is_two_manifold() ) << "\t";
+    geotopoResults << filename << "\t" << (topo_stats.return_value().is_two_manifold()) << "\t";
     geotopoResults << stats.num_vertices() << "\t" << topo_stats.return_value().num_edges() << "\t"
                    << stats.num_triangles() << "\t";
     geotopoResults << stats.area() << "\t" << stats.volume() << "\t";
@@ -71,22 +74,24 @@ void WriteMeshStatistics(const Cork::TriangleMesh& mesh, const std::string& file
     geotopoResults << stats.bounding_box().maxima().x() << "\t" << stats.bounding_box().maxima().y() << "\t"
                    << stats.bounding_box().maxima().z() << std::endl;
 
-    num_successful_operations++;
+    metrics.num_successful_operations++;
 
     if (topo_stats.return_value().non_manifold_edges().size() == 0)
     {
-        num_two_manifold_results++;
+        metrics.num_two_manifold_results++;
     }
 
-    total_num_vertices += stats.num_vertices();
-    total_num_edges += topo_stats.return_value().num_edges();
-    total_num_triangles += stats.num_triangles();
+    metrics.total_num_vertices += stats.num_vertices();
+    metrics.total_num_edges += topo_stats.return_value().num_edges();
+    metrics.total_num_triangles += stats.num_triangles();
 }
 
 //  NOLINTNEXTLINE
 int main(int argc, char* argv[])
 {
     Cork::CorkService cork_service;
+
+    GeoTopoMetricsAccumulator metrics;
 
     boost::program_options::options_description desc("Allowed options");
 
@@ -95,7 +100,8 @@ int main(int argc, char* argv[])
         "difference", "Compute Boolean Difference")("xor", "Compute Boolean Exclusive Or")(
         "input-directory", boost::program_options::value<std::string>(), "Directory containing input meshes")(
         "output-directory", boost::program_options::value<std::string>(), "Directory to receive output files")(
-        "write-results", "Write result meshes")("write-statistics", "Write Statistics");
+        "write-results", "Write result meshes")("write-statistics", "Write Statistics")(
+        "single-thread", "Run with only a single thread regardless of core count");
 
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -127,9 +133,11 @@ int main(int argc, char* argv[])
     bool write_results = vm.count("write-results") > 0;
     bool write_stats = vm.count("write-statistics") > 0;
 
+    bool single_thread = vm.count("single-thread") > 0;
+
     Cork::SolverControlBlock control_block = Cork::SolverControlBlock::get_default_control_block();
 
-    control_block.set_use_multiple_threads(true);
+    control_block.set_use_multiple_threads(!single_thread);
 
     std::filesystem::directory_iterator model_repository(
         std::filesystem::path(vm["input-directory"].as<std::string>()));
@@ -186,7 +194,12 @@ int main(int argc, char* argv[])
 
         cumulative_timing_results.open(cumulative_timing_results_file_path);
 
-        cumulative_timing_results << "Model Name" << "\t" << "Cumulative CPU Time" << "\t" << "Cumulative Wall Time" << std::endl << std::endl;
+        cumulative_timing_results << "Model Name"
+                                  << "\t"
+                                  << "Cumulative CPU Time"
+                                  << "\t"
+                                  << "Cumulative Wall Time" << std::endl
+                                  << std::endl;
 
         //	Open a file for collecting statistics on the results
 
@@ -223,8 +236,9 @@ int main(int argc, char* argv[])
 
         std::cout << "Read: " << current_model.filename().string() << std::endl;
 
-        Cork::Statistics::TopologicalStatisticsResult topo_stats = read_model_result.return_ptr()->ComputeTopologicalStatistics(
-            Cork::Statistics::TopologicalProperties::TOPO_ALL);
+        Cork::Statistics::TopologicalStatisticsResult topo_stats =
+            read_model_result.return_ptr()->ComputeTopologicalStatistics(
+                Cork::Statistics::TopologicalProperties::TOPO_ALL);
 
         if (topo_stats.succeeded())
         {
@@ -243,10 +257,14 @@ int main(int argc, char* argv[])
         {
             if (topo_stats.return_value().self_intersecting_edges().size() != 0)
             {
-                auto resolve_sis_results = read_model_result.return_ptr()->remove_self_intersections(topo_stats.return_value());
+                auto resolve_sis_results =
+                    read_model_result.return_ptr()->remove_self_intersections(topo_stats.return_value());
 
-                std::cout << "Num SIs resolved: " << resolve_sis_results.num_self_intersections_resolved() << "  Num Abandoned: " << resolve_sis_results.num_self_intersections_abandoned() << "  Num Failures on final resolution: " << resolve_sis_results.num_failures_on_final_resolution() << std::endl;
-                
+                std::cout << "Num SIs resolved: " << resolve_sis_results.num_self_intersections_resolved()
+                          << "  Num Abandoned: " << resolve_sis_results.num_self_intersections_abandoned()
+                          << "  Num Failures on final resolution: "
+                          << resolve_sis_results.num_failures_on_final_resolution() << std::endl;
+
                 Cork::Statistics::TopologicalStatisticsResult topo_stats =
                     read_model_result.return_ptr()->ComputeTopologicalStatistics(
                         Cork::Statistics::TopologicalProperties::TOPO_ALL);
@@ -313,7 +331,7 @@ int main(int argc, char* argv[])
                     geotopo_results << filename << "    Failed" << std::endl;
                     timing_results << filename << "    Failed" << std::endl;
 
-                    num_failed_operations++;
+                    metrics.num_failed_operations++;
                 }
                 else
                 {
@@ -357,7 +375,7 @@ int main(int argc, char* argv[])
                                        << "\t" << unioned_mesh->GetPerformanceStats().ending_virtual_memory_size_in_MB()
                                        << std::endl;
 
-                        WriteMeshStatistics(*unioned_triangle_mesh, filename, geotopo_results);
+                        WriteMeshStatistics(*unioned_triangle_mesh, metrics, filename, geotopo_results);
                     }
                 }
             }
@@ -376,7 +394,7 @@ int main(int argc, char* argv[])
                     geotopo_results << filename << "    Failed" << std::endl;
                     timing_results << filename << "    Failed" << std::endl;
 
-                    num_failed_operations++;
+                    metrics.num_failed_operations++;
                 }
                 else
                 {
@@ -415,7 +433,7 @@ int main(int argc, char* argv[])
                             << "\t" << difference_mesh->GetPerformanceStats().ending_virtual_memory_size_in_MB()
                             << std::endl;
 
-                        WriteMeshStatistics(*difference_triangle_mesh, filename, geotopo_results);
+                        WriteMeshStatistics(*difference_triangle_mesh, metrics, filename, geotopo_results);
                     }
                 }
             }
@@ -434,7 +452,7 @@ int main(int argc, char* argv[])
                     geotopo_results << filename << "    Failed" << std::endl;
                     timing_results << filename << "    Failed" << std::endl;
 
-                    num_failed_operations++;
+                    metrics.num_failed_operations++;
                 }
                 else
                 {
@@ -477,7 +495,7 @@ int main(int argc, char* argv[])
                             << "\t" << intersection_mesh->GetPerformanceStats().ending_virtual_memory_size_in_MB()
                             << std::endl;
 
-                        WriteMeshStatistics(*intersection_triangle_mesh, filename, geotopo_results);
+                        WriteMeshStatistics(*intersection_triangle_mesh, metrics, filename, geotopo_results);
                     }
                 }
             }
@@ -496,7 +514,7 @@ int main(int argc, char* argv[])
                     geotopo_results << filename << "    Failed" << std::endl;
                     timing_results << filename << "    Failed" << std::endl;
 
-                    num_failed_operations++;
+                    metrics.num_failed_operations++;
                 }
                 else
                 {
@@ -532,7 +550,7 @@ int main(int argc, char* argv[])
                             << XOR_mesh->GetPerformanceStats().starting_virtual_memory_size_in_MB() << "\t"
                             << XOR_mesh->GetPerformanceStats().ending_virtual_memory_size_in_MB() << std::endl;
 
-                        WriteMeshStatistics(*XOR_triangle_mesh, filename, geotopo_results);
+                        WriteMeshStatistics(*XOR_triangle_mesh, metrics, filename, geotopo_results);
                     }
                 }
             }
@@ -541,8 +559,9 @@ int main(int argc, char* argv[])
         if (write_stats)
         {
             cumulative_timing_results << first_model.first.filename() << "\t"
-                                      << cumulative_CPU_time / NUM_NANOSECONDS_PER_SECOND << "\t"
-                                      << cumulative_wall_time / NUM_NANOSECONDS_PER_SECOND << std::endl;
+                                      << static_cast<double>(cumulative_CPU_time) / NUM_NANOSECONDS_PER_SECOND << "\t"
+                                      << static_cast<double>(cumulative_wall_time) / NUM_NANOSECONDS_PER_SECOND
+                                      << std::endl;
         }
     }
 
@@ -567,14 +586,15 @@ int main(int argc, char* argv[])
                                   << "\t"
                                   << "Total Triangles" << std::endl;
 
-        cumulative_timing_results << num_successful_operations << "\t" << num_failed_operations << "\t"
-                                  << num_two_manifold_results << "\t" << total_num_vertices << "\t" << total_num_edges
-                                  << "\t" << total_num_triangles << std::endl;
+        cumulative_timing_results << metrics.num_successful_operations << "\t" << metrics.num_failed_operations << "\t"
+                                  << metrics.num_two_manifold_results << "\t" << metrics.total_num_vertices << "\t"
+                                  << metrics.total_num_edges << "\t" << metrics.total_num_triangles << std::endl;
 
         cumulative_timing_results << std::endl
-                                  << "Total CPU Time:\t" << cumulative_CPU_time / NUM_NANOSECONDS_PER_SECOND
-                                  << std::endl
-                                  << "Total Wall Time:\t" << cumulative_wall_time / NUM_NANOSECONDS_PER_SECOND
+                                  << "Total CPU Time:\t"
+                                  << static_cast<double>(cumulative_CPU_time) / NUM_NANOSECONDS_PER_SECOND << std::endl
+                                  << "Total Wall Time:\t"
+                                  << static_cast<double>(cumulative_wall_time) / NUM_NANOSECONDS_PER_SECOND
                                   << std::endl;
 
         cumulative_timing_results << std::endl << std::endl << asctime(localtime(&current_date_time)) << std::endl;
@@ -592,9 +612,9 @@ int main(int argc, char* argv[])
                         << "\t"
                         << "Total Triangles" << std::endl;
 
-        geotopo_results << num_successful_operations << "\t" << num_failed_operations << "\t"
-                        << num_two_manifold_results << "\t" << total_num_vertices << "\t" << total_num_edges << "\t"
-                        << total_num_triangles << std::endl;
+        geotopo_results << metrics.num_successful_operations << "\t" << metrics.num_failed_operations << "\t"
+                        << metrics.num_two_manifold_results << "\t" << metrics.total_num_vertices << "\t"
+                        << metrics.total_num_edges << "\t" << metrics.total_num_triangles << std::endl;
 
         geotopo_results << std::endl << std::endl << asctime(localtime(&current_date_time)) << std::endl;
     }

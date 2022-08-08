@@ -54,7 +54,7 @@ namespace Cork::Meshes
             vertex_index_remapper_.reserve(num_vertices);
         };
 
-        ~IncrementalVertexIndexTriangleMeshBuilderImpl() = default;
+        ~IncrementalVertexIndexTriangleMeshBuilderImpl() override = default;
 
         IncrementalVertexIndexTriangleMeshBuilderImpl() = delete;
         IncrementalVertexIndexTriangleMeshBuilderImpl(const IncrementalVertexIndexTriangleMeshBuilderImpl&) = delete;

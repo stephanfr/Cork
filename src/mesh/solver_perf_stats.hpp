@@ -36,17 +36,17 @@ namespace Cork::Meshes
         {
         }
 
-        uint64_t number_of_triangles_in_disjoint_union() const { return (number_of_triangles_in_disjoint_union_); }
+        uint64_t number_of_triangles_in_disjoint_union() const { return number_of_triangles_in_disjoint_union_; }
 
-        uint64_t number_of_triangles_in_final_mesh() const { return (number_of_triangles_in_final_mesh_); }
+        uint64_t number_of_triangles_in_final_mesh() const { return number_of_triangles_in_final_mesh_; }
 
-        uint64_t elapsed_cpu_time_in_nanoseconds() const { return (elapsed_cpu_time_in_nanoseconds_); }
+        boost::timer::nanosecond_type elapsed_cpu_time_in_nanoseconds() const { return elapsed_cpu_time_in_nanoseconds_; }
 
-        uint64_t elapsed_wall_time_in_nanoseconds() const { return (elapsed_wall_time_in_nanoseconds_); }
+        boost::timer::nanosecond_type elapsed_wall_time_in_nanoseconds() const { return elapsed_wall_time_in_nanoseconds_; }
 
-        uint64_t starting_virtual_memory_size_in_MB() const { return (starting_virtual_memory_size_in_MB_); }
+        uint64_t starting_virtual_memory_size_in_MB() const { return starting_virtual_memory_size_in_MB_; }
 
-        uint64_t ending_virtual_memory_size_in_MB() const { return (ending_virtual_memory_size_in_MB_); }
+        uint64_t ending_virtual_memory_size_in_MB() const { return ending_virtual_memory_size_in_MB_; }
 
         void set_number_of_triangles_in_disjoint_union(uint64_t number_of_triangles_in_disjoint_union)
         {
@@ -58,12 +58,12 @@ namespace Cork::Meshes
             number_of_triangles_in_final_mesh_ = number_of_triangles_in_final_mesh;
         }
 
-        void set_elapsed_cpu_time_in_nano_seconds(uint64_t elapsed_cpu_time_in_nano_seconds)
+        void set_elapsed_cpu_time_in_nano_seconds(boost::timer::nanosecond_type elapsed_cpu_time_in_nano_seconds)
         {
             elapsed_cpu_time_in_nanoseconds_ = elapsed_cpu_time_in_nano_seconds;
         }
 
-        void set_elapsed_wall_time_in_nano_seconds(uint64_t elapsed_wall_time_in_nano_seconds)
+        void set_elapsed_wall_time_in_nano_seconds(boost::timer::nanosecond_type elapsed_wall_time_in_nano_seconds)
         {
             elapsed_wall_time_in_nanoseconds_ = elapsed_wall_time_in_nano_seconds;
         }
@@ -82,8 +82,8 @@ namespace Cork::Meshes
         uint64_t number_of_triangles_in_disjoint_union_;
         uint64_t number_of_triangles_in_final_mesh_;
 
-        uint64_t elapsed_cpu_time_in_nanoseconds_;
-        uint64_t elapsed_wall_time_in_nanoseconds_;
+        boost::timer::nanosecond_type elapsed_cpu_time_in_nanoseconds_;
+        boost::timer::nanosecond_type elapsed_wall_time_in_nanoseconds_;
 
         uint64_t starting_virtual_memory_size_in_MB_;
         uint64_t ending_virtual_memory_size_in_MB_;

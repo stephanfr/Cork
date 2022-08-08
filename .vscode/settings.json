@@ -87,7 +87,8 @@
         "concepts": "cpp",
         "ranges": "cpp",
         "stop_token": "cpp",
-        "coroutine": "cpp"
+        "coroutine": "cpp",
+        "threadpool": "cpp"
     },
     "C_Cpp.intelliSenseCacheSize": 4120
 }

@@ -196,7 +196,7 @@ namespace Cork::Meshes
             //  Multiple regions, so sort the boundaries by length and we will start with the longest
             //      boundary based on the assumption that the longest boundary will be the enclosing boundary.
 
-            std::map<double, uint32_t, std::greater<double>> boundaries_ordered_by_length;
+            std::map<double, uint32_t, std::greater<>> boundaries_ordered_by_length;
 
             for (uint32_t i = 0; i < get_be_result.return_ptr()->size(); i++)
             {

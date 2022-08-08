@@ -83,7 +83,7 @@ class ManagedIntrusivePointerList : public boost::noncopyable,
     ManagedIntrusivePointerList& operator=(const ManagedIntrusivePointerList&) = delete;
     ManagedIntrusivePointerList& operator=(ManagedIntrusivePointerList&&) = delete;
 
-    using BaseType::iterator;
+    using typename BaseType::iterator;
 
     using BaseType::begin;
     using BaseType::end;

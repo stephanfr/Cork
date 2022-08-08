@@ -42,10 +42,12 @@
 #define CORKLIB_API
 #endif
 
+#include <boost/timer/timer.hpp>
+
 #include "CPPResult.hpp"
 #include "result_codes.hpp"
-#include "writeable_interfaces.hpp"
 #include "statistics.hpp"
+#include "writeable_interfaces.hpp"
 
 namespace Cork
 {
@@ -54,35 +56,34 @@ namespace Cork
 
     class SelfIntersectionResolutionResults
     {
-        public :
-
+       public:
         SelfIntersectionResolutionResults() = delete;
 
-        SelfIntersectionResolutionResults( uint32_t        num_self_intersections_resolved,
-                                           uint32_t        num_self_intersections_abandoned,
-                                           uint32_t        num_failures_on_final_resolution )
-            : num_self_intersections_resolved_( num_self_intersections_resolved ),
-              num_self_intersections_abandoned_( num_self_intersections_abandoned ),
+        SelfIntersectionResolutionResults(uint32_t num_self_intersections_resolved,
+                                          uint32_t num_self_intersections_abandoned,
+                                          uint32_t num_failures_on_final_resolution)
+            : num_self_intersections_resolved_(num_self_intersections_resolved),
+              num_self_intersections_abandoned_(num_self_intersections_abandoned),
               num_failures_on_final_resolution_(num_failures_on_final_resolution)
-        {}
+        {
+        }
 
-        SelfIntersectionResolutionResults( const SelfIntersectionResolutionResults& ) = default;
-        SelfIntersectionResolutionResults( SelfIntersectionResolutionResults&& ) = default;
+        SelfIntersectionResolutionResults(const SelfIntersectionResolutionResults&) = default;
+        SelfIntersectionResolutionResults(SelfIntersectionResolutionResults&&) = default;
 
         ~SelfIntersectionResolutionResults() = default;
 
-        SelfIntersectionResolutionResults&      operator=( const SelfIntersectionResolutionResults& ) = default;
-        SelfIntersectionResolutionResults&      operator=( SelfIntersectionResolutionResults&& ) = default;
+        SelfIntersectionResolutionResults& operator=(const SelfIntersectionResolutionResults&) = default;
+        SelfIntersectionResolutionResults& operator=(SelfIntersectionResolutionResults&&) = default;
 
-        uint32_t        num_self_intersections_resolved() const { return num_self_intersections_resolved_; }
-        uint32_t        num_self_intersections_abandoned() const { return num_self_intersections_abandoned_; }
-        uint32_t        num_failures_on_final_resolution() const { return num_failures_on_final_resolution_; }
+        [[nodiscard]] uint32_t num_self_intersections_resolved() const { return num_self_intersections_resolved_; }
+        [[nodiscard]] uint32_t num_self_intersections_abandoned() const { return num_self_intersections_abandoned_; }
+        [[nodiscard]] uint32_t num_failures_on_final_resolution() const { return num_failures_on_final_resolution_; }
 
-        private :
-
-        uint32_t        num_self_intersections_resolved_;
-        uint32_t        num_self_intersections_abandoned_;
-        uint32_t        num_failures_on_final_resolution_;
+       private:
+        uint32_t num_self_intersections_resolved_;
+        uint32_t num_self_intersections_abandoned_;
+        uint32_t num_failures_on_final_resolution_;
     };
 
     class TriangleMesh : public virtual WriteableMesh
@@ -96,29 +97,39 @@ namespace Cork
 
         //	Methods follow
 
+        TriangleMesh() = default;
+        TriangleMesh(const TriangleMesh&) = delete;
+        TriangleMesh(TriangleMesh&&) = delete;
+
         virtual ~TriangleMesh(){};
 
-        virtual size_t num_triangles() const = 0;
-        virtual size_t num_vertices() const = 0;
+        TriangleMesh& operator=(const TriangleMesh&) = delete;
+        TriangleMesh& operator=(TriangleMesh&&) = delete;
 
-        virtual const Vertex3DVector& vertices() const = 0;
-        virtual const TriangleByIndicesVector& triangles() const = 0;
+        [[nodiscard]] virtual size_t num_triangles() const = 0;
+        [[nodiscard]] virtual size_t num_vertices() const = 0;
 
-        virtual TriangleByVertices triangle_by_vertices(const TriangleByIndices& triangle_by_indices) const = 0;
+        [[nodiscard]] virtual const Vertex3DVector& vertices() const = 0;
+        [[nodiscard]] virtual const TriangleByIndicesVector& triangles() const = 0;
 
-        virtual std::unique_ptr<TriangleMesh>   extract_surface( TriangleByIndicesIndex  center_triangle,
-                                                                 uint32_t                num_rings ) = 0;
+        [[nodiscard]] virtual TriangleByVertices triangle_by_vertices(
+            const TriangleByIndices& triangle_by_indices) const = 0;
 
-        virtual const BBox3D& bounding_box() const = 0;
-        virtual MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
-        virtual double max_vertex_magnitude() const = 0;
+        virtual std::unique_ptr<TriangleMesh> extract_surface(TriangleByIndicesIndex center_triangle,
+                                                              uint32_t num_rings) = 0;
 
-        virtual GeometricStatistics ComputeGeometricStatistics(GeometricProperties props_to_compute) const = 0;
-        virtual TopologicalStatisticsResult ComputeTopologicalStatistics(
+        [[nodiscard]] virtual const BBox3D& bounding_box() const = 0;
+        [[nodiscard]] virtual MinAndMaxEdgeLengths min_and_max_edge_lengths() const = 0;
+        [[nodiscard]] virtual double max_vertex_magnitude() const = 0;
+
+        [[nodiscard]] virtual GeometricStatistics ComputeGeometricStatistics(
+            GeometricProperties props_to_compute) const = 0;
+        [[nodiscard]] virtual TopologicalStatisticsResult ComputeTopologicalStatistics(
             TopologicalProperties props_to_compute) const = 0;
 
-        virtual HoleClosingResult close_holes(const TopologicalStatistics& topo_stats) = 0;
-        virtual SelfIntersectionResolutionResults remove_self_intersections(const TopologicalStatistics& topo_stats) = 0;
+        [[nodiscard]] virtual HoleClosingResult close_holes(const TopologicalStatistics& topo_stats) = 0;
+        [[nodiscard]] virtual SelfIntersectionResolutionResults remove_self_intersections(
+            const TopologicalStatistics& topo_stats) = 0;
         virtual void remove_non_manifold_edges(const Statistics::TopologicalStatistics& topo_stats) = 0;
     };
 
@@ -181,8 +192,8 @@ namespace Cork
 
         [[nodiscard]] virtual uint64_t number_of_triangles_in_disjoint_union() const = 0;
         [[nodiscard]] virtual uint64_t number_of_triangles_in_final_mesh() const = 0;
-        [[nodiscard]] virtual uint64_t elapsed_cpu_time_in_nanoseconds() const = 0;
-        [[nodiscard]] virtual uint64_t elapsed_wall_time_in_nanoseconds() const = 0;
+        [[nodiscard]] virtual boost::timer::nanosecond_type elapsed_cpu_time_in_nanoseconds() const = 0;
+        [[nodiscard]] virtual boost::timer::nanosecond_type elapsed_wall_time_in_nanoseconds() const = 0;
         [[nodiscard]] virtual uint64_t starting_virtual_memory_size_in_MB() const = 0;
         [[nodiscard]] virtual uint64_t ending_virtual_memory_size_in_MB() const = 0;
     };
@@ -190,7 +201,8 @@ namespace Cork
     class SolidObjectMesh
     {
        public:
-        using BooleanOperationResult = SEFUtility::ResultWithReturnUniquePtr<BooleanOperationResultCodes, SolidObjectMesh>;
+        using BooleanOperationResult =
+            SEFUtility::ResultWithReturnUniquePtr<BooleanOperationResultCodes, SolidObjectMesh>;
 
         SolidObjectMesh() = default;
 

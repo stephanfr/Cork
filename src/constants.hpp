@@ -9,6 +9,8 @@
 
 constexpr uint32_t MIN_TRIANGLES_FOR_MULTITHREADING = 50000;
 
+constexpr uint32_t MAX_COMPONENT_PROCESSING_PARALLEL_TASKS = 8;
+
 
 //
 //  Object pool initial sizes
@@ -54,3 +56,10 @@ constexpr size_t EDGE_AND_INCIDENCE_COUNT_NUM_TRIANGLEs_INITIAL_SIZE = 6;
 
 constexpr size_t TOPO_CACHE_INITIAL_TRIANGLE_POINTER_VECTOR_SIZE = 6;
 constexpr size_t TOPO_CACHE_INITIAL_EDGE_POINTER_VECTOR_SIZE = 12;
+
+//
+//  Other sizes
+//
+
+constexpr size_t MESH_COMPONENTS_INITIAL_SIZE = 256;
+constexpr size_t MESH_COMPONENTS_TRIANGLES_BY_INDEX_VECTOR_INITIAL_SIZE = 32;

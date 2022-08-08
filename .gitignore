@@ -11,5 +11,7 @@ RegressionTest/Results
 RegressionTest/TestSet
 RegressionTest/PerfResults
 RegressionTest/PerfTestSet
+RegressionTest/SmallTestSetResults
+RegressionTest/SmallTestSet
 UnitTest/Test Results
 

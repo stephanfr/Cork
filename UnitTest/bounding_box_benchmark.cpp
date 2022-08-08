@@ -17,9 +17,11 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include <catch2/catch_all.hpp>
+
+//  NOLINTBEGIN(bugprone-reserved-identifier, modernize-loop-convert, cppcoreguidelines-avoid-magic-numbers)
 
 #define NUMERIC_PRECISION double
 #define __AVX_AVAILABLE__
@@ -32,11 +34,12 @@ using BBox3DAVX = Cork::Math::BBox3DTemplate<NUMERIC_PRECISION, SIMDInstructionS
 using Vector3D = Cork::Math::Vector3DTemplate<NUMERIC_PRECISION, SIMDInstructionSet::NONE>;
 using Vector3DAVX = Cork::Math::Vector3DTemplate<NUMERIC_PRECISION, SIMDInstructionSet::AVX2>;
 
+
 constexpr int NUM_ITERATIONS = 50000;
 
 bool RandomBoundingBoxGenerator(std::array<BBox3D, NUM_ITERATIONS>& bounding_boxes)
 {
-    for (auto i = 0; i < bounding_boxes.size(); i++)
+    for (size_t i = 0; i < bounding_boxes.size(); i++)
     {
         auto first_point = Vector3D::randomVector(0, 100);
         auto offset_to_second_point = Vector3D::randomVector(0, 100);
@@ -189,3 +192,6 @@ TEST_CASE("BBox3D Benchmarks - 50k Bounding Boxes", "[primitives]")
         return convex_bbox;
     };
 }
+
+//  NOLINTEND(bugprone-reserved-identifier, modernize-loop-convert, cppcoreguidelines-avoid-magic-numbers)
+

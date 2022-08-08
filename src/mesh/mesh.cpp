@@ -216,7 +216,7 @@ namespace Cork::Meshes
         bounding_box_ = inputMesh.bounding_box();
     }
 
-    Mesh::~Mesh() {}
+    Mesh::~Mesh() = default;
 
     Mesh& Mesh::operator=(Mesh&& src) noexcept
     {
@@ -395,9 +395,11 @@ namespace Cork::Meshes
         {
             size_t partitionSize = 1;
 
-            if (components->size() > 8)
+            //  Limit the number of parallel tasks - to many just wastes CPU cycles
+
+            if (components->size() > MAX_COMPONENT_PROCESSING_PARALLEL_TASKS)
             {
-                partitionSize = components->size() / 8;
+                partitionSize = components->size() / MAX_COMPONENT_PROCESSING_PARALLEL_TASKS;
             }
 
             tbb::parallel_for(
@@ -496,17 +498,18 @@ namespace Cork::Meshes
             }
         });
 
-        // we re-organize the results of the union find as follows:
+        //  Re-organize the results of the union find as follows:
 
         std::vector<int64_t> uq_ids(tris_->size(), int64_t(-1));
         std::unique_ptr<ComponentList> components(new ComponentList);
 
-        components->reserve(256);
+        components->reserve(MESH_COMPONENTS_INITIAL_SIZE);
 
         std::mutex vectorLock;
 
-        ThreadPool::getPool().parallel_for(4, (size_t)0, tris_->size(), [&](size_t blockBegin, size_t blockEnd) {
-            size_t ufid;
+        SEFUtility::threading::ThreadPool::getPool().parallel_for( (this->control_block_.use_multiple_threads() ? 4 : 1), (size_t)0, tris_->size(), [&](size_t blockBegin, size_t blockEnd)
+        {
+            size_t ufid = 0;
 
             for (size_t i = blockBegin; i < blockEnd; i++)
             {
@@ -525,7 +528,7 @@ namespace Cork::Meshes
 
                     size_t N = components->size();
                     components->emplace_back();
-                    //					(*components)[N].reserve(512);
+                    (*components)[N].reserve(MESH_COMPONENTS_TRIANGLES_BY_INDEX_VECTOR_INITIAL_SIZE);
 
                     uq_ids[ufid] = uq_ids[i] = (int64_t)N;
                     (*components)[N].push_back(TriangleByIndicesIndex(i));
@@ -678,24 +681,24 @@ namespace Cork::Meshes
 
         //	We will adjust the search increment based on the number of triangles to search.
 
-        if (trisInComponent.size() > 1000)
+        if (trisInComponent.size() > 1000)      //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
         {
             searchIncrement = 2;
         }
 
-        if (trisInComponent.size() > 25000)
+        if (trisInComponent.size() > 25000)      //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
         {
             searchIncrement = 3;
         }
 
-        if (trisInComponent.size() > 50000)
+        if (trisInComponent.size() > 50000)      //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
         {
             searchIncrement = 4;
         }
 
-        if (trisInComponent.size() > 100000)
+        if (trisInComponent.size() > 100000)      //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
         {
-            searchIncrement = 5;
+            searchIncrement = 5;                  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
         }
 
         //	Do the search - we are looking for the triangle with the greatest surface area to use

@@ -11,6 +11,8 @@ The code builds with the CMake system and is tested extensively on Linux.  It is
 
 ## Building the code
 
+Cork uses the C++20 standard and requires the std::span<> template which was introduced in gcc version 10, therefore to compile GCC V10 or better is required. 
+
 After cloning the repository, run the setup_thirdparty.sh script in the root of the repository.  This script will download and install a number of dependencies, such as the Boost libraries and Intel's Threading Building Blocks.
 
 After that, CMake configure and make should be all that is needed.
@@ -56,6 +58,14 @@ build/RegressionTest/CorkCLI --union --input-directory RegressionTest/TestSet/ -
 ## Unit Tests and Benchmarks
 
 The UnitTest directory contains a collection of unit tests and benchmarks which rely on the Catch2 framework.
+
+## Valgrind
+
+```
+valgrind --tool=callgrind --verbose --log-file=callgrind-out.txt /home/steve/dev/Cork/build/RegressionTest/CorkCLI --union --input-directory /home/steve/dev/Cork/RegressionTest/PerfTestSet --output-directory /home/steve/dev/Cork/RegressionTest/PerfResults/
+
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out.txt /home/steve/dev/Cork/build/RegressionTest/CorkCLI --union --input-directory /home/steve/dev/Cork/RegressionTest/PerfTestSet --output-directory /home/steve/dev/Cork/RegressionTest/PerfResults/ --repair
+```
 
 ## Math Worksheets
 

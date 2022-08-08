@@ -28,6 +28,7 @@
 
 #include <cfloat>
 #include <cstdint>
+#include <cassert>
 
 #include <gsl/gsl_util>
 

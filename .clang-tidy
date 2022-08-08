@@ -1,4 +1,13 @@
-Checks:          '-clang-diagnostic-*,-clang-analyzer-*,cppcoreguidelines-*,bugprone-*,modernize-*,-modernize-use-trailing-return-type'
+Checks:    >
+ -clang-analyzer-*,
+ cppcoreguidelines-*,
+ -cppcoreguidelines-pro-bounds-constant-array-index,
+ -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+ -cppcoreguidelines-owning-memory,
+ bugprone-*,
+ modernize-*,
+ -modernize-use-trailing-return-type
+
 WarningsAsErrors: false
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false

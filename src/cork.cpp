@@ -7,7 +7,7 @@
 namespace Cork
 {
 
-    CorkService::~CorkService() { ThreadPool::getPool().Shutdown(); }
+    CorkService::~CorkService() { SEFUtility::threading::ThreadPool::getPool().Shutdown(); }
 
     std::unique_ptr<SolidObjectMesh> CorkService::from_triangle_mesh(const TriangleMesh& triangleMesh)
     {

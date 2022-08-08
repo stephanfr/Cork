@@ -432,7 +432,7 @@ namespace Cork::Primitives
         {
         }
 
-        TriangleByIndices(const TriangleByIndices&) = default;
+        TriangleByIndices(const TriangleByIndices& tri_by_indices) = default;
         TriangleByIndices(TriangleByIndices&&) = default;
 
         virtual ~TriangleByIndices() {}
@@ -482,7 +482,11 @@ namespace Cork::Primitives
             return EdgeByIndices(c_, a_);
         }
 
-        [[nodiscard]] TriangleBooleanAlgData bool_alg_data() const { return bool_alg_data_.value(); }
+        [[nodiscard]] TriangleBooleanAlgData bool_alg_data() const
+        {
+            assert(bool_alg_data_.has_value());
+            return bool_alg_data_.value();
+        }
 
         void set_bool_alg_data(uint32_t new_value) { bool_alg_data_ = new_value; }
 
@@ -502,8 +506,7 @@ namespace Cork::Primitives
         VertexIndex b_;
         VertexIndex c_;
 
-        std::optional<TriangleBooleanAlgData>
-            bool_alg_data_;  // internal use by algorithm - value must be copied when the triangle is subdivided
+        std::optional<TriangleBooleanAlgData>   bool_alg_data_;  // internal use by algorithm - value must be copied when the triangle is subdivided
     };
 
     inline std::ostream& operator<<(std::ostream& out, const TriangleByIndices& tri_by_indices)

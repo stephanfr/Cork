@@ -5,11 +5,35 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Regression Test",
+            "name": "(gdb) Full Regression Test",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/RegressionTest/CorkCLI",
             "args": ["--union", "--input-directory", "/home/steve/dev/Cork/RegressionTest/TestSet/", "--output-directory", "/home/steve/dev/Cork/RegressionTest/Results/", "--write-statistics"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/RegressionTest/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description":  "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Small Regression Test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/RegressionTest/CorkCLI",
+            "args": ["--union", "--input-directory", "/home/steve/dev/Cork/RegressionTest/SmallTestSet/", "--output-directory", "/home/steve/dev/Cork/RegressionTest/SmallTestSetResults/", "--write-statistics", "--write-results"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build/RegressionTest/",
             "environment": [],

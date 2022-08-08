@@ -79,7 +79,7 @@ namespace Cork::Meshes
         auto copy_of_tris{std::make_shared<TriangleByIndicesVector>(*tris_)};
         auto copy_of_verts{std::make_shared<Vertex3DVector>(*verts_)};
 
-        return MeshBase(copy_of_tris, copy_of_verts, bounding_box_, min_and_max_edge_lengths_, max_vertex_magnitude_);
+        return {copy_of_tris, copy_of_verts, bounding_box_, min_and_max_edge_lengths_, max_vertex_magnitude_};
     }
 
     std::unique_ptr<MeshBase> MeshBase::extract_surface(TriangleRemapper& remapper,
@@ -94,7 +94,7 @@ namespace Cork::Meshes
 
         if (!find_enclosing_triangles_result.succeeded())  //  TODO return proper success/failure result
         {
-            return std::unique_ptr<MeshBase>();
+            return {};
         }
 
         return extract_surface(remapper, find_enclosing_triangles_result.return_ptr()->merge(single_triangle));
