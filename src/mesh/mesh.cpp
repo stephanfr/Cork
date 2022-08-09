@@ -35,7 +35,6 @@
 #include "tbb/parallel_for.h"
 #include "topo_cache.hpp"
 #include "triangle_mesh_builder.hpp"
-#include "util/thread_pool.hpp"
 #include "util/union_find.hpp"
 
 namespace Cork::Meshes
@@ -57,32 +56,34 @@ namespace Cork::Meshes
         {
             for (auto& column : ecache.columns())
             {
-                column.for_each([this, &action](EGraphEntry& entry) {
-                    if (entry.intersects())
+                column.for_each(
+                    [this, &action](EGraphEntry& entry)
                     {
-                        EGraphEntryTIDVector tid0s;
-                        EGraphEntryTIDVector tid1s;
-
-                        for (TriangleByIndicesIndex tid : entry.tids())
+                        if (entry.intersects())
                         {
-                            if ((*tris_)[tid].bool_alg_data() & 1U)
-                            {
-                                tid1s.push_back(tid);
-                            }
-                            else
-                            {
-                                tid0s.push_back(tid);
-                            }
-                        }
+                            EGraphEntryTIDVector tid0s;
+                            EGraphEntryTIDVector tid1s;
 
-                        action(tid1s);
-                        action(tid0s);
-                    }
-                    else
-                    {
-                        action(entry.tids());
-                    }
-                });
+                            for (TriangleByIndicesIndex tid : entry.tids())
+                            {
+                                if ((*tris_)[tid].bool_alg_data() & 1U)
+                                {
+                                    tid1s.push_back(tid);
+                                }
+                                else
+                                {
+                                    tid0s.push_back(tid);
+                                }
+                            }
+
+                            action(tid1s);
+                            action(tid0s);
+                        }
+                        else
+                        {
+                            action(entry.tids());
+                        }
+                    });
             }
         }
     }
@@ -393,24 +394,24 @@ namespace Cork::Meshes
 
         if (solver_control_block().use_multiple_threads() && (components->size() > 1))
         {
-            size_t partitionSize = 1;
+//            size_t partitionSize = 1;
 
             //  Limit the number of parallel tasks - to many just wastes CPU cycles
 
-            if (components->size() > MAX_COMPONENT_PROCESSING_PARALLEL_TASKS)
-            {
-                partitionSize = components->size() / MAX_COMPONENT_PROCESSING_PARALLEL_TASKS;
-            }
+//            if (components->size() > MAX_COMPONENT_PROCESSING_PARALLEL_TASKS)
+//            {
+//                partitionSize = components->size() / MAX_COMPONENT_PROCESSING_PARALLEL_TASKS;
+//            }
 
             tbb::parallel_for(
-                tbb::blocked_range<ComponentList::iterator>(components->begin(), components->end(), partitionSize),
-                [&](tbb::blocked_range<ComponentList::iterator> partitionedComponents) {
+                tbb::blocked_range<ComponentList::iterator>(components->begin(), components->end()),
+                [&](tbb::blocked_range<ComponentList::iterator> partitionedComponents)
+                {
                     for (auto& comp : partitionedComponents)
                     {
                         ProcessComponent(*ecache, comp);
                     }
-                },
-                tbb::simple_partitioner());
+                });
         }
         else
         {
@@ -459,19 +460,21 @@ namespace Cork::Meshes
 
         for (auto& column : ecache.columns())
         {
-            column.for_each([this](EGraphEntry& entry) {
-                entry.set_intersects(false);
-                uint32_t operand = (*tris_)[entry.tids()[0]].bool_alg_data();
-
-                for (uint k = 1; k < entry.tids().size(); k++)
+            column.for_each(
+                [this](EGraphEntry& entry)
                 {
-                    if ((*tris_)[entry.tids()[k]].bool_alg_data() != operand)
+                    entry.set_intersects(false);
+                    uint32_t operand = (*tris_)[entry.tids()[0]].bool_alg_data();
+
+                    for (uint k = 1; k < entry.tids().size(); k++)
                     {
-                        entry.set_intersects(true);
-                        break;
+                        if ((*tris_)[entry.tids()[k]].bool_alg_data() != operand)
+                        {
+                            entry.set_intersects(true);
+                            break;
+                        }
                     }
-                }
-            });
+                });
         }
 
         //	Finished with success
@@ -489,14 +492,16 @@ namespace Cork::Meshes
 
         RandomWeightedParallelUnionFind uf(tris_->size());
 
-        for_ecache(ecache, [&uf](const EGraphEntryTIDVector& tids) {
-            TriangleByIndicesIndex tid0 = tids[0];
+        for_ecache(ecache,
+                   [&uf](const EGraphEntryTIDVector& tids)
+                   {
+                       TriangleByIndicesIndex tid0 = tids[0];
 
-            for (size_t k = 1U; k < tids.size(); k++)
-            {
-                uf.unite(static_cast<size_t>(tid0), static_cast<size_t>(tids[k]));
-            }
-        });
+                       for (size_t k = 1U; k < tids.size(); k++)
+                       {
+                           uf.unite(static_cast<size_t>(tid0), static_cast<size_t>(tids[k]));
+                       }
+                   });
 
         //  Re-organize the results of the union find as follows:
 
@@ -507,23 +512,25 @@ namespace Cork::Meshes
 
         std::mutex vectorLock;
 
-        SEFUtility::threading::ThreadPool::getPool().parallel_for( (this->control_block_.use_multiple_threads() ? 4 : 1), (size_t)0, tris_->size(), [&](size_t blockBegin, size_t blockEnd)
+        tbb::parallel_for(tbb::blocked_range<size_t>((size_t)0, tris_->size()), [&](tbb::blocked_range<size_t> range)
         {
-            size_t ufid = 0;
-
-            for (size_t i = blockBegin; i < blockEnd; i++)
+            for (auto i = range.begin(); i < range.end(); i++)
             {
-                ufid = uf.find(i);
+                size_t ufid = uf.find(i);
 
             retry:
 
                 if (uq_ids[ufid] == int64_t(-1))
                 {
+                    //  Lock the mutex here and double-check that after we have the lock the other
+                    //      thread has not created new component yet.  That is the reason for the 
+                    //      'goto retry' for the uq_ids[ufid] != int64_t(-1) immediately after the mutex guard.
+
                     std::lock_guard<std::mutex> lock(vectorLock);
 
                     if (uq_ids[ufid] != int64_t(-1))
                     {
-                        goto retry;  //  NOLINT
+                        goto retry;  //  NOLINT - this is one of the few places a goto makes sense.
                     }
 
                     size_t N = components->size();
@@ -681,24 +688,24 @@ namespace Cork::Meshes
 
         //	We will adjust the search increment based on the number of triangles to search.
 
-        if (trisInComponent.size() > 1000)      //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        if (trisInComponent.size() > 1000)  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
         {
             searchIncrement = 2;
         }
 
-        if (trisInComponent.size() > 25000)      //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        if (trisInComponent.size() > 25000)  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
         {
             searchIncrement = 3;
         }
 
-        if (trisInComponent.size() > 50000)      //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        if (trisInComponent.size() > 50000)  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
         {
             searchIncrement = 4;
         }
 
-        if (trisInComponent.size() > 100000)      //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        if (trisInComponent.size() > 100000)  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
         {
-            searchIncrement = 5;                  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            searchIncrement = 5;  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
         }
 
         //	Do the search - we are looking for the triangle with the greatest surface area to use
@@ -787,16 +794,18 @@ namespace Cork::Meshes
                                                     "Error Occurred During Boolean Problem Setup Phase."));
         }
 
-        resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
-            if ((data & 2UL) == 2UL)  // part of op 0/1 INSIDE op 1/0
+        resultMesh->doDeleteAndFlip(
+            [](uint32_t data) -> TriCode
             {
-                return TriCode::DELETE_TRI;
-            }
+                if ((data & 2UL) == 2UL)  // part of op 0/1 INSIDE op 1/0
+                {
+                    return TriCode::DELETE_TRI;
+                }
 
-            // part of op 0/1 OUTSIDE op 1/0
+                // part of op 0/1 OUTSIDE op 1/0
 
-            return TriCode::KEEP_TRI;
-        });
+                return TriCode::KEEP_TRI;
+            });
 
         //	Collect the ending statistics
 
@@ -841,19 +850,21 @@ namespace Cork::Meshes
                                                    "Error Occurred During Boolean Problem Setup Phase.");
         }
 
-        resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
-            if (data == 2 || data == 1)  // part of op 0 INSIDE op 1, part of op 1 OUTSIDE op 0
+        resultMesh->doDeleteAndFlip(
+            [](uint32_t data) -> TriCode
             {
-                return TriCode::DELETE_TRI;
-            }
-            
-            if (data == 3)  // part of op 1 INSIDE op 1
-            {
-                return TriCode::FLIP_TRI;
-            }
-            
-            return TriCode::KEEP_TRI;
-        });
+                if (data == 2 || data == 1)  // part of op 0 INSIDE op 1, part of op 1 OUTSIDE op 0
+                {
+                    return TriCode::DELETE_TRI;
+                }
+
+                if (data == 3)  // part of op 1 INSIDE op 1
+                {
+                    return TriCode::FLIP_TRI;
+                }
+
+                return TriCode::KEEP_TRI;
+            });
 
         //	Collect the ending statistics
 
@@ -900,14 +911,16 @@ namespace Cork::Meshes
 
         //	Don't let the returns below confuse you - the code is a lambda
 
-        resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
-            if ((data & 2UL) == 0UL)  // part of op 0/1 OUTSIDE op 1/0
+        resultMesh->doDeleteAndFlip(
+            [](uint32_t data) -> TriCode
             {
-                return (TriCode::DELETE_TRI);
-            }
-            
-            return (TriCode::KEEP_TRI);
-        });
+                if ((data & 2UL) == 0UL)  // part of op 0/1 OUTSIDE op 1/0
+                {
+                    return (TriCode::DELETE_TRI);
+                }
+
+                return (TriCode::KEEP_TRI);
+            });
 
         //	Collect the ending statistics
 
@@ -952,19 +965,21 @@ namespace Cork::Meshes
 
         //	Don't let the returns below confuse you - the code is a lambda
 
-        resultMesh->doDeleteAndFlip([](uint32_t data) -> TriCode {
-            if ((data & 2UL) == 0UL)  // part of op 0/1 OUTSIDE op 1/0
+        resultMesh->doDeleteAndFlip(
+            [](uint32_t data) -> TriCode
             {
-                return (TriCode::KEEP_TRI);
-            }
-            
-            if ((data & 2UL) == 2UL)
-            {
-                return (TriCode::DELETE_TRI);
-            }
-            
-            return (TriCode::FLIP_TRI);
-        });
+                if ((data & 2UL) == 0UL)  // part of op 0/1 OUTSIDE op 1/0
+                {
+                    return (TriCode::KEEP_TRI);
+                }
+
+                if ((data & 2UL) == 2UL)
+                {
+                    return (TriCode::DELETE_TRI);
+                }
+
+                return (TriCode::FLIP_TRI);
+            });
 
         //	Collect the ending statistics
 
@@ -993,9 +1008,8 @@ namespace Cork::Meshes
                                                      (NUMERIC_PRECISION)currentVertex.z()));
         }
 
-        for_raw_tris([&](TriangleUID uid, VertexIndex a, VertexIndex b, VertexIndex c) {
-            triangleMeshBuilder->add_triangle(uid, a, b, c);
-        });
+        for_raw_tris([&](TriangleUID uid, VertexIndex a, VertexIndex b, VertexIndex c)
+                     { triangleMeshBuilder->add_triangle(uid, a, b, c); });
 
         return (triangleMeshBuilder->mesh());
     }

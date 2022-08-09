@@ -3,15 +3,13 @@
 #include <mutex>
 
 #include "primitives/primitives.hpp"
-
-#include "util/thread_pool.hpp"
-#include "util/union_find.hpp"
 #include "random_graph_generator.h"
+#include "tbb/parallel_for.h"
 #include "tbb/tbb.h"
+#include "util/union_find.hpp"
 
-std::unique_ptr<ThreadPool> g_threadPool;
 
-typedef std::vector<tbb::concurrent_unordered_set<size_t>> Components;
+typedef tbb::concurrent_vector<tbb::concurrent_unordered_set<size_t>> Components;
 
 bool operator==(const Components& first, const Components& second)
 {
@@ -49,32 +47,34 @@ std::unique_ptr<Components> GetComponents(const Graph& graph, IUnionFind& unionF
 
     std::mutex vectorLock;
 
-    g_threadPool->parallel_for(4, (size_t)0, graph.numVertices(), [&](size_t blockBegin, size_t blockEnd) {
-        for (size_t i = blockBegin; i < blockEnd; i++)
+    tbb::parallel_for(tbb::blocked_range<size_t>((size_t)0, graph.numVertices()),
+        [&](tbb::blocked_range<size_t> range)
         {
-            size_t ufid = unionFind.find(i);
+            for (auto i = range.begin(); i != range.end(); i++)
+            {
+                size_t ufid = unionFind.find(i);
 
-        retry:
+            retry:
 
-            if (uq_ids[ufid] == long(-1))
-            {  // unassigned
-                std::lock_guard<std::mutex> lock(vectorLock);
+                if (uq_ids[ufid] == long(-1))
+                {  // unassigned
+                    std::lock_guard<std::mutex> lock(vectorLock);
 
-                if (uq_ids[ufid] != long(-1)) goto retry;
+                    if (uq_ids[ufid] != long(-1)) goto retry;
 
-                size_t N = components->size();
-                components->emplace_back();
+                    size_t N = components->size();
+                    components->emplace_back();
 
-                uq_ids[ufid] = uq_ids[i] = (long)N;
-                (*components)[N].insert(i);
+                    uq_ids[ufid] = uq_ids[i] = (long)N;
+                    (*components)[N].insert(i);
+                }
+                else
+                {                              // assigned already
+                    uq_ids[i] = uq_ids[ufid];  // propagate assignment
+                    (*components)[uq_ids[i]].insert(i);
+                }
             }
-            else
-            {                              // assigned already
-                uq_ids[i] = uq_ids[ufid];  // propagate assignment
-                (*components)[uq_ids[i]].insert(i);
-            }
-        }
-    });
+        });
 
     return (components);
 }
@@ -132,12 +132,14 @@ bool TestRankWeightedSerialUnionFind(const Graph& graph, const Components& refCo
 {
     RankWeightedSerialUnionFind rankUnionFind(graph.numVertices());
 
-    meter.measure([&rankUnionFind, &graph] {
-        for (auto& edge : graph)
+    meter.measure(
+        [&rankUnionFind, &graph]
         {
-            rankUnionFind.unite(edge.first, edge.second);
-        }
-    });
+            for (auto& edge : graph)
+            {
+                rankUnionFind.unite(edge.first, edge.second);
+            }
+        });
 
     std::unique_ptr<Components> components(GetComponents(graph, rankUnionFind));
 
@@ -151,12 +153,14 @@ bool TestRandWeightedSerialUnionFind(const Graph& graph, const Components& refCo
 {
     RandomWeightedSerialUnionFind randUnionFind(graph.numVertices());
 
-    meter.measure([&randUnionFind, &graph] {
-        for (auto& edge : graph)
+    meter.measure(
+        [&randUnionFind, &graph]
         {
-            randUnionFind.unite(edge.first, edge.second);
-        }
-    });
+            for (auto& edge : graph)
+            {
+                randUnionFind.unite(edge.first, edge.second);
+            }
+        });
 
     std::unique_ptr<Components> components(GetComponents(graph, randUnionFind));
 
@@ -170,14 +174,19 @@ bool TestRandWeightedParallelUnionFind(const Graph& graph, const Components& ref
 {
     RandomWeightedParallelUnionFind unionFind(graph.numVertices());
 
-    meter.measure([&unionFind, &graph] {
-        g_threadPool->parallel_for(4, graph.begin(), graph.end(), [&](BlockRange<Graph::const_iterator> edges) {
-            for (auto currentEdge : edges)
-            {
-                unionFind.unite(currentEdge.first, currentEdge.second);
-            }
+    meter.measure(
+        [&unionFind, &graph]
+        {
+            tbb::parallel_for(
+                tbb::blocked_range<Graph::const_iterator>(graph.begin(), graph.end()),
+                [&](tbb::blocked_range<Graph::const_iterator> edges)
+                                       {
+                                           for (auto currentEdge : edges)
+                                           {
+                                               unionFind.unite(currentEdge.first, currentEdge.second);
+                                           }
+                                       });
         });
-    });
 
     std::unique_ptr<Components> components(GetComponents(graph, unionFind));
 
@@ -191,15 +200,19 @@ bool TestRandWeightedParallelUnionFind1(const Graph& graph, const Components& re
 {
     RandomWeightedParallelUnionFind1 unionFind(graph.numVertices());
 
-    meter.measure([&unionFind, &graph] {
-        g_threadPool->parallel_for(3, graph.begin(), graph.end(),
-                                   [&](Graph::const_iterator blockBegin, Graph::const_iterator blockEnd) {
-                                       for (auto itrElement = blockBegin; itrElement != blockEnd; itrElement++)
+    meter.measure(
+        [&unionFind, &graph]
+        {
+            tbb::parallel_for(
+                tbb::blocked_range<Graph::const_iterator>(graph.begin(), graph.end()),
+                [&](tbb::blocked_range<Graph::const_iterator> edges)
                                        {
-                                           unionFind.unite(itrElement->first, itrElement->second);
-                                       }
-                                   });
-    });
+                                           for (auto current_edge : edges)
+                                           {
+                                               unionFind.unite(current_edge.first, current_edge.second);
+                                           }
+                                       });
+        });
 
     std::unique_ptr<Components> components(GetComponents(graph, unionFind));
 
@@ -210,8 +223,6 @@ bool TestRandWeightedParallelUnionFind1(const Graph& graph, const Components& re
 
 TEST_CASE("Basic Union Find with Benchmarks", "[cork-base]")
 {
-    g_threadPool.reset(new ThreadPool());
-
     UnionFindTestFixture testFixture;
 
     BENCHMARK_ADVANCED("Test Rank Weighted Serial Union Find")(Catch::Benchmark::Chronometer meter)

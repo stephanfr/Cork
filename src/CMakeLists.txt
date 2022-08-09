@@ -58,7 +58,6 @@ add_library(Corklib SHARED
     mesh/triangle_remapper.cpp
     mesh/self_intersecting_regions.cpp
     statistics/statistics_engines.cpp
-    util/thread_pool.cpp
     cork.cpp
 )
 

@@ -2,12 +2,12 @@
 
 #include "constants.hpp"
 #include "mesh/mesh.hpp"
-#include "util/thread_pool.hpp"
+
 
 namespace Cork
 {
 
-    CorkService::~CorkService() { SEFUtility::threading::ThreadPool::getPool().Shutdown(); }
+    CorkService::~CorkService() {}
 
     std::unique_ptr<SolidObjectMesh> CorkService::from_triangle_mesh(const TriangleMesh& triangleMesh)
     {
