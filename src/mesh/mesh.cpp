@@ -48,13 +48,13 @@ namespace Cork::Meshes
     inline void Mesh::for_ecache(EGraphCache& ecache, std::function<void(const EGraphEntryTIDVector& tids)> action,
                                  int numThreads) const
     {
-        //		ThreadPool::getPool().parallel_for(numThreads, ecache.columns().begin(), ecache.columns().end(),
-        //[&](BlockRange<EGraphCache::SkeletonColumnVector::iterator>	partitionedCloumns )
-        //		tbb::parallel_for(tbb::blocked_range<EGraphCache::SkeletonColumnVector::iterator>(ecache.columns().begin(),
-        // ecache.columns().end(), ecache.columns().size() / 4 ),
-        //			[&](tbb::blocked_range<EGraphCache::SkeletonColumnVector::iterator> partitionedColumns)
+        //  Create a functor below which will do the actual processing.  This permits us to use
+        //      either the parallel_for or keep everything single threaded with a single block.
+
+        std::function<void(tbb::blocked_range<EGraphCache::SkeletonColumnVector::iterator> range)> for_ecache_function =
+            [&](tbb::blocked_range<EGraphCache::SkeletonColumnVector::iterator> range)
         {
-            for (auto& column : ecache.columns())
+            for (auto& column : range)
             {
                 column.for_each(
                     [this, &action](EGraphEntry& entry)
@@ -85,6 +85,19 @@ namespace Cork::Meshes
                         }
                     });
             }
+        };
+
+        if (solver_control_block().use_multiple_threads())
+        {
+            tbb::parallel_for(tbb::blocked_range<EGraphCache::SkeletonColumnVector::iterator>(ecache.columns().begin(),
+                                                                                              ecache.columns().end()),
+                              [&](tbb::blocked_range<EGraphCache::SkeletonColumnVector::iterator> partitioned_columns)
+                              { for_ecache_function(partitioned_columns); });
+        }
+        else
+        {
+            for_ecache_function(tbb::blocked_range<EGraphCache::SkeletonColumnVector::iterator>(
+                ecache.columns().begin(), ecache.columns().end()));
         }
     }
 
@@ -394,24 +407,14 @@ namespace Cork::Meshes
 
         if (solver_control_block().use_multiple_threads() && (components->size() > 1))
         {
-//            size_t partitionSize = 1;
-
-            //  Limit the number of parallel tasks - to many just wastes CPU cycles
-
-//            if (components->size() > MAX_COMPONENT_PROCESSING_PARALLEL_TASKS)
-//            {
-//                partitionSize = components->size() / MAX_COMPONENT_PROCESSING_PARALLEL_TASKS;
-//            }
-
-            tbb::parallel_for(
-                tbb::blocked_range<ComponentList::iterator>(components->begin(), components->end()),
-                [&](tbb::blocked_range<ComponentList::iterator> partitionedComponents)
-                {
-                    for (auto& comp : partitionedComponents)
-                    {
-                        ProcessComponent(*ecache, comp);
-                    }
-                });
+            tbb::parallel_for(tbb::blocked_range<ComponentList::iterator>(components->begin(), components->end()),
+                              [&](tbb::blocked_range<ComponentList::iterator> partitionedComponents)
+                              {
+                                  for (auto& comp : partitionedComponents)
+                                  {
+                                      ProcessComponent(*ecache, comp);
+                                  }
+                              });
         }
         else
         {
@@ -510,9 +513,15 @@ namespace Cork::Meshes
 
         components->reserve(MESH_COMPONENTS_INITIAL_SIZE);
 
-        std::mutex vectorLock;
+        tbb::spin_mutex vectorLock;
 
-        tbb::parallel_for(tbb::blocked_range<size_t>((size_t)0, tris_->size()), [&](tbb::blocked_range<size_t> range)
+        //  I am not a super-huge fan of this below but it is the only marginally obvious way I could
+        //      find to be able to locally swap between a parallel_for and a single-threaded execution.
+        //      The functor holds a lambda which is then used in either the simple single-threaded for
+        //      or the TBB parallel for.
+
+        std::function<void(tbb::blocked_range<size_t> range)> reorganize_function =
+            [&](tbb::blocked_range<size_t> range)
         {
             for (auto i = range.begin(); i < range.end(); i++)
             {
@@ -523,10 +532,10 @@ namespace Cork::Meshes
                 if (uq_ids[ufid] == int64_t(-1))
                 {
                     //  Lock the mutex here and double-check that after we have the lock the other
-                    //      thread has not created new component yet.  That is the reason for the 
+                    //      thread has not created new component yet.  That is the reason for the
                     //      'goto retry' for the uq_ids[ufid] != int64_t(-1) immediately after the mutex guard.
 
-                    std::lock_guard<std::mutex> lock(vectorLock);
+                    std::lock_guard<tbb::spin_mutex> lock(vectorLock);
 
                     if (uq_ids[ufid] != int64_t(-1))
                     {
@@ -546,7 +555,17 @@ namespace Cork::Meshes
                     (*components)[uq_ids[i]].push_back(TriangleByIndicesIndex(i));
                 }
             }
-        });
+        };
+
+        if (solver_control_block().use_multiple_threads())
+        {
+            tbb::parallel_for(tbb::blocked_range<size_t>((size_t)0, tris_->size()),
+                              [&](tbb::blocked_range<size_t> range) { reorganize_function(range); });
+        }
+        else
+        {
+            reorganize_function(tbb::blocked_range<size_t>((size_t)0, tris_->size()));
+        }
 
         return (components);
     }

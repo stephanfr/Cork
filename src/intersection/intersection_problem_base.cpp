@@ -29,19 +29,20 @@
 namespace Cork::Intersection
 {
 
-    IntersectionProblemBase::IntersectionProblemBase(MeshBaseImpl& owner_mesh, const Math::Quantizer& quantizer, const SolverControlBlock& solver_control_block)
+    IntersectionProblemBase::IntersectionProblemBase(MeshBaseImpl& owner_mesh, const Math::Quantizer& quantizer,
+                                                     const SolverControlBlock& solver_control_block)
         : workspace_(std::move(IntersectionWorkspaceFactory::GetInstance())),
           owner_mesh_(owner_mesh),
           quantizer_(quantizer),
           perturbation_(quantizer_),
           solver_control_block_(solver_control_block),
-          glue_point_marker_list_( workspace_->getGluePointMarkerListPool()),
-          isct_vert_type_list_( workspace_->getGenericVertexListPool() ),
-          orig_vert_type_list_( workspace_->getGenericVertexListPool() ),
-          isct_edge_type_list_( workspace_->getGenericEdgeListPool() ),
-          orig_edge_type_list_( workspace_->getGenericEdgeListPool() ),
-          split_edge_type_list_( workspace_->getGenericEdgeListPool() ),
-          generic_tri_type_list_( workspace_->getGenericTriTypeListPool() )
+          glue_point_marker_list_(workspace_->getGluePointMarkerListPool()),
+          isct_vert_type_list_(workspace_->getGenericVertexListPool()),
+          orig_vert_type_list_(workspace_->getGenericVertexListPool()),
+          isct_edge_type_list_(workspace_->getGenericEdgeListPool()),
+          orig_edge_type_list_(workspace_->getGenericEdgeListPool()),
+          split_edge_type_list_(workspace_->getGenericEdgeListPool()),
+          generic_tri_type_list_(workspace_->getGenericTriTypeListPool())
     {
         //	Initialize all the triangles to NOT have an associated tprob
         //		and set the boolAlgData value based on the input triangle
@@ -81,8 +82,8 @@ namespace Cork::Intersection
             edge_geoms->emplace_back(e);
         }
 
-        edge_bvh_ = std::make_unique<AABVH::AxisAlignedBoundingVolumeHierarchy>(edge_geoms, workspace().getAABVHWorkspace(),
-                                                                      solver_control_block_);
+        edge_bvh_ = std::make_unique<AABVH::AxisAlignedBoundingVolumeHierarchy>(
+            edge_geoms, workspace().getAABVHWorkspace(), solver_control_block_);
     }
 
     void IntersectionProblemBase::FindEdgeAndTriangleIntersections(AABVH::IntersectionType selfOrBooleanIntersection,
@@ -90,49 +91,39 @@ namespace Cork::Intersection
     {
         CreateBoundingVolumeHierarchy();
 
-        //	Search for intersections, either in multiple threads or in a single thread
-        /*
-                        if( ownerMesh().solverControlBlock().useMultipleThreads() )
-                        {
-                            //	Multithreaded search
 
-                            assert( triangles().isCompact() );
 
-                            tbb::parallel_for( tbb::blocked_range<TopoTriList::PoolType::iterator>(
-           triangles().getPool().begin(), triangles().getPool().end(), ( triangles().getPool().size() / 4 ) - 1
-           ),
-                                [&] ( tbb::blocked_range<TopoTriList::PoolType::iterator> triangles )
-                            {
-                                TopoEdgePointerVector			edges;
+        assert(triangles().isCompact());
 
-                                for( TopoTri& t : triangles )
-                                {
-                                    m_edgeBVH->EdgesIntersectingTriangle( t, selfOrBooleanIntersection, edges );
+        tbb::parallel_for( tbb::blocked_range<Cork::Meshes::TopoTriList::PoolType::iterator>(
+           topo_cache().triangles().getPool().begin(), topo_cache().triangles().getPool().end() ),
+                                [&] ( tbb::blocked_range<Cork::Meshes::TopoTriList::PoolType::iterator> triangles )
+            {
+                for (TopoTri& t : triangles)
+                {
+                    TopoEdgeReferenceVector edges(
+                        std::move(edge_bvh_->EdgesIntersectingTriangle(t, selfOrBooleanIntersection)));
 
-                                    if (!edges.empty())
-                                    {
-                                        triangleAndEdges.push( new TriangleAndIntersectingEdgesMessage( t, edges
-           ));
+                    if (!edges.empty())
+                    {
+                        triangleAndEdges.push(new TriangleAndIntersectingEdgesMessage(t, edges));
+                    }
+                }
+            });
 
-                                        edges.clear();
-                                    }
-                                }
-                            }, tbb::simple_partitioner() );
-                        }
-                        else
-                        {
-                        */
-        //	Single threaded search
-
+/*            
         for (TopoTri& tri : topo_cache().triangles())
         {
-            TopoEdgeReferenceVector edges( std::move( edge_bvh_->EdgesIntersectingTriangle(tri, selfOrBooleanIntersection)));
+            TopoEdgeReferenceVector edges(
+                std::move(edge_bvh_->EdgesIntersectingTriangle(tri, selfOrBooleanIntersection)));
 
             if (!edges.empty())
             {
                 triangleAndEdges.push(new TriangleAndIntersectingEdgesMessage(tri, edges));
             }
         }
+*/
+
         //				}
 
         //	Push the end of queue message
@@ -150,7 +141,7 @@ namespace Cork::Intersection
 
         for (auto& glue : glue_point_marker_list_)
         {
-            assert( !glue.vertices_to_be_glued().empty() );
+            assert(!glue.vertices_to_be_glued().empty());
             IsctVertType* iv = glue.vertices_to_be_glued()[0];
 
             (*points)[write] = iv->coordinate();

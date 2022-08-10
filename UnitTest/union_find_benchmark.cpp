@@ -8,7 +8,6 @@
 #include "tbb/tbb.h"
 #include "util/union_find.hpp"
 
-
 typedef tbb::concurrent_vector<tbb::concurrent_unordered_set<size_t>> Components;
 
 bool operator==(const Components& first, const Components& second)
@@ -37,44 +36,91 @@ bool operator==(const Components& first, const Components& second)
     return (true);
 }
 
-std::unique_ptr<Components> GetComponents(const Graph& graph, IUnionFind& unionFind)
+std::unique_ptr<Components> GetComponentsMutex(const Graph& graph, IUnionFind& unionFind)
 {
     std::unique_ptr<Components> components(new Components());
 
-    std::vector<long> uq_ids(graph.numVertices(), long(-1));
+    long minus_one = -1;
+
+    std::vector<long> uq_ids(graph.numVertices(), -1);
 
     components->reserve(64);
 
-    std::mutex vectorLock;
+    tbb::spin_mutex vectorLock;
 
     tbb::parallel_for(tbb::blocked_range<size_t>((size_t)0, graph.numVertices()),
-        [&](tbb::blocked_range<size_t> range)
-        {
-            for (auto i = range.begin(); i != range.end(); i++)
-            {
-                size_t ufid = unionFind.find(i);
+                      [&](tbb::blocked_range<size_t> range)
+                      {
+                          for (auto i = range.begin(); i != range.end(); i++)
+                          {
+                              size_t ufid = unionFind.find(i);
 
-            retry:
+                          retry:
 
-                if (uq_ids[ufid] == long(-1))
-                {  // unassigned
-                    std::lock_guard<std::mutex> lock(vectorLock);
+                              if (uq_ids[ufid] == minus_one)
+                              {  // unassigned
+                                  std::lock_guard<tbb::spin_mutex> lock(vectorLock);
 
-                    if (uq_ids[ufid] != long(-1)) goto retry;
+                                  if (uq_ids[ufid] != long(-1)) goto retry;
 
-                    size_t N = components->size();
-                    components->emplace_back();
+                                  long N = components->size();
+                                  components->emplace_back();
 
-                    uq_ids[ufid] = uq_ids[i] = (long)N;
-                    (*components)[N].insert(i);
-                }
-                else
-                {                              // assigned already
-                    uq_ids[i] = uq_ids[ufid];  // propagate assignment
-                    (*components)[uq_ids[i]].insert(i);
-                }
-            }
-        });
+                                  uq_ids[ufid] = uq_ids[i] = N;
+                                  (*components)[N].insert(i);
+                              }
+                              else
+                              {                                     // assigned already
+                                  uq_ids[i] = uq_ids[ufid];  // propagate assignment
+                                  (*components)[uq_ids[i]].insert(i);
+                              }
+                          }
+                      });
+
+    return (components);
+}
+
+std::unique_ptr<Components> GetComponentsCAS(const Graph& graph, IUnionFind& unionFind)
+{
+    std::unique_ptr<Components> components(new Components());
+
+    long minus_one = -1;
+
+    std::vector<std::atomic_long> uq_ids(graph.numVertices());
+
+    for (size_t i = 0; i < graph.numVertices(); i++)
+    {
+        std::atomic_init( &(uq_ids[i]), -1 );
+    }
+
+    components->reserve(64);
+
+    tbb::parallel_for(tbb::blocked_range<size_t>((size_t)0, graph.numVertices()),
+                      [&](tbb::blocked_range<size_t> range)
+                      {
+                          for (auto i = range.begin(); i != range.end(); i++)
+                          {
+                              size_t ufid = unionFind.find(i);
+
+                              if (uq_ids[ufid] == minus_one)    //  Not yet assigned
+                              {
+                                  long N = components->size();
+
+                                  if (uq_ids[ufid].compare_exchange_weak(minus_one, N))
+                                  {
+                                      components->emplace_back();
+
+                                      uq_ids[ufid] = uq_ids[i] = N;
+                                      (*components)[N].insert(i);
+                                  }
+                              }
+                              else
+                              {                                     // assigned already
+                                  uq_ids[i] = uq_ids[ufid].load();  // propagate assignment
+                                  (*components)[uq_ids[i]].insert(i);
+                              }
+                          }
+                      });
 
     return (components);
 }
@@ -88,7 +134,7 @@ std::unique_ptr<Components> GetReferenceComponents(const Graph& graph)
         refUnionFind.unite(edge.first, edge.second);
     }
 
-    return (GetComponents(graph, refUnionFind));
+    return (GetComponentsCAS(graph, refUnionFind));
 }
 
 class UnionFindTestFixture
@@ -141,7 +187,7 @@ bool TestRankWeightedSerialUnionFind(const Graph& graph, const Components& refCo
             }
         });
 
-    std::unique_ptr<Components> components(GetComponents(graph, rankUnionFind));
+    std::unique_ptr<Components> components(GetComponentsCAS(graph, rankUnionFind));
 
     REQUIRE(*components == refComponents);
 
@@ -162,7 +208,7 @@ bool TestRandWeightedSerialUnionFind(const Graph& graph, const Components& refCo
             }
         });
 
-    std::unique_ptr<Components> components(GetComponents(graph, randUnionFind));
+    std::unique_ptr<Components> components(GetComponentsCAS(graph, randUnionFind));
 
     REQUIRE(*components == refComponents);
 
@@ -177,18 +223,17 @@ bool TestRandWeightedParallelUnionFind(const Graph& graph, const Components& ref
     meter.measure(
         [&unionFind, &graph]
         {
-            tbb::parallel_for(
-                tbb::blocked_range<Graph::const_iterator>(graph.begin(), graph.end()),
-                [&](tbb::blocked_range<Graph::const_iterator> edges)
-                                       {
-                                           for (auto currentEdge : edges)
-                                           {
-                                               unionFind.unite(currentEdge.first, currentEdge.second);
-                                           }
-                                       });
+            tbb::parallel_for(tbb::blocked_range<Graph::const_iterator>(graph.begin(), graph.end()),
+                              [&](tbb::blocked_range<Graph::const_iterator> edges)
+                              {
+                                  for (auto currentEdge : edges)
+                                  {
+                                      unionFind.unite(currentEdge.first, currentEdge.second);
+                                  }
+                              });
         });
 
-    std::unique_ptr<Components> components(GetComponents(graph, unionFind));
+    std::unique_ptr<Components> components(GetComponentsCAS(graph, unionFind));
 
     REQUIRE(*components == refComponents);
 
@@ -203,20 +248,55 @@ bool TestRandWeightedParallelUnionFind1(const Graph& graph, const Components& re
     meter.measure(
         [&unionFind, &graph]
         {
-            tbb::parallel_for(
-                tbb::blocked_range<Graph::const_iterator>(graph.begin(), graph.end()),
-                [&](tbb::blocked_range<Graph::const_iterator> edges)
-                                       {
-                                           for (auto current_edge : edges)
-                                           {
-                                               unionFind.unite(current_edge.first, current_edge.second);
-                                           }
-                                       });
+            tbb::parallel_for(tbb::blocked_range<Graph::const_iterator>(graph.begin(), graph.end()),
+                              [&](tbb::blocked_range<Graph::const_iterator> edges)
+                              {
+                                  for (auto current_edge : edges)
+                                  {
+                                      unionFind.unite(current_edge.first, current_edge.second);
+                                  }
+                              });
         });
 
-    std::unique_ptr<Components> components(GetComponents(graph, unionFind));
+    std::unique_ptr<Components> components(GetComponentsCAS(graph, unionFind));
 
     REQUIRE(*components == refComponents);
+
+    return (true);
+}
+
+bool TestGetComponentsCAS(const Graph& graph, const Components& refComponents, Catch::Benchmark::Chronometer meter)
+{
+    RandomWeightedParallelUnionFind1 unionFind(graph.numVertices());
+
+    tbb::parallel_for(tbb::blocked_range<Graph::const_iterator>(graph.begin(), graph.end()),
+                      [&](tbb::blocked_range<Graph::const_iterator> edges)
+                      {
+                          for (auto current_edge : edges)
+                          {
+                              unionFind.unite(current_edge.first, current_edge.second);
+                          }
+                      });
+
+    meter.measure([&unionFind, &graph] { std::unique_ptr<Components> components(GetComponentsCAS(graph, unionFind)); });
+
+    return (true);
+}
+
+bool TestGetComponentsMutex(const Graph& graph, const Components& refComponents, Catch::Benchmark::Chronometer meter)
+{
+    RandomWeightedParallelUnionFind1 unionFind(graph.numVertices());
+
+    tbb::parallel_for(tbb::blocked_range<Graph::const_iterator>(graph.begin(), graph.end()),
+                      [&](tbb::blocked_range<Graph::const_iterator> edges)
+                      {
+                          for (auto current_edge : edges)
+                          {
+                              unionFind.unite(current_edge.first, current_edge.second);
+                          }
+                      });
+
+    meter.measure([&unionFind, &graph] { std::unique_ptr<Components> components(GetComponentsMutex(graph, unionFind)); });
 
     return (true);
 }
@@ -224,7 +304,7 @@ bool TestRandWeightedParallelUnionFind1(const Graph& graph, const Components& re
 TEST_CASE("Basic Union Find with Benchmarks", "[cork-base]")
 {
     UnionFindTestFixture testFixture;
-
+/*
     BENCHMARK_ADVANCED("Test Rank Weighted Serial Union Find")(Catch::Benchmark::Chronometer meter)
     {
         return TestRankWeightedSerialUnionFind(testFixture.getGraph(), testFixture.getRefComponents(), meter);
@@ -243,5 +323,15 @@ TEST_CASE("Basic Union Find with Benchmarks", "[cork-base]")
     BENCHMARK_ADVANCED("Test Random Weighted Parallel Union Find 1")(Catch::Benchmark::Chronometer meter)
     {
         return TestRandWeightedParallelUnionFind1(testFixture.getGraph(), testFixture.getRefComponents(), meter);
+    };
+*/
+    BENCHMARK_ADVANCED("Test GetComponents Compare and Swap")(Catch::Benchmark::Chronometer meter)
+    {
+        return TestGetComponentsCAS(testFixture.getGraph(), testFixture.getRefComponents(), meter);
+    };
+
+    BENCHMARK_ADVANCED("Test GetComponents with Mutex")(Catch::Benchmark::Chronometer meter)
+    {
+        return TestGetComponentsMutex(testFixture.getGraph(), testFixture.getRefComponents(), meter);
     };
 }
