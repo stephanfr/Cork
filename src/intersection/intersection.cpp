@@ -82,12 +82,15 @@ namespace Cork::Intersection
 
         TriangleProblem& getTprob(const TopoTri& t)
         {
-            TriangleProblem& prob = optional_value_or_lambda(t.get_associated_triangle_problem(), [&] {
-                m_triangleProblemList.emplace_back(*this, t);
-                TriangleProblem* prob = &(m_triangleProblemList.back());
+            TriangleProblem& prob = optional_value_or_lambda(t.get_associated_triangle_problem(),
+                                                             [&]
+                                                             {
+                                                                 m_triangleProblemList.emplace_back(*this, t);
+                                                                 TriangleProblem* prob =
+                                                                     &(m_triangleProblemList.back());
 
-                return std::ref(*prob);
-            });
+                                                                 return std::ref(*prob);
+                                                             });
 
             return prob;
         }
@@ -117,7 +120,7 @@ namespace Cork::Intersection
         typedef SEFUtility::Result<TryToFindIntersectionsResultCodes> TryToFindIntersectionsResult;
 
         TryToFindIntersectionsResult tryToFindIntersections();
-        bool findTriTriTriIntersections();
+        void findTriTriTriIntersections(TriangleAndIntersectingEdgesQueue& triangleAndEdges);
 
         void reset();
 
@@ -170,57 +173,84 @@ namespace Cork::Intersection
 
         TriangleAndIntersectingEdgesQueue trianglesAndEdges;
 
+        //  Create a task group and run FindEdgeAndTriangleIntersections() into a separate thread.
+        //      FindEdgeAndTriangleIntersections() will place all the intersections it finds into the
+        //      trianglesAndEdges queue, which is a producer/consumer queue that is pulled from below.
+
         tbb::task_group taskGroup;
 
-        taskGroup.run([&] {
-            FindEdgeAndTriangleIntersections(AABVH::IntersectionType::BOOLEAN_INTERSECTION, trianglesAndEdges);
-        });
+        taskGroup.run(
+            [&]
+            { FindEdgeAndTriangleIntersections(AABVH::IntersectionType::BOOLEAN_INTERSECTION, trianglesAndEdges); });
+
+        taskGroup.run([&] { findTriTriTriIntersections(trianglesAndEdges); });
+
+        //  Loop until we get a TriAndEdgeQueueEnd message
 
         while (true)
         {
+            //  Get the next message from the queue
+
             TriAndEdgeQueueMessage* msg(nullptr);
 
             trianglesAndEdges.pop(msg);
 
             const std::unique_ptr<TriAndEdgeQueueMessage> currentMessage(msg);
 
+            //  If this is the end of messages signal, then break.
+
             if (currentMessage->type() == TriAndEdgeQueueMessage::MessageType::END_OF_MESSAGES)
             {
                 break;
             }
 
+            //  Ditto if this message indicates a degeneracy was detected
+
+            if (currentMessage->type() == TriAndEdgeQueueMessage::MessageType::DEGENERACY_DETECTED)
+            {
+                break;
+            }
+
+            if (currentMessage->type() == TriAndEdgeQueueMessage::MessageType::TRI_TRI_TRI_INTERSECTION)
+            {
+                std::cout << "Got a Tri Tri Tri intersection message" << std::endl;
+                continue;
+
+                //                    GluePointMarker* glue = glue_point_marker_list_.emplace_back(
+                //                        GluePointMarker::IntersectionType::TRIANGLE_TRIANGLE_TRIANGLE, t.t0(), t.t1(),
+                //                        t.t2());
+                //
+                //                    getTprob(t.t0()).addInteriorPoint(t.t1(), t.t2(), *glue);
+                //                    getTprob(t.t1()).addInteriorPoint(t.t0(), t.t2(), *glue);
+                //                    getTprob(t.t2()).addInteriorPoint(t.t0(), t.t1(), *glue);
+            }
+
+            //  We have some intersections, so create the glue points, interior endpoint and add
+            //      boundary endpoints to the triangle.
+
             TopoTri& triangle = (dynamic_cast<TriangleAndIntersectingEdgesMessage&>(*currentMessage)).triangle();
 
             for (const TopoEdge& edge : (dynamic_cast<TriangleAndIntersectingEdgesMessage&>(*currentMessage)).edges())
             {
-                if (triangle.intersects_edge(edge, quantizer_, exact_arithmetic_context_))
+                GluePointMarker* glue = glue_point_marker_list_.emplace_back(
+                    GluePointMarker::IntersectionType::EDGE_TRIANGLE, edge, triangle);
+
+                // first add point and edges to the pierced triangle
+
+                IsctVertType* iv = getTprob(triangle).addInteriorEndpoint(edge, *glue);
+
+                for (const auto* tri : edge.triangles())
                 {
-                    GluePointMarker* glue = glue_point_marker_list_.emplace_back(
-                        GluePointMarker::IntersectionType::EDGE_TRIANGLE, edge, triangle);
-
-                    // first add point and edges to the pierced triangle
-
-                    IsctVertType* iv = getTprob(triangle).addInteriorEndpoint(edge, *glue);
-
-                    for (const auto* tri : edge.triangles())
-                    {
-                        getTprob(*tri).addBoundaryEndpoint(triangle, edge, iv);
-                    }
+                    getTprob(*tri).addBoundaryEndpoint(triangle, edge, iv);
                 }
-
-                if (exact_arithmetic_context_.has_degeneracies())
-                {
-                    break;
-                }
-            }
-
-            if (exact_arithmetic_context_.has_degeneracies())
-            {
-                break;
             }
         };
 
+        //  Even if we have recieved the end or degeneracies message, wait for the task group to finish
+
         taskGroup.wait();
+
+        //  If we have degeneracies, return a failed result
 
         if (exact_arithmetic_context_.has_degeneracies())
         {
@@ -229,22 +259,29 @@ namespace Cork::Intersection
                 "Degeneracies Detected during Triangle Edge instersection computations."));
         }
 
-        if (!findTriTriTriIntersections())
-        {
-            return (TryToFindIntersectionsResult::failure(
-                TryToFindIntersectionsResultCodes::TRI_TRI_TRI_INTERSECTIONS_FAILED,
-                "Three Triangle Intersection computation failed."));
-        }
+        //  Look for Triangle/Triangle/Triangle intersections.
+
+        //        if (!findTriTriTriIntersections())
+        //        {
+        //            return (TryToFindIntersectionsResult::failure(
+        //                TryToFindIntersectionsResultCodes::TRI_TRI_TRI_INTERSECTIONS_FAILED,
+        //                "Three Triangle Intersection computation failed."));
+        //        }
+
+        //  Finished with success
 
         return (TryToFindIntersectionsResult::success());
     }
 
-    bool IntersectionSolverImpl::findTriTriTriIntersections()
+    void IntersectionSolverImpl::findTriTriTriIntersections(TriangleAndIntersectingEdgesQueue& triangleAndEdges)
     {
+        std::atomic_bool degeneracy_detected{false};
+
         // we're going to peek into the triangle problems in order to
         // identify potential candidates for Tri-Tri-Tri intersections
 
-        std::vector<TriTripleTemp> triples;
+        //        tbb::concurrent_vector<TriTripleTemp> triples;
+        //        triples.reserve(256);
 
         for (auto& tprob : m_triangleProblemList)
         {
@@ -272,52 +309,87 @@ namespace Cork::Intersection
                         // sure if it exists...
 
                         assert(t1.get_associated_triangle_problem());
-                        TriangleProblem& prob1 = t1.get_associated_triangle_problem().value();
+                        const TriangleProblem& prob1 = t1.get_associated_triangle_problem().value();
 
-                        for (IsctEdgeType* ie : prob1.iedges())
+                        for (const IsctEdgeType* ie : prob1.iedges())
                         {
                             if (&(ie->otherTriKey()) == &t2)
                             {
                                 // ADD THE TRIPLE
-                                triples.emplace_back(t0, t1, t2);
+                                //                                        triples.emplace_back(t0, t1, t2);
+
+                                TriTripleTemp ttt(t0, t1, t2);
+
+                                if (!checkIsct(ttt))
+                                {
+                                    continue;
+                                }
+
+                                // Abort if we encounter a degeneracy
+
+                                if (exact_arithmetic_context_.has_degeneracies())
+                                {
+                                    triangleAndEdges.push(new DegeneracyDetectedMessage());
+                                    degeneracy_detected = true;
+                                    break;
+                                }
+
+                                triangleAndEdges.push(new TriTriTriIntersectionMessage(ttt));
                             }
                         }
                     }
+
+                    if (degeneracy_detected)
+                    {
+                        break;
+                    }
+                }
+
+                if (degeneracy_detected)
+                {
+                    break;
                 }
             }
-        }
 
-        // Now, we've collected a list of Tri-Tri-Tri intersection candidates.
-        // Check to see if the intersections actually exist.
-
-        for (TriTripleTemp& t : triples)
-        {
-            if (!checkIsct(t))
-            {
-                continue;
-            }
-
-            // Abort if we encounter a degeneracy
-
-            if (exact_arithmetic_context_.has_degeneracies())
+            if (degeneracy_detected)
             {
                 break;
             }
-
-            GluePointMarker* glue = glue_point_marker_list_.emplace_back(
-                GluePointMarker::IntersectionType::TRIANGLE_TRIANGLE_TRIANGLE, t.t0(), t.t1(), t.t2());
-
-            getTprob(t.t0()).addInteriorPoint(t.t1(), t.t2(), *glue);
-            getTprob(t.t1()).addInteriorPoint(t.t0(), t.t2(), *glue);
-            getTprob(t.t2()).addInteriorPoint(t.t0(), t.t1(), *glue);
         }
+        //        }
 
-        if (exact_arithmetic_context_.has_degeneracies())
-        {
-            return (false);  // restart / abort
-        }
+        // Now, we've collected a list of Tri-Tri-Tri intersection candidates.
+        // Check to see if the intersections actually exist.
+        /*
+                for (TriTripleTemp& t : triples)
+                {
+                    if (!checkIsct(t))
+                    {
+                        continue;
+                    }
 
-        return (true);
+                    // Abort if we encounter a degeneracy
+
+                    if (exact_arithmetic_context_.has_degeneracies())
+                    {
+                        break;
+                    }
+
+                    GluePointMarker* glue = glue_point_marker_list_.emplace_back(
+                        GluePointMarker::IntersectionType::TRIANGLE_TRIANGLE_TRIANGLE, t.t0(), t.t1(), t.t2());
+
+                    getTprob(t.t0()).addInteriorPoint(t.t1(), t.t2(), *glue);
+                    getTprob(t.t1()).addInteriorPoint(t.t0(), t.t2(), *glue);
+                    getTprob(t.t2()).addInteriorPoint(t.t0(), t.t1(), *glue);
+                }
+
+                if (exact_arithmetic_context_.has_degeneracies())
+                {
+                    return (false);  // restart / abort
+                }
+
+                return (true);
+                */
     }
 
     void IntersectionSolverImpl::reset()

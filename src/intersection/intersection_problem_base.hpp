@@ -52,7 +52,7 @@ namespace Cork::Intersection
     {
        public:
         TriTripleTemp() = delete;
-        TriTripleTemp(const TriTripleTemp&) = delete;
+        TriTripleTemp(const TriTripleTemp&) = default;
         TriTripleTemp(TriTripleTemp&&) = default;
 
         TriTripleTemp(const Meshes::TopoTri& tp0, const Meshes::TopoTri& tp1, const Meshes::TopoTri& tp2)
@@ -92,6 +92,8 @@ namespace Cork::Intersection
             enum class MessageType
             {
                 TRI_AND_INTERSECTING_EDGES,
+                TRI_TRI_TRI_INTERSECTION,
+                DEGENERACY_DETECTED,
                 END_OF_MESSAGES
             };
 
@@ -111,6 +113,12 @@ namespace Cork::Intersection
         {
            public:
             [[nodiscard]] MessageType type() const final { return (MessageType::END_OF_MESSAGES); }
+        };
+
+        class DegeneracyDetectedMessage : public TriAndEdgeQueueMessage
+        {
+           public:
+            [[nodiscard]] MessageType type() const final { return (MessageType::DEGENERACY_DETECTED); }
         };
 
         class TriangleAndIntersectingEdgesMessage : public TriAndEdgeQueueMessage
@@ -140,6 +148,32 @@ namespace Cork::Intersection
            private:
             TopoTri& m_triangle;
             TopoEdgeReferenceVector m_edges;
+        };
+
+        class TriTriTriIntersectionMessage : public TriAndEdgeQueueMessage
+        {
+           public:
+            TriTriTriIntersectionMessage() = delete;
+
+            TriTriTriIntersectionMessage(const TriTriTriIntersectionMessage&) = delete;
+            TriTriTriIntersectionMessage(TriTriTriIntersectionMessage&&) = delete;
+
+            TriTriTriIntersectionMessage(const TriTripleTemp&  tri_tri_tri)
+                : tri_tri_tri_( tri_tri_tri )
+            {
+            }
+
+            ~TriTriTriIntersectionMessage() = default;
+
+            TriTriTriIntersectionMessage& operator=(const TriTriTriIntersectionMessage&) = delete;
+            TriTriTriIntersectionMessage& operator=(TriTriTriIntersectionMessage&&) = delete;
+
+            [[nodiscard]] MessageType type() const final { return (MessageType::TRI_TRI_TRI_INTERSECTION); }
+
+            [[nodiscard]] const TriTripleTemp& triangle() { return tri_tri_tri_; }
+
+           private:
+            const TriTripleTemp  tri_tri_tri_;
         };
 
         using TriangleAndIntersectingEdgesQueue = tbb::concurrent_bounded_queue<TriAndEdgeQueueMessage*>;
@@ -339,7 +373,7 @@ namespace Cork::Intersection
                 triangles.t1().operator Empty3d::IntersectingTriangle(),
                 triangles.t2().operator Empty3d::IntersectingTriangle());
 
-            return input.emptyExact(quantizer_, exact_arithmetic_context_) != Empty3d::HasIntersection::YES;
+            return input.hasIntersectionExact(quantizer_, exact_arithmetic_context_) == Empty3d::HasIntersection::YES;
         }
 
         void fillOutTriData(const TopoTri& piece, const TopoTri& parent)

@@ -24,7 +24,7 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "empty3d.hpp"
+#include "intersection_tests_3d.hpp"
 
 #include <cfloat>
 
@@ -48,7 +48,7 @@ namespace Cork::Empty3d
 
     inline bool filterCheck(double val, double absval, double coeff) { return (fabs(val) > (absval * coeff)); }
 
-    inline HasIntersection TriangleEdgeIntersection::isEmpty(ExactArithmeticContext& context) const
+    HasIntersection TriangleEdgeIntersection::hasIntersection(ExactArithmeticContext& context) const
     {
         context.add_call_count();
 
@@ -83,10 +83,10 @@ namespace Cork::Empty3d
         Ext4_2 a_e1(edge_.p0().join(p_isct));
 
         return (((t_ext3.inner(a_t0) < 0.0) || (t_ext3.inner(a_t1) < 0.0) || (t_ext3.inner(a_t2) < 0.0) ||
-                (e_ext2.inner(a_e0) < 0.0) || (e_ext2.inner(a_e1) < 0.0))) ? HasIntersection::YES : HasIntersection::NO;
+                (e_ext2.inner(a_e0) < 0.0) || (e_ext2.inner(a_e1) < 0.0))) ? HasIntersection::NO : HasIntersection::YES;
     }
 
-    inline Primitives::Vector3D TriangleEdgeIntersection::coords() const
+    Primitives::Vector3D TriangleEdgeIntersection::coords() const
     {
         Ext4_2 temp_e2(tri_.p0().join(tri_.p1()));
         Ext4_3 t_ext3(temp_e2.join(tri_.p2()));
@@ -111,7 +111,7 @@ namespace Cork::Empty3d
     constexpr double COEFF_IT12_S1 = 20.0 * EPS + 256.0 * EPS2;
     constexpr double COEFF_IT12_S2 = 24.0 * EPS + 512.0 * EPS2;
 
-    HasIntersection TriangleEdgeIntersection::emptyFilter() const
+    HasIntersection TriangleEdgeIntersection::hasIntersectionFilter() const
     {
         std::array<AbsExt4_1, 2> kep{{ AbsExt4_1( edge_.p0() ), AbsExt4_1( edge_.p1() )}};
         std::array<AbsExt4_1, 3> ktp{{ AbsExt4_1(tri_.p0()), AbsExt4_1(tri_.p1()), AbsExt4_1(tri_.p2()) }};
@@ -163,7 +163,7 @@ namespace Cork::Empty3d
 
             if (reliable && outside)
             {
-                return HasIntersection::YES;  // i.e. true
+                return HasIntersection::NO;
             }
 
             if (!reliable)
@@ -191,7 +191,7 @@ namespace Cork::Empty3d
 
             if (reliable && outside)
             {
-                return HasIntersection::YES;  // i.e. true
+                return HasIntersection::NO;
             }
 
             if (!reliable)
@@ -200,7 +200,7 @@ namespace Cork::Empty3d
             }
         }
 
-        return uncertain ? HasIntersection::MAYBE : HasIntersection::NO;
+        return uncertain ? HasIntersection::MAYBE : HasIntersection::YES;
     }
 
     HasIntersection TriangleEdgeIntersection::exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
@@ -242,7 +242,7 @@ namespace Cork::Empty3d
         else if (e3sign == 0)
         {
             context.found_degeneracy();
-            return HasIntersection::YES;
+            return HasIntersection::NO;
         }
 
         // process edge
@@ -276,7 +276,7 @@ namespace Cork::Empty3d
 
         if (sign_e0 < 0 || sign_e1 < 0 || sign_t0 < 0 || sign_t1 < 0 || sign_t2 < 0)
         {
-            return HasIntersection::YES;
+            return HasIntersection::NO;
         }
 
         if (sign_e0 == 0 || sign_e1 == 0 || sign_t0 == 0 || sign_t1 == 0 || sign_t2 == 0)
@@ -284,14 +284,14 @@ namespace Cork::Empty3d
             context.found_degeneracy();
         }
 
-        return HasIntersection::NO;
+        return HasIntersection::YES;
     }
 
-    HasIntersection TriangleEdgeIntersection::emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
+    HasIntersection TriangleEdgeIntersection::hasIntersectionExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
     {
         context.add_call_count();
 
-        HasIntersection filter = emptyFilter();
+        HasIntersection filter = hasIntersectionFilter();
 
         if (filter == HasIntersection::MAYBE)
         {
@@ -328,7 +328,7 @@ namespace Cork::Empty3d
         return pisct(quantizer);
     }
 
-    HasIntersection TriangleTriangleTriangleIntersection::isEmpty(ExactArithmeticContext& context) const
+    HasIntersection TriangleTriangleTriangleIntersection::hasIntersection(ExactArithmeticContext& context) const
     {
         context.add_call_count();
 
@@ -371,14 +371,14 @@ namespace Cork::Empty3d
 
                 if (test < 0.0)  // AHA, p_isct IS outside this triangle
                 {
-                    return HasIntersection::YES;
+                    return HasIntersection::NO;
                 }
             }
         }
 
         // well, p_isct must be inside all of the triangles.
 
-        return HasIntersection::NO;
+        return HasIntersection::YES;
     }
 
     Primitives::Vector3D TriangleTriangleTriangleIntersection::coords() const
@@ -408,7 +408,7 @@ namespace Cork::Empty3d
     constexpr double COEFF_IT222_PISCT = 20.0 * EPS + 256.0 * EPS2;
     constexpr double COEFF_IT222_S2 = 34.0 * EPS + 1024.0 * EPS2;
 
-    HasIntersection TriangleTriangleTriangleIntersection::emptyFilter() const
+    HasIntersection TriangleTriangleTriangleIntersection::hasIntersectionFilter() const
     {
         std::array<std::array<AbsExt4_1, 3>, 3> kp;                 //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
         std::array<Ext4_3, 3> t;                                    //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
@@ -470,7 +470,7 @@ namespace Cork::Empty3d
 
                 if (reliable && outside)
                 {
-                    return HasIntersection::YES;  // i.e. true
+                    return HasIntersection::NO;
                 }
 
                 if (!reliable)
@@ -480,7 +480,7 @@ namespace Cork::Empty3d
             }
         }
 
-        return uncertain ? HasIntersection::MAYBE : HasIntersection::NO;
+        return uncertain ? HasIntersection::MAYBE : HasIntersection::YES;
 
     }
 
@@ -531,7 +531,7 @@ namespace Cork::Empty3d
         else if (e3sign == 0)
         {
             context.found_degeneracy();
-            return HasIntersection::YES;
+            return HasIntersection::NO;
         }
 
         bool uncertain = false;
@@ -551,7 +551,7 @@ namespace Cork::Empty3d
 
                 if (testsign < 0)
                 {
-                    return HasIntersection::YES;
+                    return HasIntersection::NO;
                 }
 
                 if (testsign == 0)
@@ -566,13 +566,13 @@ namespace Cork::Empty3d
             context.found_degeneracy();
         }
 
-        return HasIntersection::NO;
+        return HasIntersection::YES;
     }
 
-    HasIntersection TriangleTriangleTriangleIntersection::emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
+    HasIntersection TriangleTriangleTriangleIntersection::hasIntersectionExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const
     {
         context.add_call_count();
-        HasIntersection filter = emptyFilter();
+        HasIntersection filter = hasIntersectionFilter();
 
         if (filter == HasIntersection::MAYBE)
         {

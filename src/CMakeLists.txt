@@ -39,7 +39,7 @@ add_library(Corklib SHARED
 #    file_formats/ifs.cpp
     file_formats/off.cpp
     file_formats/polyline3d.cpp
-    intersection/empty3d.cpp
+    intersection/intersection_tests_3d.cpp
     intersection/intersection_problem_base.cpp
     intersection/perturbation_epsilon.cpp
     intersection/triangle.c

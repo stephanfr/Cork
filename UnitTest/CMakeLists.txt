@@ -56,6 +56,7 @@ add_executable( tests
   svd_centroid_3d_tests.cpp
   topo_cache_tests.cpp
   strong_typedefs_tests.cpp
+  intersection_tests.cpp
 )
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain Corklib tbb mpir boost_program_options boost_filesystem boost_iostreams boost_system boost_timer boost_thread pthread)

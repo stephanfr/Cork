@@ -32,7 +32,7 @@
 #include <unordered_set>
 
 #include "../constants.hpp"
-#include "intersection/empty3d.hpp"
+#include "intersection/intersection_tests_3d.hpp"
 #include "math/quantization.hpp"
 #include "primitives/boundary_edge.hpp"
 #include "util/caching_factory.hpp"
@@ -581,7 +581,7 @@ namespace Cork::Meshes
             Empty3d::TriangleEdgeIntersection input(this->operator Empty3d::IntersectingTriangle(),
                                                     edgeToCheck.operator Empty3d::IntersectingEdge());
 
-            return input.emptyExact(quantizer, arithContext) != Empty3d::HasIntersection::YES;
+            return input.hasIntersectionExact(quantizer, arithContext) == Empty3d::HasIntersection::YES;
         }
 
        private:

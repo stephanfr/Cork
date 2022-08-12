@@ -50,6 +50,14 @@ namespace Cork::Empty3d
         YES = 1
     };
 
+    
+    enum class IsEmpty
+    {
+        NO = -1,
+        MAYBE = 0,
+        YES = 1
+    };
+
     class ExactArithmeticContext
     {
        public:
@@ -125,20 +133,20 @@ namespace Cork::Empty3d
         {
         }
 
-        [[nodiscard]] HasIntersection isEmpty(ExactArithmeticContext& context) const;
+        [[nodiscard]] HasIntersection hasIntersection(ExactArithmeticContext& context) const;
 
-        [[nodiscard]] HasIntersection emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
+        [[nodiscard]] HasIntersection hasIntersectionExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
 
         [[nodiscard]] Primitives::Vector3D coords() const;
         [[nodiscard]] Primitives::Vector3D coordsExact(const Math::Quantizer& quantizer) const;
 
+        [[nodiscard]] HasIntersection hasIntersectionFilter() const;
+
+        [[nodiscard]] HasIntersection exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
+
        private:
         IntersectingTriangle tri_;
         IntersectingEdge edge_;
-
-        [[nodiscard]] HasIntersection emptyFilter() const;
-
-        [[nodiscard]] HasIntersection exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
     };
 
     Primitives::Vector3D coordsExact(const GMPExt4_2& edge, const GMPExt4_3& triangle,
@@ -156,18 +164,18 @@ namespace Cork::Empty3d
 
         [[nodiscard]] const std::array<IntersectingTriangle, 3>& triangle() const { return (m_tri); }
 
-        [[nodiscard]] HasIntersection isEmpty(ExactArithmeticContext& context) const;
-        [[nodiscard]] HasIntersection emptyExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
+        [[nodiscard]] HasIntersection hasIntersection(ExactArithmeticContext& context) const;
+        [[nodiscard]] HasIntersection hasIntersectionExact(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
 
         [[nodiscard]] Primitives::Vector3D coords() const;
         [[nodiscard]] Primitives::Vector3D coordsExact(const Math::Quantizer& quantizer) const;
 
-       private:
-        std::array<IntersectingTriangle, 3> m_tri;
-
-        [[nodiscard]] HasIntersection emptyFilter() const;
+        [[nodiscard]] HasIntersection hasIntersectionFilter() const;
 
         [[nodiscard]] HasIntersection exactFallback(const Math::Quantizer& quantizer, ExactArithmeticContext& context) const;
+
+       private:
+        std::array<IntersectingTriangle, 3> m_tri;
     };
 
     Primitives::Vector3D coordsExact(const GMPExt4_3& triangle0, const GMPExt4_3& triangle1, const GMPExt4_3& triangle2,

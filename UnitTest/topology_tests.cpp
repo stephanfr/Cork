@@ -312,7 +312,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats_after_se_removal.succeeded());
         REQUIRE(topo_stats_after_se_removal.return_value().non_manifold_edges().size() == 0);
         REQUIRE(topo_stats_after_se_removal.return_value().holes().size() == 0);
-        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 106);
+        REQUIRE(topo_stats_after_se_removal.return_value().self_intersecting_edges().size() == 178);
 
         {
             auto write_result = Cork::Files::writeOFF("../../UnitTest/Test Results/tulipRepaired.off", *mesh);

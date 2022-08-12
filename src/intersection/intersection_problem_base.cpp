@@ -91,22 +91,49 @@ namespace Cork::Intersection
     {
         CreateBoundingVolumeHierarchy();
 
+        std::atomic_bool    degeneracy_detected{ false };
 
-
-        assert(triangles().isCompact());
+        assert(topo_cache().triangles().isCompact());
 
         tbb::parallel_for( tbb::blocked_range<Cork::Meshes::TopoTriList::PoolType::iterator>(
            topo_cache().triangles().getPool().begin(), topo_cache().triangles().getPool().end() ),
                                 [&] ( tbb::blocked_range<Cork::Meshes::TopoTriList::PoolType::iterator> triangles )
             {
-                for (TopoTri& t : triangles)
+                for (TopoTri& tri : triangles)
                 {
                     TopoEdgeReferenceVector edges(
-                        std::move(edge_bvh_->EdgesIntersectingTriangle(t, selfOrBooleanIntersection)));
+                        std::move(edge_bvh_->EdgesIntersectingTriangle(tri, selfOrBooleanIntersection)));
 
                     if (!edges.empty())
                     {
-                        triangleAndEdges.push(new TriangleAndIntersectingEdgesMessage(t, edges));
+                        TopoEdgeReferenceVector edges_with_intersections;
+
+                        for (const TopoEdge& edge : edges )
+                        {
+                            if (tri.intersects_edge(edge, quantizer_, exact_arithmetic_context_))
+                            {
+                                edges_with_intersections.emplace_back( edge );
+                            }
+
+                            if (exact_arithmetic_context_.has_degeneracies())
+                            {
+                                triangleAndEdges.push( new DegeneracyDetectedMessage() );
+                                degeneracy_detected = true;
+                                edges_with_intersections.clear();
+                                break;
+                            }
+
+                        }
+
+                        if( !edges_with_intersections.empty() )
+                        {
+                            triangleAndEdges.push(new TriangleAndIntersectingEdgesMessage(tri, edges_with_intersections));
+                        }
+                    }
+
+                    if( degeneracy_detected )
+                    {
+                        break;
                     }
                 }
             });
