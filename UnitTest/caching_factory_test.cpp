@@ -31,38 +31,52 @@
 #pragma diag_suppress 2486
 #endif
 
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 using namespace std::literals::chrono_literals;
 
 class NonResettableObject
 {
    public:
-    NonResettableObject() : m_value(0) {}
+    NonResettableObject() = default;
 
-    ~NonResettableObject() {}
+    NonResettableObject(const NonResettableObject&) = delete;
+    NonResettableObject(NonResettableObject&&) = delete;
 
-    long getValue() const { return (m_value); }
+    ~NonResettableObject() = default;
+
+    NonResettableObject& operator=(const NonResettableObject&) = delete;
+    NonResettableObject& operator=(NonResettableObject&&) = delete;
+
+    [[nodiscard]] long getValue() const { return (m_value); }
 
     void setValue(long value) { m_value = value; }
 
    private:
-    long m_value;
+    long m_value{0};
 };
 
 class ResettableObject : SEFUtility::Resettable
 {
    public:
-    ResettableObject() : m_value(0) {}
+    ResettableObject() = default;
 
-    ~ResettableObject() {}
+    ResettableObject(const ResettableObject&) = delete;
+    ResettableObject(ResettableObject&&) = delete;
 
-    void reset() { m_value = 0; }
+    virtual ~ResettableObject() = default;
 
-    long getValue() const { return (m_value); }
+    ResettableObject& operator=(const ResettableObject&) = delete;
+    ResettableObject& operator=(ResettableObject&&) = delete;
+
+    void reset() override { m_value = 0; }
+
+    [[nodiscard]] long getValue() const { return (m_value); }
 
     void setValue(long value) { m_value = value; }
 
    private:
-    long m_value;
+    long m_value{0};
 };
 
 void NonResettableThreadMain(SEFUtility::CachingFactoryCacheOrDestroy cacheOrDestroy, long numLoops)
@@ -286,3 +300,5 @@ TEST_CASE("Caching Factory Tests", "[cork-base]")
         }
     }
 }
+
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

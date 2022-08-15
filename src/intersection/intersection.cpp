@@ -117,7 +117,7 @@ namespace Cork::Intersection
         // if we encounter ambiguous degeneracies, then this
         // routine returns false, indicating that the computation aborted.
 
-        typedef SEFUtility::Result<TryToFindIntersectionsResultCodes> TryToFindIntersectionsResult;
+        using TryToFindIntersectionsResult = SEFUtility::Result<TryToFindIntersectionsResultCodes>;
 
         TryToFindIntersectionsResult tryToFindIntersections();
         void findTriTriTriIntersections(TriangleAndIntersectingEdgesQueue& triangleAndEdges);
@@ -130,8 +130,8 @@ namespace Cork::Intersection
             {
                 TopoTri* t = topo_cache().new_triangle();
 
-                std::array<TopoVert*, 3> vertices;
-                std::array<TopoEdge*, 3> edges;
+                std::array<TopoVert*, 3> vertices;              //  NOLINT(cppcoreguidelines-pro-type-member-init)
+                std::array<TopoEdge*, 3> edges;                 //  NOLINT(cppcoreguidelines-pro-type-member-init)
 
                 GenericTriType* genericTri = gt.pointer();
 

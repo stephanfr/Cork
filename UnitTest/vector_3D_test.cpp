@@ -1,6 +1,7 @@
 
 #include <catch2/catch_all.hpp>
 
+//  NOLINTNEXTLINE(bugprone-reserved-identifier)
 #define __AVX_AVAILABLE__
 
 #include "math/vector_3D_template.hpp"
@@ -14,14 +15,16 @@
 #pragma diag_suppress 2486
 #endif
 
-typedef Cork::Math::Vector2DTemplate<double>     Vector2D;
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 
-typedef Cork::Math::Vector3DTemplate<double,SIMDInstructionSet::NONE>   Vector3D;
-typedef Cork::Math::Vector3DTemplate<double,SIMDInstructionSet::AVX>    Vector3DAVX;
+using Vector2D = Cork::Math::Vector2DTemplate<double>;
+
+using Vector3D = Cork::Math::Vector3DTemplate<double,SIMDInstructionSet::NONE>;
+using Vector3DAVX = Cork::Math::Vector3DTemplate<double,SIMDInstructionSet::AVX>;
 
 TEMPLATE_TEST_CASE("Vector3D Tests", "[cork-math]", Vector3D, Vector3DAVX )
 {
-    typedef TestType     Vector3D;
+    using Vector3D = TestType;
     
     SECTION( "Element Access" )
     {
@@ -277,3 +280,4 @@ TEMPLATE_TEST_CASE("Vector3D Tests", "[cork-math]", Vector3D, Vector3DAVX )
     }
 }
 
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

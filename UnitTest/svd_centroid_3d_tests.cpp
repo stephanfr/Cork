@@ -29,6 +29,8 @@
 #pragma diag_suppress 2486
 #endif
 
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 TEST_CASE("3D Utilities Tests", "[geometry]")
 {
     const std::vector<Cork::Primitives::Vertex3D> SURFACE_1 = {
@@ -84,3 +86,5 @@ TEST_CASE("3D Utilities Tests", "[geometry]")
         REQUIRE( best_fit_plane.rms_error() == Catch::Approx(0.166785).epsilon(10e-4) );
     }
 }
+
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

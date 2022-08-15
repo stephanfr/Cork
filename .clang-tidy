@@ -6,7 +6,8 @@ Checks:    >
  -cppcoreguidelines-owning-memory,
  bugprone-*,
  modernize-*,
- -modernize-use-trailing-return-type
+ -modernize-use-trailing-return-type,
+ -modernize-return-braced-init-list
 
 WarningsAsErrors: false
 HeaderFilterRegex: ''

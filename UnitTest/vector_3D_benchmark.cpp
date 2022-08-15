@@ -18,7 +18,7 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include <catch2/catch_all.hpp>
 
@@ -26,8 +26,8 @@
 
 #include "math/vector_3D_template.hpp"
 
-typedef Cork::Math::Vector3DTemplate<NUMERIC_PRECISION, SIMDInstructionSet::NONE> Vector3D;
-typedef Cork::Math::Vector3DTemplate<NUMERIC_PRECISION, SIMDInstructionSet::AVX2> Vector3DAVX;
+using Vector3D = Cork::Math::Vector3DTemplate<NUMERIC_PRECISION, SIMDInstructionSet::NONE>;
+using Vector3DAVX = Cork::Math::Vector3DTemplate<NUMERIC_PRECISION, SIMDInstructionSet::AVX2>;
 
 constexpr int NUM_ITERATIONS = 250000;
 

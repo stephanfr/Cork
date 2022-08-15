@@ -3,17 +3,15 @@
 
 #include "math/vector_2D_template.hpp"
 
-
-
-
 //  The pragma below is to disable to false errors flagged by intellisense for Catch2 REQUIRE macros.
 
 #if __INTELLISENSE__
 #pragma diag_suppress 2486
 #endif
 
-typedef Cork::Math::Vector2DTemplate<double>     Vector2D;
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 
+using Vector2D = Cork::Math::Vector2DTemplate<double>;
 
 TEST_CASE("Vector2D Tests", "[cork-math]" )
 {
@@ -227,3 +225,4 @@ TEST_CASE("Vector2D Tests", "[cork-math]" )
     }
 }
 
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

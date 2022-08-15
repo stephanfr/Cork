@@ -51,7 +51,7 @@ namespace Cork::Meshes
             }
         }
 
-        bool empty() const { return edges_by_verts_.empty(); }
+        [[nodiscard]] bool empty() const { return edges_by_verts_.empty(); }
 
         const TopoEdge* find(const TopoVert* vert) { return edges_by_verts_.find(vert)->second; }
 
@@ -150,9 +150,9 @@ namespace Cork::Meshes
         bounding_box_ = inputMesh.bounding_box();
     }
 
-    SurfaceMesh::~SurfaceMesh() {}
+    SurfaceMesh::~SurfaceMesh() = default;
 
-    void SurfaceMesh::operator=(SurfaceMesh&& src)
+    SurfaceMesh& SurfaceMesh::operator=(SurfaceMesh&& src)
     {
         tris_ = std::move(src.tris_);
         verts_ = std::move(src.verts_);
@@ -165,6 +165,8 @@ namespace Cork::Meshes
         topo_cache_ = std::move(src.topo_cache_);
 
         centroid_ = std::move(src.centroid_);
+
+        return *this;
     }
 
     BestFitPlaneEquation SurfaceMesh::best_fit_plane() const

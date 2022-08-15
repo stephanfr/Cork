@@ -8,7 +8,9 @@
 #include "tbb/tbb.h"
 #include "util/union_find.hpp"
 
-typedef tbb::concurrent_vector<tbb::concurrent_unordered_set<size_t>> Components;
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
+using Components = tbb::concurrent_vector<tbb::concurrent_unordered_set<size_t>>;
 
 bool operator==(const Components& first, const Components& second)
 {
@@ -42,7 +44,7 @@ std::unique_ptr<Components> GetComponentsMutex(const Graph& graph, IUnionFind& u
 
     long minus_one = -1;
 
-    std::vector<long> uq_ids(graph.numVertices(), -1);
+    std::vector<size_t> uq_ids(graph.numVertices(), -1);
 
     components->reserve(64);
 
@@ -61,9 +63,9 @@ std::unique_ptr<Components> GetComponentsMutex(const Graph& graph, IUnionFind& u
                               {  // unassigned
                                   std::lock_guard<tbb::spin_mutex> lock(vectorLock);
 
-                                  if (uq_ids[ufid] != long(-1)) goto retry;
+                                  if (uq_ids[ufid] != long(-1)) goto retry;         //  NOLINT(cppcoreguidelines-avoid-goto)
 
-                                  long N = components->size();
+                                  size_t N = components->size();
                                   components->emplace_back();
 
                                   uq_ids[ufid] = uq_ids[i] = N;
@@ -100,11 +102,11 @@ std::unique_ptr<Components> GetComponentsCAS(const Graph& graph, IUnionFind& uni
                       {
                           for (auto i = range.begin(); i != range.end(); i++)
                           {
-                              size_t ufid = unionFind.find(i);
+                              long ufid = static_cast<long>(unionFind.find(i));
 
                               if (uq_ids[ufid] == minus_one)    //  Not yet assigned
                               {
-                                  long N = components->size();
+                                  long N = static_cast<long>(components->size());
 
                                   if (uq_ids[ufid].compare_exchange_weak(minus_one, N))
                                   {
@@ -161,11 +163,17 @@ class UnionFindTestFixture
         m_refComponents = GetReferenceComponents(*m_graph);
     }
 
-    ~UnionFindTestFixture() {}
+    UnionFindTestFixture(const UnionFindTestFixture&) = delete;
+    UnionFindTestFixture(UnionFindTestFixture&&) = delete;
 
-    const Graph& getGraph() const { return (*m_graph); }
+    ~UnionFindTestFixture() = default;
 
-    const Components& getRefComponents() const { return (*m_refComponents); }
+    UnionFindTestFixture& operator=(const UnionFindTestFixture&) = delete;
+    UnionFindTestFixture& operator=(UnionFindTestFixture&&) = delete;
+
+    [[nodiscard]] const Graph& getGraph() const { return (*m_graph); }
+
+    [[nodiscard]] const Components& getRefComponents() const { return (*m_refComponents); }
 
    private:
     std::unique_ptr<Graph> m_graph;
@@ -335,3 +343,5 @@ TEST_CASE("Basic Union Find with Benchmarks", "[cork-base]")
         return TestGetComponentsMutex(testFixture.getGraph(), testFixture.getRefComponents(), meter);
     };
 }
+
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

@@ -29,6 +29,8 @@
 #pragma diag_suppress 2486
 #endif
 
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 namespace Cork
 {
     TEST_CASE("Exterior Calculus Benchmarks", "[ext calc perf]")
@@ -134,3 +136,5 @@ namespace Cork
         };
     }
 }  // namespace Cork
+
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

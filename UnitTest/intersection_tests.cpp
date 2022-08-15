@@ -29,6 +29,8 @@
 #pragma diag_suppress 2486
 #endif
 
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 using VertexIndex = Cork::Primitives::VertexIndex;
 using EdgeByIndices = Cork::Primitives::EdgeByIndices;
 
@@ -39,11 +41,10 @@ TEST_CASE("Intersection Tests", "[intersection]")
         Cork::Empty3d::ExactArithmeticContext arith_context;
 
         Cork::Empty3d::IntersectingTriangle tri(Cork::Primitives::Vector3D(2, 2, 1),
-                                                 Cork::Primitives::Vector3D(7, 4, 2),
-                                                 Cork::Primitives::Vector3D(4, 9, 3));
+                                                Cork::Primitives::Vector3D(7, 4, 2),
+                                                Cork::Primitives::Vector3D(4, 9, 3));
 
-        Cork::Empty3d::IntersectingEdge     edge(Cork::Primitives::Vector3D(2, 2, 3),
-                                                 Cork::Primitives::Vector3D(6, 7, 0));
+        Cork::Empty3d::IntersectingEdge edge(Cork::Primitives::Vector3D(2, 2, 3), Cork::Primitives::Vector3D(6, 7, 0));
 
         Cork::Empty3d::TriangleEdgeIntersection tri_edge(std::move(tri), std::move(edge));
 
@@ -59,14 +60,16 @@ TEST_CASE("Intersection Tests", "[intersection]")
 
         //  Second the exact computations
 
-        auto       quantizer_result = Cork::Math::Quantizer::get_quantizer( 100, 0.01 );   //  Need some reasonable values for max mag and min length
+        auto quantizer_result =
+            Cork::Math::Quantizer::get_quantizer(100, 0.01);  //  Need some reasonable values for max mag and min length
 
-        REQUIRE( quantizer_result.succeeded() );
+        REQUIRE(quantizer_result.succeeded());
 
-        REQUIRE(tri_edge.hasIntersectionExact(quantizer_result.return_value(), arith_context) == Cork::Empty3d::HasIntersection::YES);
+        REQUIRE(tri_edge.hasIntersectionExact(quantizer_result.return_value(), arith_context) ==
+                Cork::Empty3d::HasIntersection::YES);
         REQUIRE(tri_edge.hasIntersection(arith_context) == Cork::Empty3d::HasIntersection::YES);
 
-        Cork::Primitives::Vector3D intersection_exact = tri_edge.coordsExact( quantizer_result.return_value() );
+        Cork::Primitives::Vector3D intersection_exact = tri_edge.coordsExact(quantizer_result.return_value());
 
         REQUIRE(((intersection.x() == Catch::Approx(538.0 / 145.0).epsilon(0.00001)) &&
                  (intersection.y() == Catch::Approx(120.0 / 29.0).epsilon(0.00001)) &&
@@ -78,11 +81,11 @@ TEST_CASE("Intersection Tests", "[intersection]")
         Cork::Empty3d::ExactArithmeticContext arith_context;
 
         Cork::Empty3d::IntersectingTriangle tri(Cork::Primitives::Vector3D(2, 2, 1),
-                                                 Cork::Primitives::Vector3D(7, 4, 2),
-                                                 Cork::Primitives::Vector3D(4, 9, 3));
+                                                Cork::Primitives::Vector3D(7, 4, 2),
+                                                Cork::Primitives::Vector3D(4, 9, 3));
 
-        Cork::Empty3d::IntersectingEdge     edge(Cork::Primitives::Vector3D(2, 2, 3),           //  This edge will not intersect
-                                                 Cork::Primitives::Vector3D(-6, -7, 0));
+        Cork::Empty3d::IntersectingEdge edge(Cork::Primitives::Vector3D(2, 2, 3),  //  This edge will not intersect
+                                             Cork::Primitives::Vector3D(-6, -7, 0));
 
         Cork::Empty3d::TriangleEdgeIntersection tri_edge(std::move(tri), std::move(edge));
 
@@ -92,11 +95,13 @@ TEST_CASE("Intersection Tests", "[intersection]")
 
         //  Second the exact computations
 
-        auto       quantizer_result = Cork::Math::Quantizer::get_quantizer( 100, 0.01 );   //  Need some reasonable values for max mag and min length
+        auto quantizer_result =
+            Cork::Math::Quantizer::get_quantizer(100, 0.01);  //  Need some reasonable values for max mag and min length
 
-        REQUIRE( quantizer_result.succeeded() );
+        REQUIRE(quantizer_result.succeeded());
 
-        REQUIRE(tri_edge.hasIntersectionExact(quantizer_result.return_value(), arith_context) == Cork::Empty3d::HasIntersection::NO);
+        REQUIRE(tri_edge.hasIntersectionExact(quantizer_result.return_value(), arith_context) ==
+                Cork::Empty3d::HasIntersection::NO);
         REQUIRE(tri_edge.hasIntersection(arith_context) == Cork::Empty3d::HasIntersection::NO);
     }
 
@@ -131,21 +136,119 @@ TEST_CASE("Intersection Tests", "[intersection]")
 
         //  Second the exact computations
 
-        auto       quantizer_result = Cork::Math::Quantizer::get_quantizer( 100, 0.01 );   //  Need some reasonable values for max mag and min length
+        auto quantizer_result =
+            Cork::Math::Quantizer::get_quantizer(100, 0.01);  //  Need some reasonable values for max mag and min length
 
-        REQUIRE( quantizer_result.succeeded() );
+        REQUIRE(quantizer_result.succeeded());
 
-        REQUIRE(tri_tri_tri.hasIntersectionExact(quantizer_result.return_value(), arith_context) == Cork::Empty3d::HasIntersection::YES);
+        REQUIRE(tri_tri_tri.hasIntersectionExact(quantizer_result.return_value(), arith_context) ==
+                Cork::Empty3d::HasIntersection::YES);
         REQUIRE(tri_tri_tri.hasIntersection(arith_context) == Cork::Empty3d::HasIntersection::YES);
 
-        Cork::Primitives::Vector3D intersection_exact = tri_tri_tri.coordsExact( quantizer_result.return_value() );
+        Cork::Primitives::Vector3D intersection_exact = tri_tri_tri.coordsExact(quantizer_result.return_value());
 
         REQUIRE(((intersection_exact.x() == Catch::Approx(104.0 / 23.0).epsilon(0.00001)) &&
                  (intersection_exact.y() == Catch::Approx(499.0 / 69.0).epsilon(0.00001)) &&
                  (intersection_exact.z() == Catch::Approx(248.0 / 69.0).epsilon(0.00001))));
     }
 
-        SECTION("Triangle Triangle Triangle Intersection Negative")
+    SECTION("Triangle Triangle Triangle Intersection MAYBE/YES 2 - Shared Vertex")
+    {
+        Cork::Empty3d::ExactArithmeticContext arith_context;
+
+        Cork::Empty3d::IntersectingTriangle tri1(Cork::Primitives::Vector3D(1, 1, 1),
+                                                 Cork::Primitives::Vector3D(4, 7, 5),
+                                                 Cork::Primitives::Vector3D(7, 9, 3));
+
+        Cork::Empty3d::IntersectingTriangle tri2(Cork::Primitives::Vector3D(1, 1, 1),
+                                                 Cork::Primitives::Vector3D(6, 7, 3),
+                                                 Cork::Primitives::Vector3D(7, 8, 9));
+
+        Cork::Empty3d::IntersectingTriangle tri3(Cork::Primitives::Vector3D(1, 1, 1),
+                                                 Cork::Primitives::Vector3D(6, 7, 1),
+                                                 Cork::Primitives::Vector3D(4, 8, 5));
+
+        Cork::Empty3d::TriangleTriangleTriangleIntersection tri_tri_tri(std::move(tri1), std::move(tri2),
+                                                                        std::move(tri3));
+
+        //  First for the regular, perhaps uncertain computations
+
+        REQUIRE(tri_tri_tri.hasIntersectionFilter() == Cork::Empty3d::HasIntersection::MAYBE);
+
+        Cork::Primitives::Vector3D intersection = tri_tri_tri.coords();
+
+        REQUIRE(((intersection.x() == Catch::Approx(1).epsilon(0.00001)) &&
+                 (intersection.y() == Catch::Approx(1).epsilon(0.00001)) &&
+                 (intersection.z() == Catch::Approx(1).epsilon(0.00001))));
+
+        //  Second the exact computations
+
+        auto quantizer_result =
+            Cork::Math::Quantizer::get_quantizer(100, 0.01);  //  Need some reasonable values for max mag and min length
+
+        REQUIRE(quantizer_result.succeeded());
+
+        REQUIRE(tri_tri_tri.hasIntersectionExact(quantizer_result.return_value(), arith_context) ==
+                Cork::Empty3d::HasIntersection::YES);
+        REQUIRE(tri_tri_tri.hasIntersection(arith_context) == Cork::Empty3d::HasIntersection::YES);
+
+        Cork::Primitives::Vector3D intersection_exact = tri_tri_tri.coordsExact(quantizer_result.return_value());
+
+        REQUIRE(((intersection_exact.x() == Catch::Approx(1).epsilon(0.00001)) &&
+                 (intersection_exact.y() == Catch::Approx(1).epsilon(0.00001)) &&
+                 (intersection_exact.z() == Catch::Approx(1).epsilon(0.00001))));
+    }
+
+    SECTION("Triangle Triangle Triangle Intersection MAYBE/NO 3 - Intersection at Centroid of tri1")
+    {
+        Cork::Empty3d::ExactArithmeticContext arith_context;
+
+        Cork::Empty3d::IntersectingTriangle tri1(Cork::Primitives::Vector3D(5, 7, 7),
+                                                 Cork::Primitives::Vector3D(5, 7, 2),
+                                                 Cork::Primitives::Vector3D(2, 8, 3));
+
+        Cork::Empty3d::IntersectingTriangle tri2(Cork::Primitives::Vector3D(3, 3, 4),
+                                                 Cork::Primitives::Vector3D(6, 6, 2),
+                                                 Cork::Primitives::Vector3D(4, (22.0 / 3.0), 4));
+
+        Cork::Empty3d::IntersectingTriangle tri3(Cork::Primitives::Vector3D(2, 2, 4),
+                                                 Cork::Primitives::Vector3D(6, 6, 1),
+                                                 Cork::Primitives::Vector3D(4, (22.0 / 3.0), 4));
+
+        Cork::Empty3d::TriangleTriangleTriangleIntersection tri_tri_tri(std::move(tri1), std::move(tri2),
+                                                                        std::move(tri3));
+
+        //  First for the regular, perhaps uncertain computations
+
+        REQUIRE(tri_tri_tri.hasIntersectionFilter() == Cork::Empty3d::HasIntersection::MAYBE);
+
+        Cork::Primitives::Vector3D intersection = tri_tri_tri.coords();
+
+        REQUIRE(((intersection.x() == Catch::Approx(4).epsilon(0.00001)) &&
+                 (intersection.y() == Catch::Approx((22.0 / 3.0)).epsilon(0.00001)) &&
+                 (intersection.z() == Catch::Approx(4).epsilon(0.00001))));
+
+        //  Second the exact computations.  The exact computations report no intersection which
+        //      is not surprising as we had a MAYBE above and the fact we have a division by 3 means
+        //      the point of intersection will probably not be numerically exact.
+
+        auto quantizer_result =
+            Cork::Math::Quantizer::get_quantizer(100, 0.01);  //  Need some reasonable values for max mag and min length
+
+        REQUIRE(quantizer_result.succeeded());
+
+        REQUIRE(tri_tri_tri.hasIntersectionExact(quantizer_result.return_value(), arith_context) ==
+                Cork::Empty3d::HasIntersection::NO);
+        REQUIRE(tri_tri_tri.hasIntersection(arith_context) == Cork::Empty3d::HasIntersection::NO);
+
+        Cork::Primitives::Vector3D intersection_exact = tri_tri_tri.coordsExact(quantizer_result.return_value());
+
+        REQUIRE(((intersection_exact.x() == Catch::Approx(4).epsilon(0.00001)) &&
+                 (intersection_exact.y() == Catch::Approx((22.0 / 3.0)).epsilon(0.00001)) &&
+                 (intersection_exact.z() == Catch::Approx(4).epsilon(0.00001))));
+    }
+
+    SECTION("Triangle Triangle Triangle Intersection Negative")
     {
         Cork::Empty3d::ExactArithmeticContext arith_context;
 
@@ -157,7 +260,9 @@ TEST_CASE("Intersection Tests", "[intersection]")
                                                  Cork::Primitives::Vector3D(6, 7, 3),
                                                  Cork::Primitives::Vector3D(4, 8, 4));
 
-        Cork::Empty3d::IntersectingTriangle tri3(Cork::Primitives::Vector3D(-2, -2, 4),        //  This tri will not intersect the others
+        //  This tri will not intersect the others
+
+        Cork::Empty3d::IntersectingTriangle tri3(Cork::Primitives::Vector3D(-2, -2, 4),
                                                  Cork::Primitives::Vector3D(-6, -7, 1),
                                                  Cork::Primitives::Vector3D(4, 8, 5));
 
@@ -170,11 +275,15 @@ TEST_CASE("Intersection Tests", "[intersection]")
 
         //  Second the exact computations
 
-        auto       quantizer_result = Cork::Math::Quantizer::get_quantizer( 100, 0.01 );   //  Need some reasonable values for max mag and min length
+        auto quantizer_result =
+            Cork::Math::Quantizer::get_quantizer(100, 0.01);  //  Need some reasonable values for max mag and min length
 
-        REQUIRE( quantizer_result.succeeded() );
+        REQUIRE(quantizer_result.succeeded());
 
-        REQUIRE(tri_tri_tri.hasIntersectionExact(quantizer_result.return_value(), arith_context) == Cork::Empty3d::HasIntersection::NO);
+        REQUIRE(tri_tri_tri.hasIntersectionExact(quantizer_result.return_value(), arith_context) ==
+                Cork::Empty3d::HasIntersection::NO);
         REQUIRE(tri_tri_tri.hasIntersection(arith_context) == Cork::Empty3d::HasIntersection::NO);
     }
 }
+
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

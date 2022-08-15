@@ -29,6 +29,8 @@
 #pragma diag_suppress 2486
 #endif
 
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 namespace Cork
 {
     TEST_CASE("Exterior Calculus Tests", "[ext calc basics]")
@@ -1447,4 +1449,7 @@ namespace Cork
                      (result.z() == Catch::Approx(248.0 / 69.0).epsilon(0.00001))));
         }
     }
+
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
+
 }  // namespace Cork

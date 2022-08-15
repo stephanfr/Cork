@@ -35,6 +35,8 @@
 #pragma diag_suppress 2486
 #endif
 
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 TEST_CASE("Triangulator Tests", "[cork basic]")
 {
     SECTION("Simple Test")
@@ -106,3 +108,5 @@ TEST_CASE("Triangulator Tests", "[cork basic]")
         REQUIRE((*triangles)[7] == Cork::Triangulator::Triangle(0, 1, 2));
     }
 }
+
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)

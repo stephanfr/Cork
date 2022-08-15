@@ -67,7 +67,7 @@ namespace Cork::Meshes
 
         virtual ~SurfaceMesh();
 
-        void operator=(SurfaceMesh&& src);
+        SurfaceMesh& operator=(SurfaceMesh&& src);
 
         void remove_triangle( TriangleByIndicesIndex    index )
         {

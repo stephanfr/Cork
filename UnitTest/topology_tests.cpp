@@ -34,6 +34,8 @@
 #pragma diag_suppress 2486
 #endif
 
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 using VertexIndex = Cork::Primitives::VertexIndex;
 using EdgeByIndices = Cork::Primitives::EdgeByIndices;
 
@@ -321,3 +323,5 @@ TEST_CASE("Topology Tests", "[file io]")
         }
     }
 }
+
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)

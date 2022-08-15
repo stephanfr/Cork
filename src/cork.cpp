@@ -7,7 +7,7 @@
 namespace Cork
 {
 
-    CorkService::~CorkService() {}
+    CorkService::~CorkService() = default;
 
     std::unique_ptr<SolidObjectMesh> CorkService::from_triangle_mesh(const TriangleMesh& triangleMesh)
     {

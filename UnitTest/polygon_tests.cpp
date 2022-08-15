@@ -30,6 +30,8 @@
 #pragma diag_suppress 2486
 #endif
 
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 TEST_CASE("Polygon Tests", "[2D Basic]")
 {
     const std::vector<Cork::Primitives::Vertex2D> NON_SELF_INTERSECTING_POLYGON_1 = {
@@ -183,3 +185,5 @@ TEST_CASE("Polygon Tests", "[2D Basic]")
         REQUIRE(centroid.y() == Catch::Approx(-1.196356643).epsilon(10e-6));
     }
 }
+
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

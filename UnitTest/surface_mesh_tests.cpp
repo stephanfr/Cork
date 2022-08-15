@@ -31,6 +31,8 @@
 #pragma diag_suppress 2486
 #endif
 
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 TEST_CASE("Surface Mesh Tests", "[surface]")
 {
     SECTION("2 Manifold Single Body")
@@ -40,7 +42,7 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         REQUIRE(read_result.succeeded());
 
         std::unique_ptr<Cork::Meshes::TriangleMeshWrapper> mesh_wrapper(
-            static_cast<Cork::Meshes::TriangleMeshWrapper*>(read_result.return_ptr().release()));
+            dynamic_cast<Cork::Meshes::TriangleMeshWrapper*>(read_result.return_ptr().release()));
 
         Cork::TriangleMesh& mesh = *mesh_wrapper;
 
@@ -138,3 +140,5 @@ TEST_CASE("Surface Mesh Tests", "[surface]")
         }
     }
 }
+
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

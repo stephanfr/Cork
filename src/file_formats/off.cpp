@@ -188,8 +188,6 @@ namespace Cork::Files
         //  Load faces
 
         {
-            TriangleMeshBuilderResultCodes resultCode;
-
             for (uint32_t i = 0; i < num_faces; ++i)
             {
                 uint32_t poly_sides(0);

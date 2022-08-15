@@ -3,6 +3,8 @@
 
 #include "util/construct_once_resizeable_vector.hpp"
 
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 constexpr int   DEFAULT_NUMBER_OF_ELEMENTS = 10;
 constexpr int   RESIZE_VALUE = 5;
 constexpr int   REALLY_BIG_SIZE = 123456;
@@ -12,17 +14,23 @@ constexpr int   REALLY_BIG_SIZE = 123456;
 class TestElement : public SEFUtility::Resettable
 {
    public:
-    TestElement() : m_value(0), m_reset(true) {}
+    TestElement() = default;
 
-    virtual ~TestElement() {}
+    TestElement(const TestElement&) = delete;
+    TestElement(TestElement&&) = delete;
 
-    void reset()
+    virtual ~TestElement() = default;
+
+    TestElement& operator=(const TestElement&) = delete;
+    TestElement& operator=(TestElement&&) = delete;
+
+    void reset () override
     {
         m_value = 0;
         m_reset = true;
     }
 
-    bool isReset() const { return (m_reset); }
+    [[nodiscard]] bool isReset() const { return (m_reset); }
 
     void setValue(long newValue)
     {
@@ -30,11 +38,11 @@ class TestElement : public SEFUtility::Resettable
         m_reset = false;
     }
 
-    long getValue() const { return (m_value); }
+    [[nodiscard]] long getValue() const { return (m_value); }
 
    private:
-    long m_value;
-    bool m_reset;
+    long m_value{0};
+    bool m_reset{true};
 };
 
 //	Run a variety of checks on the size of the vector and insure we cannot overrun vector at its end.
@@ -55,10 +63,10 @@ void CheckSize(SEFUtility::ConstructOnceResizeableVector<TestElement>& testVecto
     numElements = 0;
     long runningSum = 0;
 
-    for (size_t i = 0; i < testVector.size(); i++)
+    for (const auto& next_element : testVector )
     {
+        runningSum += next_element.getValue();
         numElements++;
-        runningSum += testVector[i].getValue();
     }
 
     REQUIRE(numElements == correctSize);
@@ -150,7 +158,9 @@ long ComputeRunningSum(const SEFUtility::ConstructOnceResizeableVector<TestEleme
 
     long secondSum = 0;
 
-    for (size_t i = 0; i < testVector.size(); i++)
+    //  Test with the index in addition to the range base loop above
+
+    for ( size_t i = 0; i < testVector.size(); i++ )        //  NOLINT(modernize-loop-convert)
     {
         secondSum += testVector[i].getValue();
     }
@@ -246,3 +256,5 @@ TEST_CASE("Construct Once Resizeable Vector Test", "[cork-base]")
     REQUIRE(CheckAllNotReset(testVector));
     REQUIRE(ComputeRunningSum(testVector) == runningSum);
 }
+
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

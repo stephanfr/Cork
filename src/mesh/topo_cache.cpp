@@ -110,7 +110,7 @@ namespace Cork::Meshes
     {
     }
 
-    TriangleByIndicesVectorTopoCache::~TriangleByIndicesVectorTopoCache() {}
+    TriangleByIndicesVectorTopoCache::~TriangleByIndicesVectorTopoCache() = default;
 
     MeshTopoCache::MeshTopoCache(MeshBase& owner, const Math::Quantizer& quantizer)
         : TriangleByIndicesVectorTopoCache(owner.triangles(), owner.vertices(), owner.triangles().size() * 3,
@@ -119,7 +119,7 @@ namespace Cork::Meshes
     {
     }
 
-    MeshTopoCache::~MeshTopoCache() {}
+    MeshTopoCache::~MeshTopoCache() = default;
 
     void MeshTopoCache::commit()
     {

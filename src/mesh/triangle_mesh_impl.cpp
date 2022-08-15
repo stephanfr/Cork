@@ -119,7 +119,7 @@ namespace Cork::Meshes
         //      from the end of the vector moving forward.  This prevents corruption of the vector
         //      by having the vector compress with removals and then having the wrong element removed by index.
 
-        std::set<TriangleByIndicesIndex, std::greater<TriangleByIndicesIndex>> all_triangles_to_remove;
+        std::set<TriangleByIndicesIndex, std::greater<>> all_triangles_to_remove;
         std::vector<TriangleByIndices> all_triangles_to_add;
 
         for (auto& non_manifold_edge : topo_stats.non_manifold_edges())
@@ -325,7 +325,7 @@ namespace Cork::Meshes
         //      from the end of the vector moving forward.  This prevents corruption of the vector
         //      by having the vector compress with removals and then having the wrong element removed by index.
 
-        std::set<TriangleByIndicesIndex, std::greater<TriangleByIndicesIndex>> all_triangles_to_remove;
+        std::set<TriangleByIndicesIndex, std::greater<>> all_triangles_to_remove;
         std::vector<TriangleByIndices> all_triangles_to_add;
 
         all_triangles_to_add.reserve(1000);
@@ -487,7 +487,7 @@ namespace Cork::Meshes
 
         si_regions.find_regions();
 
-        long    total_sis = 0;
+        size_t    total_sis = 0;
 
         for (int i = 0; i < si_regions.regions().size(); i++)
         {

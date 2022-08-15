@@ -31,6 +31,8 @@
 #pragma diag_suppress 2486
 #endif
 
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 TEST_CASE("Geometry Tests", "[stats]")
 {
     SECTION("Simple Quadrilateral")
@@ -54,3 +56,5 @@ TEST_CASE("Geometry Tests", "[stats]")
         REQUIRE( stats.max_edge_length() == Catch::Approx(0.538516).epsilon( 0.00001));
     }
 }
+
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
