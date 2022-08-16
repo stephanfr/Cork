@@ -28,5 +28,5 @@ class no_init_alloc : public std::allocator<T>
     template <class U, class... Args>
     void construct(U*, Args&&...)
     {
-    }  //  NOLINT(readability-named-parameter)
+    }
 };

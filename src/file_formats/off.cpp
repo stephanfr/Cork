@@ -102,7 +102,7 @@ namespace Cork::Files
 
         constexpr int STRING_BUFFER_LENGTH = 64;
 
-        std::array<char, STRING_BUFFER_LENGTH> string_buffer;  //  NOLINT
+        std::array<char, STRING_BUFFER_LENGTH> string_buffer;   //  NOLINT(cppcoreguidelines-pro-type-member-init)
 
         int items_processed(0);
         int chars_processed(0);
@@ -206,7 +206,7 @@ namespace Cork::Files
                                                    "Error reading faces.");
                 }
 
-                //  NOLINTNEXTLINE(cert-err34-c, cppcoreguidelines-pro-type-vararg, hicpp-vararg)
+                //  NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
                 items_processed = std::sscanf(next_line.c_str(), "%u %zu %zu %zu %n", &poly_sides, &x_index, &y_index,
                                               &z_index, &chars_processed);
 

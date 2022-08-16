@@ -37,7 +37,7 @@ namespace Cork::Math
         return (__m256d){value, value, value, value};
     };
 
-#ifdef __AVX_AVAILABLE__
+#ifdef AVX_AVAILABLE
     static constexpr __m256d AVXtwo = cnstexpr_mm256_set1_pd(2.0);
 #endif
 
@@ -95,7 +95,7 @@ namespace Cork::Math
             }
             else
             {
-                return (m_minp + ((m_maxp - m_minp) / (NUMERIC_PRECISION)2.0));  //  NOLINT
+                return (m_minp + ((m_maxp - m_minp) / (NUMERIC_PRECISION)2.0));
             }
         }
 
@@ -118,7 +118,7 @@ namespace Cork::Math
             {
                 return (_mm256_movemask_pd(_mm256_and_pd(_mm256_cmp_pd(m_minp, rhs.m_maxp, _CMP_LE_OQ),
                                                          _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) ==
-                        0x0F);  //  NOLINT
+                        0x0F);
             }
             else
             {
@@ -133,7 +133,7 @@ namespace Cork::Math
             {
                 return (_mm256_movemask_pd(_mm256_and_pd(_mm256_cmp_pd(m_minp, rhs.m_maxp, _CMP_LE_OQ),
                                                          _mm256_cmp_pd(m_maxp, rhs.m_minp, _CMP_GE_OQ))) !=
-                        0x0F);  //  NOLINT
+                        0x0F);
             }
             else
             {

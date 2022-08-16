@@ -43,12 +43,12 @@ namespace hidden
        public:
         explicit PointerOnlyListElement(T* pointer) : pointer_(pointer) {}
 
-        operator T*() { return (pointer_); }  //  NOLINT(hicpp-explicit-conversions, google-explicit-constructor)
+        operator T*() { return (pointer_); }
 
         operator const T*() const
         {
             return (pointer_);
-        }  //  NOLINT(hicpp-explicit-conversions, google-explicit-constructor)
+        }
 
         T* operator->() { return (pointer_); }
 

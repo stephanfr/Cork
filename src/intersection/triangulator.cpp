@@ -44,8 +44,8 @@ namespace Cork::Triangulator
 
     TriangulateResult Triangulator::compute_triangulation()
     {
-        struct triangulateio in;                    //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
-        struct triangulateio out;                   //  NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
+        struct triangulateio in;                    //  NOLINT(cppcoreguidelines-pro-type-member-init)
+        struct triangulateio out;                   //  NOLINT(cppcoreguidelines-pro-type-member-init)
 
         in.numberofpoints = (int)points_.size();
         in.numberofpointattributes = 0;
@@ -111,7 +111,6 @@ namespace Cork::Triangulator
 
         for (int k = 0; k < out.numberoftriangles; k++)
         {
-            //  NOLINTNEXTLINE( cppcoreguidelines-pro-bounds-pointer-arithmetic )
             result->emplace_back(out.trianglelist[(k * 3) + 0], out.trianglelist[(k * 3) + 1], out.trianglelist[(k * 3) + 2]);
         }
 

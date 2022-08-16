@@ -88,9 +88,9 @@ namespace Cork::Meshes
             //      This is safe only because the key for the set is the edge and we are only changing the
             //      triangle list and num_incidences in add_incidence() - so we know we are not changing the key.
 
-            const_cast<EdgeAndIncidenceCount&>(*itr_edge_ab).add_incidence(i, TriangleEdgeId::AB);  //  NOLINT
-            const_cast<EdgeAndIncidenceCount&>(*itr_edge_bc).add_incidence(i, TriangleEdgeId::BC);  //  NOLINT
-            const_cast<EdgeAndIncidenceCount&>(*itr_edge_ca).add_incidence(i, TriangleEdgeId::CA);  //  NOLINT
+            const_cast<EdgeAndIncidenceCount&>(*itr_edge_ab).add_incidence(i, TriangleEdgeId::AB);
+            const_cast<EdgeAndIncidenceCount&>(*itr_edge_bc).add_incidence(i, TriangleEdgeId::BC);
+            const_cast<EdgeAndIncidenceCount&>(*itr_edge_ca).add_incidence(i, TriangleEdgeId::CA);
         }
     };
 }  // namespace Cork::Meshes

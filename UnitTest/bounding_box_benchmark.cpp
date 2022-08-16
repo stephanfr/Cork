@@ -21,10 +21,10 @@
 
 #include <catch2/catch_all.hpp>
 
-//  NOLINTBEGIN(bugprone-reserved-identifier, modernize-loop-convert, cppcoreguidelines-avoid-magic-numbers)
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 
 #define NUMERIC_PRECISION double
-#define __AVX_AVAILABLE__
+#define AVX_AVAILABLE
 
 #include "math/bounding_box_3D_template.hpp"
 
@@ -39,7 +39,7 @@ constexpr int NUM_ITERATIONS = 50000;
 
 bool RandomBoundingBoxGenerator(std::array<BBox3D, NUM_ITERATIONS>& bounding_boxes)
 {
-    for (size_t i = 0; i < bounding_boxes.size(); i++)
+    for (size_t i = 0; i < bounding_boxes.size(); i++)      //  NOLINT(modernize-loop-convert)
     {
         auto first_point = Vector3D::randomVector(0, 100);
         auto offset_to_second_point = Vector3D::randomVector(0, 100);
@@ -193,5 +193,5 @@ TEST_CASE("BBox3D Benchmarks - 50k Bounding Boxes", "[primitives]")
     };
 }
 
-//  NOLINTEND(bugprone-reserved-identifier, modernize-loop-convert, cppcoreguidelines-avoid-magic-numbers)
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 

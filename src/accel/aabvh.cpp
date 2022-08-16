@@ -79,7 +79,7 @@ namespace Cork::AABVH
             front++;
         }
 
-        if (select < uint(front - &tmpids_[0]))  //	NOLINT
+        if (select < uint(front - &tmpids_[0]))
         {
             QuickSelect(select, begin, front - &tmpids_[0], dim);
         }

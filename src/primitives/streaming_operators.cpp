@@ -24,13 +24,13 @@ std::ostream& operator<<(std::ostream& out, __mpz_struct const* value)
     constexpr int DEFAULT_BUFFER_SIZE = 512;
     constexpr int DECIMAL = 10;
 
-    char buffer[DEFAULT_BUFFER_SIZE];  //  NOLINT
+    std::array<char,DEFAULT_BUFFER_SIZE>    buffer;         //  NOLINT(cppcoreguidelines-pro-type-member-init)
 
     assert(mpz_sizeinbase(value, 10) + 2 <= DEFAULT_BUFFER_SIZE);
 
-    mpz_get_str(buffer, DECIMAL, value);    //  NOLINT
+    mpz_get_str(buffer.data(), DECIMAL, value);
 
-    out << buffer;  //  NOLINT
+    out << buffer.data();
 
     return out;
 }

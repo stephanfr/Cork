@@ -1,8 +1,7 @@
 
 #include <catch2/catch_all.hpp>
 
-//  NOLINTNEXTLINE(bugprone-reserved-identifier)
-#define __AVX_AVAILABLE__
+#define AVX_AVAILABLE
 
 #include "math/vector_3D_template.hpp"
 

@@ -157,7 +157,7 @@ namespace Cork::Intersection
             //	Once all the pieces are hooked up, let's kill the old triangle!
             //		We need to cast away the const here as well...
 
-            topo_cache().delete_tri(&(const_cast<TopoTri&>(tprob.triangle())));  //  NOLINT
+            topo_cache().delete_tri(&(const_cast<TopoTri&>(tprob.triangle())));     //  NOLINT(cppcoreguidelines-pro-type-const-cast)
         }
     };
 

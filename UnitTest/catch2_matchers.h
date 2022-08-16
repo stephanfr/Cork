@@ -37,7 +37,7 @@ class MatchesFile : public Catch::Matchers::MatcherGenericBase
         boost::iostreams::mapped_file_source reference_file(reference_file_);
 
         return ((test_file.size() == reference_file.size()) &&
-                std::equal(test_file.data(), test_file.data() + test_file.size(), reference_file.data()));      //  NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+                std::equal(test_file.data(), test_file.data() + test_file.size(), reference_file.data()));
     }
 
     std::string describe() const override

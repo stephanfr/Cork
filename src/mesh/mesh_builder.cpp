@@ -79,7 +79,7 @@ namespace Cork::Meshes
         {
             //	Add the vertex, de-duplicate on the fly.
 
-            VertexIndexLookupMap::const_iterator vertexLoc = vertex_indices_.find(vertexToAdd);  //	NOLINT
+            auto vertexLoc = vertex_indices_.find(vertexToAdd);
 
             if (vertexLoc == vertex_indices_.end())
             {

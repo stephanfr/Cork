@@ -160,9 +160,9 @@ long ComputeRunningSum(const SEFUtility::ConstructOnceResizeableVector<TestEleme
 
     //  Test with the index in addition to the range base loop above
 
-    for ( size_t i = 0; i < testVector.size(); i++ )        //  NOLINT(modernize-loop-convert)
+    for ( const auto& element : testVector )
     {
-        secondSum += testVector[i].getValue();
+        secondSum += element.getValue();
     }
 
     REQUIRE(secondSum == runningSum);

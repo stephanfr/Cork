@@ -36,7 +36,7 @@ namespace Cork::Intersection
     class PerturbationRandomizationMatrix
     {
        public:
-        PerturbationRandomizationMatrix() : mersenne_twister_(time(nullptr))  //  NOLINT(cert-msc32-c, cert-msc51-cpp)
+        PerturbationRandomizationMatrix() : mersenne_twister_(time(nullptr))
         {
             for (uint32_t num_permutations = MIN_NUM_PERMUTATIONS; num_permutations <= MAX_NUM_PERMUTATIONS;
                  num_permutations <<= 1U)

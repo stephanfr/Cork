@@ -93,7 +93,7 @@ namespace Cork::AABVH
 
     using BlobIDList = boost::container::static_vector<IndexType, MAXIMUM_LEAF_SIZE>;
 
-    class alignas(SIMD_MEMORY_ALIGNMENT) AABVHNode      //  NOLINT(clang-analyzer-optin.performance.Padding)    Padding here for SIMD alignment
+    class alignas(SIMD_MEMORY_ALIGNMENT) AABVHNode      //  Padding here for SIMD alignment
     {
        public:
         AABVHNode() = default;

@@ -63,7 +63,7 @@ namespace Cork::Math
 
         if (svd.singularValues()[2] < min_value)
         {
-            min_value = svd.singularValues()[2];        //  NOLINT(clang-analyzer-deadcode.DeadStores)
+            min_value = svd.singularValues()[2];
             min_index = 2;
         }
 

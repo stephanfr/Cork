@@ -52,7 +52,7 @@ namespace Cork::Intersection
             //	m_triangle can be const... just about everywhere.  This link is the only non-const operation,
             //		so let's explicitly cast away the const here but leave it everytwhere else.
 
-            const_cast<TopoTri&>(m_triangle).associate_triangle_problem(*this);  //  NOLINT
+            const_cast<TopoTri&>(m_triangle).associate_triangle_problem(*this);
 
             // extract original edges/verts
 

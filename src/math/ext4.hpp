@@ -105,7 +105,7 @@ namespace Cork::Math::ExteriorCalculusR4
             return *this;
         }
 
-        operator Vector3DTemplate<double>() const  //  NOLINT
+        operator Vector3DTemplate<double>() const
         {
             assert(e3_ != 0);  //  Trap any divisions by zero!
 

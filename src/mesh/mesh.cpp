@@ -37,6 +37,8 @@
 #include "triangle_mesh_builder.hpp"
 #include "util/union_find.hpp"
 
+//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 namespace Cork::Meshes
 {
     using IntersectionSolver = Intersection::IntersectionSolver;
@@ -109,12 +111,12 @@ namespace Cork::Meshes
 
         p += (*verts_)[(*tris_)[tid].b()];
         p += (*verts_)[(*tris_)[tid].c()];
-        p /= 3.0;  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        p /= 3.0;                                   
 
         // ok, we've got the point, now let's pick a direction
 
         Ray3DWithInverseDirection directionRay(
-            p, Vector3D::randomVector(0.5, 1.5));  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            p, Vector3D::randomVector(0.5, 1.5));
 
         int64_t winding = 0;
 
@@ -707,24 +709,24 @@ namespace Cork::Meshes
 
         //	We will adjust the search increment based on the number of triangles to search.
 
-        if (trisInComponent.size() > 1000)  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        if (trisInComponent.size() > 1000)
         {
             searchIncrement = 2;
         }
 
-        if (trisInComponent.size() > 25000)  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        if (trisInComponent.size() > 25000)
         {
             searchIncrement = 3;
         }
 
-        if (trisInComponent.size() > 50000)  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        if (trisInComponent.size() > 50000)
         {
             searchIncrement = 4;
         }
 
-        if (trisInComponent.size() > 100000)  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        if (trisInComponent.size() > 100000)
         {
-            searchIncrement = 5;  //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            searchIncrement = 5;
         }
 
         //	Do the search - we are looking for the triangle with the greatest surface area to use
@@ -1034,3 +1036,6 @@ namespace Cork::Meshes
     }
 
 }  // namespace Cork::Meshes
+
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
+

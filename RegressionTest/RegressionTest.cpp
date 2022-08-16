@@ -86,7 +86,6 @@ void WriteMeshStatistics(const Cork::TriangleMesh& mesh, GeoTopoMetricsAccumulat
     metrics.total_num_triangles += stats.num_triangles();
 }
 
-//  NOLINTNEXTLINE
 int main(int argc, char* argv[])
 {
     Cork::CorkService cork_service;
@@ -567,7 +566,7 @@ int main(int argc, char* argv[])
 
     if (write_stats)
     {
-        std::time_t current_date_time;  //  NOLINT
+        std::time_t current_date_time{0};
 
         time(&current_date_time);
 

@@ -58,7 +58,7 @@ namespace Cork::Math
                 N spare_;
             };
 
-#ifdef __AVX_AVAILABLE__
+#ifdef AVX_AVAILABLE
             alignas(SIMD_MEMORY_ALIGNMENT) __m256d ymm_;
 #endif
         };
@@ -98,7 +98,7 @@ namespace Cork::Math
             __CHECK_ALIGNMENT__(ymm_);
         }
 
-#ifdef __AVX_AVAILABLE__
+#ifdef AVX_AVAILABLE
         // Constructor to convert from type __m256d used in intrinsics:
         Vector3DTemplate(__m256d const &x)
         {

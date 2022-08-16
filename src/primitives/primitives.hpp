@@ -166,7 +166,6 @@ namespace Cork::Primitives
 
     //  The from_vertices method has a number of issues with the linter, but is fine - so we will simply not lint
 
-    // NOLINTBEGIN
     inline TriangleEdgeId from_vertices(TriangleVertexId vert_one, TriangleVertexId vert_two)
     {
         TriangleEdgeId result;
@@ -215,7 +214,6 @@ namespace Cork::Primitives
 
         return result;
     }
-    //  NOLINTEND
 
     inline std::ostream& operator<<(std::ostream& out, TriangleVertexId tri_vertex_id)
     {

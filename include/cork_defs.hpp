@@ -47,11 +47,11 @@ constexpr int MAX_TRIANGLES_IN_DISJOINT_UNION = 5000000;
 #ifdef __HAVE_AVX_EXTENSIONS__
 #ifdef __HAVE_AVX2_EXTENSIONS__
 constexpr SIMDInstructionSet g_SIMD_Level = SIMDInstructionSet::AVX2;
-#define __AVX_AVAILABLE__
-#define __AVX2_AVAILABLE__
+#define AVX_AVAILABLE
+#define AVX2_AVAILABLE
 #else
 constexpr SIMDInstructionSet g_SIMD_Level = SIMDInstructionSet::AVX;
-#define __AVX_AVAILABLE__
+#define AVX_AVAILABLE
 #endif
 #else
 constexpr SIMDInstructionSet g_SIMD_Level = SIMDInstructionSet::NONE;
@@ -121,7 +121,7 @@ constexpr int FIXED_INTEGER_BITS = QUANTIZATION_BITS + 1;   // +1 for sign bit
 //
 //  Macro to check for memory alignment
 //
-#ifdef __AVX_AVAILABLE__
+#ifdef AVX_AVAILABLE
 //  NOLINTNEXTLINE
 #define __CHECK_ALIGNMENT__(x) assert(alignof(x) == SIMD_MEMORY_ALIGNMENT);
 #else

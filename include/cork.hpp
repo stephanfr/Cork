@@ -214,8 +214,6 @@ namespace Cork
         SolidObjectMesh& operator=(const SolidObjectMesh&) = delete;
         SolidObjectMesh& operator=(const SolidObjectMesh&&) = delete;
 
-        // NOLINTBEGIN(google-default-arguments)
-
         [[nodiscard]] virtual BooleanOperationResult Union(
             const SolidObjectMesh& rhs,
             const SolverControlBlock& solverControlBlock = SolverControlBlock::get_default_control_block()) const = 0;
@@ -231,8 +229,6 @@ namespace Cork
         [[nodiscard]] virtual BooleanOperationResult SymmetricDifference(
             const SolidObjectMesh& rhs,
             const SolverControlBlock& solverControlBlock = SolverControlBlock::get_default_control_block()) const = 0;
-
-        // NOLINTEND(google-default-arguments)
 
         [[nodiscard]] virtual std::unique_ptr<TriangleMesh> ToTriangleMesh() const = 0;
 
