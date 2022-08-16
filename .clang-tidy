@@ -5,6 +5,7 @@ Checks:    >
  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
  -cppcoreguidelines-owning-memory,
  bugprone-*,
+ -bugprone-easily-swappable-parameters,
  modernize-*,
  -modernize-use-trailing-return-type,
  -modernize-return-braced-init-list

@@ -266,7 +266,7 @@ namespace Cork::Meshes
             EdgesByVerticesMap::find_all_boundaries(all_boundary_edges_found.begin(), all_boundary_edges_found.end()));
 
         double longest_boundary = -1;
-        int longest_boundary_index = -1;
+        uint32_t longest_boundary_index = -1;
 
         for (uint32_t i = 0; i < boundaries.size(); i++)
         {
@@ -413,7 +413,7 @@ namespace Cork::Meshes
         if ((initial_boundaries.return_value().outside_boundary_.edges().size() !=
              after_boundaries.return_value().outside_boundary_.edges().size()) ||
             (fabs(initial_boundaries.return_value().outside_boundary_.length() -
-                  after_boundaries.return_value().outside_boundary_.length()) > 1e-6))
+                  after_boundaries.return_value().outside_boundary_.length()) > SURFACE_MESH_BOUNDARY_PERIMETER_TOLERANCE))
         {
             std::cout << "Outside Boundary is not intact" << std::endl;
             return;
@@ -429,7 +429,7 @@ namespace Cork::Meshes
             for (auto original_hole : initial_boundaries.return_value().holes_)
             {
                 if ((hole.edges().size() == original_hole.edges().size()) &&
-                    (fabs(hole.length() - original_hole.length()) < 1e-6))
+                    (fabs(hole.length() - original_hole.length()) < SURFACE_MESH_BOUNDARY_PERIMETER_TOLERANCE))
                 {
                     num_original_holes_found++;
                     break;
@@ -522,7 +522,7 @@ namespace Cork::Meshes
                 //      us four pie wedges to try individually.
 
                 std::vector<BoundaryEdge> sections =
-                    boundary.divide(std::min(std::size_t(8), boundary.vertex_indices().size() / 2));
+                    boundary.divide(std::min(std::size_t(8), boundary.vertex_indices().size() / 2));        //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
                 std::cout << "Dividing into: " << sections.size() << " sections" << std::endl;
 
@@ -599,10 +599,9 @@ namespace Cork::Meshes
         }
 
         //  Try expanding the enclosing region around the self intersecting triangle.  If the triangle is on the
-        //  main
-        //      surface this should result in a single connected surface and a set of leftover triangles.
+        //  main surface this should result in a single connected surface and a set of leftover triangles.
 
-        auto find_full_surface_result = find_enclosing_triangles(single_tri, 12);
+        auto find_full_surface_result = find_enclosing_triangles(single_tri, SURFACE_MESH_INITIAL_NUMBER_OF_SURROUNDING_TRIS_SIZE);
 
         if (!find_full_surface_result.succeeded())
         {
@@ -628,9 +627,12 @@ namespace Cork::Meshes
 
         TriangleByIndicesIndexSet all_tris_to_remove(*(find_enclosing_triangles_result.return_ptr()), excess_tris);
 
+        //  Iterate backwards over tris to remove so that we limit moves
+
+        //  NOLINTNEXTLINE(modernize-loop-convert)
         for (auto itr_element = all_tris_to_remove.rbegin(); itr_element != all_tris_to_remove.rend(); itr_element++)
         {
-            tris_->erase(tris_->begin() + static_cast<size_t>(*itr_element));
+            tris_->erase(tris_->begin() + static_cast<long>(static_cast<size_t>(*itr_element)));
         }
 
         Cork::Files::writeOFF("../../UnitTest/Test Results/patch1.off", *this);

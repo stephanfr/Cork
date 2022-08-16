@@ -30,13 +30,14 @@ using Vector3D = Cork::Math::Vector3DTemplate<NUMERIC_PRECISION, SIMDInstruction
 using Vector3DAVX = Cork::Math::Vector3DTemplate<NUMERIC_PRECISION, SIMDInstructionSet::AVX2>;
 
 constexpr int NUM_ITERATIONS = 250000;
+constexpr int VECTOR_ELEMENT_MAX_VALUE = 100;
 
 template <class T>
 bool RandomVectorPerformance(std::array<T, NUM_ITERATIONS>& vectors)
 {
     for (auto i = 0; i < vectors.size(); i++)
     {
-        vectors[i] = T::randomVector(0, 100);
+        vectors[i] = T::randomVector(0, VECTOR_ELEMENT_MAX_VALUE);
     }
 
     return true;

@@ -109,4 +109,4 @@ TEST_CASE("Triangulator Tests", "[cork basic]")
     }
 }
 
-//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

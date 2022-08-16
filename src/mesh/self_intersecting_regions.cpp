@@ -21,6 +21,8 @@
 
 #include "intersection/self_intersection_finder.hpp"
 
+#include "constants.hpp"
+
 namespace Cork::Meshes
 {
 
@@ -227,7 +229,7 @@ namespace Cork::Meshes
                 const TopoTri& topo_tri_seed = mesh_.topo_cache().triangles().getPool()[tri_in_region_index];
 
                 std::unordered_set<const TopoTri*> topo_tris_in_boundary(
-                    std::move(mesh_.topo_cache().tris_inside_boundaries(boundaries, topo_tri_seed, itr->size() + 500)));
+                    std::move(mesh_.topo_cache().tris_inside_boundaries(boundaries, topo_tri_seed, itr->size() + SURFACE_MESH_ADDITIONAL_TRIANGLES_IN_BOUNDARY_BUFFER_SIZE)));
 
                 if (topo_tris_in_boundary.size() == itr->size())
                 {

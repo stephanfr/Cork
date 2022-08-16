@@ -54,11 +54,11 @@ namespace Cork::Meshes
     }
 
     MeshBase::MeshBase(std::shared_ptr<TriangleByIndicesVector>& triangles, std::shared_ptr<Vertex3DVector>& vertices,
-                       const Primitives::BBox3D& boundingBox,
+                       Primitives::BBox3D boundingBox,
                        const Primitives::MinAndMaxEdgeLengths min_and_max_edge_lengths, double max_vertex_magnitude)
         : tris_(triangles),
           verts_(vertices),
-          bounding_box_(boundingBox),
+          bounding_box_( std::move(boundingBox) ),
           min_and_max_edge_lengths_(min_and_max_edge_lengths),
           max_vertex_magnitude_(max_vertex_magnitude)
     {

@@ -24,13 +24,12 @@
 // |    along with Cork.  If not, see <http://www.gnu.org/licenses/>.
 // +-------------------------------------------------------------------------
 
-#include "../constants.hpp"
-
 #include "perturbation_epsilon.hpp"
 
 #include <random>
 #include <vector>
 
+#include "../constants.hpp"
 
 namespace Cork::Intersection
 {
@@ -120,11 +119,15 @@ namespace Cork::Intersection
         }
 
        private:
+        friend class PerturbationEpsilon;
+
         std::vector<size_t> num_entries_;
 
         std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> randomization_matrix_;
 
         std::mt19937 mersenne_twister_;
+
+        static PerturbationRandomizationMatrix rand_matrix_;        //  NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
         Vector3D getBruteForcePerturbation(uint32_t index, double quantum)
         {
@@ -135,9 +138,9 @@ namespace Cork::Intersection
 
             Vector3D perturbation;
 
-            perturbation =
-                Vector3D(double(mersenne_twister_() % perturb_range) * quantum, double(mersenne_twister_() % perturb_range) * quantum,
-                         double(mersenne_twister_() % perturb_range) * quantum);
+            perturbation = Vector3D(double(mersenne_twister_() % perturb_range) * quantum,
+                                    double(mersenne_twister_() % perturb_range) * quantum,
+                                    double(mersenne_twister_() % perturb_range) * quantum);
 
             if ((mersenne_twister_() % 2) == 1)
             {
@@ -158,13 +161,13 @@ namespace Cork::Intersection
         }
     };
 
-    //	Define the static global so it is initialized
+    //	Define the static so it is initialized
 
-    static PerturbationRandomizationMatrix rand_matrix_;  //  NOLINT(cert-err58-cpp)
+    PerturbationRandomizationMatrix PerturbationRandomizationMatrix::rand_matrix_;        //  NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     Vector3D PerturbationEpsilon::getPerturbation() const
     {
-        return (rand_matrix_.getPerturbation(num_adjustments_, quantum_));
+        return PerturbationRandomizationMatrix::rand_matrix_.getPerturbation(num_adjustments_, quantum_);
     }
 
 }  // namespace Cork::Intersection

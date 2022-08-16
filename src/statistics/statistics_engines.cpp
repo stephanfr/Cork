@@ -70,7 +70,7 @@ namespace Cork::Statistics
 
                     double temp = tri_by_verts.vertexA().dot(ABcrossAC);
 
-                    volume_ += temp / 6;
+                    volume_ += temp / 6;        //  NOLINT(cppcoreguidelines-avoid-magic-numbers)
                 }
 
                 //	Update the min/max edge lengths
@@ -97,7 +97,7 @@ namespace Cork::Statistics
         //  First, look for non 2 manifold edges
 
         int num_non_2_manifold = 0;
-        int num_edges = 0;
+        size_t num_edges = 0;
 
         std::vector<NonManifoldEdge> non_manifold_edges;
         std::vector<BoundaryEdge> holes;

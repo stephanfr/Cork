@@ -328,7 +328,7 @@ namespace Cork::Meshes
         std::set<TriangleByIndicesIndex, std::greater<>> all_triangles_to_remove;
         std::vector<TriangleByIndices> all_triangles_to_add;
 
-        all_triangles_to_add.reserve(1000);
+        all_triangles_to_add.reserve(TRIANGLE_MESH_NUM_TRIANGLES_ADDED_TO_CLOSE_SI_INITIAL_SIZE);
 
         for (const auto& resolution : resolution_plan.resolutions())
         {

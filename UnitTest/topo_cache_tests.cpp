@@ -131,14 +131,14 @@ TEST_CASE("Topo Cache Tests", "[core]")
 
         std::vector<const Cork::Meshes::TopoTri*>   tris_to_delete;
         
-        for( auto itr = vert_to_be_deleted->triangles().begin(); itr != vert_to_be_deleted->triangles().end(); itr++ )
+        for( auto tri_to_delete : vert_to_be_deleted->triangles() )
         {
-            tris_to_delete.push_back( *itr );
+            tris_to_delete.push_back( tri_to_delete );
         }
 
-        for( auto itr = tris_to_delete.begin(); itr != tris_to_delete.end(); itr++ )
+        for( auto tri_to_delete : tris_to_delete )
         {
-            topo_cache.delete_tri( const_cast<Cork::Meshes::TopoTri*>(*itr) );
+            topo_cache.delete_tri( const_cast<Cork::Meshes::TopoTri*>(tri_to_delete) );     //  NOLINT(cppcoreguidelines-pro-type-const-cast)
         }
 
         REQUIRE( topo_cache.triangles().size() == 48 - tris_to_delete.size() );

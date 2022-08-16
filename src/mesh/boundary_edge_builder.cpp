@@ -107,7 +107,7 @@ namespace Cork::Meshes
         {
             fell_through = true;
 
-            for (size_t i = 0; i < edges.size(); i++)
+            for (long i = 0; i < edges.size(); i++)
             {
                 if (add_edge(edges[i]))
                 {
@@ -239,9 +239,9 @@ namespace Cork::Meshes
         {
             bool break_to_while = false;
 
-            for (size_t i = 0; i < boundary.size() - 1 && !break_to_while; i++)
+            for (long i = 0; i < boundary.size() - 1 && !break_to_while; i++)
             {
-                for (size_t j = i + 1; j < boundary.size() && !break_to_while; j++)
+                for (long j = i + 1; j < boundary.size() && !break_to_while; j++)
                 {
                     if (boundary[i] == boundary[j])
                     {

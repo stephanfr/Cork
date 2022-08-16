@@ -306,7 +306,7 @@ TEST_CASE("Topology Tests", "[file io]")
         REQUIRE(topo_stats.return_value().holes().size() == 0);
         REQUIRE(topo_stats.return_value().self_intersecting_edges().size() == 178);
 
-        mesh->remove_self_intersections(topo_stats.return_value());
+        auto remove_sis_result = mesh->remove_self_intersections(topo_stats.return_value());
 
         auto topo_stats_after_se_removal =
             mesh->ComputeTopologicalStatistics(Cork::Statistics::TopologicalProperties::TOPO_ALL);
@@ -324,4 +324,4 @@ TEST_CASE("Topology Tests", "[file io]")
     }
 }
 
-//  NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+//  NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
